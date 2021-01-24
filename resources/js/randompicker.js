@@ -82,7 +82,7 @@ function shuffleArray(array) {
     }
 }
 
-function ClickSound(soundObj) {
+function ClickSound() {
     //var sound = document.getElementById(soundObj);
     //sound.Play();
 
