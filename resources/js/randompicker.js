@@ -51,7 +51,7 @@ function myTimer() {
   }
   beat--;
 
-  ClickSound("click1");
+  ClickSound();
   updateInterval();
 
 }
@@ -91,7 +91,7 @@ function ClickSound(soundObj) {
     if (document.getElementById("mute").checked){
         //audio.play();
         window.sounds['click.flac'].play();
-        consloe.console.log("click");
+        console.log("click");
     }
     //
 }
