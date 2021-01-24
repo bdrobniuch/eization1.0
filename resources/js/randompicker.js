@@ -88,7 +88,8 @@ function ClickSound() {
 
     //
     //audio.load();
-    if (document.getElementById("mute").checked){
+    
+    if (document.getElementById("mute").checked == true){
         //audio.play();
         window.sounds['click.flac'].play();
         console.log("click");

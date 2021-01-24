@@ -3,7 +3,6 @@ html,
 body  {
     height: 100%;
     margin: 0;
-    font-family: 'OpenSans';
     color: #b0b0b0;
     background-color: #161618;
   }
@@ -45,7 +44,6 @@ footer {
 
 #bpm {
     font-size: 20vh;
-    font-family: 'OpenSans';
     color: #b0b0b0;
     background-color: #161618;
 
@@ -65,6 +63,11 @@ footer {
 
 #bar {
     width: 100%;
+}
+
+#mute {
+  height: 20px;
+  width: 20px;
 }
   
 
