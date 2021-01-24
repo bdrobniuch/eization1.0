@@ -10,7 +10,9 @@
 <body>
     <audio src="./resources/wav/metronome.wav" autostart="false" width="1" height="1" id="click1"
     enablejavascript="true"></audio>
-    <div>
+    
+    <div id="divnote">
+        
         <p id="note">
             C<sup><small></small></sup>
         </p>
@@ -18,10 +20,11 @@
     </div>
         
     <footer>
-        <input type="checkbox" id="mute" onclick="Unmute()" onchange="Unmute()" />
-        <label for="scales">Click</label>
-        <input type="number" name="" id="bpm" MIN="10" MAX="300" STEP="1" VALUE="100" size="3" onchange="updateInterval()">
-        <progress id="bar" value="0" max="3"> 32% </progress>
+        <div id="divfooter">
+            <input type="checkbox" id="mute" onclick="Unmute()" onchange="Unmute()" />
+            <input type="number" name="" id="bpm" MIN="10" MAX="300" STEP="1" VALUE="100" maxlength="3" onchange="updateInterval()">
+        </div>
+        <progress id="bar" value="0" max="3"> 3 </progress>
     </footer>
     <script src="./resources/js/randompicker.js"></script>
 </body>

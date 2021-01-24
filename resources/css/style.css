@@ -7,12 +7,18 @@ body  {
     background-color: #161618;
   }
   
-div {
+#divnote {
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
 
+}
+
+#divfooter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
 }
 
 #note {
@@ -40,10 +46,12 @@ footer {
     background-color: transparent;
     width: 100%;
     text-align: right;
+
   }
 
 #bpm {
-    font-size: 20vh;
+    font-size: 20vmin;
+    width: 2em;
     color: #b0b0b0;
     background-color: #161618;
 
@@ -66,8 +74,11 @@ footer {
 }
 
 #mute {
-  height: 20px;
-  width: 20px;
+  height: 20vmin;
+  width: 20vmin;
+
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
 }
   
 

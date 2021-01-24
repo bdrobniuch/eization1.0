@@ -50,7 +50,7 @@ function myTimer() {
     beat = 4;
   }
   beat--;
-
+  document.getElementById("bar").value = beat;  
   ClickSound();
   updateInterval();
 
