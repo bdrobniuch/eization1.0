@@ -84,8 +84,16 @@ function ClickSound(soundObj) {
     //var sound = document.getElementById(soundObj);
     //sound.Play();
 
-    var audio = new Audio('./resources/wav/metronome.wav');
-    audio.play();
+    //var audio = new Audio('./resources/wav/metronome.wav');
+    //audio.play();
+    window.sounds['metronome.wav'].play();
 }
 
+function Unmute() {
+    window.sounds = new Object();
+    var sound = new Audio('./resources/wav/metronome.wav');
+    sound.load();
+    window.sounds['metronome.wav'] = sound;
+    console.log("unmuted");
+}
 
