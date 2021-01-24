@@ -116,21 +116,89 @@ function ClickSound() {
 
     //
     //audio.load();
-    
+    /*
     if (document.getElementById("mute").checked == true){
         //audio.play();
-        window.sounds['click.flac'].play();
-        console.log("click");
+        //window.sounds['click.flac'].play();
+        //console.log("click");
+
+        scheduler();
+    } else {
+        clearTimeout(timerID);
     }
+    */
     //
+    if (document.getElementById("mute").checked == true){
+        //audio.play();
+        //window.sounds['click.flac'].play();
+        console.log("click" , timerID);
+        if (timerID==undefined) {
+            scheduler();
+        }
+        
+    } else {
+        console.log("clickoff", timerID);
+        if (timerID!=undefined) {
+            clearTimeout(timerID);
+            timerID = undefined;
+        }
+        
+    }
 }
 
 function Unmute() {
-    window.sounds = new Object();
-    var sound = new Audio('./resources/wav/click.flac');
-    sound.load();
-    window.sounds['click.flac'] = sound;
+    //window.sounds = new Object();
+    //var sound = new Audio('./resources/wav/click.flac');
+    //sound.load();
+    //window.sounds['click.flac'] = sound;
     //console.log("unmuted");
     //audio.load();
+    //audioContext = new AudioContext();
+    //nextNotetime = audioContext.currentTime;
+
 }
 
+
+///////////audio context
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+var audioContext = new AudioContext();
+var nextNotetime;
+//var clock = document.getElementById("clock");
+//var nextNote = document.getElementById("nextNote");
+//var startBtn = document.getElementById("startBtn");
+//var stopBtn = document.getElementById("stopBtn");
+var timerID = undefined;
+
+//setInterval(function(){ clock.innerHTML = audioContext.currentTime; }, 500);
+
+function playSound(time) {
+  
+  var osc = audioContext.createOscillator();
+  osc.connect(audioContext.destination);
+  osc.frequency.value = 4000;
+  osc.start(time);
+  osc.stop(time + 0.05);
+};
+
+function scheduler() {
+
+    while(nextNotetime < audioContext.currentTime + 0.1) {
+        var bpm = document.getElementById("bpm").value;
+        if (bpm <10) {
+            bpm =10;
+        }
+        nextNotetime += 60 /  bpm;
+        //nextNote.innerHTML = nextNotetime;
+        playSound(nextNotetime);
+    }
+
+   timerID = window.setTimeout(scheduler, 50.0);
+}
+
+
+if(audioContext.state === 'suspended'){
+  audioContext.resume();
+  nextNotetime = audioContext.currentTime;
+};
