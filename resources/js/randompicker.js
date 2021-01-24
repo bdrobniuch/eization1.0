@@ -87,7 +87,7 @@ function ClickSound(soundObj) {
     //sound.Play();
 
     //
-    audio.load();
+    //audio.load();
     audio.play();
     //window.sounds['metronome.wav'].play();
 }
