@@ -1,5 +1,5 @@
 
-var audio = new Audio('./resources/wav/metronome.wav');
+var audio = new Audio('./resources/wav/click.flac');
 
 var interval = 1000;
 var myVar = setInterval(myTimer, 1000);
