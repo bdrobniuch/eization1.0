@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">   
+    <title>eization 1.0</title>
+    <link rel="stylesheet" href="./resources/css/style.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=OpenSans">
+</head>
+<body>
+    <audio src="./resources/wav/metronome.wav" autostart="false" width="1" height="1" id="click1"
+    enablejavascript="true"></audio>
+    <div>
+        <p id="note">
+            C<sup><small></small></sup>
+        </p>
+        
+    </div>
+        
+    <footer>
+        
+        <input type="number" name="" id="bpm" MIN="10" MAX="300" STEP="1" VALUE="100" onchange="updateInterval()">
+        <progress id="bar" value="0" max="3"> 32% </progress>
+    </footer>
+    <script src="./resources/js/randompicker.js"></script>
+</body>
+</html>
