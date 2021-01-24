@@ -1,5 +1,5 @@
 
-var audio = new Audio('./resources/wav/click.flac');
+//var audio = new Audio('./resources/wav/click.flac');
 
 var interval = 1000;
 var myVar = setInterval(myTimer, 1000);
@@ -50,7 +50,7 @@ function myTimer() {
     beat = 4;
   }
   beat--;
-  document.getElementById("bar").value = beat;  
+
   ClickSound("click1");
   updateInterval();
 
@@ -88,17 +88,20 @@ function ClickSound(soundObj) {
 
     //
     //audio.load();
-    audio.load();
-    audio.play();
-    //window.sounds['metronome.wav'].play();
+    if (document.getElementById("mute").checked){
+        //audio.play();
+        window.sounds['click.flac'].play();
+        consloe.console.log("click");
+    }
+    //
 }
 
 function Unmute() {
-    //window.sounds = new Object();
-    //var sound = new Audio('./resources/wav/metronome.wav');
-    //sound.load();
-    //window.sounds['metronome.wav'] = sound;
+    window.sounds = new Object();
+    var sound = new Audio('./resources/wav/click.flac');
+    sound.load();
+    window.sounds['click.flac'] = sound;
     //console.log("unmuted");
-    audio.load();
+    //audio.load();
 }
 
