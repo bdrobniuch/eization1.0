@@ -1,4 +1,6 @@
 
+var audio = new Audio('./resources/wav/metronome.wav');
+
 var interval = 1000;
 var myVar = setInterval(myTimer, 1000);
 var chromaticScale = [
@@ -84,16 +86,17 @@ function ClickSound(soundObj) {
     //var sound = document.getElementById(soundObj);
     //sound.Play();
 
-    //var audio = new Audio('./resources/wav/metronome.wav');
-    //audio.play();
-    window.sounds['metronome.wav'].play();
+    //
+    audio.play();
+    //window.sounds['metronome.wav'].play();
 }
 
 function Unmute() {
-    window.sounds = new Object();
-    var sound = new Audio('./resources/wav/metronome.wav');
-    sound.load();
-    window.sounds['metronome.wav'] = sound;
-    console.log("unmuted");
+    //window.sounds = new Object();
+    //var sound = new Audio('./resources/wav/metronome.wav');
+    //sound.load();
+    //window.sounds['metronome.wav'] = sound;
+    //console.log("unmuted");
+    audio.load();
 }
 
