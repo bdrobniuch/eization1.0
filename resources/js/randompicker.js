@@ -7,14 +7,14 @@ var chromaticScale = [
     "C<sup><small> </small></sup>",
     "C<sup><small> </small></sup>",
 
-    "C<sup><small>♯</small></sup>",
-    "D<sup><small>♭</small></sup>",
+    "C<sup><small>&#9839</small></sup>",
+    "D<sup><small>&#9837</small></sup>",
 
     "D<sup><small> </small></sup>",
     "D<sup><small> </small></sup>",
 
-    "D<sup><small>♯</small></sup>",
-    "E<sup><small>♭</small></sup>",
+    "D<sup><small>&#9839</small></sup>",
+    "E<sup><small>&#9837</small></sup>",
 
     "E<sup><small> </small></sup>",
     "E<sup><small> </small></sup>",
@@ -22,20 +22,20 @@ var chromaticScale = [
     "F<sup><small> </small></sup>",
     "F<sup><small> </small></sup>",
 
-    "F<sup><small>♯</small></sup>",
-    "G<sup><small>♭</small></sup>",
+    "F<sup><small>&#9839</small></sup>",
+    "G<sup><small>&#9837</small></sup>",
 
     "G<sup><small> </small></sup>",
     "G<sup><small> </small></sup>",
 
-    "G<sup><small>♯</small></sup>",
-    "A<sup><small>♭</small></sup>",
+    "G<sup><small>&#9839</small></sup>",
+    "A<sup><small>&#9837</small></sup>",
 
     "A<sup><small> </small></sup>",
     "A<sup><small> </small></sup>",
 
-    "A<sup><small>♯</small></sup>",
-    "B<sup><small>♭</small></sup>",
+    "A<sup><small>&#9839</small></sup>",
+    "B<sup><small>&#9837</small></sup>",
 
     "B<sup><small> </small></sup>",
     "B<sup><small> </small></sup>"
