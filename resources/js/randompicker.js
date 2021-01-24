@@ -3,6 +3,34 @@
 
 var interval = 1000;
 var myVar = setInterval(myTimer, 1000);
+
+var chromaticScale2 = [
+    "C ",
+    "C ",
+    "C&#9839",
+    "D&#9837",
+    "D ",
+    "D ",
+    "D&#9839 ",
+    "E&#9837",
+    "E ",
+    "E ",
+    "F ",
+    "F ",
+    "F&#9839 ",
+    "G&#9837",
+    "G ",
+    "G ",
+    "G&#9839 ",
+    "A&#9837",
+    "A ",
+    "A ",
+    "A&#9839 ",
+    "B&#9837",
+    "B ",
+    "B "
+];
+
 var chromaticScale = [
     "C<sup><small> </small></sup>",
     "C<sup><small> </small></sup>",
