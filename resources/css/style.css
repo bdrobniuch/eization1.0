@@ -25,7 +25,7 @@ body  {
   text-align:center;
   vertical-align: middle;
   margin: 0;
-  font-size: 60vh;
+  font-size: 60vmin;
 
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -51,22 +51,22 @@ footer {
 
 #bpm {
     font-size: 20vmin;
-    width: 2em;
     color: #b0b0b0;
     background-color: #161618;
-
+    text-align: center;
 
     box-sizing: border-box;
     border: 3px solid #b0b0b0;
     -webkit-transition: 0.5s;
     transition: 0.5s;
     opacity: 0.2;
-
+    width: 4ch;
 
 }
 
 #bpm:focus {
     opacity: 1;
+
 }
 
 #bar {
