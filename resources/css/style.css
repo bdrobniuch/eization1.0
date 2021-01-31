@@ -18,7 +18,7 @@ body  {
 #divfooter {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-end;;
 }
 
 #note {
@@ -49,7 +49,7 @@ footer {
   }
 
 #bpm {
-    font-size: 20vmin;
+    font-size: 15vmin;
     color: #b0b0b0;
     background-color: #161618;
     text-align: center;
@@ -60,6 +60,14 @@ footer {
     transition: 0.5s;
     opacity: 0.2;
 
+}
+
+#counter { 
+  font-size: 5vmin;
+  color: #b0b0b0;
+  float:left;
+  margin:0 auto;
+  opacity: 0.2;
 }
 
 #bpm:focus {

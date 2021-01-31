@@ -2,34 +2,8 @@
 //var audio = new Audio('./resources/wav/click.flac');
 
 var interval = 1000;
+var countnotes = 0;
 var myVar = setInterval(myTimer, 1000);
-
-var chromaticScale2 = [
-    "C ",
-    "C ",
-    "C&#9839",
-    "D&#9837",
-    "D ",
-    "D ",
-    "D&#9839 ",
-    "E&#9837",
-    "E ",
-    "E ",
-    "F ",
-    "F ",
-    "F&#9839 ",
-    "G&#9837",
-    "G ",
-    "G ",
-    "G&#9839 ",
-    "A&#9837",
-    "A ",
-    "A ",
-    "A&#9839 ",
-    "B&#9837",
-    "B ",
-    "B "
-];
 
 var chromaticScale = [
     "C<sup><small> </small></sup>",
@@ -74,14 +48,15 @@ var beat = 4;
 
 function myTimer() {
   if (beat==0) {
+    countnotes++;
     document.getElementById("note").innerHTML  = pickANote();
+    document.getElementById("counter").innerHTML  = countnotes;
     beat = 4;
   }
   beat--;
   document.getElementById("bar").value = beat;  
-  ClickSound();
   updateInterval();
-
+  //ClickSound();
 }
 
 function updateInterval()
@@ -110,13 +85,15 @@ function shuffleArray(array) {
     }
 }
 
+/*
+
 function ClickSound() {
     //var sound = document.getElementById(soundObj);
     //sound.Play();
 
     //
     //audio.load();
-    /*
+
     if (document.getElementById("mute").checked == true){
         //audio.play();
         //window.sounds['click.flac'].play();
@@ -126,7 +103,7 @@ function ClickSound() {
     } else {
         clearTimeout(timerID);
     }
-    */
+
     //
     if (document.getElementById("mute").checked == true){
         //audio.play();
@@ -145,6 +122,7 @@ function ClickSound() {
         
     }
 }
+
 
 function Unmute() {
     //window.sounds = new Object();
@@ -202,3 +180,4 @@ if(audioContext.state === 'suspended'){
   audioContext.resume();
   nextNotetime = audioContext.currentTime;
 };
+*/
