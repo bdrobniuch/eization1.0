@@ -60,13 +60,18 @@ function myTimer() {
 }
 
 function updateInterval()
-{
-    var newInterval = Math.round(1000*60/document.getElementById("bpm").value);
-    if (newInterval != interval) {
-        interval = newInterval;
-        clearInterval(myVar);
-        myVar = setInterval(myTimer, interval);
-      }
+{   
+    var bpm = document.getElementById("bpm").value;
+    var newInterval = Math.round(1000*60/bpm);
+    console.log(bpm);
+    if ((bpm >= 10)&&(bpm <= 400)) {      
+        console.log("ok", bpm);
+        if (newInterval != interval) {
+            interval = newInterval;
+            clearInterval(myVar);
+            myVar = setInterval(myTimer, interval);
+        }
+    }
 }
 
 function pickANote () {
