@@ -12,7 +12,6 @@ body  {
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
 
 #divfooter {
@@ -24,8 +23,7 @@ body  {
 #note {
 
   margin: 0;
-  font-size: 70vmin;
-
+  font-size: 24vmin;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
