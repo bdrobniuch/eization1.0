@@ -7,12 +7,18 @@ body  {
     background-color: #161618;
   }
   
+
+
 #divnote {
-    height: 80vmin;
+
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+  height: auto;
 }
+
+
 
 #divfooter {
   display: flex;
@@ -20,10 +26,29 @@ body  {
   justify-content: flex-end;;
 }
 
+#selectdiv {
+  display: block;
+}
+
+#linediv{
+
+
+  display: flex;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  justify-content: space-between; 
+}
+
+#editdiv {
+  display:inline-block
+}
+
 #note {
 
   margin: 0;
-  font-size: 70vmin;
+  font-size: 55vmin;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -67,28 +92,28 @@ footer {
 #counter { 
   font-size: 10vmin;
   color: #b0b0b0;
-  float:left;
-  margin:0 auto;
+  display:contents;
   opacity: 0.2;
 }
 
 
 
 #edit {
-  font-size: 10vmin;
+  font-size: 8vmin;
   opacity: 0.2;
-  float:right;
+  
 
 }
 
 
 #exerciseSelect { 
-  font-size: 10vmin;
+  font-size: 8vmin;
+  
   color: #b0b0b0;
-  float:right;
-  margin:0 auto;
+  width: auto;
+
   opacity: 0.2;
-  width: 100%;
+
   background-color: #161618;
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
   -moz-box-sizing: border-box;    /* Firefox, other Gecko */

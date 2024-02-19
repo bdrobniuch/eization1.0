@@ -10,38 +10,46 @@
 <body>
     
 
-    <div>
-        <select name="pets" id="exerciseSelect" onchange="SelectExercise();" onfocus="this.selectedIndex = -1;">
-            <option value="allNotes">Notes</option>
-            <option value="allChords">All Chords</option>
-            <option value="oneTwoThreeFour">1,2,3,4</option>
-            <option value="playRest">Play/Rest</option>
-        </select>
+    <div id="selectdiv">
+
     </div>
 
+    <div id="editdivcontainer">
+        
+        <div  id="linediv">
+            <p  id="counter">0</p>
 
+            <div id="editdiv">
+                <select  id="exerciseSelect" onchange="SelectExercise();" onfocus="this.selectedIndex = -1;">
+                    <option value="allNotes">Notes</option>
+                    <option value="allChords">All Chords</option>
+                    <option value="oneTwoThreeFour">1,2,3,4</option>
+                    <option value="playRest">Play/Rest</option>
+                </select>
+                <button id="edit" onclick="ToggleEdit()"><i class="fa-solid fa-pen-to-square"></i></button>
+            </div>
+
+        </div>
+
+    </div>
     <div id="textdiv">
         <textarea id="allEdit">df</textarea>
     </div>
 
 
+ 
 
-    <div>
-        <p  id="counter">0</p>
-
-        <button id="edit" onclick="ToggleEdit()"><i class="fa-solid fa-pen-to-square"></i></button>
-    </div>
-
-    <div>
-
-        <div id="divnote">
-           
-            <p id="note">
-                C<sup><small></small></sup>
-            </p>
     
-        </div>
+    <div id="divnote">
+    
+
+
+        <p id="note">
+            C<sup><small></small></sup>
+        </p>
+
     </div>
+
         
     <footer>
         <div id="divfooter">

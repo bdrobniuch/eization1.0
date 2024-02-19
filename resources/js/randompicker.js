@@ -3,7 +3,7 @@ var interval = 1000;
 var countnotes = 0;
 var myVar = setInterval(myTimer, 1000);
 
-var allNotesFontSize = 70;
+var allNotesFontSize =55;
 var allNotes = [
     "C<sup><small> </small></sup>",
     "C<sup><small> </small></sup>",
