@@ -8,7 +8,7 @@ body  {
   }
   
 #divnote {
-    height: 90%;
+    height: 80vmin;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -34,7 +34,9 @@ body  {
 } 
 
 
-
+header {
+  text-align: right;
+}
 
 footer {
     position: fixed;
@@ -45,6 +47,8 @@ footer {
     text-align: right;
 
   }
+
+
 
 #bpm {
     font-size: 15vmin;
@@ -61,12 +65,35 @@ footer {
 }
 
 #counter { 
-  font-size: 5vmin;
+  font-size: 10vmin;
   color: #b0b0b0;
   float:left;
   margin:0 auto;
   opacity: 0.2;
 }
+
+
+
+#edit {
+  font-size: 10vmin;
+  opacity: 0.2;
+  float:right;
+
+}
+
+
+#exerciseSelect { 
+  font-size: 10vmin;
+  color: #b0b0b0;
+  float:right;
+  margin:0 auto;
+  opacity: 0.2;
+  width: 100%;
+  background-color: #161618;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;         /* Opera/IE 8+ */
+} 
 
 #bpm:focus {
     opacity: 1;
@@ -76,19 +103,23 @@ footer {
 #bar {
     width: 100%;
 }
-
-#mute {
-  height: 20vmin;
-  width: 20vmin;
-
-  -webkit-transition: 0.5s;
-  transition: 0.5s;
-  opacity: 0.2;
-}
-
-#mute:focus {
-  opacity: 1;
-}
   
+
+textarea {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: scroll;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;         /* Opera/IE 8+ */
+}
+
+#textdiv {
+  height: 50%;
+  display: none;
+}
 
 
