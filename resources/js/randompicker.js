@@ -658,7 +658,7 @@ function myTimer() {
   beat--;
   document.getElementById("bar").value = beat;  
   updateInterval();
-  //ClickSound();
+
 }
 
 function updateInterval()
@@ -690,4 +690,13 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+function newExercise(newChromaticScale) {
+    chromaticScale= newChromaticScale;
+    var chromaticScaleFontSize= window[document.getElementById("exerciseSelect").value+"FontSize"];
+    document.getElementById("note").style.fontSize=chromaticScaleFontSize+"vmin";
+    notePool = [];
+    document.getElementById("textdiv").style.display = "none";
+    document.getElementById("note").innerHTML  = "";
 }
