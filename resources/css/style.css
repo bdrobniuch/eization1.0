@@ -106,6 +106,13 @@ footer {
 
 }
 
+#next {
+  font-size: 15vmin;
+  opacity: 0.2;
+  
+
+}
+
 
 #exerciseSelect { 
   font-size: 8vmin;

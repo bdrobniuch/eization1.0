@@ -696,6 +696,18 @@ function myTimer() {
 
 }
 
+function next() {
+    
+        countnotes++;
+        document.getElementById("note").innerHTML  = pickANote();
+        document.getElementById("counter").innerHTML  = countnotes;
+        beat = 4;
+
+      beat--;
+      document.getElementById("bar").value = beat;  
+      updateInterval();   
+}
+
 function updateInterval()
 {   
     var bpm = document.getElementById("bpm").value;
