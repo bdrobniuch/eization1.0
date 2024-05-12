@@ -701,7 +701,7 @@ function updateInterval()
     var bpm = document.getElementById("bpm").value;
     var newInterval = Math.round(1000*60/bpm);
     console.log(bpm);
-    if ((bpm >= 10)&&(bpm <= 400)) {      
+    if ((bpm >= 1)&&(bpm <= 500)) {      
         console.log("ok", bpm);
         if (newInterval != interval) {
             interval = newInterval;
