@@ -3,7 +3,7 @@ var interval = 1000;
 var countnotes = 0;
 var myVar = setInterval(myTimer, 1000);
 
-var allNotesFontSize =55;
+var allNotesFontSize = 55;
 var allNotes = [
     "C<sup><small> </small></sup>",
     "C<sup><small> </small></sup>",
@@ -80,8 +80,8 @@ var allChords = [
     "B<sup><small></small><small><small></sup>&#8710;7</small></small>",
     "B<sup><small></small><small><small></sup>&#8710;7</small></small>",
 
-  
-    
+
+
     "C<sup><small></small><small><small></sup>-7</small></small>",
     "C<sup><small></small><small><small></sup>-7</small></small>",
 
@@ -156,8 +156,8 @@ var allChords = [
 
     "B<sup><small></small><small><small></sup>7</small></small>",
     "B<sup><small></small><small><small></sup>7</small></small>",
-    
-    
+
+
 
 
     "C<sup><small></small><small><small></sup>&#248;7</small></small>",
@@ -620,42 +620,98 @@ var augmented = [
     "B&#129043G&#129043E<sup><small>&#9837</small></sup>",
     "B&#129041G&#129043E<sup><small>&#9837</small></sup>",
     "B&#129043G&#129041E<sup><small>&#9837</small></sup>"
-    ]
+]
 
-    var fingersFontSize = 20;
-    var fingers = [
-        "&#9746;&#9746;&#9746;&#9746;&#9746;",
-        "&#9746;&#9746;&#9746;&#9746;&#9744;",
-        "&#9746;&#9746;&#9746;&#9744;&#9746;",
-        "&#9746;&#9746;&#9746;&#9744;&#9744;",
-        "&#9746;&#9746;&#9744;&#9746;&#9746;",
-        "&#9746;&#9746;&#9744;&#9746;&#9744;",
-        "&#9746;&#9746;&#9744;&#9744;&#9746;",
-        "&#9746;&#9746;&#9744;&#9744;&#9744;",
-        "&#9746;&#9744;&#9746;&#9746;&#9746;",
-        "&#9746;&#9744;&#9746;&#9746;&#9744;",
-        "&#9746;&#9744;&#9746;&#9744;&#9746;",
-        "&#9746;&#9744;&#9746;&#9744;&#9744;",
-        "&#9746;&#9744;&#9744;&#9746;&#9746;",
-        "&#9746;&#9744;&#9744;&#9746;&#9744;",
-        "&#9746;&#9744;&#9744;&#9744;&#9746;",
-        "&#9746;&#9744;&#9744;&#9744;&#9744;",
-        "&#9744;&#9746;&#9746;&#9746;&#9746;",
-        "&#9744;&#9746;&#9746;&#9746;&#9744;",
-        "&#9744;&#9746;&#9746;&#9744;&#9746;",
-        "&#9744;&#9746;&#9746;&#9744;&#9744;",
-        "&#9744;&#9746;&#9744;&#9746;&#9746;",
-        "&#9744;&#9746;&#9744;&#9746;&#9744;",
-        "&#9744;&#9746;&#9744;&#9744;&#9746;",
-        "&#9744;&#9746;&#9744;&#9744;&#9744;",
-        "&#9744;&#9744;&#9746;&#9746;&#9746;",
-        "&#9744;&#9744;&#9746;&#9746;&#9744;",
-        "&#9744;&#9744;&#9746;&#9744;&#9746;",
-        "&#9744;&#9744;&#9746;&#9744;&#9744;",
-        "&#9744;&#9744;&#9744;&#9746;&#9746;",
-        "&#9744;&#9744;&#9744;&#9746;&#9744;",
-        "&#9744;&#9744;&#9744;&#9744;&#9746;"
-    ]
+var fingersFontSize = 20;
+var fingers = [
+    "&#9746;&#9746;&#9746;&#9746;&#9746;",
+    "&#9746;&#9746;&#9746;&#9746;&#9744;",
+    "&#9746;&#9746;&#9746;&#9744;&#9746;",
+    "&#9746;&#9746;&#9746;&#9744;&#9744;",
+    "&#9746;&#9746;&#9744;&#9746;&#9746;",
+    "&#9746;&#9746;&#9744;&#9746;&#9744;",
+    "&#9746;&#9746;&#9744;&#9744;&#9746;",
+    "&#9746;&#9746;&#9744;&#9744;&#9744;",
+    "&#9746;&#9744;&#9746;&#9746;&#9746;",
+    "&#9746;&#9744;&#9746;&#9746;&#9744;",
+    "&#9746;&#9744;&#9746;&#9744;&#9746;",
+    "&#9746;&#9744;&#9746;&#9744;&#9744;",
+    "&#9746;&#9744;&#9744;&#9746;&#9746;",
+    "&#9746;&#9744;&#9744;&#9746;&#9744;",
+    "&#9746;&#9744;&#9744;&#9744;&#9746;",
+    "&#9746;&#9744;&#9744;&#9744;&#9744;",
+    "&#9744;&#9746;&#9746;&#9746;&#9746;",
+    "&#9744;&#9746;&#9746;&#9746;&#9744;",
+    "&#9744;&#9746;&#9746;&#9744;&#9746;",
+    "&#9744;&#9746;&#9746;&#9744;&#9744;",
+    "&#9744;&#9746;&#9744;&#9746;&#9746;",
+    "&#9744;&#9746;&#9744;&#9746;&#9744;",
+    "&#9744;&#9746;&#9744;&#9744;&#9746;",
+    "&#9744;&#9746;&#9744;&#9744;&#9744;",
+    "&#9744;&#9744;&#9746;&#9746;&#9746;",
+    "&#9744;&#9744;&#9746;&#9746;&#9744;",
+    "&#9744;&#9744;&#9746;&#9744;&#9746;",
+    "&#9744;&#9744;&#9746;&#9744;&#9744;",
+    "&#9744;&#9744;&#9744;&#9746;&#9746;",
+    "&#9744;&#9744;&#9744;&#9746;&#9744;",
+    "&#9744;&#9744;&#9744;&#9744;&#9746;"
+]
+
+var licksFontSize = 30;
+var licks = [
+    "L-A1",
+    "L-A2",
+    "L-A3",
+    "L-A4",
+    "L-A5",
+    "L-A6",
+    "L-A7",
+    "L-A8",
+    "L-A9",
+    "L-A10",
+    "L-A11",
+    "L-A12",
+    "L-A13",
+    "L-A14",
+    "L-A15",
+    "L-A16",
+    "L-A17",
+    "L-A18",
+    "L-B1",
+    "L-B2",
+    "L-B3",
+    "L-B4",
+    "L-B5",
+    "L-B6",
+    "L-B7",
+    "L-B8",
+    "L-B9",
+    "L-B10",
+    "L-B11",
+    "L-B12",
+    "L-B13",
+    "L-C1",
+    "L-C2",
+    "L-C3",
+    "L-C4",
+    "L-C5",
+    "L-C6",
+    "L-C7",
+    "L-C8",
+    "L-C9",
+    "L-C10",
+    "L-C11",
+    "L-D1",
+    "L-D2",
+    "L-D3",
+    "L-D4",
+    "L-D5",
+    "L-D6",
+    "L-D7",
+    "L-D8",
+    "L-D9"
+
+]
 
 var augmented2 = [
     "C E A<sup><small>&#9837</small></sup>",
@@ -675,7 +731,7 @@ var augmented2 = [
     "F<sup><small>&#9839</small></sup> D B<sup><small>&#9837</small></sup>",
     "F<sup><small>&#9839</small></sup> B<sup><small>&#9837</small></sup> D",
     "B<sup><small>&#9837</small></sup> D F<sup><small>&#9839</small></sup>",
-    "B<sup><small>&#9837</small></sup> F<sup><small>&#9839</small></sup> D"    
+    "B<sup><small>&#9837</small></sup> F<sup><small>&#9839</small></sup> D"
 ]
 
 var chromaticScale = allNotes;
@@ -684,36 +740,35 @@ var notePool = [];
 var beat = 4;
 
 function myTimer() {
-  if (beat==0) {
-    countnotes++;
-    document.getElementById("note").innerHTML  = pickANote();
-    document.getElementById("counter").innerHTML  = countnotes;
-    beat = 4;
-  }
-  beat--;
-  document.getElementById("bar").value = beat;  
-  updateInterval();
+    if (beat == 0) {
+        countnotes++;
+        document.getElementById("note").innerHTML = pickANote();
+        document.getElementById("counter").innerHTML = countnotes;
+        beat = 4;
+    }
+    beat--;
+    document.getElementById("bar").value = beat;
+    updateInterval();
 
 }
 
 function next() {
-    
-        countnotes++;
-        document.getElementById("note").innerHTML  = pickANote();
-        document.getElementById("counter").innerHTML  = countnotes;
-        beat = 4;
 
-      beat--;
-      document.getElementById("bar").value = beat;  
-      updateInterval();   
+    countnotes++;
+    document.getElementById("note").innerHTML = pickANote();
+    document.getElementById("counter").innerHTML = countnotes;
+    beat = 4;
+
+    beat--;
+    document.getElementById("bar").value = beat;
+    updateInterval();
 }
 
-function updateInterval()
-{   
+function updateInterval() {
     var bpm = document.getElementById("bpm").value;
-    var newInterval = Math.round(1000*60/bpm);
+    var newInterval = Math.round(1000 * 60 / bpm);
     console.log(bpm);
-    if ((bpm >= 1)&&(bpm <= 500)) {      
+    if ((bpm >= 1) && (bpm <= 500)) {
         console.log("ok", bpm);
         if (newInterval != interval) {
             interval = newInterval;
@@ -723,9 +778,9 @@ function updateInterval()
     }
 }
 
-function pickANote () {
-  
-    if (notePool.length ==0) {
+function pickANote() {
+
+    if (notePool.length == 0) {
         notePool = [...chromaticScale];
         shuffleArray(notePool);
     }
@@ -740,10 +795,10 @@ function shuffleArray(array) {
 }
 
 function newExercise(newChromaticScale) {
-    chromaticScale= newChromaticScale;
-    var chromaticScaleFontSize= window[document.getElementById("exerciseSelect").value+"FontSize"];
-    document.getElementById("note").style.fontSize=chromaticScaleFontSize+"vmin";
+    chromaticScale = newChromaticScale;
+    var chromaticScaleFontSize = window[document.getElementById("exerciseSelect").value + "FontSize"];
+    document.getElementById("note").style.fontSize = chromaticScaleFontSize + "vmin";
     notePool = [];
     document.getElementById("textdiv").style.display = "none";
-    document.getElementById("note").innerHTML  = "";
+    document.getElementById("note").innerHTML = "";
 }
