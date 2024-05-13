@@ -761,21 +761,37 @@ function next() {
 
     beat--;
     document.getElementById("bar").value = beat;
-    updateInterval();
+    clearInterval(myVar);
+    myVar = setInterval(myTimer, interval);
 }
 
 function updateInterval() {
     var bpm = document.getElementById("bpm").value;
-    var newInterval = Math.round(1000 * 60 / bpm);
     console.log(bpm);
-    if ((bpm >= 1) && (bpm <= 500)) {
-        console.log("ok", bpm);
-        if (newInterval != interval) {
-            interval = newInterval;
+    if (bpm == 0)
+        {
             clearInterval(myVar);
-            myVar = setInterval(myTimer, interval);
+            console.log("timer stop");
+            interval = -1;
+        } else
+     {
+        var newInterval = Math.round(1000 * 60 / bpm);
+        
+        if ((bpm >= 1) && (bpm <= 500)) {
+
+            if (newInterval != interval) {
+                console.log("new", bpm);
+                beat = 4;
+                beat--;
+                document.getElementById("bar").value = beat;
+
+                interval = newInterval;
+                clearInterval(myVar);
+                myVar = setInterval(myTimer, interval);
+            }
         }
-    }
+     }
+
 }
 
 function pickANote() {
