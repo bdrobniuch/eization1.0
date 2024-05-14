@@ -1,7 +1,7 @@
 
 var interval = 1000;
 var countexercise = 0;
-var countnotes = 0;
+var countnotes = 1;
 var myVar = setInterval(myTimer, 1000);
 
 var allNotesFontSize = 55;
