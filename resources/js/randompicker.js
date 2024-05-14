@@ -1,5 +1,6 @@
 
 var interval = 1000;
+var countexercise = 0;
 var countnotes = 0;
 var myVar = setInterval(myTimer, 1000);
 
@@ -743,7 +744,7 @@ function myTimer() {
     if (beat == 0) {
         countnotes++;
         document.getElementById("note").innerHTML = pickANote();
-        document.getElementById("counter").innerHTML = countnotes;
+        document.getElementById("counter").innerHTML = countexercise + ":" + countnotes;
         beat = 4;
     }
     beat--;
@@ -756,7 +757,7 @@ function next() {
 
     countnotes++;
     document.getElementById("note").innerHTML = pickANote();
-    document.getElementById("counter").innerHTML = countnotes;
+    document.getElementById("counter").innerHTML = countexercise + ":" + countnotes;
     beat = 4;
 
     beat--;
@@ -799,6 +800,7 @@ function pickANote() {
     if (notePool.length == 0) {
         notePool = [...chromaticScale];
         shuffleArray(notePool);
+        countexercise++;
     }
     return notePool.pop();
 }
@@ -812,9 +814,12 @@ function shuffleArray(array) {
 
 function newExercise(newChromaticScale) {
     chromaticScale = newChromaticScale;
+    countexercise = 0;
+    countnotes = 0;
     var chromaticScaleFontSize = window[document.getElementById("exerciseSelect").value + "FontSize"];
     document.getElementById("note").style.fontSize = chromaticScaleFontSize + "vmin";
     notePool = [];
     document.getElementById("textdiv").style.display = "none";
     document.getElementById("note").innerHTML = "";
+    document.getElementById("counter").innerHTML = countexercise + ":" + countnotes;
 }
