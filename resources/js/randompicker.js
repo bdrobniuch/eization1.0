@@ -714,6 +714,30 @@ var licks = [
 
 ]
 
+var languageFontSize = 10;
+var language = [
+    "Diatonic triads / 7th Chords",
+    "Chromatic scale (ending with a 4th, 5th, 2nd)",
+    "Half diminished chord (+b6)",
+    "Major/Minor add2 triad (second / any inversion)",
+    "Major/Minor add4 triad (second / any inversion)",
+    "Melodic Minor scale (from a Maj7#5 chord)",
+    "Augmented scale (diatonic triads)",
+    "Whole-tone scale (diatonic triads, major triads)",
+    "Half-whole diminished scale (maj/min triad second inversion, diminished/minor root position, dim7 chord, 4ths, 7sus4, maj/min/dim triads)",
+    "Diatonic/Non-diatonic quartal chords (7sus4, tritonic, add11)",
+    "Blues scale (b3/b5 blue note)",
+    "Random notes (slap Piano)",
+    "Pentatonics",
+    "Triads (maj second inversion, min root position, augmented)",
+    "Kissing scales",
+    "Chords on 1 1& 2 2& 3 3& 4 4&",
+    "Chords moving chromatically/min3rd",
+    "McCoy Tyner 5th chords progression",
+    "note group triplet repeated",
+    "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd)"
+]
+
 var augmented2 = [
     "C E A<sup><small>&#9837</small></sup>",
     "C A<sup><small>&#9837</small></sup> E",
