@@ -717,7 +717,7 @@ var licks = [
 var languageFontSize = 10;
 var language = [
     "Diatonic triads / 7th Chords",
-    "Chromatic scale (ending with a 4th, 5th, 2nd)",
+    "Chromatic scale (ending with a 4th, 5th, 2nd, enclosure)",
     "Half diminished chord (+b6)",
     "Major/Minor add2 triad (second / any inversion)",
     "Major/Minor add4 triad (second / any inversion)",
@@ -733,9 +733,10 @@ var language = [
     "Kissing scales",
     "Chords on 1 1& 2 2& 3 3& 4 4&",
     "Chords moving chromatically/min3rd",
-    "McCoy Tyner 5th chords progression",
+    "McCoy Tyner 5th & 7sus4 chord progressions",
     "note group triplet repeated",
-    "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd)"
+    "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd)",
+    "Full register diatonic scale with a chord played after few bars"
 ]
 
 var augmented2 = [
