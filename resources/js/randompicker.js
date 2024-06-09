@@ -755,7 +755,7 @@ var language = [
     "Chords moving chromatically/min3rd",
     "McCoy Tyner 5th & 7sus4 chord progressions",
     "note group triplet repeated",
-    "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd)",
+    "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd, diatonic intervals)",
     "Full register diatonic scale with a chord played after few bars"
 ]
 
