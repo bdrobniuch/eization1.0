@@ -710,8 +710,28 @@ var licks = [
     "L-D6",
     "L-D7",
     "L-D8",
-    "L-D9"
-
+    "L-D9",
+    "L-E1",
+    "L-E2",
+    "L-E3",
+    "L-E4",
+    "L-E5",
+    "L-E6",
+    "L-E7",
+    "L-E8",
+    "L-E9",
+    "L-E10",
+    "L-E11",
+    "L-E12",
+    "L-E13",
+    "L-E14",
+    "L-E15",
+    "L-E16",
+    "L-E17",
+    "L-E18",
+    "L-E19",
+    "L-E20",
+    "L-E21"
 ]
 
 var languageFontSize = 10;
@@ -794,15 +814,13 @@ function next() {
 function updateInterval() {
     var bpm = document.getElementById("bpm").value;
     console.log(bpm);
-    if (bpm == 0)
-        {
-            clearInterval(myVar);
-            console.log("timer stop");
-            interval = -1;
-        } else
-     {
+    if (bpm == 0) {
+        clearInterval(myVar);
+        console.log("timer stop");
+        interval = -1;
+    } else {
         var newInterval = Math.round(1000 * 60 / bpm);
-        
+
         if ((bpm >= 1) && (bpm <= 500)) {
 
             if (newInterval != interval) {
@@ -816,7 +834,7 @@ function updateInterval() {
                 myVar = setInterval(myTimer, interval);
             }
         }
-     }
+    }
 
 }
 
