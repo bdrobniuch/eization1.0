@@ -756,7 +756,8 @@ var language = [
     "McCoy Tyner 5th & 7sus4 chord progressions",
     "note group triplet repeated",
     "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd, diatonic intervals)",
-    "Full register diatonic scale (interchangeably with arpeggio after each octave, tetrachord, with a chord played after few bars)"
+    "Full register diatonic scale (interchangeably with arpeggio after each octave, with a chord played after few bars)",
+    "Dominik (tetrachord, thumb on &, octave/9th jump, bottom thrill jump to pinky, hold top note, aeolian chord, left hand black 7sus4 right hand white 7sus4, left 7th/b9th right triads, changing chord qualities, playing chords from different standard, left hand improvises responds, accents/ghost on n-th note)"
 ]
 
 var augmented2 = [
