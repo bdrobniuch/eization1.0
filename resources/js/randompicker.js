@@ -660,8 +660,12 @@ var fingers = [
 
 var licksFontSize = 30;
 var licks = [
+    "L-A1a",
+    "L-A1b",
+    "L-A1c",
     "L-A1",
     "L-A2",
+    "L-A2b",
     "L-A3",
     "L-A4",
     "L-A5",
@@ -671,6 +675,11 @@ var licks = [
     "L-A9",
     "L-A10",
     "L-A11",
+    "L-A12a",
+    "L-A12b",
+    "L-A12c",
+    "L-A12d",
+    "L-A12e",
     "L-A12",
     "L-A13",
     "L-A14",
