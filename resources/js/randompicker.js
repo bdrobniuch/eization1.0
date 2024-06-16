@@ -758,16 +758,16 @@ var language = [
     "Blues scale (b3/b5 blue note)",
     "Random notes (slap Piano)",
     "Pentatonics",
-    "Triads (maj second inversion, min root position, augmented)",
+    "Triads (maj second inversion, min root position, augmented, trytone)",
     "Kissing scales",
     "Chords on 1 1& 2 2& 3 3& 4 4&",
-    "Chords moving chromatically/min3rd",
+    "Chords moving chromatically/min3rd (comping out, phrases not only on 1)",
     "McCoy Tyner 5th & 7sus4 chord progressions",
     "note group triplet repeated",
     "Specific (from black to white keys, minor 2nd going up jumping for constant note, 7sus4 to a triad in second inversion in minor 3rd, diatonic intervals)",
     "Full register diatonic scale (interchangeably with arpeggio after each octave, with a chord played after few bars)",
-    "Dominik (tetrachord, thumb on &, octave/9th jump, bottom thrill jump to pinky, hold top note, aeolian chord, left hand black 7sus4 right hand white 7sus4, left 7th/b9th right triads, changing chord qualities, playing chords from different standard, left hand improvises responds, accents/ghost on n-th note)"
-]
+    "Dominik (tetrachord, thumb on &, octave/9th jump, bottom thrill jump to pinky, hold top note, aeolian chord, left hand black 7sus4 right hand white 7sus4, left 7th/b9th right triads, changing chord qualities, playing chords from different standard, left hand improvises responds, accents/ghost on n-th note, double augmented scale, triad pairs)"
+    ]
 
 var augmented2 = [
     "C E A<sup><small>&#9837</small></sup>",
