@@ -745,7 +745,15 @@ var licks = [
     "L-E18",
     "L-E19",
     "L-E20",
-    "L-E21"
+    "L-E21",
+    "L-F1",
+    "L-F2",
+    "L-F3",
+    "L-F4",
+    "L-F5",
+    "L-F6",
+    "L-F7",
+    "L-F8"
 ]
 
 var languageFontSize = 10;
