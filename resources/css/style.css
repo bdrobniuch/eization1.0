@@ -77,7 +77,7 @@ footer {
 
 
 #bpm {
-    font-size: 8vmin;
+    font-size: 7vmin;
     color: #b0b0b0;
     background-color: #161618;
     text-align: center;
@@ -100,14 +100,14 @@ footer {
 
 
 #edit {
-  font-size: 8vmin;
+  font-size: 7vmin;
   opacity: 0.2;
   
 
 }
 
 #next {
-  font-size: 8vmin;
+  font-size: 7vmin;
   opacity: 0.2;
   
 
@@ -115,7 +115,7 @@ footer {
 
 
 #exerciseSelect { 
-  font-size: 8vmin;
+  font-size: 7vmin;
   
   color: #b0b0b0;
   width: auto;
