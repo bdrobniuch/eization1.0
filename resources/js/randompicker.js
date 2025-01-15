@@ -1350,7 +1350,29 @@ var chromaticScale = allNotes;
 var notePool = [];
 var beat = 4;
 
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let nextNoteTime = audioContext.currentTime;
+
+function scheduleNote() {
+    while (nextNoteTime < audioContext.currentTime + 0.1) { // Schedule ahead, but not too far
+        playClick(); // Function to play your click sound
+        nextNoteTime += 60 / document.getElementById("bpm").value; // Move to the next note
+    }
+}
+
+function playClick() {
+    const oscillator = audioContext.createOscillator();
+    oscillator.frequency.value = 1000; // Frequency in Hz
+    const envelope = audioContext.createGain();
+    oscillator.connect(envelope);
+    envelope.connect(audioContext.destination);
+    envelope.gain.value = 0.5; // Volume
+    oscillator.start(nextNoteTime);
+    oscillator.stop(nextNoteTime + 0.1);
+}
+
 function myTimer() {
+    scheduleNote();
     if (beat == 0) {
         countnotes++;
         document.getElementById("note").innerHTML = pickANote();
