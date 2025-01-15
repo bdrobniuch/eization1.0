@@ -61,14 +61,17 @@
     <footer>
         <div id="divfooter">
 
-            <button id="next" onclick="next()"><i class="fa-solid fa-forward"></i></button>
-            <input type="number" name="" id="bpm" MIN="0" MAX="500" STEP="1" VALUE="100" maxlength="3"
-                onchange="updateInterval()">
-
             <label class="checkbox-label">
                 <input type="checkbox" id="volumeCheckbox" />
                 <i class="fa fa-volume-xmark"></i> <!-- Default Icon when unchecked -->
             </label>
+            
+            <input type="number" name="" id="bpm" MIN="0" MAX="500" STEP="1" VALUE="100" maxlength="3"
+                onchange="updateInterval()">
+
+            <button id="next" onclick="next()"><i class="fa-solid fa-forward"></i></button>
+
+
         </div>
         <progress id="bar" value="0" max="3"> 3 </progress>
     </footer>
