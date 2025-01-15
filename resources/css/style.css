@@ -82,7 +82,7 @@ footer {
     color: #b0b0b0;
     background-color: #161618;
     text-align: center;
-
+    padding: 2;
     box-sizing: border-box;
     border: 3px solid #b0b0b0;
     -webkit-transition: 0.5s;
@@ -103,14 +103,14 @@ footer {
 #edit {
   font-size: 7vmin;
   opacity: 0.2;
-  
+  padding: 2;
 
 }
 
 #next {
   font-size: 7vmin;
   opacity: 0.2;
-  
+  padding: 2;
 
 }
 
@@ -122,7 +122,7 @@ footer {
   width: auto;
 
   opacity: 0.2;
-
+  padding: 2;
   background-color: #161618;
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
