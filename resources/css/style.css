@@ -155,4 +155,20 @@ textarea {
   display: none;
 }
 
+.checkbox-label {
+  cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+  display: none; /* Hide the actual checkbox */
+}
+.checkbox-label .fa {
+  font-size: 7vmin; /* Set the size of the icon */
+  opacity: 0.2;
 
+  width: 10vmin; /* Ensures that all icons have the same width */
+  height: 9vmin; /* Ensures that all icons have the same height */
+  display: inline-block;
+  text-align: center;
+  line-height: 9vmin;
+  vertical-align: left;
+}

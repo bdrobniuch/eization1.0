@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>eization 1.0</title>
     <link rel="stylesheet" href="./resources/css/style.css">
     <script src="https://kit.fontawesome.com/0c5316334b.js" crossorigin="anonymous"></script>
 
 </head>
+
 <body>
-    
+
 
     <div id="selectdiv">
 
     </div>
 
     <div id="editdivcontainer">
-        
-        <div  id="linediv">
-            <p  id="counter">1:1</p>
+
+        <div id="linediv">
+            <p id="counter">1:1</p>
 
             <div id="editdiv">
-                <select  id="exerciseSelect" onchange="SelectExercise();" onfocus="this.selectedIndex = -1;">
+                <select id="exerciseSelect" onchange="SelectExercise();" onfocus="this.selectedIndex = -1;">
                     <option value="allNotes">Notes</option>
                     <option value="allChords">All Chords</option>
                     <option value="oneTwoThreeFour">1,2,3,4</option>
@@ -42,11 +44,11 @@
     </div>
 
 
- 
 
-    
+
+
     <div id="divnote">
-    
+
 
 
         <p id="note">
@@ -55,17 +57,36 @@
 
     </div>
 
-        
+
     <footer>
         <div id="divfooter">
-         
+
             <button id="next" onclick="next()"><i class="fa-solid fa-forward"></i></button>
-            <input type="number" name="" id="bpm" MIN="0" MAX="500" STEP="1" VALUE="100" maxlength="3" onchange="updateInterval()">
+            <input type="number" name="" id="bpm" MIN="0" MAX="500" STEP="1" VALUE="100" maxlength="3"
+                onchange="updateInterval()">
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="volumeCheckbox" />
+                <i class="fa fa-volume-xmark"></i> <!-- Default Icon when unchecked -->
+            </label>
         </div>
         <progress id="bar" value="0" max="3"> 3 </progress>
     </footer>
     <script src="./resources/js/randompicker.js"></script>
     <script src="./resources/js/edit.js"></script>
     <script src="./resources/js/selectexercise.js"></script>
+    <script>
+        document.getElementById('volumeCheckbox').addEventListener('change', function () {
+            const icon = this.nextElementSibling;
+            if (this.checked) {
+                icon.classList.remove('fa-volume-xmark');
+                icon.classList.add('fa-volume-high');
+            } else {
+                icon.classList.remove('fa-volume-high');
+                icon.classList.add('fa-volume-xmark');
+            }
+        });
+    </script>
 </body>
+
 </html>

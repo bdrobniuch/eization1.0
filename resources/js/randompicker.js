@@ -1351,14 +1351,6 @@ var notePool = [];
 var beat = 4;
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let nextNoteTime = audioContext.currentTime;
-
-function scheduleNote() {
-    while (nextNoteTime < audioContext.currentTime + 0.1) { // Schedule ahead, but not too far
-        playClick(); // Function to play your click sound
-        nextNoteTime += 60 / document.getElementById("bpm").value; // Move to the next note
-    }
-}
 
 function playClick() {
     const oscillator = audioContext.createOscillator();
@@ -1367,12 +1359,18 @@ function playClick() {
     oscillator.connect(envelope);
     envelope.connect(audioContext.destination);
     envelope.gain.value = 0.5; // Volume
-    oscillator.start(nextNoteTime);
-    oscillator.stop(nextNoteTime + 0.1);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+    console.log("Play Click");
 }
 
 function myTimer() {
-    scheduleNote();
+    const checkbox = document.getElementById('volumeCheckbox');
+
+    if (checkbox.checked) {
+        playClick();
+    }
+
     if (beat == 0) {
         countnotes++;
         document.getElementById("note").innerHTML = pickANote();
