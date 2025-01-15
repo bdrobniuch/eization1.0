@@ -1362,6 +1362,7 @@ function playClick() {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.1);
     console.log("Play Click");
+    
 }
 
 function myTimer() {
