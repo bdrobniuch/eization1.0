@@ -1352,6 +1352,14 @@ var beat = 4;
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+function initAudioContext() {
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('Audio Context resumed successfully.');
+        });
+    }
+}
+
 function playClick() {
     const oscillator = audioContext.createOscillator();
     oscillator.frequency.value = 1000; // Frequency in Hz
@@ -1394,6 +1402,7 @@ function next() {
     beat--;
     document.getElementById("bar").value = beat;
     clearInterval(myVar);
+    initAudioContext(); // Ensure the audio context is running
     myVar = setInterval(myTimer, interval);
 }
 
@@ -1417,6 +1426,7 @@ function updateInterval() {
 
                 interval = newInterval;
                 clearInterval(myVar);
+                initAudioContext(); // Ensure the audio context is running
                 myVar = setInterval(myTimer, interval);
             }
         }
