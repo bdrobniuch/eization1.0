@@ -1240,7 +1240,7 @@ var language = [
     "Random notes (slap Piano)",
     "Pentatonics",
     "Triads (maj second inversion, min root position, augmented, trytone)",
-    "Kissing scales",
+    "Playing Out (triads..)",
     "Chords on 1 1& 2 2& 3 3& 4 4&",
     "Chords moving chromatically/min3rd (comping out, phrases not only on 1)",
     "McCoy Tyner 5th & 7sus4 chord progressions",
