@@ -23,6 +23,7 @@ var barInCycle = 0;
 var playBars = 1;
 var restBars = 0;
 var clickPattern = [];
+var restClickPattern = [];
 var phraseBar = 0;
 var LOOKAHEAD = 0.15;
 var SCHEDULER_MS = 25;
@@ -133,15 +134,15 @@ function unlockAudio() {
   syncClock();
 }
 
-function activePattern() {
+function fitPattern(pattern, fillNew) {
   var n = stepsPerBar();
-  if (clickPattern.length === n) {
-    return clickPattern;
+  if (pattern.length === n) {
+    return pattern;
   }
   var next = [];
   for (var i = 0; i < n; i++) {
-    if (i < clickPattern.length) {
-      var prev = clickPattern[i];
+    if (i < pattern.length) {
+      var prev = pattern[i];
       if (prev === true) {
         prev = 1;
       } else if (!prev) {
@@ -149,15 +150,28 @@ function activePattern() {
       }
       next.push(prev);
     } else {
-      next.push(i % 2 === 0 ? 1 : 0);
+      next.push(fillNew(i));
     }
   }
-  clickPattern = next;
+  return next;
+}
+
+function activePlayPattern() {
+  clickPattern = fitPattern(clickPattern, function (i) {
+    return i % 2 === 0 ? 1 : 0;
+  });
   return clickPattern;
 }
 
-function toggleClickStep(index) {
-  var pattern = activePattern();
+function activeRestPattern() {
+  restClickPattern = fitPattern(restClickPattern, function () {
+    return 0;
+  });
+  return restClickPattern;
+}
+
+function toggleClickStep(index, rest) {
+  var pattern = rest ? activeRestPattern() : activePlayPattern();
   if (index < 0 || index >= pattern.length) {
     return;
   }
@@ -287,35 +301,30 @@ function flash(strong, sounding, accent) {
   document.body.classList.toggle("bar-play", !!sounding);
 }
 
-function flashClickPad(step) {
-  var pads = document.querySelectorAll("#clickGrid .click-pad");
-  var pad = null;
-  for (var i = 0; i < pads.length; i++) {
-    pads[i].classList.remove("beat");
-    if (pads[i].getAttribute("data-step") === String(step)) {
-      pad = pads[i];
+function flashClickPad(step, rest) {
+  var grids = ["clickGrid", "restClickGrid"];
+  var activeId = rest ? "restClickGrid" : "clickGrid";
+  for (var g = 0; g < grids.length; g++) {
+    var pads = document.querySelectorAll("#" + grids[g] + " .click-pad");
+    for (var i = 0; i < pads.length; i++) {
+      pads[i].classList.remove("beat");
+      if (grids[g] === activeId && pads[i].getAttribute("data-step") === String(step)) {
+        void pads[i].offsetWidth;
+        pads[i].classList.add("beat");
+      }
     }
   }
-  if (!pad) {
-    return;
-  }
-  void pad.offsetWidth;
-  pad.classList.add("beat");
 }
 
 function clearClickPads() {
-  var pads = document.querySelectorAll("#clickGrid .click-pad.beat");
+  var pads = document.querySelectorAll("#clickGrid .click-pad.beat, #restClickGrid .click-pad.beat");
   for (var i = 0; i < pads.length; i++) {
     pads[i].classList.remove("beat");
   }
 }
 
 function onVisualStep(item) {
-  if (item.sounding) {
-    flashClickPad(item.step);
-  } else {
-    clearClickPads();
-  }
+  flashClickPad(item.step, !item.sounding);
   if (item.step % 2 !== 0) {
     return;
   }
@@ -365,9 +374,9 @@ function startVisualLoop() {
 
 function scheduleStep(step, time, gen) {
   var sounding = isSoundingBar(barInCycle);
-  var pattern = activePattern();
+  var pattern = sounding ? activePlayPattern() : activeRestPattern();
   var level = pattern[step] || 0;
-  if (sounding && soundOn && level) {
+  if (soundOn && level) {
     playClick(time, level === 2);
   }
   pendingVisuals.push({
@@ -609,7 +618,8 @@ function setBeatsPerBar(n) {
     return;
   }
   beatsPerBar = n;
-  activePattern();
+  activePlayPattern();
+  activeRestPattern();
   if (stepIndex >= stepsPerBar()) {
     stepIndex = 0;
   }

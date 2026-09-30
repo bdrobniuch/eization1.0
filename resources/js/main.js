@@ -142,12 +142,7 @@ function renderGrooveLabel() {
   button.setAttribute("aria-label", "Setup");
 }
 
-function renderGroove() {
-  var grid = document.getElementById("clickGrid");
-  if (!grid) {
-    return;
-  }
-  var pattern = activePattern();
+function fillClickGrid(grid, pattern) {
   grid.innerHTML = "";
   for (var i = 0; i < pattern.length; i += 2) {
     var pair = document.createElement("span");
@@ -165,6 +160,16 @@ function renderGroove() {
     }
     grid.appendChild(pair);
   }
+}
+
+function renderGroove() {
+  var playGrid = document.getElementById("clickGrid");
+  var restGrid = document.getElementById("restClickGrid");
+  if (!playGrid || !restGrid) {
+    return;
+  }
+  fillClickGrid(playGrid, activePlayPattern());
+  fillClickGrid(restGrid, activeRestPattern());
   renderGrooveLabel();
 }
 
@@ -255,12 +260,12 @@ function init() {
     }
     layoutFrame();
   });
-  document.getElementById("clickGrid").addEventListener("click", function (event) {
+  document.getElementById("groovePanel").addEventListener("click", function (event) {
     var pad = event.target.closest(".click-pad");
     if (!pad) {
       return;
     }
-    toggleClickStep(parseInt(pad.getAttribute("data-step"), 10));
+    toggleClickStep(parseInt(pad.getAttribute("data-step"), 10), !!pad.closest("#restClickGrid"));
     renderGroove();
   });
   function onCycleInput() {
