@@ -274,6 +274,9 @@ function init() {
   }
   document.getElementById("playBars").addEventListener("input", onCycleInput);
   document.getElementById("restBars").addEventListener("input", onCycleInput);
+  document.getElementById("repeatCount").addEventListener("input", function () {
+    setRepeat(this.value);
+  });
   document.addEventListener("click", function (event) {
     if (!event.target.closest("#exercisePanel") && !event.target.closest("#exerciseFace")) {
       closeExercisePanel();

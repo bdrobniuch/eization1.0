@@ -21,6 +21,7 @@ var stepIndex = 0;
 var barInCycle = 0;
 var playBars = 1;
 var restBars = 0;
+var repeatCount = 1;
 var clickPattern = [];
 var restClickPattern = [];
 var phraseBar = 0;
@@ -362,6 +363,55 @@ function phraseLength() {
   return exerciseBars > 0 ? exerciseBars : 1;
 }
 
+function valueLength() {
+  var times = repeatCount > 0 ? repeatCount : 1;
+  return phraseLength() * times;
+}
+
+function setRepeat(n) {
+  n = parseInt(n, 10);
+  if (isNaN(n) || n < 1) {
+    n = 1;
+  }
+  if (n > 16) {
+    n = 16;
+  }
+  repeatCount = n;
+  var input = document.getElementById("repeatCount");
+  if (input && String(input.value) !== String(n)) {
+    input.value = String(n);
+  }
+  if (phraseBarsDone >= valueLength()) {
+    armAdvance = true;
+    if (countInOn) {
+      awaitingCountIn = true;
+    }
+  }
+  var shown = phraseBarsDone > 0 ? Math.floor((phraseBarsDone - 1) / phraseLength()) : 0;
+  renderRepeatMark(shown);
+}
+
+function renderRepeatMark(iteration) {
+  var el = document.getElementById("repeatMark");
+  if (!el) {
+    return;
+  }
+  if (repeatCount <= 1) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  var n = (iteration || 0) + 1;
+  if (n < 1) {
+    n = 1;
+  }
+  if (n > repeatCount) {
+    n = repeatCount;
+  }
+  el.hidden = false;
+  el.textContent = n + " of " + repeatCount;
+}
+
 function setCountIn(on) {
   countInOn = !!on;
   var btn = document.getElementById("countInToggle");
@@ -379,7 +429,8 @@ function setCountIn(on) {
 }
 
 function beginScheduledBar() {
-  var info = { countIn: false, advance: false, phraseIndex: 0 };
+  var info = { countIn: false, advance: false, phraseIndex: 0, iteration: 0 };
+  var pass = phraseLength();
   if (countInOn && awaitingCountIn) {
     info.countIn = true;
     info.advance = armAdvance;
@@ -397,9 +448,10 @@ function beginScheduledBar() {
     armAdvance = false;
     phraseBarsDone = 0;
   }
-  info.phraseIndex = phraseBarsDone;
+  info.phraseIndex = phraseBarsDone % pass;
+  info.iteration = Math.floor(phraseBarsDone / pass);
   phraseBarsDone++;
-  if (phraseBarsDone >= phraseLength()) {
+  if (phraseBarsDone >= valueLength()) {
     armAdvance = true;
     if (countInOn) {
       awaitingCountIn = true;
@@ -427,6 +479,7 @@ function onVisualStep(item) {
     phraseBar = 0;
     showCountIn(item.count);
     renderPhrase(0, false);
+    renderRepeatMark(0);
   } else {
     hideCountIn();
     if (item.advance) {
@@ -437,6 +490,7 @@ function onVisualStep(item) {
       phraseBar = item.phraseIndex;
     }
     renderPhrase(beat, true);
+    renderRepeatMark(item.iteration);
   }
   flash(beat === 0, item.sounding, item.accent, item.countIn);
 }
@@ -487,6 +541,7 @@ function scheduleStep(step, time, gen, barInfo) {
     countIn: countIn,
     advance: !!(barInfo && barInfo.advance && step === 0),
     phraseIndex: barInfo ? barInfo.phraseIndex : 0,
+    iteration: barInfo ? barInfo.iteration : 0,
     count: beat >= 0 ? beatsPerBar - beat : 0
   });
 }
@@ -559,10 +614,11 @@ function metronomeAlignToDownbeat() {
   countingIn = false;
   awaitingCountIn = countInOn;
   armAdvance = false;
-  currentBarInfo = { countIn: false, advance: false, phraseIndex: 0 };
+  currentBarInfo = { countIn: false, advance: false, phraseIndex: 0, iteration: 0 };
   nextNoteTime = currentTimeSec() + 0.04;
   hideCountIn();
   renderPhrase(0, false);
+  renderRepeatMark(0);
 }
 
 function readBeatsFromDom() {
@@ -599,6 +655,10 @@ function startMetronome() {
   beatsPerBar = readBeatsFromDom();
   beatUnit = readBeatUnitFromDom();
   readCycleFromDom();
+  var repeatEl = document.getElementById("repeatCount");
+  if (repeatEl) {
+    setRepeat(repeatEl.value);
+  }
   renderPhrase(0, false);
   var bpmInput = parseInt(document.getElementById("bpm").value, 10);
   currentBpm = isNaN(bpmInput) ? 100 : bpmInput;

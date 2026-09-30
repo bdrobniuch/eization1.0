@@ -112,12 +112,24 @@
                     <button type="button" class="step-up" aria-label="More rest bars">+</button>
                 </div>
             </div>
+            <p class="groove-label">Repeat</p>
+            <div id="repeatRow" title="How many times to play the current value before the next one. A 4-bar exercise at 2 plays 8 bars. Play and rest keep counting through those bars.">
+                <div class="stepper stepper-sm">
+                    <span class="step-label">×</span>
+                    <button type="button" class="step-down" aria-label="Repeat fewer times">−</button>
+                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Repeat count">
+                    <button type="button" class="step-up" aria-label="Repeat more times">+</button>
+                </div>
+            </div>
             <p class="groove-label">Look ahead</p>
             <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true">Show nearby</button>
             <p class="groove-label">Count in</p>
             <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false">One bar</button>
         </div>
-        <div id="phraseTrack"></div>
+        <div id="phraseRow">
+            <div id="phraseTrack"></div>
+            <p id="repeatMark" hidden></p>
+        </div>
         <div id="bottomBar">
         <div id="divfooter">
 

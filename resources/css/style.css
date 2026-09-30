@@ -779,14 +779,35 @@ body.bar-rest .click-pad.accent.beat {
     100% { opacity: 0; }
 }
 
-#phraseTrack {
+#phraseRow {
     display: flex;
-    gap: 1.2vmin;
+    align-items: center;
+    gap: 1.6vmin;
     width: 100%;
-    height: 2.8vmin;
-    min-height: 11px;
     box-sizing: border-box;
     padding: 1.1vmin 2vmin 0.3vmin;
+}
+
+#phraseTrack {
+    display: flex;
+    flex: 1;
+    gap: 1.2vmin;
+    min-width: 0;
+    height: 1.4vmin;
+    min-height: 8px;
+}
+
+#repeatMark {
+    margin: 0;
+    font-size: 2.8vmin;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+#repeatMark[hidden] {
+    display: none !important;
 }
 
 .phrase-seg {
