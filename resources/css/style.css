@@ -445,6 +445,25 @@ footer {
   100% { opacity: 1; transform: scale(1); }
 }
 
+:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.checkbox-label input:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #countIn.flash {
+    animation: none;
+  }
+  .reel-next,
+  .reel-prev {
+    transform: translateX(-50%);
+  }
+}
+
 .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -521,6 +540,7 @@ footer {
     flex: 1 1 auto;
     min-height: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.45);
+    text-align: left;
 }
 
 #groovePanel[hidden] {
@@ -532,7 +552,7 @@ footer {
     font-size: 3vmin;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    opacity: 0.55;
+    opacity: 0.88;
 }
 
 .click-kind {
@@ -1246,9 +1266,22 @@ body.is-editing #counter {
 
 .checkbox-label {
   cursor: pointer;
+  position: relative;
 }
 .checkbox-label input[type="checkbox"] {
-  display: none; /* Hide the actual checkbox */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.checkbox-label:focus-within {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
 }
 .checkbox-label .fa {
   font-size: 5.4vmin;
