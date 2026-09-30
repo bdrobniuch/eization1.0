@@ -9,7 +9,9 @@ var menuOrder = [
   "intervals",
   "approachNotes",
   "playRest",
-  "fingers"
+  "fingers",
+  "sonicDevices",
+  "texture"
 ];
 
 function registerExercise(def) {
