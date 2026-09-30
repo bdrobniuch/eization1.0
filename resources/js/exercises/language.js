@@ -1,0 +1,30 @@
+registerExercise({
+  id: "language",
+  label: "Language",
+  fontSize: 10,
+  inMenu: true,
+  items: [
+    "Diatonic triads / 7th Chords",
+    "Chromatic scale (ending with a 4th, 5th, 2nd, enclosure)",
+    "Half diminished chord (+b6)",
+    "Major/Minor add2 triad (second / any inversion)",
+    "Major/Minor add4 triad (second / any inversion)",
+    "Melodic Minor scale (from a Maj7#5 chord)",
+    "Augmented scale (diatonic triads)",
+    "Whole-tone scale (diatonic triads, major triads)",
+    "Half-whole diminished scale (maj/min triad second inversion, diminished/minor root position, dim7 chord, 4ths, 7sus4, maj/min/dim triads)",
+    "Diatonic/Non-diatonic quartal chords (q, 7sus4, tritonic) chromatic to Quartal Target Chord",
+    "Blues scale (b3/b5 blue note)",
+    "Random notes (slap Piano)",
+    "Pentatonics",
+    "Triads (maj second inversion, min root position, augmented, trytone)",
+    "Playing Out (triads..)",
+    "Chords on 1 1& 2 2& 3 3& 4 4&",
+    "Chords moving chromatically/min3rd (comping out, phrases not only on 1)",
+    "McCoy Tyner 5th & 7sus4 chord progressions",
+    "note group triplet repeated",
+    "Specific (from black to white keys, minor 2nd going up jumping for constant note, q to a triad in second inversion in minor 3rd, diatonic intervals)",
+    "Full register diatonic scale (interchangeably with arpeggio after each octave, with a chord played after few bars)",
+    "Dominik (tetrachord, thumb on &, octave/9th jump, bottom thrill jump to pinky, hold top note, aeolian chord, left hand black 7sus4 right hand white 7sus4, left 7th/b9th right triads, changing chord qualities, playing chords from different standard, left hand improvises responds, accents/ghost on n-th note, double augmented scale, triad pairs)"
+  ]
+});

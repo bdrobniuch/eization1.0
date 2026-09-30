@@ -3,10 +3,14 @@ html,
 body  {
     height: 100%;
     margin: 0;
-    color: #b0b0b0;
-    background-color: #161618;
+    color: #ffffff;
+    background-color: #0C8A50;
 
   }
+
+body.bar-rest {
+    background-color: #0977BB;
+}
   
 
 
@@ -23,9 +27,10 @@ body  {
 
 #divfooter {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;;
-  align-items: center; /* Aligns items vertically in the center */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1vmin;
 }
 
 #selectdiv {
@@ -77,65 +82,363 @@ footer {
 
 
 
-#bpm {
+#beatsSelect,
+#grooveButton {
     font-size: 7vmin;
-    color: #b0b0b0;
-    background-color: #161618;
+    color: #ffffff;
+    background-color: transparent;
     text-align: center;
     padding: 2;
     box-sizing: border-box;
-    border: 3px solid #b0b0b0;
+    border: 3px solid #ffffff;
     -webkit-transition: 0.5s;
     transition: 0.5s;
-    opacity: 0.2;
-
+    opacity: 0.75;
+    touch-action: manipulation;
 }
 
-#counter { 
-  font-size: 5vmin;
-  color: #b0b0b0;
-  display:contents;
-  opacity: 0.2;
+#beatsSelect,
+#exerciseSelect {
+  color-scheme: dark;
+}
+
+#exerciseSelect option,
+#beatsSelect option {
+  background-color: #075632;
+  color: #ffffff;
+}
+
+#exerciseSelect option:checked,
+#beatsSelect option:checked {
+  background-color: #053D23;
+  color: #ffffff;
+}
+
+body.bar-rest #exerciseSelect option,
+body.bar-rest #beatsSelect option {
+  background-color: #0868a3;
+  color: #ffffff;
+}
+
+body.bar-rest #exerciseSelect option:checked,
+body.bar-rest #beatsSelect option:checked {
+  background-color: #054e7a;
+  color: #ffffff;
+}
+
+#status {
+  display: flex;
+  align-items: flex-end;
+  margin-left: 2vmin;
+}
+
+#counter {
+  margin: 0;
+  font-size: 4.5vmin;
+  color: #ffffff;
+  opacity: 0.9;
+  white-space: nowrap;
 }
 
 
 
-#edit {
+#edit, #next {
   font-size: 7vmin;
-  opacity: 0.2;
+  color: #ffffff;
+  opacity: 0.75;
   padding: 2;
-
-}
-
-#next {
-  font-size: 7vmin;
-  opacity: 0.2;
-  padding: 2;
-
+  background: transparent;
+  border: none;
 }
 
 
 #exerciseSelect { 
-  font-size: 7vmin;
-  
-  color: #b0b0b0;
+  font-size: 5.5vmin;
+  color: #ffffff;
   width: auto;
-
-  opacity: 0.2;
+  opacity: 1;
   padding: 2;
-  background-color: #161618;
+  background-color: transparent;
+  border: 3px solid rgba(255, 255, 255, 0.85);
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
   box-sizing: border-box;         /* Opera/IE 8+ */
 } 
 
-#bpm:focus {
+#beatsSelect:focus,
+#grooveButton:focus,
+#grooveButton[aria-expanded="true"],
+.stepper:focus-within {
     opacity: 1;
-
 }
 
-#bar {
+#groovePanel {
+    padding: 2vmin 3vmin 1.5vmin;
+    background: rgba(0, 0, 0, 0.16);
+    border-top: 1px solid rgba(255, 255, 255, 0.45);
+    color: #ffffff;
+}
+
+#groovePanel[hidden] {
+    display: none !important;
+}
+
+.groove-label {
+    margin: 1vmin 0 0.6vmin;
+    font-size: 3vmin;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+
+#cycleRow,
+#clickGrid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.2vmin;
+}
+
+.click-pair {
+    display: inline-flex;
+    gap: 1.2vmin;
+}
+
+.stepper[hidden] {
+    display: none !important;
+}
+
+.stepper {
+    display: inline-flex;
+    align-items: stretch;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    background: transparent;
+    opacity: 0.9;
+    touch-action: manipulation;
+}
+
+.stepper button,
+.stepper input {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    margin: 0;
+    padding: 0 1.2vmin;
+    min-width: 8vmin;
+    min-height: 40px;
+    touch-action: manipulation;
+}
+
+.stepper input {
+    width: 16vmin;
+    min-width: 52px;
+    text-align: center;
+    font-size: 6vmin;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.stepper .step-down,
+.stepper .step-up,
+#tempoToggle {
+    font-size: 6vmin;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.step-label {
+    display: flex;
+    align-items: center;
+    padding: 0 1.4vmin;
+    font-size: 3.2vmin;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.stepper-sm input {
+    width: 12vmin;
+    min-width: 40px;
+    font-size: 5vmin;
+}
+
+.stepper-sm .step-down,
+.stepper-sm .step-up {
+    font-size: 5vmin;
+    min-width: 7vmin;
+}
+
+#bpmStepper.is-paused .step-down,
+#bpmStepper.is-paused .step-up,
+#bpmStepper.is-paused input {
+    opacity: 0.4;
+}
+
+#tempoToggle {
+    border-left: 2px solid rgba(255, 255, 255, 0.45);
+    min-width: 10vmin;
+}
+
+#bpmStepper.is-paused #tempoToggle {
+    opacity: 1;
+}
+
+.click-pad {
+    position: relative;
+    width: 9vmin;
+    height: 9vmin;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 3.4vmin;
+    color: #ffffff;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    touch-action: manipulation;
+    overflow: hidden;
+}
+
+.click-pad.on,
+.click-pad.accent {
+    color: #0C8A50;
+    background: #ffffff;
+    border-color: #ffffff;
+}
+
+body.bar-rest .click-pad.on,
+body.bar-rest .click-pad.accent {
+    color: #0977BB;
+}
+
+.click-pad.on::after,
+.click-pad.accent::after {
+    content: "";
+    position: absolute;
+    bottom: 14%;
+    width: 42%;
+    height: 3px;
+    background: currentColor;
+    pointer-events: none;
+}
+
+.click-pad.on::after {
+    left: 8%;
+}
+
+.click-pad.accent::after {
+    right: 8%;
+}
+
+.click-pad.beat {
+    animation: padBeat 120ms linear;
+}
+
+.click-pad.on.beat,
+.click-pad.accent.beat {
+    animation-name: padBeatOn;
+}
+
+@keyframes padBeat {
+    0%, 45% { background-color: #ffffff; color: #0C8A50; }
+    100% { background-color: transparent; color: #ffffff; }
+}
+
+@keyframes padBeatOn {
+    0%, 45% { background-color: #0C8A50; color: #ffffff; }
+    100% { background-color: #ffffff; color: #0C8A50; }
+}
+
+body.bar-rest .click-pad.beat {
+    animation-name: padBeatRest;
+}
+
+body.bar-rest .click-pad.on.beat,
+body.bar-rest .click-pad.accent.beat {
+    animation-name: padBeatOnRest;
+}
+
+@keyframes padBeatRest {
+    0%, 45% { background-color: #ffffff; color: #0977BB; }
+    100% { background-color: transparent; color: #ffffff; }
+}
+
+@keyframes padBeatOnRest {
+    0%, 45% { background-color: #0977BB; color: #ffffff; }
+    100% { background-color: #ffffff; color: #0977BB; }
+}
+
+#beatFlash {
+    position: fixed;
+    left: 0;
+    top: 0;
     width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: #ffffff;
+    opacity: 0;
+    z-index: 30;
+}
+
+#beatFlash.strong {
+    animation: flashStrong 140ms linear forwards;
+}
+
+#beatFlash.weak {
+    animation: flashWeak 80ms linear forwards;
+}
+
+@keyframes flashStrong {
+    0% { opacity: 0.22; }
+    100% { opacity: 0; }
+}
+
+@keyframes flashWeak {
+    0% { opacity: 0.07; }
+    100% { opacity: 0; }
+}
+
+#beatFlash.accent {
+    animation: flashStrong 140ms linear forwards;
+}
+
+#beatFlash.accent-strong {
+    animation: flashAccent 160ms linear forwards;
+}
+
+@keyframes flashAccent {
+    0% { opacity: 0.42; }
+    100% { opacity: 0; }
+}
+
+#phraseTrack {
+    display: flex;
+    gap: 1.2vmin;
+    width: 100%;
+    height: 2.8vmin;
+    min-height: 11px;
+    box-sizing: border-box;
+    padding: 1.1vmin 2vmin 0.3vmin;
+}
+
+.phrase-seg {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.28);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.phrase-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #ffffff;
 }
   
 
@@ -145,6 +448,8 @@ textarea {
   overflow-x: scroll;
   width: 100%;
   height: 100%;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.15);
   resize: none;
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
   -moz-box-sizing: border-box;    /* Firefox, other Gecko */
@@ -164,7 +469,8 @@ textarea {
 }
 .checkbox-label .fa {
   font-size: 7vmin; /* Set the size of the icon */
-  opacity: 0.2;
+  color: #ffffff;
+  opacity: 0.75;
 
   width: 10vmin; /* Ensures that all icons have the same width */
   height: 9vmin; /* Ensures that all icons have the same height */

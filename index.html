@@ -4,14 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eization 1.0</title>
+    <title>eization 2.0</title>
+    <meta name="theme-color" content="#0C8A50">
+    <link rel="icon" href="./resources/icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="./resources/icons/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="./resources/icons/apple-touch-icon.png">
     <link rel="stylesheet" href="./resources/css/style.css">
     <script src="https://kit.fontawesome.com/0c5316334b.js" crossorigin="anonymous"></script>
 
 </head>
 
 <body>
-
+    <div id="beatFlash"></div>
 
     <div id="selectdiv">
 
@@ -20,10 +24,12 @@
     <div id="editdivcontainer">
 
         <div id="linediv">
-            <p id="counter">1:1</p>
+            <div id="status">
+                <p id="counter">left</p>
+            </div>
 
             <div id="editdiv">
-                <select id="exerciseSelect" onchange="SelectExercise();" onfocus="this.selectedIndex = -1;">
+                <select id="exerciseSelect" onchange="SelectExercise();">
                     <option value="allNotes">Notes</option>
                     <option value="allChords">All Chords</option>
                     <option value="oneTwoThreeFour">1,2,3,4</option>
@@ -64,25 +70,84 @@
 
 
     <footer>
+        <div id="groovePanel" hidden>
+            <p class="groove-label">Click</p>
+            <div id="clickGrid"></div>
+            <p class="groove-label">Bars</p>
+            <div id="cycleRow" title="Play bars use the clicks above. Rest bars stay silent.">
+                <div class="stepper stepper-sm">
+                    <span class="step-label">Play</span>
+                    <button type="button" class="step-down" aria-label="Fewer play bars">−</button>
+                    <input id="playBars" type="number" min="0" max="16" step="1" value="1" inputmode="numeric">
+                    <button type="button" class="step-up" aria-label="More play bars">+</button>
+                </div>
+                <div class="stepper stepper-sm">
+                    <span class="step-label">Rest</span>
+                    <button type="button" class="step-down" aria-label="Fewer rest bars">−</button>
+                    <input id="restBars" type="number" min="0" max="16" step="1" value="0" inputmode="numeric">
+                    <button type="button" class="step-up" aria-label="More rest bars">+</button>
+                </div>
+            </div>
+        </div>
+        <div id="phraseTrack"></div>
         <div id="divfooter">
 
             <label class="checkbox-label">
                 <input type="checkbox" id="volumeCheckbox" />
                 <i class="fa fa-volume-xmark"></i> <!-- Default Icon when unchecked -->
             </label>
-            
-            <input type="number" name="" id="bpm" MIN="0" MAX="500" STEP="1" VALUE="100" maxlength="3"
-                onchange="updateInterval()">
+
+            <select id="beatsSelect" title="Beats per bar" aria-label="Beats per bar">
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="7">7</option>
+                <option value="11">11</option>
+                <option value="custom">…</option>
+            </select>
+            <div class="stepper" id="beatsCustomStepper" hidden>
+                <button type="button" class="step-down" aria-label="Fewer beats">−</button>
+                <input type="number" id="beatsCustom" min="1" max="32" step="1" value="4"
+                    title="Custom beats per bar" aria-label="Custom beats per bar" inputmode="numeric">
+                <button type="button" class="step-up" aria-label="More beats">+</button>
+            </div>
+
+            <button type="button" id="grooveButton" title="Which subdivisions click, and silent bars" aria-expanded="false">Click</button>
+
+            <div class="stepper" id="bpmStepper">
+                <button type="button" class="step-down" aria-label="Slower">−</button>
+                <input type="number" id="bpm" min="0" max="500" step="1" value="100" maxlength="3"
+                    title="BPM" aria-label="Tempo" inputmode="numeric">
+                <button type="button" class="step-up" aria-label="Faster">+</button>
+                <button type="button" id="tempoToggle" aria-label="Pause tempo" aria-pressed="false" title="Pause tempo">
+                    <i class="fa-solid fa-pause"></i>
+                </button>
+            </div>
 
             <button id="next" onclick="next()"><i class="fa-solid fa-forward"></i></button>
 
 
         </div>
-        <progress id="bar" value="0" max="3"> 3 </progress>
     </footer>
-    <script src="./resources/js/randompicker.js"></script>
-    <script src="./resources/js/edit.js"></script>
-    <script src="./resources/js/selectexercise.js"></script>
+    <script src="./resources/js/registry.js"></script>
+    <script src="./resources/js/exercises/notes.js"></script>
+    <script src="./resources/js/exercises/chords.js"></script>
+    <script src="./resources/js/exercises/one-two-three-four.js"></script>
+    <script src="./resources/js/exercises/play-rest.js"></script>
+    <script src="./resources/js/exercises/fingers.js"></script>
+    <script src="./resources/js/exercises/intervals.js"></script>
+    <script src="./resources/js/exercises/modern-sounds.js"></script>
+    <script src="./resources/js/exercises/language.js"></script>
+    <script src="./resources/js/exercises/note-pairs.js"></script>
+    <script src="./resources/js/exercises/chord-progressions.js"></script>
+    <script src="./resources/js/exercises/licks.js"></script>
+    <script src="./resources/js/exercises/augmented.js"></script>
+    <script src="./resources/js/exercises/augmented-2.js"></script>
+    <script src="./resources/js/exercises/quartal-advanced-2.js"></script>
+    <script src="./resources/js/picker.js"></script>
+    <script src="./resources/js/metronome.js"></script>
+    <script src="./resources/js/editor.js"></script>
+    <script src="./resources/js/main.js"></script>
     <script>
         document.getElementById('volumeCheckbox').addEventListener('change', function () {
             const icon = this.nextElementSibling;
