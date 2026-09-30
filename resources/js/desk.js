@@ -252,6 +252,9 @@ function restoreDefaults() {
   try {
     localStorage.removeItem(DESK_KEY);
   } catch (err) {}
+  if (typeof forgetHello === "function") {
+    forgetHello();
+  }
   clickPattern = [];
   restClickPattern = [];
   swingLitOffbeats = false;

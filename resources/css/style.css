@@ -455,6 +455,62 @@ footer {
   outline: none;
 }
 
+#helloArrow {
+  position: fixed;
+  z-index: 35;
+  width: 0;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+#helloArrow[hidden] {
+  display: none !important;
+}
+
+#helloArrow.points-down {
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 18px solid #ffffff;
+  transform: translate(-50%, -100%);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+}
+
+#helloArrow.points-up {
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 18px solid #ffffff;
+  transform: translate(-50%, 0);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+}
+
+body.is-hello #topBar,
+body.is-hello #divfooter > .checkbox-label,
+body.is-hello #grooveButton,
+body.is-hello #next,
+body.is-hello #bpmStepper .step-label,
+body.is-hello #bpmStepper .step-down,
+body.is-hello #bpmStepper .step-up,
+body.is-hello #bpmStepper input {
+  opacity: 0.38;
+}
+
+body.is-hello #tempoToggle {
+  opacity: 1;
+  animation: helloBlink 0.9s ease-in-out infinite;
+}
+
+@keyframes helloBlink {
+  0%, 100% {
+    background: transparent;
+    color: #ffffff;
+  }
+  42%, 58% {
+    background: #ffffff;
+    color: #0C8A50;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #countIn.flash {
     animation: none;
@@ -462,6 +518,11 @@ footer {
   .reel-next,
   .reel-prev {
     transform: translateX(-50%);
+  }
+  body.is-hello #tempoToggle {
+    animation: none;
+    background: #ffffff;
+    color: #0C8A50;
   }
 }
 

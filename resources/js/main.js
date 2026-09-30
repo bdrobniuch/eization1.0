@@ -478,6 +478,9 @@ function init() {
   startMetronome();
   layoutFrame();
   deskReady = true;
+  if (typeof maybeHello === "function") {
+    setTimeout(maybeHello, 400);
+  }
 }
 
 init();
