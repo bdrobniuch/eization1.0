@@ -35,6 +35,12 @@ function bindExercisePanel() {
     layoutFrame();
   });
   menu.addEventListener("click", function (event) {
+    if (event.target.closest("[data-clear-custom]")) {
+      if (typeof clearCustomExercise === "function") {
+        clearCustomExercise();
+      }
+      return;
+    }
     var item = event.target.closest("[data-value]");
     if (!item) {
       return;
@@ -66,6 +72,10 @@ function buildExerciseMenu() {
   var menu = document.getElementById("exerciseMenu");
   var face = document.getElementById("exerciseFace");
   menu.innerHTML = "";
+  var saved = typeof customItems === "function" ? customItems() : null;
+  if (currentExerciseId === "custom" && !saved) {
+    currentExerciseId = "";
+  }
   var first = null;
   for (var i = 0; i < menuOrder.length; i++) {
     var ex = exercises[menuOrder[i]];
@@ -77,8 +87,33 @@ function buildExerciseMenu() {
     }
     addComboItem(menu, ex.id, ex.label, ex.id === (currentExerciseId || (first && first.id)));
   }
+  if (saved) {
+    var row = document.createElement("div");
+    row.className = "menu-custom";
+    var customSelected = currentExerciseId === "custom";
+    var customButton = document.createElement("button");
+    customButton.type = "button";
+    customButton.setAttribute("role", "option");
+    customButton.setAttribute("data-value", "custom");
+    customButton.setAttribute("aria-selected", customSelected ? "true" : "false");
+    customButton.title = "Kept on this device";
+    customButton.textContent = "Custom";
+    var clearButton = document.createElement("button");
+    clearButton.type = "button";
+    clearButton.setAttribute("data-clear-custom", "true");
+    clearButton.setAttribute("aria-label", "Remove custom exercise");
+    clearButton.title = "Remove custom exercise";
+    clearButton.textContent = "Clear";
+    row.appendChild(customButton);
+    row.appendChild(clearButton);
+    menu.insertBefore(row, menu.firstChild);
+  }
   if (!currentExerciseId && first) {
     currentExerciseId = first.id;
+  }
+  if (currentExerciseId === "custom" && saved) {
+    setComboLabel(face, "Custom");
+    return;
   }
   var current = exercises[currentExerciseId];
   setComboLabel(face, current ? current.label : "");
@@ -99,11 +134,28 @@ function SelectExercise() {
       editorCloseQuiet();
     }
   }
+  if (currentExerciseId === "custom" && typeof customItems === "function") {
+    var custom = customItems();
+    if (custom) {
+      newExercise(custom.items, custom.bars);
+      if (typeof rememberSetup === "function") {
+        rememberSetup();
+      }
+      return;
+    }
+    currentExerciseId = firstBuiltInId();
+    if (typeof buildExerciseMenu === "function") {
+      buildExerciseMenu();
+    }
+  }
   var ex = exercises[currentExerciseId];
   if (!ex) {
     return;
   }
   newExercise(ex.items, ex.bars || 1);
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function renderMeterSignature() {
@@ -244,6 +296,9 @@ function closeGroovePanel() {
 }
 
 function init() {
+  if (typeof applyDesk === "function") {
+    applyDesk();
+  }
   buildExerciseMenu();
   bindExercisePanel();
   document.getElementById("meterTop").addEventListener("input", function () {
@@ -368,6 +423,7 @@ function init() {
   SelectExercise();
   startMetronome();
   layoutFrame();
+  deskReady = true;
 }
 
 init();

@@ -153,6 +153,9 @@ function placeReelMark() {
 
 function setLookAhead(on) {
   lookAhead = !!on;
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
   var btn = document.getElementById("lookAhead");
   if (btn) {
     btn.setAttribute("aria-pressed", lookAhead ? "true" : "false");

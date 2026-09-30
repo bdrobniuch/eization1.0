@@ -337,6 +337,37 @@ footer {
     color: #0C8A50;
 }
 
+#exerciseMenu .menu-custom {
+    display: flex;
+    gap: 1vmin;
+}
+
+#exerciseMenu button[data-clear-custom] {
+    min-width: 0;
+}
+
+#deskNote {
+    position: fixed;
+    left: 50%;
+    top: 1.6vmin;
+    z-index: 40;
+    margin: 0;
+    padding: 0.7vmin 1.6vmin;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    font-size: max(14px, 2.8vmin);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+#deskNote[hidden] {
+    display: none !important;
+}
+
 #status {
   display: flex;
   align-items: center;

@@ -48,6 +48,7 @@
             </div>
         </div>
     </div>
+    <p id="deskNote" hidden role="status">Kept on this device.</p>
     <div id="exercisePanel" hidden>
         <div id="exerciseMenu" role="listbox" aria-label="Exercise"></div>
     </div>
@@ -86,7 +87,7 @@
                 <span>eization</span>
             </p>
             <p>eization is a practice desk for jazz piano. It shows one idea at a time. You play that idea with the metronome, then take the next one.</p>
-            <p>Choose an exercise at the top. The large text is the idea. Next moves forward. The round arrow starts that exercise again. The pencil lets you write your own list, one value per line.</p>
+            <p>Choose an exercise at the top. The large text is the idea. Next moves forward. The round arrow starts that exercise again. The pencil lets you write your own list, one value per line. Done keeps that list on this device until you clear it.</p>
             <p>The metronome is at the bottom. Setup, the triangle, changes the meter, the clicks, the bars, swing, and the count-in. You can use it at the piano. Some exercises are rhythms you can also tap with your hands and feet.</p>
             <h2>Błażej Drobniuch</h2>
             <p>Błażej plays jazz piano in Kraków and Barcelona. He studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics. Clubs, bands, and electronic music as Zero Volume. eization is what he uses at the piano.</p>
@@ -265,6 +266,7 @@
     <script src="./resources/js/metronome.js"></script>
     <script src="./resources/js/editor.js"></script>
     <script src="./resources/js/about.js"></script>
+    <script src="./resources/js/desk.js"></script>
     <script src="./resources/js/main.js"></script>
     <script>
         document.getElementById('volumeCheckbox').addEventListener('change', function () {

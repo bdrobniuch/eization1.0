@@ -450,13 +450,17 @@ function editorDone() {
       items.push(lineToItem(lines[i]));
     }
   }
-  var face = document.getElementById("exerciseFace");
-  if (face && typeof setComboLabel === "function") {
-    setComboLabel(face, "Custom");
+  if (typeof saveCustomExercise === "function") {
+    saveCustomExercise(lines, bars);
   }
-  currentExerciseId = "";
-  clearExerciseChips();
+  currentExerciseId = "custom";
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
   newExercise(items, bars);
+  if (typeof noteCustomKept === "function") {
+    noteCustomKept();
+  }
   if (typeof layoutFrame === "function") {
     layoutFrame();
   }

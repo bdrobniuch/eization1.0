@@ -274,6 +274,9 @@ function toggleClickStep(index, rest) {
     swingLitOffbeats = false;
   }
   cancelFutureClicks();
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function setCycle(play, rest) {
@@ -296,6 +299,9 @@ function setCycle(play, rest) {
   }
   playBars = play;
   restBars = rest;
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function isSoundingBar(index) {
@@ -479,6 +485,9 @@ function setRepeat(n) {
   }
   var shown = phraseBarsDone > 0 ? Math.floor((phraseBarsDone - 1) / phraseLength()) : 0;
   renderRepeatMark(shown);
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function renderRepeatMark(iteration) {
@@ -507,6 +516,9 @@ function setCountIn(on) {
   var btn = document.getElementById("countInToggle");
   if (btn) {
     btn.setAttribute("aria-pressed", countInOn ? "true" : "false");
+  }
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
   }
   if (!countInOn) {
     awaitingCountIn = false;
@@ -795,6 +807,9 @@ function applyBpm(bpm) {
     paused = true;
     renderTempoToggle();
     renderSwing();
+    if (typeof rememberSetup === "function") {
+      rememberSetup();
+    }
     return;
   }
   var wasPaused = paused || !schedulerTimer;
@@ -806,6 +821,9 @@ function applyBpm(bpm) {
   if (wasPaused) {
     nextNoteTime = currentTimeSec() + 0.04;
     ensureScheduler();
+    if (typeof rememberSetup === "function") {
+      rememberSetup();
+    }
     return;
   }
   var now = currentTimeSec();
@@ -819,6 +837,9 @@ function applyBpm(bpm) {
   }
   renderSwing();
   scheduler();
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function renderTempoToggle() {
@@ -877,6 +898,9 @@ function updateInterval() {
         currentBpm = bpm;
         tempoHeld = bpm;
         renderSwing();
+        if (typeof rememberSetup === "function") {
+          rememberSetup();
+        }
       } else {
         applyBpm(0);
       }
@@ -1000,6 +1024,9 @@ function setSwingMode(mode) {
   if (typeof layoutFrame === "function") {
     layoutFrame();
   }
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function setSwingAuto(on) {
@@ -1008,6 +1035,9 @@ function setSwingAuto(on) {
     swingRatio = recommendedSwingRatio(swingBpm());
   }
   renderSwing();
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function setSwingRatio(ratio) {
@@ -1023,6 +1053,9 @@ function setSwingRatio(ratio) {
   swingAuto = false;
   swingRatio = ratio;
   renderSwing();
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function swingRatioFromClientX(clientX) {
@@ -1125,6 +1158,9 @@ function setBeatUnit(n) {
   beatUnit = n;
   metronomeAlignToDownbeat();
   renderSwing();
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
 }
 
 function setBeatsPerBar(n) {
@@ -1150,6 +1186,9 @@ function setBeatsPerBar(n) {
   metronomeAlignToDownbeat();
   if (typeof renderGroove === "function") {
     renderGroove();
+  }
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
   }
 }
 
