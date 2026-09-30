@@ -21,7 +21,17 @@ var EDITOR_SYMBOLS = [
   { char: "\u00B7", label: "Caption" },
   { char: "\u2612", label: "Played" },
   { char: "\u2610", label: "Open" },
-  { char: "\uD834\uDD00", label: "Staff barline" }
+  { char: "\uD834\uDD00", label: "Staff barline" },
+  { char: "\uD834\uDD5D", label: "Whole note" },
+  { char: "\uD834\uDD5E", label: "Half note" },
+  { char: "\uD834\uDD5F", label: "Quarter note" },
+  { char: "\uD834\uDD60", label: "Eighth note" },
+  { char: "\uD834\uDD61", label: "Sixteenth note" },
+  { char: "\uD834\uDD3B", label: "Whole rest" },
+  { char: "\uD834\uDD3C", label: "Half rest" },
+  { char: "\uD834\uDD3D", label: "Quarter rest" },
+  { char: "\uD834\uDD3E", label: "Eighth rest" },
+  { char: "\uD834\uDD3F", label: "Sixteenth rest" }
 ];
 
 function editorIsOpen() {
@@ -469,7 +479,11 @@ function buildEditorSymbols() {
     button.textContent = spec.char;
     button.setAttribute("aria-label", spec.label);
     button.title = spec.label;
-    button.setAttribute("data-symbol", spec.char === "\u00B7" ? " \u00B7 " : spec.char);
+    var insert = spec.insert || spec.char;
+    if (!spec.insert && spec.char === "\u00B7") {
+      insert = " \u00B7 ";
+    }
+    button.setAttribute("data-symbol", insert);
     row.appendChild(button);
   }
 }
