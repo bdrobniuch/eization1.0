@@ -26,6 +26,11 @@ body  {
 body.bar-rest {
     background-color: #0977BB;
 }
+
+body.is-stopped {
+    background-color: #0C8A50;
+    background-image: linear-gradient(to bottom, #0C8A50, #0977BB);
+}
   
 
 
@@ -38,7 +43,69 @@ body.bar-rest {
     height: 80%;
 }
 
+#noteStack {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    max-width: 92vw;
+}
 
+#noteStack.reel-on {
+    perspective: 1400px;
+    perspective-origin: center center;
+}
+
+#note {
+    position: relative;
+    z-index: 2;
+}
+
+.reel-face {
+    position: absolute;
+    left: 50%;
+    margin: 0;
+    white-space: nowrap;
+    line-height: 1.05;
+    text-align: center;
+    pointer-events: none;
+    z-index: 1;
+    font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
+    backface-visibility: hidden;
+}
+
+.reel-face[hidden] {
+    display: none !important;
+}
+
+.reel-next {
+    bottom: calc(100% + 0.2em);
+    transform-origin: center bottom;
+    transform: translateX(-50%) rotateX(62deg);
+    opacity: 0.8;
+}
+
+.reel-prev {
+    top: calc(100% + 0.2em);
+    transform-origin: center top;
+    transform: translateX(-50%) rotateX(-62deg);
+    opacity: 0.66;
+}
+
+#reelMark {
+    position: absolute;
+    width: 22px;
+    box-sizing: border-box;
+    border: 3px solid rgba(255, 255, 255, 0.92);
+    border-right-color: transparent;
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: none;
+    z-index: 3;
+}
+
+#reelMark[hidden] {
+    display: none !important;
+}
 
 #topBar,
 #bottomBar {
@@ -113,6 +180,7 @@ body.bar-rest {
   max-width: none;
   white-space: nowrap;
   line-height: 1.05;
+  min-height: 1.25em;
   font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -187,57 +255,42 @@ footer {
     vertical-align: 0.12em;
 }
 
-.combo-menu {
-    position: absolute;
-    z-index: 40;
-    top: calc(100% + 0.8vmin);
+#exercisePanel {
+    position: fixed;
+    left: 0;
     right: 0;
-    left: auto;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    width: max-content;
-    max-width: calc(100vw - 16px);
-    max-height: 70vh;
-    box-sizing: border-box;
-    overflow: auto;
-    background: #075632;
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    z-index: 25;
+    padding: 2vmin 3vmin 1.5vmin;
+    background: rgba(0, 0, 0, 0.16);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    color: #ffffff;
 }
 
-.combo-menu[hidden] {
+#exercisePanel[hidden] {
     display: none !important;
 }
 
-.combo-up .combo-menu {
-    top: auto;
-    bottom: calc(100% + 0.8vmin);
-    left: auto;
-    right: 0;
+#exerciseMenu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1vmin;
 }
 
-.combo-menu button {
-    display: block;
-    width: auto;
-    margin: 0;
-    padding: 1.5vmin 2.6vmin;
-    border: 0;
+#exerciseMenu button {
+    border: 2px solid rgba(255, 255, 255, 0.85);
     background: transparent;
     color: #ffffff;
     font: inherit;
-    font-size: 4.2vmin;
-    text-align: left;
-    white-space: nowrap;
+    font-size: 3.4vmin;
+    min-width: 12vmin;
+    min-height: 40px;
+    padding: 0 1.6vmin;
     cursor: pointer;
 }
 
-.combo-menu button[aria-selected="true"],
-.combo-menu button:hover {
-    background: rgba(255, 255, 255, 0.22);
-}
-
-body.bar-rest .combo-menu {
-    background: #0868a3;
+#exerciseMenu button[aria-selected="true"] {
+    background: #ffffff;
+    color: #0C8A50;
 }
 
 #status {
@@ -347,11 +400,112 @@ body.bar-rest .combo-menu {
 }
 
 #cycleRow,
-#clickGrid {
+#clickGrid,
+#meterRow {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 1.2vmin;
+    gap: 1.6vmin;
+}
+
+#meterPresets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1vmin;
+    max-width: 46vmin;
+}
+
+#meterPresets button {
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 3.4vmin;
+    min-width: 12vmin;
+    min-height: 40px;
+    padding: 0 1.2vmin;
+    cursor: pointer;
+}
+
+#meterPresets button[aria-pressed="true"] {
+    background: #ffffff;
+    color: #0C8A50;
+}
+
+.meter-sig {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 28vmin;
+    padding: 0.6vmin 1.2vmin 0.8vmin;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+}
+
+.meter-sig .stepper {
+    border: 0;
+    opacity: 1;
+}
+
+.sig-rule {
+    width: 72%;
+    height: 2px;
+    margin: 0.2vmin 0;
+    background: #ffffff;
+}
+
+.sig-unit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1vmin;
+}
+
+.sig-unit button {
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 5vmin;
+    line-height: 1;
+    min-width: 7vmin;
+    min-height: 36px;
+    cursor: pointer;
+}
+
+#meterBottom {
+    min-width: 1.6em;
+    text-align: center;
+    font-size: 5.4vmin;
+    font-variant-numeric: tabular-nums;
+}
+
+.meter-hint {
+    margin: 0.2vmin 0 0;
+    font-size: 2.6vmin;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    opacity: 0.7;
+}
+
+.panel-toggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 2.2vmin;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 3.6vmin;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.panel-toggle[aria-pressed="true"] {
+    background: #ffffff;
+    color: #0C8A50;
+    opacity: 1;
 }
 
 .click-pair {

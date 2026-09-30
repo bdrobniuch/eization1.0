@@ -1,5 +1,4 @@
 var currentExerciseId = "";
-var beatsChoice = "4";
 
 function setComboLabel(face, text) {
   var value = face.querySelector(".combo-value");
@@ -11,82 +10,29 @@ function setComboLabel(face, text) {
   }
 }
 
-function placeComboMenu(menu) {
-  var face = menu._comboFace;
-  var rect = face.getBoundingClientRect();
-  var gap = 6;
-  var space = menu.classList.contains("combo-up")
-    ? rect.top - gap - 8
-    : window.innerHeight - rect.bottom - gap - 8;
-  menu.style.position = "fixed";
-  menu.style.zIndex = "80";
-  menu.style.margin = "0";
-  menu.style.right = "auto";
-  menu.style.minWidth = Math.ceil(rect.width) + "px";
-  menu.style.maxWidth = Math.max(120, window.innerWidth - 16) + "px";
-  menu.style.maxHeight = Math.max(120, space) + "px";
-  var width = menu.offsetWidth;
-  var left = rect.right - width;
-  if (left < 8) {
-    left = 8;
+function closeExercisePanel() {
+  var panel = document.getElementById("exercisePanel");
+  var face = document.getElementById("exerciseFace");
+  if (!panel || panel.hidden) {
+    return;
   }
-  if (left + width > window.innerWidth - 8) {
-    left = Math.max(8, window.innerWidth - 8 - width);
+  panel.hidden = true;
+  if (face) {
+    face.setAttribute("aria-expanded", "false");
   }
-  menu.style.left = left + "px";
-  if (menu.classList.contains("combo-up")) {
-    menu.style.top = "auto";
-    menu.style.bottom = (window.innerHeight - rect.top + gap) + "px";
-  } else {
-    menu.style.bottom = "auto";
-    menu.style.top = (rect.bottom + gap) + "px";
-  }
+  layoutFrame();
 }
 
-function openCombo(menu) {
-  document.body.appendChild(menu);
-  menu.hidden = false;
-  placeComboMenu(menu);
-  menu._comboFace.setAttribute("aria-expanded", "true");
-}
-
-function closeCombos() {
-  var menus = document.querySelectorAll(".combo-menu");
-  for (var i = 0; i < menus.length; i++) {
-    var menu = menus[i];
-    menu.hidden = true;
-    menu.style.position = "";
-    menu.style.top = "";
-    menu.style.bottom = "";
-    menu.style.left = "";
-    menu.style.right = "";
-    menu.style.zIndex = "";
-    menu.style.maxWidth = "";
-    menu.style.margin = "";
-    if (menu._comboHome && menu.parentNode !== menu._comboHome) {
-      menu._comboHome.appendChild(menu);
-    }
-    if (menu._comboFace) {
-      menu._comboFace.setAttribute("aria-expanded", "false");
-    }
-  }
-}
-
-function bindCombo(root, onPick) {
-  var face = root.querySelector(".combo-face");
-  var menu = root.querySelector(".combo-menu");
-  menu._comboFace = face;
-  menu._comboHome = root;
-  if (root.classList.contains("combo-up")) {
-    menu.classList.add("combo-up");
-  }
+function bindExercisePanel() {
+  var face = document.getElementById("exerciseFace");
+  var panel = document.getElementById("exercisePanel");
+  var menu = document.getElementById("exerciseMenu");
   face.addEventListener("click", function (event) {
     event.stopPropagation();
-    var willOpen = menu.hidden;
-    closeCombos();
-    if (willOpen) {
-      openCombo(menu);
-    }
+    var willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    face.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    layoutFrame();
   });
   menu.addEventListener("click", function (event) {
     var item = event.target.closest("[data-value]");
@@ -98,23 +44,22 @@ function bindCombo(root, onPick) {
       choices[i].setAttribute("aria-selected", choices[i] === item ? "true" : "false");
     }
     setComboLabel(face, item.textContent);
-    closeCombos();
-    onPick(item.getAttribute("data-value"));
+    currentExerciseId = item.getAttribute("data-value");
+    panel.hidden = true;
+    face.setAttribute("aria-expanded", "false");
+    SelectExercise();
     layoutFrame();
   });
 }
 
 function addComboItem(menu, value, label, selected) {
-  var item = document.createElement("li");
-  item.setAttribute("role", "none");
   var button = document.createElement("button");
   button.type = "button";
   button.setAttribute("role", "option");
   button.setAttribute("data-value", value);
   button.setAttribute("aria-selected", selected ? "true" : "false");
   button.textContent = label;
-  item.appendChild(button);
-  menu.appendChild(item);
+  menu.appendChild(button);
 }
 
 function buildExerciseMenu() {
@@ -147,31 +92,45 @@ function SelectExercise() {
   newExercise(ex.items, ex.bars || 1);
 }
 
-function chooseBeats(value) {
-  beatsChoice = value;
-  var custom = document.getElementById("beatsCustom");
-  var customStepper = document.getElementById("beatsCustomStepper");
-  if (value === "custom") {
-    customStepper.hidden = false;
-    custom.value = String(beatsPerBar);
-    custom.focus();
-    layoutFrame();
-    return;
+function renderMeterSignature() {
+  var names = {
+    1: "whole note",
+    2: "half note",
+    4: "quarter note",
+    8: "eighth note",
+    16: "sixteenth note"
+  };
+  var bottom = document.getElementById("meterBottom");
+  var hint = document.getElementById("meterHint");
+  if (bottom) {
+    bottom.textContent = String(beatUnit);
   }
-  customStepper.hidden = true;
-  setBeatsPerBar(parseInt(value, 10));
-  layoutFrame();
+  if (hint) {
+    hint.textContent = names[beatUnit] || "";
+  }
+  var presets = document.querySelectorAll("#meterPresets button");
+  for (var i = 0; i < presets.length; i++) {
+    var top = parseInt(presets[i].getAttribute("data-top"), 10);
+    var unit = parseInt(presets[i].getAttribute("data-unit"), 10);
+    presets[i].setAttribute("aria-pressed", top === beatsPerBar && unit === beatUnit ? "true" : "false");
+  }
 }
 
-function buildBeatsMenu() {
-  var menu = document.getElementById("beatsMenu");
-  var choices = ["3", "4", "5", "7", "11", "custom"];
-  var labels = { custom: "…" };
-  menu.innerHTML = "";
-  for (var i = 0; i < choices.length; i++) {
-    var value = choices[i];
-    addComboItem(menu, value, labels[value] || value, value === beatsChoice);
+function stepBeatUnit(direction) {
+  var units = [1, 2, 4, 8, 16];
+  var index = units.indexOf(beatUnit);
+  if (index < 0) {
+    index = 2;
   }
+  index += direction;
+  if (index < 0) {
+    index = 0;
+  }
+  if (index >= units.length) {
+    index = units.length - 1;
+  }
+  setBeatUnit(units[index]);
+  renderMeterSignature();
 }
 
 function renderGrooveLabel() {
@@ -179,8 +138,8 @@ function renderGrooveLabel() {
   if (!button) {
     return;
   }
-  button.title = "Click";
-  button.setAttribute("aria-label", "Click");
+  button.title = "Setup";
+  button.setAttribute("aria-label", "Setup");
 }
 
 function renderGroove() {
@@ -230,15 +189,19 @@ function fitToolbar(inner, align) {
   }
 }
 
+function placeExercisePanel() {
+  var panel = document.getElementById("exercisePanel");
+  var bar = document.getElementById("topBar");
+  if (!panel || panel.hidden || !bar) {
+    return;
+  }
+  panel.style.top = bar.getBoundingClientRect().bottom + "px";
+}
+
 function layoutFrame() {
   fitToolbar(document.getElementById("linediv"), "left");
   fitToolbar(document.getElementById("divfooter"), "right");
-  var openMenus = document.querySelectorAll(".combo-menu");
-  for (var i = 0; i < openMenus.length; i++) {
-    if (!openMenus[i].hidden) {
-      placeComboMenu(openMenus[i]);
-    }
-  }
+  placeExercisePanel();
   if (typeof chooseExerciseFont === "function" && chromaticScale.length) {
     chooseExerciseFont();
   }
@@ -246,25 +209,39 @@ function layoutFrame() {
 
 function closeGroovePanel() {
   var panel = document.getElementById("groovePanel");
-  if (panel) {
+  if (panel && !panel.hidden) {
     panel.hidden = true;
     document.getElementById("grooveButton").setAttribute("aria-expanded", "false");
+    layoutFrame();
   }
 }
 
 function init() {
   buildExerciseMenu();
-  buildBeatsMenu();
-  bindCombo(document.getElementById("exerciseCombo"), function (id) {
-    currentExerciseId = id;
-    SelectExercise();
+  bindExercisePanel();
+  document.getElementById("meterTop").addEventListener("input", function () {
+    setBeatsPerBar(parseInt(this.value, 10));
+    renderMeterSignature();
   });
-  bindCombo(document.getElementById("beatsCombo"), chooseBeats);
-  document.getElementById("beatsCustom").addEventListener("input", function () {
-    if (beatsChoice === "custom") {
-      setBeatsPerBar(parseInt(this.value, 10));
+  document.getElementById("meterPresets").addEventListener("click", function (event) {
+    var btn = event.target.closest("button");
+    if (!btn) {
+      return;
     }
+    var top = parseInt(btn.getAttribute("data-top"), 10);
+    var unit = parseInt(btn.getAttribute("data-unit"), 10);
+    document.getElementById("meterTop").value = String(top);
+    setBeatsPerBar(top);
+    setBeatUnit(unit);
+    renderMeterSignature();
   });
+  document.getElementById("unitDown").addEventListener("click", function () {
+    stepBeatUnit(-1);
+  });
+  document.getElementById("unitUp").addEventListener("click", function () {
+    stepBeatUnit(1);
+  });
+  renderMeterSignature();
   document.getElementById("volumeCheckbox").addEventListener("change", function () {
     setSoundOn(this.checked);
   });
@@ -293,8 +270,8 @@ function init() {
   document.getElementById("playBars").addEventListener("input", onCycleInput);
   document.getElementById("restBars").addEventListener("input", onCycleInput);
   document.addEventListener("click", function (event) {
-    if (!event.target.closest(".combo") && !event.target.closest(".combo-menu")) {
-      closeCombos();
+    if (!event.target.closest("#exercisePanel") && !event.target.closest("#exerciseFace")) {
+      closeExercisePanel();
     }
     var btn = event.target.closest(".step-down, .step-up");
     if (!btn) {
@@ -320,13 +297,19 @@ function init() {
     input.value = String(value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+  document.getElementById("lookAhead").addEventListener("click", function () {
+    setLookAhead(this.getAttribute("aria-pressed") !== "true");
+  });
   document.getElementById("tempoToggle").addEventListener("click", toggleTempo);
   document.getElementById("resetExercise").addEventListener("click", resetExercise);
   document.getElementById("divnote").addEventListener("pointerdown", function () {
     closeGroovePanel();
-    closeCombos();
+    closeExercisePanel();
   });
-  document.getElementById("next").addEventListener("click", closeGroovePanel);
+  document.getElementById("next").addEventListener("click", function () {
+    closeGroovePanel();
+    closeExercisePanel();
+  });
   window.addEventListener("resize", layoutFrame);
   document.addEventListener("pointerdown", unlockAudio);
   renderGroove();

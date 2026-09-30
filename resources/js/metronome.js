@@ -7,6 +7,7 @@ var clockMode = "perf";
 var currentBpm = 100;
 var tempoHeld = 100;
 var beatsPerBar = 4;
+var beatUnit = 4;
 var soundOn = false;
 var paused = false;
 var nextNoteTime = 0;
@@ -379,7 +380,7 @@ function scheduleStep(step, time, gen) {
 }
 
 function scheduler() {
-  if (currentBpm <= 0) {
+  if (paused || currentBpm <= 0) {
     return;
   }
   syncClock();
@@ -436,15 +437,24 @@ function metronomeAlignToDownbeat() {
 }
 
 function readBeatsFromDom() {
-  if (typeof beatsChoice === "undefined") {
+  var el = document.getElementById("meterTop");
+  if (!el) {
     return beatsPerBar;
   }
-  if (beatsChoice === "custom") {
-    var custom = parseInt(document.getElementById("beatsCustom").value, 10);
-    return custom > 0 ? custom : beatsPerBar;
+  var n = parseInt(el.value, 10);
+  return n > 0 ? n : beatsPerBar;
+}
+
+function readBeatUnitFromDom() {
+  var el = document.getElementById("meterBottom");
+  if (!el) {
+    return beatUnit;
   }
-  var preset = parseInt(beatsChoice, 10);
-  return preset > 0 ? preset : beatsPerBar;
+  var n = parseInt(el.textContent, 10);
+  if (n === 1 || n === 2 || n === 4 || n === 8 || n === 16) {
+    return n;
+  }
+  return beatUnit;
 }
 
 function readCycleFromDom() {
@@ -458,6 +468,7 @@ function readCycleFromDom() {
 
 function startMetronome() {
   beatsPerBar = readBeatsFromDom();
+  beatUnit = readBeatUnitFromDom();
   readCycleFromDom();
   renderPhrase(0, false);
   var bpmInput = parseInt(document.getElementById("bpm").value, 10);
@@ -470,18 +481,9 @@ function startMetronome() {
   }
   soundOn = document.getElementById("volumeCheckbox").checked;
   startVisualLoop();
-  if (currentBpm === 0) {
-    paused = true;
-    renderTempoToggle();
-    return;
-  }
-  tempoHeld = currentBpm;
-  paused = false;
+  tempoHeld = currentBpm > 0 ? currentBpm : 100;
+  paused = true;
   renderTempoToggle();
-  if (!(nextNoteTime > currentTimeSec())) {
-    nextNoteTime = currentTimeSec() + 0.04;
-  }
-  ensureScheduler();
 }
 
 function applyBpm(bpm) {
@@ -540,6 +542,7 @@ function renderTempoToggle() {
   if (box) {
     box.classList.toggle("is-paused", off);
   }
+  document.body.classList.toggle("is-stopped", off);
 }
 
 function toggleTempo() {
@@ -580,6 +583,18 @@ function updateInterval() {
     }
     applyBpm(bpm);
   }, 280);
+}
+
+function setBeatUnit(n) {
+  n = parseInt(n, 10);
+  if (n !== 1 && n !== 2 && n !== 4 && n !== 8 && n !== 16) {
+    return;
+  }
+  if (n === beatUnit) {
+    return;
+  }
+  beatUnit = n;
+  metronomeAlignToDownbeat();
 }
 
 function setBeatsPerBar(n) {

@@ -14,7 +14,7 @@
 
 </head>
 
-<body>
+<body class="is-stopped">
     <div id="beatFlash"></div>
 
     <div id="selectdiv">
@@ -29,11 +29,10 @@
 
             <div id="editdiv">
                 <div class="combo" id="exerciseCombo">
-                    <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="listbox" aria-expanded="false" aria-label="Exercise: Notes" title="Choose an exercise">
+                    <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="true" aria-expanded="false" aria-controls="exercisePanel" aria-label="Exercise: Notes" title="Choose an exercise">
                         <span class="combo-kicker">Exercise</span>
                         <span class="combo-value">Notes</span>
                     </button>
-                    <ul class="combo-menu" id="exerciseMenu" role="listbox" hidden></ul>
                 </div>
                 <button type="button" class="icon-btn" id="resetExercise" title="Start this exercise again" aria-label="Reset exercise">
                     <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
@@ -41,6 +40,9 @@
                 <button type="button" class="icon-btn" id="edit" onclick="ToggleEdit()" title="Edit exercise" aria-label="Edit exercise"><i class="fa-solid fa-pen-to-square"></i></button>
             </div>
         </div>
+    </div>
+    <div id="exercisePanel" hidden>
+        <div id="exerciseMenu" role="listbox" aria-label="Exercise"></div>
     </div>
     <div id="textdiv">
         <textarea id="allEdit">df</textarea>
@@ -51,18 +53,44 @@
 
 
     <div id="divnote">
-
-
-
-        <p id="note">
-            C<sup><small></small></sup>
-        </p>
-
+        <div id="noteStack">
+            <div id="reelMark" hidden aria-hidden="true"></div>
+            <p id="noteNext" class="reel-face reel-next" hidden></p>
+            <p id="note">
+                C<sup><small></small></sup>
+            </p>
+            <p id="notePrev" class="reel-face reel-prev" hidden></p>
+        </div>
     </div>
 
 
     <footer>
         <div id="groovePanel" hidden>
+            <p class="groove-label">Meter</p>
+            <div id="meterRow">
+                <div id="meterPresets">
+                    <button type="button" data-top="4" data-unit="4" aria-pressed="true">4/4</button>
+                    <button type="button" data-top="3" data-unit="4">3/4</button>
+                    <button type="button" data-top="5" data-unit="4">5/4</button>
+                    <button type="button" data-top="7" data-unit="4">7/4</button>
+                    <button type="button" data-top="11" data-unit="4">11/4</button>
+                    <button type="button" data-top="6" data-unit="8">6/8</button>
+                </div>
+                <div class="meter-sig" title="Top number: how many units in a bar. Bottom number: 1 whole, 2 half, 4 quarter, 8 eighth, 16 sixteenth. BPM is the speed of that note.">
+                    <div class="stepper stepper-sm">
+                        <button type="button" class="step-down" aria-label="Fewer units in a bar">−</button>
+                        <input id="meterTop" type="number" min="1" max="32" step="1" value="4" inputmode="numeric" aria-label="Units in a bar">
+                        <button type="button" class="step-up" aria-label="More units in a bar">+</button>
+                    </div>
+                    <div class="sig-rule"></div>
+                    <div class="sig-unit">
+                        <button type="button" id="unitDown" aria-label="Longer note">−</button>
+                        <span id="meterBottom">4</span>
+                        <button type="button" id="unitUp" aria-label="Shorter note">+</button>
+                    </div>
+                    <p id="meterHint" class="meter-hint">quarter note</p>
+                </div>
+            </div>
             <p class="groove-label">Click</p>
             <div id="clickGrid"></div>
             <p class="groove-label">Bars</p>
@@ -80,28 +108,19 @@
                     <button type="button" class="step-up" aria-label="More rest bars">+</button>
                 </div>
             </div>
+            <p class="groove-label">Look ahead</p>
+            <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true">Show nearby</button>
         </div>
         <div id="phraseTrack"></div>
         <div id="bottomBar">
         <div id="divfooter">
 
-            <label class="checkbox-label">
-                <input type="checkbox" id="volumeCheckbox" />
-                <i class="fa fa-volume-xmark"></i> <!-- Default Icon when unchecked -->
+            <label class="checkbox-label" title="Metronome sound" aria-label="Metronome sound">
+                <input type="checkbox" id="volumeCheckbox" checked aria-label="Metronome sound" />
+                <i class="fa fa-volume-high"></i>
             </label>
 
-            <div class="combo combo-up" id="beatsCombo">
-                <button type="button" class="combo-face" id="beatsFace" title="Beats per bar" aria-label="Beats per bar" aria-haspopup="listbox" aria-expanded="false">4</button>
-                <ul class="combo-menu" id="beatsMenu" role="listbox" hidden></ul>
-            </div>
-            <div class="stepper" id="beatsCustomStepper" hidden>
-                <button type="button" class="step-down" aria-label="Fewer beats">−</button>
-                <input type="number" id="beatsCustom" min="1" max="32" step="1" value="4"
-                    title="Custom beats per bar" aria-label="Custom beats per bar" inputmode="numeric">
-                <button type="button" class="step-up" aria-label="More beats">+</button>
-            </div>
-
-            <button type="button" id="grooveButton" title="Click" aria-label="Click" aria-expanded="false">
+            <button type="button" id="grooveButton" title="Setup" aria-label="Setup" aria-expanded="false">
                 <svg class="metro-icon" viewBox="0 0 32 32" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/>
                     <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/>
@@ -115,8 +134,8 @@
                 <input type="number" id="bpm" min="0" max="500" step="1" value="100" maxlength="3"
                     title="BPM" aria-label="Tempo" inputmode="numeric">
                 <button type="button" class="step-up" aria-label="Faster">+</button>
-                <button type="button" id="tempoToggle" aria-label="Pause tempo" aria-pressed="false" title="Pause tempo">
-                    <i class="fa-solid fa-pause"></i>
+                <button type="button" id="tempoToggle" aria-label="Start tempo" aria-pressed="true" title="Start tempo">
+                    <i class="fa-solid fa-play"></i>
                 </button>
             </div>
 
