@@ -48,3 +48,7 @@ A custom list is not an exercise file. The editor stores one list in `eization-d
 `eization-hello` is `"1"` after the intro has played. Restore defaults deletes both keys. The intro plays on the next launch, not on that click.
 
 Constraints for later sessions are in `.cursor/rules/eization.mdc`.
+
+## Tests
+
+Serve this folder and open `tests/smoke.html`. The page title is PASS or FAIL, and the list of checks is on the page. The suite uses the real app in a frame. It does not start the metronome.

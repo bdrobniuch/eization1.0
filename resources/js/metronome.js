@@ -299,6 +299,14 @@ function setCycle(play, rest) {
   }
   playBars = play;
   restBars = rest;
+  var playEl = document.getElementById("playBars");
+  var restEl = document.getElementById("restBars");
+  if (playEl && String(playEl.value) !== String(play)) {
+    playEl.value = String(play);
+  }
+  if (restEl && String(restEl.value) !== String(rest)) {
+    restEl.value = String(rest);
+  }
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
