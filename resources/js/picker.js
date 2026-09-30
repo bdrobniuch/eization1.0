@@ -261,7 +261,7 @@ function chooseExerciseFont() {
     size = cap;
   }
   var guard = 0;
-  while (guard < 8) {
+  while (guard < 24) {
     measure.style.fontSize = Math.floor(size) + "px";
     var fits = true;
     for (var k = 0; k < sample.length; k++) {
@@ -271,14 +271,11 @@ function chooseExerciseFont() {
         break;
       }
     }
-    if (fits) {
+    if (fits || size <= 11) {
       break;
     }
-    size *= 0.92;
+    size *= 0.9;
     guard++;
-  }
-  if (size < 16) {
-    size = 16;
   }
   exerciseFontPx = Math.floor(size);
   note.style.fontSize = exerciseFontPx + "px";

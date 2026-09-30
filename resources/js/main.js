@@ -200,7 +200,9 @@ function placeExercisePanel() {
   if (!panel || panel.hidden || !bar) {
     return;
   }
-  panel.style.top = bar.getBoundingClientRect().bottom + "px";
+  var top = bar.getBoundingClientRect().bottom;
+  panel.style.top = top + "px";
+  panel.style.maxHeight = Math.max(120, window.innerHeight - top - 8) + "px";
 }
 
 function layoutFrame() {

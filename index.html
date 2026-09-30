@@ -93,19 +93,23 @@
                 </div>
             </div>
             <p class="groove-label">Click</p>
-            <p class="click-kind">Play</p>
-            <div id="clickGrid"></div>
-            <p class="click-kind">Rest</p>
-            <div id="restClickGrid"></div>
+            <div class="tone-zone play">
+                <p class="click-kind">Play</p>
+                <div id="clickGrid"></div>
+            </div>
+            <div class="tone-zone rest">
+                <p class="click-kind">Rest</p>
+                <div id="restClickGrid"></div>
+            </div>
             <p class="groove-label">Bars</p>
             <div id="cycleRow" title="How many play bars, then how many rest bars. Each uses its own clicks.">
-                <div class="stepper stepper-sm">
+                <div class="stepper stepper-sm play">
                     <span class="step-label">Play</span>
                     <button type="button" class="step-down" aria-label="Fewer play bars">−</button>
                     <input id="playBars" type="number" min="0" max="16" step="1" value="1" inputmode="numeric">
                     <button type="button" class="step-up" aria-label="More play bars">+</button>
                 </div>
-                <div class="stepper stepper-sm">
+                <div class="stepper stepper-sm rest">
                     <span class="step-label">Rest</span>
                     <button type="button" class="step-down" aria-label="Fewer rest bars">−</button>
                     <input id="restBars" type="number" min="0" max="16" step="1" value="0" inputmode="numeric">

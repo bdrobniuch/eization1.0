@@ -122,6 +122,7 @@ body.is-count-in {
 #bottomBar {
   justify-content: flex-end;
   align-items: flex-end;
+  flex: 0 0 auto;
 }
 
 #divfooter {
@@ -181,6 +182,7 @@ body.is-count-in {
 
 .prog-name {
   font-size: 0.42em;
+  font-size: max(0.42em, 11px);
   line-height: 1.15;
   letter-spacing: 0.03em;
   opacity: 0.78;
@@ -214,11 +216,17 @@ header {
 footer {
     position: fixed;
     left: 0;
+    right: 0;
     bottom: 0;
-    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    max-height: 100dvh;
+    max-height: 100vh;
     width: 100%;
+    box-sizing: border-box;
+    background-color: transparent;
     text-align: right;
-
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
 
@@ -270,15 +278,27 @@ footer {
     vertical-align: 0.12em;
 }
 
+#exercisePanel,
+#groovePanel {
+    box-sizing: border-box;
+    padding: 2vmin 3vmin 1.5vmin;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    color: #ffffff;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+}
+
 #exercisePanel {
     position: fixed;
     left: 0;
     right: 0;
     z-index: 25;
-    padding: 2vmin 3vmin 1.5vmin;
-    background: rgba(0, 0, 0, 0.16);
     border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-    color: #ffffff;
 }
 
 #exercisePanel[hidden] {
@@ -422,10 +442,9 @@ footer {
 }
 
 #groovePanel {
-    padding: 2vmin 3vmin 1.5vmin;
-    background: rgba(0, 0, 0, 0.16);
+    flex: 1 1 auto;
+    min-height: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.45);
-    color: #ffffff;
 }
 
 #groovePanel[hidden] {
@@ -441,11 +460,39 @@ footer {
 }
 
 .click-kind {
-    margin: 0.8vmin 0 0.4vmin;
+    margin: 0.4vmin 0 0.5vmin;
     font-size: 2.6vmin;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    opacity: 0.7;
+    opacity: 0.9;
+}
+
+.tone-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: max-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0.4vmin 0 0.8vmin;
+    padding: 0.3vmin 1.4vmin 1.1vmin;
+    border-radius: 1.6vmin;
+}
+
+.tone-zone.play,
+#cycleRow .stepper.play {
+    background: rgba(12, 138, 80, 0.5);
+}
+
+.tone-zone.rest,
+#cycleRow .stepper.rest {
+    background: rgba(9, 119, 187, 0.5);
+}
+
+#cycleRow .stepper.play,
+#cycleRow .stepper.rest {
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.85);
 }
 
 #cycleRow,
@@ -487,47 +534,54 @@ footer {
     flex-direction: column;
     align-items: center;
     min-width: 28vmin;
-    padding: 0.6vmin 1.2vmin 0.8vmin;
-    border: 3px solid rgba(255, 255, 255, 0.85);
+    padding: 0.2vmin 0.4vmin 0;
+    border: 0;
     color: #ffffff;
 }
 
-.meter-sig .stepper {
-    border: 0;
-    opacity: 1;
-}
-
-.sig-rule {
-    width: 72%;
-    height: 2px;
-    margin: 0.2vmin 0;
-    background: #ffffff;
-}
-
+.meter-sig .stepper,
 .sig-unit {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1vmin;
+    border: 0;
+    opacity: 1;
 }
 
-.sig-unit button {
+.meter-sig .stepper button,
+.meter-sig .stepper input,
+.sig-unit button,
+#meterBottom {
+    box-sizing: border-box;
+    width: 1.7em;
+    min-width: 1.7em;
+    height: 1.15em;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
     border: 0;
     background: transparent;
-    color: #ffffff;
+    color: inherit;
     font: inherit;
-    font-size: 5vmin;
+    font-size: 5.4vmin;
     line-height: 1;
-    min-width: 7vmin;
-    min-height: 36px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.meter-sig .stepper button,
+.sig-unit button {
+    width: 0.9em;
+    min-width: 0.9em;
     cursor: pointer;
 }
 
-#meterBottom {
-    min-width: 1.6em;
-    text-align: center;
-    font-size: 5.4vmin;
-    font-variant-numeric: tabular-nums;
+.sig-rule {
+    width: 72%;
+    height: 2px;
+    margin: 0.15em 0;
+    background: #ffffff;
 }
 
 .meter-hint {
@@ -721,6 +775,15 @@ body.bar-rest .click-pad.accent {
     animation-name: padBeatOn;
 }
 
+body.bar-rest .click-pad.beat {
+    animation-name: padBeatRest;
+}
+
+body.bar-rest .click-pad.on.beat,
+body.bar-rest .click-pad.accent.beat {
+    animation-name: padBeatOnRest;
+}
+
 @keyframes padBeat {
     0%, 45% { background-color: #ffffff; color: #0C8A50; }
     100% { background-color: transparent; color: #ffffff; }
@@ -729,15 +792,6 @@ body.bar-rest .click-pad.accent {
 @keyframes padBeatOn {
     0%, 45% { background-color: #0C8A50; color: #ffffff; }
     100% { background-color: #ffffff; color: #0C8A50; }
-}
-
-body.bar-rest .click-pad.beat {
-    animation-name: padBeatRest;
-}
-
-body.bar-rest .click-pad.on.beat,
-body.bar-rest .click-pad.accent.beat {
-    animation-name: padBeatOnRest;
 }
 
 @keyframes padBeatRest {
@@ -796,6 +850,7 @@ body.bar-rest .click-pad.accent.beat {
 #phraseRow {
     display: flex;
     align-items: center;
+    flex: 0 0 auto;
     gap: 1.6vmin;
     width: 100%;
     box-sizing: border-box;
