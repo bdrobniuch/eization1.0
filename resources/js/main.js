@@ -226,6 +226,9 @@ function layoutFrame() {
   if (typeof placeEditor === "function") {
     placeEditor();
   }
+  if (typeof placeAbout === "function") {
+    placeAbout();
+  }
   if (typeof chooseExerciseFont === "function" && chromaticScale.length) {
     chooseExerciseFont();
   }
@@ -275,6 +278,10 @@ function init() {
       if (typeof editorNotice === "function") {
         editorNotice("Finish or cancel editing first.");
       }
+      return;
+    }
+    if (typeof aboutIsOpen === "function" && aboutIsOpen()) {
+      closeAbout();
       return;
     }
     var panel = document.getElementById("groovePanel");

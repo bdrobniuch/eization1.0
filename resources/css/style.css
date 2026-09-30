@@ -349,7 +349,13 @@ footer {
   align-items: center;
   gap: 0.7vmin;
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
 }
 
 .brand-mark {
@@ -1222,6 +1228,227 @@ body.is-editing #counter {
   display: inline-block;
   text-align: center;
   line-height: 1;
+}
+
+body.is-about #divnote,
+body.is-about #counter {
+  visibility: hidden;
+}
+
+#about {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 18;
+  box-sizing: border-box;
+  padding: 10px 16px 16px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#about.is-open {
+  display: block;
+}
+
+#aboutHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#about h1,
+#about h2 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+#about h1 {
+  font-size: 22px;
+}
+
+#about h2 {
+  margin-top: 22px;
+  font-size: 18px;
+}
+
+#aboutClose,
+#supportReveal,
+.support-path,
+.support-copy,
+#aboutLinks button {
+  min-height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#aboutClose {
+  padding: 0 14px;
+}
+
+#aboutBody {
+  max-width: 38rem;
+}
+
+#aboutBody p {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+#aboutLockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 18px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.about-mark {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+}
+
+#aboutLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#aboutLinks button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+}
+
+#aboutLinks svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+#emailLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0 0;
+  max-width: 38rem;
+  font-size: 16px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+#emailLine[hidden] {
+  display: none !important;
+}
+
+.support-paths {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.support-path {
+  flex: 1 1 0;
+  padding: 0 8px;
+}
+
+.support-path.is-on {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
+#supportEurope[hidden],
+#supportWorld[hidden] {
+  display: none !important;
+}
+
+#supportReveal {
+  padding: 0 16px;
+}
+
+#supportCard {
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+#supportCard[hidden] {
+  display: none !important;
+}
+
+#supportCard.is-shown {
+  animation: supportIn 220ms ease;
+}
+
+@keyframes supportIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.support-note {
+  margin: 12px 0 4px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.support-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.support-label {
+  margin: 0 0 2px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.support-value {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.support-copy {
+  flex: 0 0 auto;
+  min-width: 7.2em;
+  padding: 0 10px;
 }
 
 

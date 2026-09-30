@@ -356,6 +356,9 @@ function duplicateEditorLine() {
 }
 
 function editorOpen() {
+  if (typeof closeAbout === "function") {
+    closeAbout();
+  }
   if (typeof closeExercisePanel === "function") {
     closeExercisePanel();
   }
