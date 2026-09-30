@@ -344,6 +344,36 @@ footer {
   margin-left: 2vmin;
 }
 
+#brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7vmin;
+  margin: 0;
+  color: #ffffff;
+}
+
+.brand-mark {
+  width: 4.6vmin;
+  height: 4.6vmin;
+  min-width: 26px;
+  min-height: 26px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.brand-word {
+  font-weight: 600;
+  font-size: 3.5vmin;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+@media (max-width: 840px) {
+  .brand-word {
+    display: none;
+  }
+}
+
 #counter {
   margin: 0;
   font-size: 4.5vmin;
