@@ -621,6 +621,103 @@ footer {
     opacity: 1;
 }
 
+.swing-modes {
+    display: flex;
+    width: 100%;
+    max-width: 420px;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+}
+
+.swing-modes button {
+    flex: 1 1 0;
+    min-height: 44px;
+    padding: 0 8px;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 3.4vmin;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.swing-modes button + button {
+    border-left: 2px solid rgba(255, 255, 255, 0.45);
+}
+
+.swing-modes button[aria-checked="true"] {
+    background: #ffffff;
+    color: #0C8A50;
+    opacity: 1;
+}
+
+#swingAmount {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 8px;
+}
+
+#swingAmount[hidden] {
+    display: none !important;
+}
+
+#swingSlider {
+    position: relative;
+    height: 44px;
+    margin: 0 12px;
+    touch-action: none;
+}
+
+.swing-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.45);
+    transform: translateY(-50%);
+}
+
+.swing-ghost,
+.swing-handle {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    padding: 0;
+    border: 0;
+    transform: translate(-50%, -50%);
+}
+
+.swing-ghost {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.28);
+    z-index: 1;
+}
+
+.swing-handle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    z-index: 2;
+    cursor: grab;
+}
+
+.swing-handle:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+#swingReadout {
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+    opacity: 0.75;
+}
+
 .click-pair {
     display: inline-flex;
     gap: 1.2vmin;

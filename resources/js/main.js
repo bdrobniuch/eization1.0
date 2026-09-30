@@ -336,6 +336,15 @@ function init() {
   document.getElementById("countInToggle").addEventListener("click", function () {
     setCountIn(this.getAttribute("aria-pressed") !== "true");
   });
+  document.getElementById("swingModeOff").addEventListener("click", function () {
+    setSwingMode("off");
+  });
+  document.getElementById("swingModeTriplet").addEventListener("click", function () {
+    setSwingMode("triplet");
+  });
+  document.getElementById("swingModeFeel").addEventListener("click", function () {
+    setSwingMode("feel");
+  });
   document.getElementById("tempoToggle").addEventListener("click", toggleTempo);
   document.getElementById("resetExercise").addEventListener("click", resetExercise);
   document.getElementById("divnote").addEventListener("pointerdown", function () {

@@ -147,6 +147,20 @@
             <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true">Show nearby</button>
             <p class="groove-label">Count in</p>
             <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false">One bar</button>
+            <p class="groove-label">Swing</p>
+            <div class="swing-modes" role="radiogroup" aria-label="Swing">
+                <button type="button" id="swingModeOff" role="radio" aria-checked="true">Off</button>
+                <button type="button" id="swingModeTriplet" role="radio" aria-checked="false" title="The &amp; lands on the last third of the beat.">Triplet</button>
+                <button type="button" id="swingModeFeel" role="radio" aria-checked="false" title="The &amp; follows the tempo. Numbered beats stay on the grid.">Swing</button>
+            </div>
+            <div id="swingAmount" hidden>
+                <div id="swingSlider" title="Left is straight. Right is heavier.">
+                    <div class="swing-line"></div>
+                    <button type="button" id="swingRecommended" class="swing-ghost" tabindex="-1" title="Recommended for this tempo. Tap to follow it." aria-label="Follow the recommended swing"></button>
+                    <button type="button" id="swingHandle" class="swing-handle" role="slider" aria-valuemin="1" aria-valuemax="3.5" aria-valuenow="1" aria-label="Swing amount" aria-orientation="horizontal"></button>
+                </div>
+                <p id="swingReadout">Auto</p>
+            </div>
         </div>
         <div id="phraseRow">
             <div id="phraseTrack"></div>

@@ -34,9 +34,95 @@ var armAdvance = false;
 var phraseBarsDone = 0;
 var currentBarInfo = { countIn: false, advance: false, phraseIndex: 0 };
 var EIGHTHS = 2;
+var swingOn = false;
+var swingAuto = true;
+var swingTriplet = false;
+var swingRatio = 1;
+var swingLitOffbeats = false;
+var swingAnchorTime = 0;
+var swingAnchorValid = false;
+// Real swing: the upbeat settles near 100 ms, so ratio = (beat / 100 ms) - 1 = 600 / BPM - 1.
+// That is already 3.5:1 at 133 BPM, and the slider stops there. Faster than about 300 BPM it is straight.
+// Triplet is a separate choice: exactly 2:1, the & on the last third of the beat.
+var SWING_MIN = 1;
+var SWING_MAX = 3.5;
+var SWING_SHORT_SEC = 0.1;
+var SWING_TRIPLET = 2;
+var SWING_MIN_SHORT_SEC = 0.055;
+var SWING_AUTO_SNAP = 0.08;
 
 function eighthDuration() {
   return (60 / currentBpm) / EIGHTHS;
+}
+
+function beatDuration() {
+  return 60 / currentBpm;
+}
+
+function swingBpm() {
+  if (currentBpm > 0) {
+    return currentBpm;
+  }
+  if (tempoHeld > 0) {
+    return tempoHeld;
+  }
+  return 100;
+}
+
+function clampSwingRatio(ratio) {
+  if (isNaN(ratio) || ratio < SWING_MIN) {
+    return SWING_MIN;
+  }
+  if (ratio > SWING_MAX) {
+    return SWING_MAX;
+  }
+  return ratio;
+}
+
+function recommendedSwingRatio(bpm) {
+  if (!(bpm > 0)) {
+    return SWING_MIN;
+  }
+  return clampSwingRatio((60 / bpm) / SWING_SHORT_SEC - 1);
+}
+
+function activeSwingRatio() {
+  if (!swingOn) {
+    return SWING_MIN;
+  }
+  if (swingTriplet) {
+    return SWING_TRIPLET;
+  }
+  if (swingAuto) {
+    return recommendedSwingRatio(swingBpm());
+  }
+  return clampSwingRatio(swingRatio);
+}
+
+function heardSwingRatio(bpm, ratio) {
+  ratio = clampSwingRatio(ratio);
+  if (!(bpm > 0) || !(ratio > 1)) {
+    return SWING_MIN;
+  }
+  var beat = 60 / bpm;
+  var maxRatio = beat / SWING_MIN_SHORT_SEC - 1;
+  if (maxRatio < SWING_MIN) {
+    return SWING_MIN;
+  }
+  if (ratio > maxRatio) {
+    return maxRatio;
+  }
+  return ratio;
+}
+
+function swingGaps() {
+  var beat = beatDuration();
+  var ratio = swingTriplet ? activeSwingRatio() : heardSwingRatio(currentBpm, activeSwingRatio());
+  if (!(ratio > 1)) {
+    return { longNote: beat / 2, shortNote: beat / 2, beat: beat };
+  }
+  var longNote = beat * ratio / (ratio + 1);
+  return { longNote: longNote, shortNote: beat - longNote, beat: beat };
 }
 
 function stepsPerBar() {
@@ -92,6 +178,7 @@ function clampSchedule() {
     pendingVisuals = [];
     cancelFutureClicks();
     nextNoteTime = now + 0.04;
+    swingAnchorValid = false;
   }
 }
 
@@ -183,6 +270,9 @@ function toggleClickStep(index, rest) {
   }
   var level = pattern[index] || 0;
   pattern[index] = (level + 1) % 3;
+  if (!rest && index % 2 === 1) {
+    swingLitOffbeats = false;
+  }
   cancelFutureClicks();
 }
 
@@ -558,6 +648,7 @@ function scheduler() {
     pendingVisuals = [];
     cancelFutureClicks();
     nextNoteTime = now + 0.04;
+    swingAnchorValid = false;
   }
   var horizon = now + LOOKAHEAD;
   var guard = 0;
@@ -566,7 +657,18 @@ function scheduler() {
       currentBarInfo = beginScheduledBar();
     }
     scheduleStep(stepIndex, nextNoteTime, generation, currentBarInfo);
-    nextNoteTime += eighth;
+    // Numbered beats stay on the grid. The "&" is the late upbeat.
+    // After an upbeat, the next downbeat is one whole beat after its downbeat, not "short note after whenever the & happened to be scheduled".
+    var gaps = swingGaps();
+    if (stepIndex % 2 === 0) {
+      swingAnchorTime = nextNoteTime;
+      swingAnchorValid = true;
+      nextNoteTime = swingAnchorTime + gaps.longNote;
+    } else if (swingAnchorValid) {
+      nextNoteTime = swingAnchorTime + gaps.beat;
+    } else {
+      nextNoteTime += gaps.shortNote;
+    }
     stepIndex++;
     if (stepIndex >= stepsPerBar()) {
       stepIndex = 0;
@@ -616,6 +718,7 @@ function metronomeAlignToDownbeat() {
   armAdvance = false;
   currentBarInfo = { countIn: false, advance: false, phraseIndex: 0, iteration: 0 };
   nextNoteTime = currentTimeSec() + 0.04;
+  swingAnchorValid = false;
   hideCountIn();
   renderPhrase(0, false);
   renderRepeatMark(0);
@@ -673,6 +776,7 @@ function startMetronome() {
   tempoHeld = currentBpm > 0 ? currentBpm : 100;
   paused = true;
   renderTempoToggle();
+  bindSwingSlider();
 }
 
 function applyBpm(bpm) {
@@ -690,6 +794,7 @@ function applyBpm(bpm) {
     stopScheduler();
     paused = true;
     renderTempoToggle();
+    renderSwing();
     return;
   }
   var wasPaused = paused || !schedulerTimer;
@@ -710,7 +815,9 @@ function applyBpm(bpm) {
     cancelFutureClicks();
     pendingVisuals = [];
     nextNoteTime = now + 0.04;
+    swingAnchorValid = false;
   }
+  renderSwing();
   scheduler();
 }
 
@@ -769,6 +876,7 @@ function updateInterval() {
       if (bpm > 0) {
         currentBpm = bpm;
         tempoHeld = bpm;
+        renderSwing();
       } else {
         applyBpm(0);
       }
@@ -776,6 +884,234 @@ function updateInterval() {
     }
     applyBpm(bpm);
   }, 280);
+}
+
+function playOffbeatsAreSilent() {
+  var pattern = activePlayPattern();
+  for (var i = 1; i < pattern.length; i += 2) {
+    if (pattern[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function lightPlayOffbeats() {
+  var pattern = activePlayPattern();
+  for (var i = 1; i < pattern.length; i += 2) {
+    pattern[i] = 1;
+  }
+  swingLitOffbeats = true;
+  cancelFutureClicks();
+  if (typeof renderGroove === "function") {
+    renderGroove();
+  }
+}
+
+function releaseOwnedOffbeats() {
+  if (!swingLitOffbeats) {
+    return;
+  }
+  swingLitOffbeats = false;
+  var pattern = activePlayPattern();
+  for (var i = 1; i < pattern.length; i += 2) {
+    if (pattern[i] === 2) {
+      return;
+    }
+  }
+  for (var j = 1; j < pattern.length; j += 2) {
+    if (pattern[j] === 1) {
+      pattern[j] = 0;
+    }
+  }
+  cancelFutureClicks();
+  if (typeof renderGroove === "function") {
+    renderGroove();
+  }
+}
+
+function placeSwingThumb(el, ratio) {
+  if (!el) {
+    return;
+  }
+  var span = SWING_MAX - SWING_MIN;
+  var pct = (ratio - SWING_MIN) / span;
+  if (pct < 0) {
+    pct = 0;
+  }
+  if (pct > 1) {
+    pct = 1;
+  }
+  el.style.left = (pct * 100) + "%";
+}
+
+function renderSwing() {
+  var recommended = recommendedSwingRatio(swingBpm());
+  var requested = swingOn && !swingAuto ? clampSwingRatio(swingRatio) : recommended;
+  var shown = swingTriplet ? SWING_TRIPLET : heardSwingRatio(swingBpm(), requested);
+  placeSwingThumb(document.getElementById("swingRecommended"), recommended);
+  placeSwingThumb(document.getElementById("swingHandle"), shown);
+  var handle = document.getElementById("swingHandle");
+  if (handle) {
+    handle.setAttribute("aria-valuenow", String(Math.round(shown * 100) / 100));
+    handle.setAttribute("aria-valuetext", swingAuto ? "Auto" : "Set");
+  }
+  var readout = document.getElementById("swingReadout");
+  if (readout) {
+    readout.textContent = swingAuto ? "Auto" : "Set";
+  }
+  var ghost = document.getElementById("swingRecommended");
+  if (ghost) {
+    ghost.setAttribute("aria-pressed", swingAuto ? "true" : "false");
+  }
+  var amount = document.getElementById("swingAmount");
+  if (amount) {
+    amount.hidden = !swingOn || swingTriplet;
+  }
+  var off = document.getElementById("swingModeOff");
+  var triplet = document.getElementById("swingModeTriplet");
+  var feel = document.getElementById("swingModeFeel");
+  if (off) {
+    off.setAttribute("aria-checked", !swingOn ? "true" : "false");
+  }
+  if (triplet) {
+    triplet.setAttribute("aria-checked", swingOn && swingTriplet ? "true" : "false");
+  }
+  if (feel) {
+    feel.setAttribute("aria-checked", swingOn && !swingTriplet ? "true" : "false");
+  }
+}
+
+function setSwingMode(mode) {
+  if (mode !== "triplet" && mode !== "feel") {
+    mode = "off";
+  }
+  var nextOn = mode !== "off";
+  if (swingOn && !nextOn) {
+    releaseOwnedOffbeats();
+  }
+  var wasOn = swingOn;
+  swingOn = nextOn;
+  swingTriplet = mode === "triplet";
+  renderSwing();
+  if (swingOn && !wasOn && playOffbeatsAreSilent()) {
+    lightPlayOffbeats();
+  }
+  if (typeof layoutFrame === "function") {
+    layoutFrame();
+  }
+}
+
+function setSwingAuto(on) {
+  swingAuto = !!on;
+  if (swingAuto) {
+    swingRatio = recommendedSwingRatio(swingBpm());
+  }
+  renderSwing();
+}
+
+function setSwingRatio(ratio) {
+  if (isNaN(ratio)) {
+    return;
+  }
+  if (ratio < SWING_MIN) {
+    ratio = SWING_MIN;
+  }
+  if (ratio > SWING_MAX) {
+    ratio = SWING_MAX;
+  }
+  swingAuto = false;
+  swingRatio = ratio;
+  renderSwing();
+}
+
+function swingRatioFromClientX(clientX) {
+  var slider = document.getElementById("swingSlider");
+  var rect = slider.getBoundingClientRect();
+  var pct = rect.width > 0 ? (clientX - rect.left) / rect.width : 0;
+  if (pct < 0) {
+    pct = 0;
+  }
+  if (pct > 1) {
+    pct = 1;
+  }
+  return SWING_MIN + pct * (SWING_MAX - SWING_MIN);
+}
+
+function bindSwingSlider() {
+  var slider = document.getElementById("swingSlider");
+  var ghost = document.getElementById("swingRecommended");
+  var handle = document.getElementById("swingHandle");
+  if (!slider || !handle) {
+    return;
+  }
+  var dragging = false;
+  var fromGhost = false;
+  var startX = 0;
+
+  slider.addEventListener("pointerdown", function (event) {
+    if (event.button !== 0 && event.pointerType === "mouse") {
+      return;
+    }
+    startX = event.clientX;
+    fromGhost = event.target === ghost;
+    dragging = !fromGhost;
+    if (dragging) {
+      setSwingRatio(swingRatioFromClientX(event.clientX));
+    }
+    slider.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  slider.addEventListener("pointermove", function (event) {
+    if (!slider.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+    if (fromGhost && !dragging && Math.abs(event.clientX - startX) >= 6) {
+      dragging = true;
+    }
+    if (dragging) {
+      setSwingRatio(swingRatioFromClientX(event.clientX));
+    }
+  });
+  function finishDrag(event) {
+    if (!slider.hasPointerCapture(event.pointerId) && !dragging && !fromGhost) {
+      return;
+    }
+    if (fromGhost && !dragging) {
+      setSwingAuto(true);
+    } else if (dragging) {
+      var used = swingRatio;
+      var recommended = recommendedSwingRatio(swingBpm());
+      if (Math.abs(used - recommended) <= SWING_AUTO_SNAP) {
+        setSwingAuto(true);
+      }
+    }
+    dragging = false;
+    fromGhost = false;
+  }
+  slider.addEventListener("pointerup", finishDrag);
+  slider.addEventListener("pointercancel", function () {
+    dragging = false;
+    fromGhost = false;
+  });
+  handle.addEventListener("keydown", function (event) {
+    var current = activeSwingRatio();
+    var step = event.shiftKey ? 0.5 : 0.1;
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+      event.preventDefault();
+      setSwingRatio(current + step);
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+      event.preventDefault();
+      setSwingRatio(current - step);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      setSwingRatio(SWING_MIN);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      setSwingRatio(SWING_MAX);
+    }
+  });
+  renderSwing();
 }
 
 function setBeatUnit(n) {
@@ -788,6 +1124,7 @@ function setBeatUnit(n) {
   }
   beatUnit = n;
   metronomeAlignToDownbeat();
+  renderSwing();
 }
 
 function setBeatsPerBar(n) {
@@ -804,6 +1141,9 @@ function setBeatsPerBar(n) {
   beatsPerBar = n;
   activePlayPattern();
   activeRestPattern();
+  if (swingOn && swingLitOffbeats) {
+    lightPlayOffbeats();
+  }
   if (stepIndex >= stepsPerBar()) {
     stepIndex = 0;
   }
