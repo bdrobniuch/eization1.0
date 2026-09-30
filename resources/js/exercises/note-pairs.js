@@ -1,7 +1,7 @@
 registerExercise({
   id: "notePairs",
   label: "Note Pairs",
-  inMenu: true,
+  inMenu: false,
   items: [
     "C<sup><small> </small></sup> - C<sup><small>&#9839</small></sup>",
     "C<sup><small> </small></sup> - D<sup><small>&#9837</small></sup>",

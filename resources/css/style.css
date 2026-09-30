@@ -173,6 +173,20 @@ body.is-count-in {
   font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
 }
 
+.prog-changes,
+.prog-name {
+  display: block;
+  white-space: nowrap;
+}
+
+.prog-name {
+  font-size: 0.42em;
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+  opacity: 0.78;
+  margin-top: 0.28em;
+}
+
 #note {
 
   margin: 0;

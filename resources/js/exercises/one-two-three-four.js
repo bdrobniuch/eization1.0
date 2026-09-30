@@ -1,7 +1,7 @@
 registerExercise({
   id: "oneTwoThreeFour",
   label: "1,2,3,4",
-  inMenu: true,
+  inMenu: false,
   items: [
     "1,2,3,4",
     "1,2,4,3",

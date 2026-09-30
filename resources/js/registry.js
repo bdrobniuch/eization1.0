@@ -2,13 +2,14 @@ var exercises = {};
 
 var menuOrder = [
   "allNotes",
+  "scales",
   "allChords",
-  "oneTwoThreeFour",
-  "playRest",
-  "fingers",
+  "chordTones",
+  "essentialProgressions",
   "intervals",
-  "notePairs",
-  "chordProgressions"
+  "approachNotes",
+  "playRest",
+  "fingers"
 ];
 
 function registerExercise(def) {

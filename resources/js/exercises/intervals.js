@@ -1,6 +1,6 @@
 registerExercise({
   id: "intervals",
-  label: "Intervals",
+  label: "All Intervals",
   inMenu: true,
   items: [
     "m2 Up",

@@ -1,6 +1,6 @@
 registerExercise({
   id: "allNotes",
-  label: "Notes",
+  label: "All Notes",
   inMenu: true,
   items: [
     "C<sup><small> </small></sup>",

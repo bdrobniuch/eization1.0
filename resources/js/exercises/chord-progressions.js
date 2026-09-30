@@ -2,7 +2,7 @@ registerExercise({
   id: "chordProgressions",
   label: "Chord Progressions",
   bars: 4,
-  inMenu: true,
+  inMenu: false,
   items: [
 
     "C<sup><small> </small></sup>: ii7 – V7 – Imaj7 (M)",
