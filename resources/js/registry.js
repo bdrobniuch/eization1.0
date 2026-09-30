@@ -11,7 +11,9 @@ var menuOrder = [
   "playRest",
   "fingers",
   "sonicDevices",
-  "texture"
+  "texture",
+  "motive",
+  "limbs"
 ];
 
 function registerExercise(def) {
