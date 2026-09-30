@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bdrobniuch.github.io/eization1.0/sitemap.xml

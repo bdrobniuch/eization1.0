@@ -1,0 +1,22 @@
+---
+description: How to change eization without breaking the practice desk
+alwaysApply: true
+---
+
+# eization
+
+Static page. Plain scripts, shared globals, no modules, no bundler, no framework. Paths stay relative (`./resources/...`). Keep `.nojekyll`. The map is `README.md`.
+
+The visible UI is settled. Change behavior in the existing layout. Do not restyle hidden exercises, and do not load `randompicker.js` or `edit.js`.
+
+## Leave these alone
+
+- Logo: white evenodd hexagon with a quarter-note cutout, in the brand, About, and the icon files. Do not replace it with a mask, a die, or a flagged note.
+- Metronome clock stays eighth notes. BPM is the rate of the bottom-number unit. Do not rescale that clock when the bottom number changes, and do not save or restore "metronome is running".
+- `eization-desk` and `eization-hello` are separate `localStorage` keys. Restore defaults clears both. The hello tour may advance the reel with `advanceNote` and then `resetExercise`. It must not call `next()` or `toggleTempo()`, and it must not start audio.
+- Payment details, the email, and profile URLs stay sealed in `about.js`. Do not copy them into HTML, CSS, JS, or docs as plaintext. The name and the short bio in `index.html` are public on purpose. The seal is not real encryption.
+- In exercise strings, do not put `class="simile"` inside double quotes. The repeat sign is `span.simile` with U+1D10E.
+
+## Adding an exercise
+
+New file under `resources/js/exercises/`, script tag after `registry.js` and before `picker.js`, `registerExercise({ id, inMenu })`. Add the id to `menuOrder` only if it should show. `inMenu: false` means keep the file and omit the id. The rhythms id is `limbs`.

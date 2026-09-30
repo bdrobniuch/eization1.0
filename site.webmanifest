@@ -1,0 +1,23 @@
+{
+  "name": "eization — jazz piano practice",
+  "short_name": "eization",
+  "description": "A free practice desk for jazz piano. One idea at a time, with a metronome.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0C8A50",
+  "theme_color": "#0C8A50",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "./resources/icons/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "./resources/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
