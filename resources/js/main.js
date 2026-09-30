@@ -85,6 +85,20 @@ function buildExerciseMenu() {
 }
 
 function SelectExercise() {
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    if (typeof editorIsDirty === "function" && editorIsDirty()) {
+      if (typeof editorNotice === "function") {
+        editorNotice("Cancel editing before choosing another exercise.");
+      }
+      if (typeof editorRestoreFace === "function") {
+        editorRestoreFace();
+      }
+      return;
+    }
+    if (typeof editorCloseQuiet === "function") {
+      editorCloseQuiet();
+    }
+  }
   var ex = exercises[currentExerciseId];
   if (!ex) {
     return;
@@ -209,6 +223,9 @@ function layoutFrame() {
   fitToolbar(document.getElementById("linediv"), "left");
   fitToolbar(document.getElementById("divfooter"), "right");
   placeExercisePanel();
+  if (typeof placeEditor === "function") {
+    placeEditor();
+  }
   if (typeof chooseExerciseFont === "function" && chromaticScale.length) {
     chooseExerciseFont();
   }
@@ -254,6 +271,12 @@ function init() {
   });
   document.getElementById("bpm").addEventListener("input", updateInterval);
   document.getElementById("grooveButton").addEventListener("click", function () {
+    if (typeof editorIsOpen === "function" && editorIsOpen()) {
+      if (typeof editorNotice === "function") {
+        editorNotice("Finish or cancel editing first.");
+      }
+      return;
+    }
     var panel = document.getElementById("groovePanel");
     panel.hidden = !panel.hidden;
     this.setAttribute("aria-expanded", panel.hidden ? "false" : "true");

@@ -909,25 +909,166 @@ body.bar-rest .click-pad.accent.beat {
     display: block;
 }
 
-textarea {
-  white-space: pre;
-  overflow-wrap: normal;
-  overflow-x: scroll;
-  width: 100%;
-  height: 100%;
-  color: #ffffff;
-  font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
-  font-size: 4vmin;
-  background: rgba(0, 0, 0, 0.15);
-  resize: none;
-  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-  box-sizing: border-box;         /* Opera/IE 8+ */
+body.is-editing #divnote,
+body.is-editing #counter {
+  visibility: hidden;
+}
+
+#edit[aria-pressed="true"] {
+  background: #ffffff;
+  color: #0C8A50;
+  opacity: 1;
 }
 
 #textdiv {
-  height: 50%;
   display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 18;
+  box-sizing: border-box;
+  padding: 10px 12px 12px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+#textdiv.is-open {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#editHead,
+#editMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+#editHint,
+#editCount,
+#editError {
+  margin: 0;
+}
+
+#editHint {
+  flex: 1 1 160px;
+  font-size: 14px;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+
+#editCount {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+#editCancel,
+#editDone,
+#editDuplicate {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#editDone {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
+#editSymbols {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+#editSymbols button {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font-family: Georgia, "Iowan Old Style", Palatino, "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#allEdit {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 120px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: #ffffff;
+  font-family: Georgia, "Iowan Old Style", Palatino, "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-size: 18px;
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.28);
+  resize: none;
+  box-sizing: border-box;
+}
+
+#editPreview {
+  flex: 0 0 auto;
+  min-height: 2.4em;
+  margin: 0;
+  overflow: hidden;
+  text-align: center;
+  font-family: Georgia, "Iowan Old Style", Palatino, "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+#editPreview.is-empty::before {
+  content: "Preview";
+  opacity: 0.45;
+  font-size: 14px;
+}
+
+#editPreview .prog-changes,
+#editPreview .prog-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#editError {
+  font-size: 14px;
+  color: #ffe08a;
+}
+
+#textdiv .stepper {
+  flex: 0 0 auto;
+}
+
+#textdiv .step-label {
+  font-size: 13px;
 }
 
 .checkbox-label {

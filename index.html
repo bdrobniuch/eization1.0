@@ -38,7 +38,7 @@
                 <button type="button" class="icon-btn" id="resetExercise" title="Start this exercise again" aria-label="Reset exercise">
                     <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
                 </button>
-                <button type="button" class="icon-btn" id="edit" onclick="ToggleEdit()" title="Edit exercise" aria-label="Edit exercise"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button type="button" class="icon-btn" id="edit" title="Edit exercise" aria-label="Edit exercise" aria-pressed="false"><i class="fa-solid fa-pen-to-square"></i></button>
             </div>
         </div>
     </div>
@@ -46,7 +46,25 @@
         <div id="exerciseMenu" role="listbox" aria-label="Exercise"></div>
     </div>
     <div id="textdiv">
-        <textarea id="allEdit">df</textarea>
+        <div id="editHead">
+            <p id="editHint">One value per line. Add · and a caption to show it smaller.</p>
+            <button type="button" id="editCancel">Cancel</button>
+            <button type="button" id="editDone">Done</button>
+        </div>
+        <div id="editSymbols"></div>
+        <div id="editMeta">
+            <p id="editCount">0 values</p>
+            <div class="stepper stepper-sm" title="How many bars each value lasts">
+                <span class="step-label">Bars</span>
+                <button type="button" class="step-down" aria-label="Fewer bars">−</button>
+                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Bars each value lasts">
+                <button type="button" class="step-up" aria-label="More bars">+</button>
+            </div>
+            <button type="button" id="editDuplicate">Duplicate line</button>
+        </div>
+        <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Exercise values, one per line" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | % | · Straight Cadence"></textarea>
+        <p id="editPreview" class="is-empty" aria-hidden="true"></p>
+        <p id="editError" hidden></p>
     </div>
 
 

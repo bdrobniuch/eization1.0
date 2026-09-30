@@ -823,6 +823,9 @@ function setSoundOn(on) {
 }
 
 function next() {
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    return;
+  }
   unlockAudio();
   advanceNote();
   metronomeAlignToDownbeat();

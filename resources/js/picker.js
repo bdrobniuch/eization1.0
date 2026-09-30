@@ -70,7 +70,8 @@ function renderPreview() {
   if (!nextEl || !prevEl) {
     return;
   }
-  var editing = document.getElementById("textdiv").style.display === "block";
+  var textDiv = document.getElementById("textdiv");
+  var editing = textDiv && textDiv.classList.contains("is-open");
   var showReel = lookAhead && !editing;
   if (stack) {
     stack.classList.toggle("reel-on", showReel);
@@ -213,8 +214,7 @@ function advanceNote() {
 function noteBox() {
   var header = document.getElementById("linediv");
   var footer = document.querySelector("footer");
-  var textDiv = document.getElementById("textdiv");
-  var topEl = textDiv && textDiv.style.display === "block" ? textDiv : header;
+  var topEl = header;
   var minTop = topEl ? topEl.getBoundingClientRect().bottom + 12 : 12;
   var exercisePanel = document.getElementById("exercisePanel");
   if (exercisePanel && !exercisePanel.hidden) {
@@ -302,7 +302,9 @@ function newExercise(items, bars) {
   if (bars) {
     exerciseBars = parseInt(bars, 10) || 1;
   }
-  document.getElementById("textdiv").style.display = "none";
+  if (typeof editorCloseQuiet === "function") {
+    editorCloseQuiet();
+  }
   chooseExerciseFont();
   advanceNote();
   if (typeof metronomeAlignToDownbeat === "function") {
@@ -311,5 +313,11 @@ function newExercise(items, bars) {
 }
 
 function resetExercise() {
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    if (typeof editorNotice === "function") {
+      editorNotice("Finish or cancel editing first.");
+    }
+    return;
+  }
   newExercise(chromaticScale.slice(), exerciseBars);
 }
