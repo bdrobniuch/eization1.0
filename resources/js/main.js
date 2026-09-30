@@ -305,6 +305,9 @@ function init() {
   document.getElementById("lookAhead").addEventListener("click", function () {
     setLookAhead(this.getAttribute("aria-pressed") !== "true");
   });
+  document.getElementById("countInToggle").addEventListener("click", function () {
+    setCountIn(this.getAttribute("aria-pressed") !== "true");
+  });
   document.getElementById("tempoToggle").addEventListener("click", toggleTempo);
   document.getElementById("resetExercise").addEventListener("click", resetExercise);
   document.getElementById("divnote").addEventListener("pointerdown", function () {

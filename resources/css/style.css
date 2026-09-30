@@ -27,7 +27,8 @@ body.bar-rest {
     background-color: #0977BB;
 }
 
-body.is-stopped {
+body.is-stopped,
+body.is-count-in {
     background-color: #0C8A50;
     background-image: linear-gradient(to bottom, #0C8A50, #0977BB);
 }
@@ -306,6 +307,32 @@ footer {
   color: #ffffff;
   opacity: 0.9;
   white-space: nowrap;
+}
+
+#countIn {
+  position: fixed;
+  left: 2.4vmin;
+  top: 13vmin;
+  z-index: 12;
+  margin: 0;
+  font-size: 11vmin;
+  font-weight: 600;
+  line-height: 1;
+  color: #ffffff;
+  pointer-events: none;
+}
+
+#countIn[hidden] {
+  display: none !important;
+}
+
+#countIn.flash {
+  animation: countFlash 220ms ease-out;
+}
+
+@keyframes countFlash {
+  0% { opacity: 0.2; transform: scale(0.86); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .icon-btn {

@@ -11,7 +11,6 @@ var beatUnit = 4;
 var soundOn = false;
 var paused = false;
 var nextNoteTime = 0;
-var skipNextDownbeatAdvance = true;
 var generation = 0;
 var schedulerTimer = null;
 var scheduledClicks = [];
@@ -27,6 +26,12 @@ var restClickPattern = [];
 var phraseBar = 0;
 var LOOKAHEAD = 0.15;
 var SCHEDULER_MS = 25;
+var countInOn = false;
+var awaitingCountIn = false;
+var countingIn = false;
+var armAdvance = false;
+var phraseBarsDone = 0;
+var currentBarInfo = { countIn: false, advance: false, phraseIndex: 0 };
 var EIGHTHS = 2;
 
 function eighthDuration() {
@@ -285,7 +290,7 @@ function cancelFutureClicks() {
   scheduledClicks = [];
 }
 
-function flash(strong, sounding, accent) {
+function flash(strong, sounding, accent, countIn) {
   var el = document.getElementById("beatFlash");
   if (!el) {
     return;
@@ -297,8 +302,14 @@ function flash(strong, sounding, accent) {
   } else {
     el.classList.add(strong ? "strong" : "weak");
   }
-  document.body.classList.toggle("bar-rest", !sounding);
-  document.body.classList.toggle("bar-play", !!sounding);
+  document.body.classList.toggle("is-count-in", !!countIn);
+  if (countIn) {
+    document.body.classList.remove("bar-rest");
+    document.body.classList.remove("bar-play");
+  } else {
+    document.body.classList.toggle("bar-rest", !sounding);
+    document.body.classList.toggle("bar-play", !!sounding);
+  }
 }
 
 function flashClickPad(step, rest) {
@@ -323,26 +334,111 @@ function clearClickPads() {
   }
 }
 
+function showCountIn(n) {
+  var el = document.getElementById("countIn");
+  if (!el) {
+    return;
+  }
+  el.hidden = false;
+  el.setAttribute("aria-hidden", "false");
+  el.textContent = String(n);
+  el.classList.remove("flash");
+  void el.offsetWidth;
+  el.classList.add("flash");
+}
+
+function hideCountIn() {
+  var el = document.getElementById("countIn");
+  if (!el || el.hidden) {
+    return;
+  }
+  el.hidden = true;
+  el.setAttribute("aria-hidden", "true");
+  el.textContent = "";
+  el.classList.remove("flash");
+}
+
+function phraseLength() {
+  return exerciseBars > 0 ? exerciseBars : 1;
+}
+
+function setCountIn(on) {
+  countInOn = !!on;
+  var btn = document.getElementById("countInToggle");
+  if (btn) {
+    btn.setAttribute("aria-pressed", countInOn ? "true" : "false");
+  }
+  if (!countInOn) {
+    awaitingCountIn = false;
+    hideCountIn();
+    return;
+  }
+  if (!countingIn && phraseBarsDone === 0 && !armAdvance) {
+    awaitingCountIn = true;
+  }
+}
+
+function beginScheduledBar() {
+  var info = { countIn: false, advance: false, phraseIndex: 0 };
+  if (countInOn && awaitingCountIn) {
+    info.countIn = true;
+    info.advance = armAdvance;
+    if (armAdvance) {
+      armAdvance = false;
+      phraseBarsDone = 0;
+    }
+    awaitingCountIn = false;
+    countingIn = true;
+    return info;
+  }
+  countingIn = false;
+  if (armAdvance) {
+    info.advance = true;
+    armAdvance = false;
+    phraseBarsDone = 0;
+  }
+  info.phraseIndex = phraseBarsDone;
+  phraseBarsDone++;
+  if (phraseBarsDone >= phraseLength()) {
+    armAdvance = true;
+    if (countInOn) {
+      awaitingCountIn = true;
+    }
+  }
+  return info;
+}
+
 function onVisualStep(item) {
-  flashClickPad(item.step, !item.sounding);
+  flashClickPad(item.step, !item.countIn && !item.sounding);
+  if (item.countIn) {
+    document.body.classList.add("is-count-in");
+    document.body.classList.remove("bar-rest");
+    document.body.classList.remove("bar-play");
+  }
   if (item.step % 2 !== 0) {
     return;
   }
   var beat = item.step / 2;
-  if (beat === 0) {
-    if (skipNextDownbeatAdvance) {
-      skipNextDownbeatAdvance = false;
-      phraseBar = 0;
-    } else {
-      phraseBar++;
-      if (phraseBar >= exerciseBars) {
-        phraseBar = 0;
-        advanceNote();
-      }
+  if (item.countIn) {
+    if (item.advance) {
+      item.advance = false;
+      advanceNote();
     }
+    phraseBar = 0;
+    showCountIn(item.count);
+    renderPhrase(0, false);
+  } else {
+    hideCountIn();
+    if (item.advance) {
+      item.advance = false;
+      advanceNote();
+    }
+    if (beat === 0) {
+      phraseBar = item.phraseIndex;
+    }
+    renderPhrase(beat, true);
   }
-  flash(beat === 0, item.sounding, item.accent);
-  renderPhrase(beat, true);
+  flash(beat === 0, item.sounding, item.accent, item.countIn);
 }
 
 function paintVisuals() {
@@ -372,19 +468,26 @@ function startVisualLoop() {
   requestAnimationFrame(paintVisuals);
 }
 
-function scheduleStep(step, time, gen) {
-  var sounding = isSoundingBar(barInCycle);
+function scheduleStep(step, time, gen, barInfo) {
+  var countIn = !!(barInfo && barInfo.countIn);
+  var downbeat = step % 2 === 0;
+  var sounding = countIn ? false : isSoundingBar(barInCycle);
   var pattern = sounding ? activePlayPattern() : activeRestPattern();
-  var level = pattern[step] || 0;
+  var level = countIn ? (downbeat ? 1 : 0) : (pattern[step] || 0);
   if (soundOn && level) {
-    playClick(time, level === 2);
+    playClick(time, !countIn && level === 2);
   }
+  var beat = downbeat ? step / 2 : -1;
   pendingVisuals.push({
     time: time,
     step: step,
     gen: gen,
     sounding: sounding,
-    accent: level === 2
+    accent: !countIn && level === 2,
+    countIn: countIn,
+    advance: !!(barInfo && barInfo.advance && step === 0),
+    phraseIndex: barInfo ? barInfo.phraseIndex : 0,
+    count: beat >= 0 ? beatsPerBar - beat : 0
   });
 }
 
@@ -404,12 +507,17 @@ function scheduler() {
   var horizon = now + LOOKAHEAD;
   var guard = 0;
   while (nextNoteTime < horizon && guard < 32) {
-    scheduleStep(stepIndex, nextNoteTime, generation);
+    if (stepIndex === 0) {
+      currentBarInfo = beginScheduledBar();
+    }
+    scheduleStep(stepIndex, nextNoteTime, generation, currentBarInfo);
     nextNoteTime += eighth;
     stepIndex++;
     if (stepIndex >= stepsPerBar()) {
       stepIndex = 0;
-      barInCycle++;
+      if (!currentBarInfo.countIn) {
+        barInCycle++;
+      }
     }
     guard++;
   }
@@ -428,6 +536,13 @@ function stopScheduler() {
     clearInterval(schedulerTimer);
     schedulerTimer = null;
   }
+  for (var i = 0; i < pendingVisuals.length; i++) {
+    if (pendingVisuals[i].gen === generation && pendingVisuals[i].advance) {
+      pendingVisuals[i].advance = false;
+      advanceNote();
+      break;
+    }
+  }
   generation++;
   pendingVisuals = [];
   cancelFutureClicks();
@@ -440,8 +555,13 @@ function metronomeAlignToDownbeat() {
   stepIndex = 0;
   barInCycle = 0;
   phraseBar = 0;
+  phraseBarsDone = 0;
+  countingIn = false;
+  awaitingCountIn = countInOn;
+  armAdvance = false;
+  currentBarInfo = { countIn: false, advance: false, phraseIndex: 0 };
   nextNoteTime = currentTimeSec() + 0.04;
-  skipNextDownbeatAdvance = true;
+  hideCountIn();
   renderPhrase(0, false);
 }
 
@@ -552,6 +672,10 @@ function renderTempoToggle() {
     box.classList.toggle("is-paused", off);
   }
   document.body.classList.toggle("is-stopped", off);
+  if (off) {
+    document.body.classList.remove("is-count-in");
+    hideCountIn();
+  }
 }
 
 function toggleTempo() {
