@@ -9,6 +9,11 @@ var nextCycle = null;
 var previousNote = "";
 var cycleGap = false;
 var reelColumnHalf = 0;
+var reelMaxWidth = 0;
+var reelMaxHeight = 0;
+var reelMaxHtml = "";
+var reelTurning = false;
+var reelTurnToken = 0;
 var REEL_TILT = 62 * Math.PI / 180;
 
 function shuffleArray(array) {
@@ -100,6 +105,12 @@ function renderPreview() {
   }
   nextEl.style.fontSize = size + "px";
   prevEl.style.fontSize = size + "px";
+  var resumeTurn = false;
+  if (stack && reelTurning && stack.classList.contains("is-turning")) {
+    stack.classList.remove("is-turning");
+    void stack.offsetWidth;
+    resumeTurn = true;
+  }
   var headerBottom = document.getElementById("linediv").getBoundingClientRect().bottom + 6;
   var exercisePanel = document.getElementById("exercisePanel");
   if (exercisePanel && !exercisePanel.hidden) {
@@ -122,33 +133,84 @@ function renderPreview() {
     guard++;
   }
   placeReelMark();
+  if (resumeTurn && stack) {
+    void stack.offsetWidth;
+    stack.classList.add("is-turning");
+  }
 }
 
 function placeReelMark() {
   var mark = document.getElementById("reelMark");
   var stack = document.getElementById("noteStack");
   var note = document.getElementById("note");
-  var nextEl = document.getElementById("noteNext");
-  if (!mark || !stack || !note || !nextEl) {
+  if (!mark || !stack || !note) {
     return;
   }
-  var facePx = parseFloat(nextEl.style.fontSize);
-  if (!facePx) {
-    facePx = 14;
+  if (stack.classList.contains("is-turning")) {
+    stack.classList.remove("is-turning");
+    void stack.offsetWidth;
   }
-  var nr = note.getBoundingClientRect();
-  var sr = stack.getBoundingClientRect();
-  var mid = nr.top + nr.height / 2;
-  var reach = reelOuterReach(facePx) + exerciseFontPx * 0.65;
-  var pad = 12;
-  var top = mid - reach - pad;
-  var height = reach * 2 + pad * 2;
-  var half = reelColumnHalf > 0 ? reelColumnHalf : nr.width / 2;
-  var left = Math.max(8, window.innerWidth / 2 - half - 36);
+  var probe = reelMaxHtml || note.innerHTML || "\u00a0";
+  var maxW = reelMaxWidth || note.offsetWidth;
+  var maxH = reelMaxHeight || note.offsetHeight;
+  var savedMinH = note.style.minHeight;
+  var savedMinW = note.style.minWidth;
+  note.style.minHeight = maxH + "px";
+  note.style.minWidth = maxW + "px";
+  var faces = [document.getElementById("noteNext"), document.getElementById("notePrev")];
+  var saved = [];
+  var i;
+  for (i = 0; i < faces.length; i++) {
+    var face = faces[i];
+    if (!face) {
+      saved.push(null);
+      continue;
+    }
+    saved.push({ html: face.innerHTML, hidden: face.hidden });
+    face.hidden = false;
+    face.innerHTML = probe;
+  }
+  var noteBox = note.getBoundingClientRect();
+  var top = noteBox.top;
+  var bottom = noteBox.bottom;
+  var leftEdge = noteBox.left;
+  for (i = 0; i < faces.length; i++) {
+    face = faces[i];
+    if (!face) {
+      continue;
+    }
+    var faceBox = face.getBoundingClientRect();
+    if (faceBox.top < top) {
+      top = faceBox.top;
+    }
+    if (faceBox.bottom > bottom) {
+      bottom = faceBox.bottom;
+    }
+    if (faceBox.left < leftEdge) {
+      leftEdge = faceBox.left;
+    }
+  }
+  for (i = 0; i < faces.length; i++) {
+    face = faces[i];
+    if (!face || !saved[i]) {
+      continue;
+    }
+    face.innerHTML = saved[i].html;
+    face.hidden = saved[i].hidden;
+  }
+  note.style.minHeight = savedMinH;
+  note.style.minWidth = savedMinW;
+  var stackBox = stack.getBoundingClientRect();
+  var width = 22;
+  var gap = 14;
+  var left = leftEdge - gap - width;
+  if (left < 4 && 4 + width <= leftEdge - 6) {
+    left = 4;
+  }
   mark.hidden = false;
-  mark.style.top = (top - sr.top) + "px";
-  mark.style.height = height + "px";
-  mark.style.left = (left - sr.left) + "px";
+  mark.style.top = Math.round(top - stackBox.top) + "px";
+  mark.style.height = Math.max(width, Math.round(bottom - top)) + "px";
+  mark.style.left = Math.round(left - stackBox.left) + "px";
 }
 
 function setLookAhead(on) {
@@ -182,6 +244,28 @@ function showCurrentNote(text) {
   note.style.fontSize = exerciseFontPx + "px";
   updateRemaining();
   renderPreview();
+  turnReel();
+}
+
+function turnReel() {
+  var stack = document.getElementById("noteStack");
+  if (!stack) {
+    return;
+  }
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+  stack.classList.remove("is-turning");
+  void stack.offsetWidth;
+  stack.classList.add("is-turning");
+  reelTurning = true;
+  var turn = ++reelTurnToken;
+  setTimeout(function () {
+    if (turn !== reelTurnToken) {
+      return;
+    }
+    reelTurning = false;
+  }, 320);
 }
 
 function advanceNote() {
@@ -224,8 +308,13 @@ function noteBox() {
     minTop = Math.max(minTop, exercisePanel.getBoundingClientRect().bottom + 12);
   }
   var maxBottom = footer ? footer.getBoundingClientRect().top - 12 : window.innerHeight - 12;
+  var width = window.innerWidth * 0.9;
+  var side = 40;
+  if ((window.innerWidth - width) / 2 < side) {
+    width = window.innerWidth - side * 2;
+  }
   return {
-    width: Math.max(80, window.innerWidth * 0.9),
+    width: Math.max(80, width),
     height: Math.max(48, maxBottom - minTop)
   };
 }
@@ -283,14 +372,22 @@ function chooseExerciseFont() {
   exerciseFontPx = Math.floor(size);
   note.style.fontSize = exerciseFontPx + "px";
   measure.style.fontSize = exerciseFontPx + "px";
-  reelColumnHalf = 0;
-  for (var w = 0; w < sample.length; w++) {
-    measure.innerHTML = sample[w].html;
-    if (measure.scrollWidth > reelColumnHalf) {
-      reelColumnHalf = measure.scrollWidth;
+  reelMaxWidth = 0;
+  reelMaxHeight = 0;
+  reelMaxHtml = items[0] || "";
+  measure.style.minHeight = "1.25em";
+  for (var w = 0; w < items.length; w++) {
+    measure.innerHTML = items[w];
+    if (measure.scrollWidth > reelMaxWidth) {
+      reelMaxWidth = measure.scrollWidth;
+    }
+    if (measure.offsetHeight > reelMaxHeight) {
+      reelMaxHeight = measure.offsetHeight;
+      reelMaxHtml = items[w];
     }
   }
-  reelColumnHalf = reelColumnHalf / 2;
+  measure.style.minHeight = "";
+  reelColumnHalf = reelMaxWidth / 2;
   renderPreview();
 }
 

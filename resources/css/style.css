@@ -112,6 +112,42 @@ body.is-count-in {
     display: none !important;
 }
 
+#noteStack.reel-on.is-turning #note {
+    animation: reelDrop 0.28s ease-out;
+}
+
+#noteStack.reel-on.is-turning .reel-prev {
+    animation: reelDropPrev 0.28s ease-out;
+}
+
+#noteStack.reel-on.is-turning .reel-next {
+    animation: reelDropNext 0.28s ease-out;
+}
+
+#noteStack.is-turning:not(.reel-on) #note {
+    animation: reelNudge 0.22s ease-out;
+}
+
+@keyframes reelDrop {
+    from { transform: translateY(-42%); }
+    to { transform: none; }
+}
+
+@keyframes reelDropPrev {
+    from { transform: translateX(-50%) translateY(-55%) rotateX(-62deg); }
+    to { transform: translateX(-50%) rotateX(-62deg); }
+}
+
+@keyframes reelDropNext {
+    from { transform: translateX(-50%) translateY(-28%) rotateX(62deg); opacity: 0; }
+    to { transform: translateX(-50%) rotateX(62deg); opacity: 0.8; }
+}
+
+@keyframes reelNudge {
+    from { transform: translateY(-0.22em); opacity: 0.4; }
+    to { transform: none; opacity: 1; }
+}
+
 #topBar,
 #bottomBar {
   width: 100%;
@@ -518,6 +554,11 @@ body.is-hello #tempoToggle {
   .reel-next,
   .reel-prev {
     transform: translateX(-50%);
+  }
+  #noteStack.is-turning #note,
+  #noteStack.is-turning .reel-next,
+  #noteStack.is-turning .reel-prev {
+    animation: none;
   }
   body.is-hello #tempoToggle {
     animation: none;
