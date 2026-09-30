@@ -227,6 +227,7 @@ footer {
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 20;
     display: flex;
     flex-direction: column;
     max-height: 100dvh;
@@ -708,6 +709,29 @@ footer {
     opacity: 1;
 }
 
+#practiceToggles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1.2vmin 3.2vmin;
+}
+
+.practice-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#restoreDefaults {
+    margin-top: 2.8vmin;
+}
+
+#restoreDefaults.is-armed {
+    background: #ffffff;
+    color: #0C8A50;
+    opacity: 1;
+}
+
 .swing-modes {
     display: flex;
     width: 100%;
@@ -1006,7 +1030,7 @@ body.bar-rest .click-pad.accent.beat {
     pointer-events: none;
     background: #ffffff;
     opacity: 0;
-    z-index: 30;
+    z-index: 8;
 }
 
 #beatFlash.strong {

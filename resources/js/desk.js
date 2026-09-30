@@ -215,6 +215,123 @@ function writeSetupNow() {
   writeDesk(data);
 }
 
+var restoreTimer = null;
+
+function disarmRestoreDefaults() {
+  var button = document.getElementById("restoreDefaults");
+  if (restoreTimer) {
+    clearTimeout(restoreTimer);
+    restoreTimer = null;
+  }
+  if (!button) {
+    return;
+  }
+  button.classList.remove("is-armed");
+  button.textContent = "Restore defaults";
+  button.setAttribute("aria-label", "Restore defaults");
+}
+
+function restoreDefaults() {
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    if (typeof editorIsDirty === "function" && editorIsDirty()) {
+      if (typeof editorNotice === "function") {
+        editorNotice("Finish or cancel editing first.");
+      }
+      return;
+    }
+    if (typeof editorCloseQuiet === "function") {
+      editorCloseQuiet();
+    }
+  }
+  var keepReady = deskReady;
+  deskReady = false;
+  if (deskTimer) {
+    clearTimeout(deskTimer);
+    deskTimer = null;
+  }
+  try {
+    localStorage.removeItem(DESK_KEY);
+  } catch (err) {}
+  clickPattern = [];
+  restClickPattern = [];
+  swingLitOffbeats = false;
+  beatsPerBar = 4;
+  beatUnit = 4;
+  var meterTop = document.getElementById("meterTop");
+  if (meterTop) {
+    meterTop.value = "4";
+  }
+  if (typeof activePlayPattern === "function") {
+    activePlayPattern();
+    activeRestPattern();
+  }
+  if (typeof metronomeAlignToDownbeat === "function") {
+    metronomeAlignToDownbeat();
+  }
+  var playEl = document.getElementById("playBars");
+  var restEl = document.getElementById("restBars");
+  if (playEl) {
+    playEl.value = "1";
+  }
+  if (restEl) {
+    restEl.value = "0";
+  }
+  if (typeof setCycle === "function") {
+    setCycle(1, 0);
+  }
+  var repeatEl = document.getElementById("repeatCount");
+  if (repeatEl) {
+    repeatEl.value = "1";
+  }
+  if (typeof setRepeat === "function") {
+    setRepeat(1);
+  }
+  var bpmEl = document.getElementById("bpm");
+  if (bpmEl) {
+    bpmEl.value = "100";
+  }
+  currentBpm = 100;
+  tempoHeld = 100;
+  if (typeof paused !== "undefined" && !paused && typeof applyBpm === "function") {
+    applyBpm(100);
+  } else if (typeof renderSwing === "function") {
+    renderSwing();
+  }
+  if (typeof setLookAhead === "function") {
+    setLookAhead(true);
+  }
+  if (typeof setCountIn === "function") {
+    setCountIn(false);
+  }
+  if (typeof setSwingMode === "function") {
+    setSwingMode("off");
+  }
+  if (typeof setSwingAuto === "function") {
+    setSwingAuto(true);
+  }
+  var volume = document.getElementById("volumeCheckbox");
+  if (volume) {
+    volume.checked = true;
+    volume.dispatchEvent(new Event("change"));
+  } else if (typeof setSoundOn === "function") {
+    setSoundOn(true);
+  }
+  currentExerciseId = firstBuiltInId();
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  if (typeof SelectExercise === "function") {
+    SelectExercise();
+  }
+  if (typeof renderMeterSignature === "function") {
+    renderMeterSignature();
+  }
+  if (typeof renderGroove === "function") {
+    renderGroove();
+  }
+  deskReady = keepReady;
+}
+
 function rememberSetup() {
   if (!deskReady) {
     return;

@@ -29,7 +29,21 @@ function bindExercisePanel() {
   var menu = document.getElementById("exerciseMenu");
   face.addEventListener("click", function (event) {
     event.stopPropagation();
+    if (typeof editorIsOpen === "function" && editorIsOpen()) {
+      if (typeof editorNotice === "function") {
+        editorNotice("Finish or cancel editing first.");
+      }
+      return;
+    }
     var willOpen = panel.hidden;
+    if (willOpen) {
+      if (typeof closeGroovePanel === "function") {
+        closeGroovePanel();
+      }
+      if (typeof closeAbout === "function") {
+        closeAbout();
+      }
+    }
     panel.hidden = !willOpen;
     face.setAttribute("aria-expanded", willOpen ? "true" : "false");
     layoutFrame();
@@ -204,7 +218,7 @@ function renderGrooveLabel() {
   if (!button) {
     return;
   }
-  button.title = "Setup";
+  button.title = "Meter, clicks, bars, swing, and count-in";
   button.setAttribute("aria-label", "Setup");
 }
 
@@ -222,6 +236,7 @@ function fillClickGrid(grid, pattern) {
       pad.setAttribute("data-step", String(step));
       pad.textContent = k === 0 ? String(step / 2 + 1) : "&";
       pad.setAttribute("aria-pressed", level ? "true" : "false");
+      pad.title = level === 2 ? "Accent. Tap to turn it off." : (level === 1 ? "Click. Tap for an accent." : "Off. Tap for a click.");
       pair.appendChild(pad);
     }
     grid.appendChild(pair);
@@ -271,9 +286,20 @@ function placeExercisePanel() {
   panel.style.maxHeight = Math.max(120, window.innerHeight - top - 8) + "px";
 }
 
+function placeFooter() {
+  var footer = document.querySelector("footer");
+  var bar = document.getElementById("topBar");
+  if (!footer || !bar) {
+    return;
+  }
+  var top = bar.getBoundingClientRect().bottom;
+  footer.style.maxHeight = Math.max(160, window.innerHeight - top) + "px";
+}
+
 function layoutFrame() {
   fitToolbar(document.getElementById("linediv"), "left");
   fitToolbar(document.getElementById("divfooter"), "right");
+  placeFooter();
   placeExercisePanel();
   if (typeof placeEditor === "function") {
     placeEditor();
@@ -291,6 +317,9 @@ function closeGroovePanel() {
   if (panel && !panel.hidden) {
     panel.hidden = true;
     document.getElementById("grooveButton").setAttribute("aria-expanded", "false");
+    if (typeof disarmRestoreDefaults === "function") {
+      disarmRestoreDefaults();
+    }
     layoutFrame();
   }
 }
@@ -335,12 +364,15 @@ function init() {
       }
       return;
     }
-    if (typeof aboutIsOpen === "function" && aboutIsOpen()) {
-      closeAbout();
-      return;
-    }
     var panel = document.getElementById("groovePanel");
-    panel.hidden = !panel.hidden;
+    var willOpen = panel.hidden;
+    if (willOpen) {
+      if (typeof aboutIsOpen === "function" && aboutIsOpen()) {
+        closeAbout();
+      }
+      closeExercisePanel();
+    }
+    panel.hidden = !willOpen;
     this.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
     if (!panel.hidden) {
       renderGroove();
@@ -394,6 +426,28 @@ function init() {
   });
   document.getElementById("lookAhead").addEventListener("click", function () {
     setLookAhead(this.getAttribute("aria-pressed") !== "true");
+  });
+  document.getElementById("restoreDefaults").addEventListener("click", function () {
+    if (!this.classList.contains("is-armed")) {
+      if (typeof editorIsOpen === "function" && editorIsOpen() && typeof editorIsDirty === "function" && editorIsDirty()) {
+        if (typeof editorNotice === "function") {
+          editorNotice("Finish or cancel editing first.");
+        }
+        return;
+      }
+      this.classList.add("is-armed");
+      this.textContent = "Clear saved setup?";
+      this.setAttribute("aria-label", "Clear saved setup?");
+      if (restoreTimer) {
+        clearTimeout(restoreTimer);
+      }
+      restoreTimer = setTimeout(function () {
+        disarmRestoreDefaults();
+      }, 4000);
+      return;
+    }
+    disarmRestoreDefaults();
+    restoreDefaults();
   });
   document.getElementById("countInToggle").addEventListener("click", function () {
     setCountIn(this.getAttribute("aria-pressed") !== "true");

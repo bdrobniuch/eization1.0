@@ -31,7 +31,7 @@
                     </svg>
                     <span class="brand-word">eization</span>
                 </button>
-                <p id="counter">left</p>
+                <p id="counter" title="Values left before this list starts over">left</p>
             </div>
 
             <div id="editdiv">
@@ -63,11 +63,11 @@
             <p id="editCount">0 values</p>
             <div class="stepper stepper-sm" title="How many bars each value lasts">
                 <span class="step-label">Bars</span>
-                <button type="button" class="step-down" aria-label="Fewer bars">−</button>
-                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Bars each value lasts">
-                <button type="button" class="step-up" aria-label="More bars">+</button>
+                <button type="button" class="step-down" aria-label="Fewer bars" title="Fewer bars">−</button>
+                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Bars each value lasts" title="How many bars each value lasts">
+                <button type="button" class="step-up" aria-label="More bars" title="More bars">+</button>
             </div>
-            <button type="button" id="editDuplicate">Duplicate line</button>
+            <button type="button" id="editDuplicate" title="Copy the line at the cursor onto the next line">Duplicate line</button>
         </div>
         <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Exercise values, one per line" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
         <p id="editPreview" class="is-empty" aria-hidden="true"></p>
@@ -136,25 +136,25 @@
                 </div>
                 <div class="meter-sig" title="Top number: how many units in a bar. Bottom number: 1 whole, 2 half, 4 quarter, 8 eighth, 16 sixteenth. BPM is the speed of that note.">
                     <div class="stepper stepper-sm">
-                        <button type="button" class="step-down" aria-label="Fewer units in a bar">−</button>
-                        <input id="meterTop" type="number" min="1" max="32" step="1" value="4" inputmode="numeric" aria-label="Units in a bar">
-                        <button type="button" class="step-up" aria-label="More units in a bar">+</button>
+                        <button type="button" class="step-down" aria-label="Fewer units in a bar" title="Fewer units in a bar">−</button>
+                        <input id="meterTop" type="number" min="1" max="32" step="1" value="4" inputmode="numeric" aria-label="Units in a bar" title="How many units in a bar">
+                        <button type="button" class="step-up" aria-label="More units in a bar" title="More units in a bar">+</button>
                     </div>
                     <div class="sig-rule"></div>
                     <div class="sig-unit">
-                        <button type="button" id="unitDown" aria-label="Longer note">−</button>
+                        <button type="button" id="unitDown" aria-label="Longer note" title="Longer note">−</button>
                         <span id="meterBottom">4</span>
-                        <button type="button" id="unitUp" aria-label="Shorter note">+</button>
+                        <button type="button" id="unitUp" aria-label="Shorter note" title="Shorter note">+</button>
                     </div>
                     <p id="meterHint" class="meter-hint">quarter note</p>
                 </div>
             </div>
             <p class="groove-label">Click</p>
-            <div class="tone-zone play">
+            <div class="tone-zone play" title="White is a click. Brighter is an accent. Tap a pad to change it.">
                 <p class="click-kind">Play</p>
                 <div id="clickGrid"></div>
             </div>
-            <div class="tone-zone rest">
+            <div class="tone-zone rest" title="Clicks used on rest bars. Tap a pad to change it.">
                 <p class="click-kind">Rest</p>
                 <div id="restClickGrid"></div>
             </div>
@@ -162,31 +162,39 @@
             <div id="cycleRow" title="How many play bars, then how many rest bars. Each uses its own clicks.">
                 <div class="stepper stepper-sm play">
                     <span class="step-label">Play</span>
-                    <button type="button" class="step-down" aria-label="Fewer play bars">−</button>
-                    <input id="playBars" type="number" min="0" max="16" step="1" value="1" inputmode="numeric" aria-label="Play bars">
-                    <button type="button" class="step-up" aria-label="More play bars">+</button>
+                    <button type="button" class="step-down" aria-label="Fewer play bars" title="Fewer play bars">−</button>
+                    <input id="playBars" type="number" min="0" max="16" step="1" value="1" inputmode="numeric" aria-label="Play bars" title="Play bars">
+                    <button type="button" class="step-up" aria-label="More play bars" title="More play bars">+</button>
                 </div>
                 <div class="stepper stepper-sm rest">
                     <span class="step-label">Rest</span>
-                    <button type="button" class="step-down" aria-label="Fewer rest bars">−</button>
-                    <input id="restBars" type="number" min="0" max="16" step="1" value="0" inputmode="numeric" aria-label="Rest bars">
-                    <button type="button" class="step-up" aria-label="More rest bars">+</button>
+                    <button type="button" class="step-down" aria-label="Fewer rest bars" title="Fewer rest bars">−</button>
+                    <input id="restBars" type="number" min="0" max="16" step="1" value="0" inputmode="numeric" aria-label="Rest bars" title="Rest bars">
+                    <button type="button" class="step-up" aria-label="More rest bars" title="More rest bars">+</button>
                 </div>
             </div>
             <p class="groove-label">Repeat</p>
             <div id="repeatRow" title="How many times to play the current value before the next one. A 4-bar exercise at 2 plays 8 bars. Play and rest keep counting through those bars.">
                 <div class="stepper stepper-sm">
                     <span class="step-label">×</span>
-                    <button type="button" class="step-down" aria-label="Repeat fewer times">−</button>
-                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Repeat count">
-                    <button type="button" class="step-up" aria-label="Repeat more times">+</button>
+                    <button type="button" class="step-down" aria-label="Repeat fewer times" title="Repeat fewer times">−</button>
+                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Repeat count" title="How many times to play the current value">
+                    <button type="button" class="step-up" aria-label="Repeat more times" title="Repeat more times">+</button>
                 </div>
             </div>
-            <p class="groove-label">Count in</p>
-            <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false">One bar</button>
+            <div id="practiceToggles">
+                <div class="practice-toggle">
+                    <p class="groove-label">Count in</p>
+                    <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false" title="Counts one bar before you start, and again before the next value.">One bar</button>
+                </div>
+                <div class="practice-toggle">
+                    <p class="groove-label">Nearby</p>
+                    <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true" title="Shows the previous value above and the next one below.">Show nearby</button>
+                </div>
+            </div>
             <p class="groove-label">Swing</p>
             <div class="swing-modes" role="radiogroup" aria-label="Swing">
-                <button type="button" id="swingModeOff" role="radio" aria-checked="true">Off</button>
+                <button type="button" id="swingModeOff" role="radio" aria-checked="true" title="Straight. The &amp; sits halfway between the beats.">Off</button>
                 <button type="button" id="swingModeTriplet" role="radio" aria-checked="false" title="The &amp; lands on the last third of the beat.">Triplet</button>
                 <button type="button" id="swingModeFeel" role="radio" aria-checked="false" title="The &amp; follows the tempo. Numbered beats stay on the grid.">Swing</button>
             </div>
@@ -198,8 +206,7 @@
                 </div>
                 <p id="swingReadout">Auto</p>
             </div>
-            <p class="groove-label">Nearby</p>
-            <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true">Show nearby</button>
+            <button type="button" id="restoreDefaults" class="panel-toggle" title="Back to 100 BPM, 4/4, and All Notes. Forgets the setup and any custom exercise saved on this device.">Restore defaults</button>
         </div>
         <div id="phraseRow">
             <div id="phraseTrack"></div>
@@ -213,7 +220,7 @@
                 <i class="fa fa-volume-high" aria-hidden="true"></i>
             </label>
 
-            <button type="button" id="grooveButton" title="Setup" aria-label="Setup" aria-expanded="false">
+            <button type="button" id="grooveButton" title="Meter, clicks, bars, swing, and count-in" aria-label="Setup" aria-expanded="false">
                 <svg class="metro-icon" viewBox="0 0 32 32" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/>
                     <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/>
@@ -223,16 +230,16 @@
 
             <div class="stepper" id="bpmStepper">
                 <span class="step-label">BPM</span>
-                <button type="button" class="step-down" aria-label="Slower">−</button>
+                <button type="button" class="step-down" aria-label="Slower" title="Slower">−</button>
                 <input type="number" id="bpm" min="0" max="500" step="1" value="100" maxlength="3"
-                    title="BPM" aria-label="Tempo" inputmode="numeric">
-                <button type="button" class="step-up" aria-label="Faster">+</button>
+                    title="Tempo in BPM. This is the speed of the bottom number." aria-label="Tempo" inputmode="numeric">
+                <button type="button" class="step-up" aria-label="Faster" title="Faster">+</button>
                 <button type="button" id="tempoToggle" aria-label="Start tempo" aria-pressed="true" title="Start tempo">
                     <i class="fa-solid fa-play" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <button type="button" class="icon-btn" id="next" onclick="next()" title="Next" aria-label="Next"><i class="fa-solid fa-forward" aria-hidden="true"></i></button>
+            <button type="button" class="icon-btn" id="next" onclick="next()" title="Next value" aria-label="Next"><i class="fa-solid fa-forward" aria-hidden="true"></i></button>
 
 
         </div>
