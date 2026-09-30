@@ -1,7 +1,6 @@
 registerExercise({
   id: "allNotes",
   label: "Notes",
-  fontSize: 55,
   inMenu: true,
   items: [
     "C<sup><small> </small></sup>",

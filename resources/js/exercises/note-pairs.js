@@ -1,7 +1,6 @@
 registerExercise({
   id: "notePairs",
   label: "Note Pairs",
-  fontSize: 30,
   inMenu: true,
   items: [
     "C<sup><small> </small></sup> - C<sup><small>&#9839</small></sup>",

@@ -1,10 +1,25 @@
 
+@font-face {
+    font-family: "Open Sans";
+    src: url("../fonts/Open_Sans/OpenSans-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url("../fonts/Open_Sans/OpenSans-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
 html,
 body  {
     height: 100%;
     margin: 0;
     color: #ffffff;
     background-color: #0C8A50;
+    font-family: "Open Sans", "Segoe UI", sans-serif;
 
   }
 
@@ -25,12 +40,31 @@ body.bar-rest {
 
 
 
+#topBar,
+#bottomBar {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+#topBar {
+  justify-content: flex-start;
+}
+
+#bottomBar {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
 #divfooter {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
   align-items: center;
   gap: 1vmin;
+  width: max-content;
+  box-sizing: border-box;
+  padding: 0 1.2vmin;
 }
 
 #selectdiv {
@@ -41,21 +75,45 @@ body.bar-rest {
 
 
   display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1.2vmin 2vmin;
   top: 0;
   left: 0;
   right: 0;
-  width: 100%;
+  width: max-content;
+  box-sizing: border-box;
+  padding: 0.6vmin 1.2vmin 0;
   justify-content: space-between; 
 }
 
 #editdiv {
-  display:inline-block
+  display: flex;
+  align-items: center;
+  gap: 1vmin;
+}
+
+#noteMeasure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+  width: max-content;
+  line-height: 1.05;
+  font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
 }
 
 #note {
 
   margin: 0;
-  font-size: 55vmin;
+  display: inline-block;
+  width: max-content;
+  max-width: none;
+  white-space: nowrap;
+  line-height: 1.05;
+  font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -82,13 +140,13 @@ footer {
 
 
 
-#beatsSelect,
+#beatsFace,
 #grooveButton {
-    font-size: 7vmin;
+    font-size: 6vmin;
     color: #ffffff;
     background-color: transparent;
     text-align: center;
-    padding: 2;
+    padding: 0 1.6vmin;
     box-sizing: border-box;
     border: 3px solid #ffffff;
     -webkit-transition: 0.5s;
@@ -97,38 +155,95 @@ footer {
     touch-action: manipulation;
 }
 
-#beatsSelect,
-#exerciseSelect {
-  color-scheme: dark;
+.combo {
+    position: relative;
+    display: inline-block;
 }
 
-#exerciseSelect option,
-#beatsSelect option {
-  background-color: #075632;
-  color: #ffffff;
+.combo-face {
+    font: inherit;
+    color: #ffffff;
+    background: transparent;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    white-space: nowrap;
+    flex: 0 0 auto;
 }
 
-#exerciseSelect option:checked,
-#beatsSelect option:checked {
-  background-color: #053D23;
-  color: #ffffff;
+#linediv > *,
+#divfooter > *,
+.stepper,
+.combo {
+    flex-shrink: 0;
 }
 
-body.bar-rest #exerciseSelect option,
-body.bar-rest #beatsSelect option {
-  background-color: #0868a3;
-  color: #ffffff;
+.combo-face::after {
+    content: "";
+    display: inline-block;
+    margin-left: 1.4vmin;
+    border-left: 0.38em solid transparent;
+    border-right: 0.38em solid transparent;
+    border-top: 0.46em solid currentColor;
+    vertical-align: 0.12em;
 }
 
-body.bar-rest #exerciseSelect option:checked,
-body.bar-rest #beatsSelect option:checked {
-  background-color: #054e7a;
-  color: #ffffff;
+.combo-menu {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 0.8vmin);
+    right: 0;
+    left: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    width: max-content;
+    max-width: calc(100vw - 16px);
+    max-height: 70vh;
+    box-sizing: border-box;
+    overflow: auto;
+    background: #075632;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.combo-menu[hidden] {
+    display: none !important;
+}
+
+.combo-up .combo-menu {
+    top: auto;
+    bottom: calc(100% + 0.8vmin);
+    left: auto;
+    right: 0;
+}
+
+.combo-menu button {
+    display: block;
+    width: auto;
+    margin: 0;
+    padding: 1.5vmin 2.6vmin;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 4.2vmin;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.combo-menu button[aria-selected="true"],
+.combo-menu button:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+body.bar-rest .combo-menu {
+    background: #0868a3;
 }
 
 #status {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: 1.6vmin;
   margin-left: 2vmin;
 }
 
@@ -140,32 +255,72 @@ body.bar-rest #beatsSelect option:checked {
   white-space: nowrap;
 }
 
-
-
-#edit, #next {
-  font-size: 7vmin;
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 11vmin;
+  height: 11vmin;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  font-size: 5.2vmin;
+  line-height: 1;
   color: #ffffff;
-  opacity: 0.75;
-  padding: 2;
   background: transparent;
-  border: none;
+  border: 3px solid #ffffff;
+  opacity: 0.85;
+  touch-action: manipulation;
 }
 
 
-#exerciseSelect { 
-  font-size: 5.5vmin;
-  color: #ffffff;
-  width: auto;
-  opacity: 1;
-  padding: 2;
-  background-color: transparent;
-  border: 3px solid rgba(255, 255, 255, 0.85);
-  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-  box-sizing: border-box;         /* Opera/IE 8+ */
-} 
+#editdiv .combo,
+#divfooter .combo,
+#divfooter .stepper,
+#divfooter .checkbox-label,
+#grooveButton {
+  height: 11vmin;
+  min-height: 44px;
+  box-sizing: border-box;
+}
 
-#beatsSelect:focus,
+#editdiv .combo,
+#divfooter .combo {
+  display: flex;
+}
+
+#editdiv .combo-face,
+#divfooter .combo-face {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#exerciseFace {
+  gap: 1.1vmin;
+  font-size: 4.2vmin;
+  white-space: nowrap;
+  padding: 0 1.6vmin;
+}
+
+.combo-kicker {
+  font-size: 2.7vmin;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+#beatsFace:focus,
 #grooveButton:focus,
 #grooveButton[aria-expanded="true"],
 .stepper:focus-within {
@@ -231,6 +386,13 @@ body.bar-rest #beatsSelect option:checked {
     touch-action: manipulation;
 }
 
+#divfooter .stepper button,
+#divfooter .stepper input,
+#divfooter .stepper .step-label {
+    min-height: 0;
+    height: 100%;
+}
+
 .stepper input {
     width: 16vmin;
     min-width: 52px;
@@ -262,6 +424,16 @@ body.bar-rest #beatsSelect option:checked {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     opacity: 0.8;
+}
+
+#bpmStepper .step-label {
+    font-size: 3.8vmin;
+    font-weight: 600;
+    opacity: 1;
+}
+
+#bpmStepper input {
+    width: 12vmin;
 }
 
 .stepper-sm input {
@@ -442,6 +614,21 @@ body.bar-rest .click-pad.accent.beat {
 }
   
 
+#grooveButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 11vmin;
+    min-width: 44px;
+    padding: 0;
+}
+
+.metro-icon {
+    width: 6.4vmin;
+    height: 6.4vmin;
+    display: block;
+}
+
 textarea {
   white-space: pre;
   overflow-wrap: normal;
@@ -449,6 +636,8 @@ textarea {
   width: 100%;
   height: 100%;
   color: #ffffff;
+  font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
+  font-size: 4vmin;
   background: rgba(0, 0, 0, 0.15);
   resize: none;
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
@@ -468,16 +657,14 @@ textarea {
   display: none; /* Hide the actual checkbox */
 }
 .checkbox-label .fa {
-  font-size: 7vmin; /* Set the size of the icon */
+  font-size: 5.4vmin;
   color: #ffffff;
   opacity: 0.75;
-
-  width: 10vmin; /* Ensures that all icons have the same width */
-  height: 9vmin; /* Ensures that all icons have the same height */
+  width: 1.4em;
+  height: auto;
   display: inline-block;
   text-align: center;
-  line-height: 9vmin;
-  vertical-align: left;
+  line-height: 1;
 }
 
 

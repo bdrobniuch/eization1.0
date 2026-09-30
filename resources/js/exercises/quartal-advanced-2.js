@@ -1,7 +1,6 @@
 registerExercise({
   id: "quartalAdvanced2",
   label: "Quartal Advanced",
-  fontSize: 18,
   inMenu: false,
   items: [
     "q",

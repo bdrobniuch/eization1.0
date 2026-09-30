@@ -1,7 +1,6 @@
 registerExercise({
   id: "playRest",
   label: "Play/Rest",
-  fontSize: 18,
   bars: 2,
   inMenu: true,
   items: [

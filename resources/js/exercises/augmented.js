@@ -1,7 +1,6 @@
 registerExercise({
   id: "augmented",
   label: "Augmented",
-  fontSize: 18,
   inMenu: false,
   items: [
     "C&#129041E&#129041A<sup><small>&#9837</small></sup>",

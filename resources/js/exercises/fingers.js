@@ -1,7 +1,6 @@
 registerExercise({
   id: "fingers",
   label: "Fingers",
-  fontSize: 20,
   inMenu: true,
   items: [
     "&#9746;&#9746;&#9746;&#9746;&#9746;",

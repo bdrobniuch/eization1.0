@@ -7,8 +7,6 @@ var menuOrder = [
   "playRest",
   "fingers",
   "intervals",
-  "modernSounds",
-  "language",
   "notePairs",
   "chordProgressions"
 ];

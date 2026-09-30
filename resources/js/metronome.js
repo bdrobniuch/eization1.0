@@ -436,15 +436,14 @@ function metronomeAlignToDownbeat() {
 }
 
 function readBeatsFromDom() {
-  var sel = document.getElementById("beatsSelect");
-  if (!sel) {
+  if (typeof beatsChoice === "undefined") {
     return beatsPerBar;
   }
-  if (sel.value === "custom") {
+  if (beatsChoice === "custom") {
     var custom = parseInt(document.getElementById("beatsCustom").value, 10);
     return custom > 0 ? custom : beatsPerBar;
   }
-  var preset = parseInt(sel.value, 10);
+  var preset = parseInt(beatsChoice, 10);
   return preset > 0 ? preset : beatsPerBar;
 }
 

@@ -1,8 +1,7 @@
 registerExercise({
   id: "language",
   label: "Language",
-  fontSize: 10,
-  inMenu: true,
+  inMenu: false,
   items: [
     "Diatonic triads / 7th Chords",
     "Chromatic scale (ending with a 4th, 5th, 2nd, enclosure)",

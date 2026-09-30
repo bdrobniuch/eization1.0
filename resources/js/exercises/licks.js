@@ -1,7 +1,6 @@
 registerExercise({
   id: "licks",
   label: "Licks",
-  fontSize: 30,
   inMenu: false,
   items: [
     "L-A1a",

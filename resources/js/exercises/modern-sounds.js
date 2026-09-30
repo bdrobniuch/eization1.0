@@ -1,8 +1,7 @@
 registerExercise({
   id: "modernSounds",
   label: "Modern Sounds",
-  fontSize: 18,
-  inMenu: true,
+  inMenu: false,
   items: [
     "C<sup><small> </small></sup>q",
     "C<sup><small> </small></sup>sus4",

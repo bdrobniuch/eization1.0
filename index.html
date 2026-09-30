@@ -21,34 +21,26 @@
 
     </div>
 
-    <div id="editdivcontainer">
-
+    <div id="topBar">
         <div id="linediv">
             <div id="status">
                 <p id="counter">left</p>
             </div>
 
             <div id="editdiv">
-                <select id="exerciseSelect" onchange="SelectExercise();">
-                    <option value="allNotes">Notes</option>
-                    <option value="allChords">All Chords</option>
-                    <option value="oneTwoThreeFour">1,2,3,4</option>
-                    <option value="playRest">Play/Rest</option>
-                    <option value="fingers">Fingers</option>
-                    <option value="intervals">Intervals</option>
-                    <option value="modernSounds">Modern Sounds</option>
-                    <!--<option value="licks">Licks</option>-->
-                    <option value="language">Language</option>
-                    <option value="notePairs">Note Pairs</option>
-                    <option value="chordProgressions">Chord Progressions</option>
-                    
-                    
-                </select>
-                <button id="edit" onclick="ToggleEdit()"><i class="fa-solid fa-pen-to-square"></i></button>
+                <div class="combo" id="exerciseCombo">
+                    <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="listbox" aria-expanded="false" aria-label="Exercise: Notes" title="Choose an exercise">
+                        <span class="combo-kicker">Exercise</span>
+                        <span class="combo-value">Notes</span>
+                    </button>
+                    <ul class="combo-menu" id="exerciseMenu" role="listbox" hidden></ul>
+                </div>
+                <button type="button" class="icon-btn" id="resetExercise" title="Start this exercise again" aria-label="Reset exercise">
+                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="icon-btn" id="edit" onclick="ToggleEdit()" title="Edit exercise" aria-label="Edit exercise"><i class="fa-solid fa-pen-to-square"></i></button>
             </div>
-
         </div>
-
     </div>
     <div id="textdiv">
         <textarea id="allEdit">df</textarea>
@@ -90,6 +82,7 @@
             </div>
         </div>
         <div id="phraseTrack"></div>
+        <div id="bottomBar">
         <div id="divfooter">
 
             <label class="checkbox-label">
@@ -97,14 +90,10 @@
                 <i class="fa fa-volume-xmark"></i> <!-- Default Icon when unchecked -->
             </label>
 
-            <select id="beatsSelect" title="Beats per bar" aria-label="Beats per bar">
-                <option value="3">3</option>
-                <option value="4" selected>4</option>
-                <option value="5">5</option>
-                <option value="7">7</option>
-                <option value="11">11</option>
-                <option value="custom">…</option>
-            </select>
+            <div class="combo combo-up" id="beatsCombo">
+                <button type="button" class="combo-face" id="beatsFace" title="Beats per bar" aria-label="Beats per bar" aria-haspopup="listbox" aria-expanded="false">4</button>
+                <ul class="combo-menu" id="beatsMenu" role="listbox" hidden></ul>
+            </div>
             <div class="stepper" id="beatsCustomStepper" hidden>
                 <button type="button" class="step-down" aria-label="Fewer beats">−</button>
                 <input type="number" id="beatsCustom" min="1" max="32" step="1" value="4"
@@ -112,9 +101,16 @@
                 <button type="button" class="step-up" aria-label="More beats">+</button>
             </div>
 
-            <button type="button" id="grooveButton" title="Which subdivisions click, and silent bars" aria-expanded="false">Click</button>
+            <button type="button" id="grooveButton" title="Click" aria-label="Click" aria-expanded="false">
+                <svg class="metro-icon" viewBox="0 0 32 32" aria-hidden="true">
+                    <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/>
+                    <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/>
+                    <circle cx="24" cy="9.5" r="3.4" fill="currentColor"/>
+                </svg>
+            </button>
 
             <div class="stepper" id="bpmStepper">
+                <span class="step-label">BPM</span>
                 <button type="button" class="step-down" aria-label="Slower">−</button>
                 <input type="number" id="bpm" min="0" max="500" step="1" value="100" maxlength="3"
                     title="BPM" aria-label="Tempo" inputmode="numeric">
@@ -124,11 +120,13 @@
                 </button>
             </div>
 
-            <button id="next" onclick="next()"><i class="fa-solid fa-forward"></i></button>
+            <button type="button" class="icon-btn" id="next" onclick="next()" title="Next" aria-label="Next"><i class="fa-solid fa-forward"></i></button>
 
 
         </div>
+        </div>
     </footer>
+    <div id="noteMeasure" aria-hidden="true"></div>
     <script src="./resources/js/registry.js"></script>
     <script src="./resources/js/exercises/notes.js"></script>
     <script src="./resources/js/exercises/chords.js"></script>

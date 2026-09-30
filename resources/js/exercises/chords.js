@@ -1,7 +1,6 @@
 registerExercise({
   id: "allChords",
   label: "All Chords",
-  fontSize: 30,
   inMenu: true,
   items: [
     "C<sup><small></small><small><small></sup>&#8710;7</small></small>",

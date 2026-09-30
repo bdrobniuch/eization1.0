@@ -1,7 +1,6 @@
 registerExercise({
   id: "chordProgressions",
   label: "Chord Progressions",
-  fontSize: 10,
   bars: 4,
   inMenu: true,
   items: [
