@@ -17,7 +17,7 @@ var EDITOR_SYMBOLS = [
   { char: "\u2191", label: "Up" },
   { char: "\u2192", label: "Arrow" },
   { char: "|", label: "Bar line" },
-  { char: "%", label: "Repeat the chord" },
+  { char: "\uD834\uDD0E", label: "Repeat the bar" },
   { char: "\u00B7", label: "Caption" },
   { char: "\u2612", label: "Played" },
   { char: "\u2610", label: "Open" },
@@ -75,6 +75,10 @@ function escapeEditorHtml(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function withSimile(html) {
+  return html.replace(/\uD834\uDD0E/g, '<span class="simile">\uD834\uDD0E</span>');
+}
+
 function lineToItem(line) {
   var text = itemToLine(line);
   if (!text) {
@@ -89,10 +93,10 @@ function lineToItem(line) {
     var left = text.slice(0, at).replace(/\s+$/g, "");
     var right = text.slice(at + dot.length).replace(/^\s+/g, "");
     if (left && right) {
-      return '<span class="prog-changes">' + escapeEditorHtml(left) + '</span><span class="prog-name">' + escapeEditorHtml(right) + '</span>';
+      return withSimile('<span class="prog-changes">' + escapeEditorHtml(left) + '</span><span class="prog-name">' + escapeEditorHtml(right) + '</span>');
     }
   }
-  return escapeEditorHtml(text);
+  return withSimile(escapeEditorHtml(text));
 }
 
 function editorLinesFrom(value) {

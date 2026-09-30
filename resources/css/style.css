@@ -13,6 +13,10 @@
     font-style: normal;
 }
 
+:root {
+    --face-font: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", "Segoe UI Symbol", "Apple Symbols", serif;
+}
+
 html,
 body  {
     height: 100%;
@@ -70,7 +74,7 @@ body.is-count-in {
     text-align: center;
     pointer-events: none;
     z-index: 1;
-    font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
+    font-family: var(--face-font);
     backface-visibility: hidden;
 }
 
@@ -171,13 +175,18 @@ body.is-count-in {
   white-space: nowrap;
   width: max-content;
   line-height: 1.05;
-  font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
+  font-family: var(--face-font);
 }
 
 .prog-changes,
 .prog-name {
   display: block;
   white-space: nowrap;
+}
+
+.simile {
+  position: relative;
+  top: 0.16em;
 }
 
 .prog-name {
@@ -198,7 +207,7 @@ body.is-count-in {
   white-space: nowrap;
   line-height: 1.05;
   min-height: 1.25em;
-  font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
+  font-family: var(--face-font);
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -1009,7 +1018,7 @@ body.is-editing #counter {
   border: 2px solid rgba(255, 255, 255, 0.85);
   background: transparent;
   color: #ffffff;
-  font-family: Georgia, "Iowan Old Style", Palatino, "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-family: var(--face-font);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
@@ -1027,7 +1036,7 @@ body.is-editing #counter {
   overflow: auto;
   overscroll-behavior: contain;
   color: #ffffff;
-  font-family: Georgia, "Iowan Old Style", Palatino, "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-family: var(--face-font);
   font-size: 18px;
   line-height: 1.45;
   background: rgba(0, 0, 0, 0.28);
@@ -1041,7 +1050,7 @@ body.is-editing #counter {
   margin: 0;
   overflow: hidden;
   text-align: center;
-  font-family: Georgia, "Iowan Old Style", Palatino, "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-family: var(--face-font);
   font-size: 22px;
   line-height: 1.15;
 }
