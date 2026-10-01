@@ -844,12 +844,13 @@ body.is-hello #tempoToggle {
 .swing-modes button {
     flex: 1 1 0;
     min-height: 44px;
-    padding: 0 8px;
+    padding: 0 4px;
     border: 0;
     background: transparent;
     color: #ffffff;
     font: inherit;
-    font-size: 3.4vmin;
+    font-size: 3.2vmin;
+    white-space: nowrap;
     cursor: pointer;
     opacity: 0.85;
 }

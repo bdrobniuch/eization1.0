@@ -59,6 +59,7 @@ function run() {
     exerciseMenu(w);
     clock(w);
     swing(w);
+    neo(w);
     editorLines(w);
     editorFile(w);
     deskRoundTrip(w);
@@ -120,6 +121,33 @@ function swing(w) {
     bpmBox.value = previous;
   }
   check("swing off is straight", w.activeSwingRatio() === 1 && w.swingOn === false);
+}
+
+function neo(w) {
+  var beats = w.beatsPerBar;
+  var unit = w.beatUnit;
+  w.currentBpm = 100;
+  w.beatsPerBar = 4;
+  w.beatUnit = 4;
+  w.setSwingMode("neo");
+  var amount = w.document.getElementById("swingAmount");
+  check("neo hides the swing amount", !!(amount && amount.hidden));
+  check("neo leaves beat 1 on the grid", w.neoStepDelay(0) === 0);
+  check("neo delays beat 2 by 40 ms", near(w.neoStepDelay(2), 0.04));
+  check("neo leaves the & straight", w.neoStepDelay(1) === 0 && w.neoStepDelay(3) === 0);
+  check("neo leaves beat 3 on the grid", w.neoStepDelay(4) === 0);
+  check("neo delays beat 4 by 40 ms", near(w.neoStepDelay(6), 0.04));
+  check("neo gives the time back inside the bar", near(w.neoClickTime(2), 0.64) && near(w.neoClickTime(4), 1.2) && near(w.neoClickTime(8), 2.4));
+  w.beatsPerBar = 6;
+  w.beatUnit = 8;
+  check("neo in 6/8 delays only the second group", w.neoStepDelay(0) === 0 && w.neoStepDelay(2) === 0 && near(w.neoStepDelay(6), 0.04) && near(w.neoClickTime(12), 3.6));
+  w.beatsPerBar = 3;
+  w.beatUnit = 4;
+  check("neo in 3/4 delays only beat 2", w.neoStepDelay(0) === 0 && near(w.neoStepDelay(2), 0.04) && w.neoStepDelay(4) === 0);
+  w.beatsPerBar = beats;
+  w.beatUnit = unit;
+  w.setSwingMode("off");
+  check("off still has no swing", w.activeSwingRatio() === 1 && w.swingNeo === false);
 }
 
 function editorFile(w) {

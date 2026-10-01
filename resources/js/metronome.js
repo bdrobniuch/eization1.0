@@ -37,6 +37,7 @@ var EIGHTHS = 2;
 var swingOn = false;
 var swingAuto = true;
 var swingTriplet = false;
+var swingNeo = false;
 var swingRatio = 1;
 var swingLitOffbeats = false;
 var swingAnchorTime = 0;
@@ -87,7 +88,7 @@ function recommendedSwingRatio(bpm) {
 }
 
 function activeSwingRatio() {
-  if (!swingOn) {
+  if (!swingOn || swingNeo) {
     return SWING_MIN;
   }
   if (swingTriplet) {
@@ -123,6 +124,51 @@ function swingGaps() {
   }
   var longNote = beat * ratio / (ratio + 1);
   return { longNote: longNote, shortNote: beat - longNote, beat: beat };
+}
+
+// Neo sits behind the felt pulse. In 4/4 that is beats 2 and 4.
+// In 6/8, 9/8, and 12/8 the pulse is a group of three, so only the even group is late.
+// The "&" stays on the grid, and the late time is given back before the next on-grid beat.
+var NEO_POCKET_SEC = 0.04;
+
+function neoGroupSize() {
+  if (beatUnit === 8 && beatsPerBar % 3 === 0) {
+    return 3;
+  }
+  return 1;
+}
+
+function neoPocketSec() {
+  var room = eighthDuration() - SWING_MIN_SHORT_SEC;
+  if (room < NEO_POCKET_SEC) {
+    return room > 0 ? room : 0;
+  }
+  return NEO_POCKET_SEC;
+}
+
+function neoStepDelay(step) {
+  if (!swingNeo || step % EIGHTHS !== 0) {
+    return 0;
+  }
+  var beatIndex = step / EIGHTHS;
+  var group = neoGroupSize();
+  if (beatIndex % group !== 0) {
+    return 0;
+  }
+  if ((beatIndex / group) % 2 === 0) {
+    return 0;
+  }
+  return neoPocketSec();
+}
+
+function neoClickTime(step) {
+  var steps = stepsPerBar();
+  var bar = 0;
+  if (steps > 0 && step >= steps) {
+    bar = Math.floor(step / steps);
+    step = step - bar * steps;
+  }
+  return bar * beatDuration() * beatsPerBar + step * eighthDuration() + neoStepDelay(step);
 }
 
 function stepsPerBar() {
@@ -679,15 +725,29 @@ function scheduler() {
     scheduleStep(stepIndex, nextNoteTime, generation, currentBarInfo);
     // Numbered beats stay on the grid. The "&" is the late upbeat.
     // After an upbeat, the next downbeat is one whole beat after its downbeat, not "short note after whenever the & happened to be scheduled".
-    var gaps = swingGaps();
-    if (stepIndex % 2 === 0) {
-      swingAnchorTime = nextNoteTime;
-      swingAnchorValid = true;
-      nextNoteTime = swingAnchorTime + gaps.longNote;
-    } else if (swingAnchorValid) {
-      nextNoteTime = swingAnchorTime + gaps.beat;
+    // Neo keeps that same bar length: a late backbeat borrows time and gives it back before the next beat that sits on the grid.
+    if (swingNeo) {
+      if (stepIndex === 0) {
+        swingAnchorTime = nextNoteTime;
+        swingAnchorValid = true;
+      }
+      var upcoming = stepIndex + 1;
+      if (!swingAnchorValid) {
+        nextNoteTime += eighthDuration();
+      } else {
+        nextNoteTime = swingAnchorTime + neoClickTime(upcoming);
+      }
     } else {
-      nextNoteTime += gaps.shortNote;
+      var gaps = swingGaps();
+      if (stepIndex % 2 === 0) {
+        swingAnchorTime = nextNoteTime;
+        swingAnchorValid = true;
+        nextNoteTime = swingAnchorTime + gaps.longNote;
+      } else if (swingAnchorValid) {
+        nextNoteTime = swingAnchorTime + gaps.beat;
+      } else {
+        nextNoteTime += gaps.shortNote;
+      }
     }
     stepIndex++;
     if (stepIndex >= stepsPerBar()) {
@@ -998,11 +1058,12 @@ function renderSwing() {
   }
   var amount = document.getElementById("swingAmount");
   if (amount) {
-    amount.hidden = !swingOn || swingTriplet;
+    amount.hidden = !swingOn || swingTriplet || swingNeo;
   }
   var off = document.getElementById("swingModeOff");
   var triplet = document.getElementById("swingModeTriplet");
   var feel = document.getElementById("swingModeFeel");
+  var neo = document.getElementById("swingModeNeo");
   if (off) {
     off.setAttribute("aria-checked", !swingOn ? "true" : "false");
   }
@@ -1010,12 +1071,15 @@ function renderSwing() {
     triplet.setAttribute("aria-checked", swingOn && swingTriplet ? "true" : "false");
   }
   if (feel) {
-    feel.setAttribute("aria-checked", swingOn && !swingTriplet ? "true" : "false");
+    feel.setAttribute("aria-checked", swingOn && !swingTriplet && !swingNeo ? "true" : "false");
+  }
+  if (neo) {
+    neo.setAttribute("aria-checked", swingOn && swingNeo ? "true" : "false");
   }
 }
 
 function setSwingMode(mode) {
-  if (mode !== "triplet" && mode !== "feel") {
+  if (mode !== "triplet" && mode !== "feel" && mode !== "neo") {
     mode = "off";
   }
   var nextOn = mode !== "off";
@@ -1023,8 +1087,12 @@ function setSwingMode(mode) {
     releaseOwnedOffbeats();
   }
   var wasOn = swingOn;
+  if (swingNeo || mode === "neo") {
+    swingAnchorValid = false;
+  }
   swingOn = nextOn;
   swingTriplet = mode === "triplet";
+  swingNeo = mode === "neo";
   renderSwing();
   if (swingOn && !wasOn && playOffbeatsAreSilent()) {
     lightPlayOffbeats();

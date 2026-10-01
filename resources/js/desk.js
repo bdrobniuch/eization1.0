@@ -203,7 +203,7 @@ function writeSetupNow() {
   data.repeat = clampDeskInt(repeatCount, 1, 16, 1);
   data.look = !!lookAhead;
   data.countIn = !!countInOn;
-  data.swing = swingOn && swingTriplet ? "triplet" : (swingOn ? "feel" : "off");
+  data.swing = swingNeo ? "neo" : (swingOn && swingTriplet ? "triplet" : (swingOn ? "feel" : "off"));
   data.swingAuto = !!swingAuto;
   data.swingRatio = typeof swingRatio === "number" ? swingRatio : 1;
   data.swingLit = !!swingLitOffbeats;
@@ -408,7 +408,7 @@ function applyDesk() {
   if (restClicks) {
     restClickPattern = restClicks;
   }
-  if (data.swing === "triplet" || data.swing === "feel" || data.swing === "off") {
+  if (data.swing === "triplet" || data.swing === "feel" || data.swing === "neo" || data.swing === "off") {
     if (typeof setSwingMode === "function") {
       setSwingMode(data.swing);
     }
