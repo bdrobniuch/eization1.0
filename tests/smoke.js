@@ -60,6 +60,7 @@ function run() {
     clock(w);
     swing(w);
     editorLines(w);
+    editorFile(w);
     deskRoundTrip(w);
     check("metronome stays paused", w.paused === true);
   } catch (err) {
@@ -119,6 +120,20 @@ function swing(w) {
     bpmBox.value = previous;
   }
   check("swing off is straight", w.activeSwingRatio() === 1 && w.swingOn === false);
+}
+
+function editorFile(w) {
+  var text = w.editorFileText(["C \u00B7 File", "D"], 4);
+  var parsed = w.readEditorFile(text);
+  check("exercise file is version 1", text.indexOf("# eization 1\n") === 0 && parsed.version === 1);
+  check("exercise file keeps the lines", parsed.lines.length === 2 && parsed.lines[0] === "C \u00B7 File");
+  check("exercise file keeps the bars", parsed.bars === 4);
+  var older = w.readEditorFile("# eization\n# bars 2\nG\n");
+  check("an unversioned file still opens", older.version === 1 && older.lines[0] === "G" && older.bars === 2);
+  var plain = w.readEditorFile("E\nF\n");
+  check("a plain list opens without a header", plain.lines.length === 2 && plain.bars === null && plain.version === null);
+  var newer = w.readEditorFile("# eization 2\nA\n");
+  check("a newer file is recognized", newer.version === 2 && newer.version > w.EDITOR_FILE_VERSION);
 }
 
 function editorLines(w) {

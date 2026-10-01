@@ -39,7 +39,7 @@ Add a script tag after `registry.js` and before `picker.js`. Call `registerExerc
 
 The rhythms exercise id is `limbs`. Its menu label is Rhythms.
 
-A custom list is not an exercise file. The editor stores one list in `eization-desk`, and only when the user presses Done.
+A custom list is one exercise. Done stores it in `eization-desk`. The save and open icons also copy that list to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, then one value per line. A file without a version still opens. A higher version does not.
 
 ## Saved on this device
 

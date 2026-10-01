@@ -421,6 +421,102 @@ function editorCancel() {
   }
 }
 
+var EDITOR_FILE_VERSION = 1;
+
+function editorFileText(lines, bars) {
+  return "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n" + lines.join("\n") + "\n";
+}
+
+function readEditorFile(text) {
+  var raw = String(text || "").replace(/^\uFEFF/, "");
+  var parts = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  var bars = null;
+  var version = null;
+  var body = [];
+  var i;
+  for (i = 0; i < parts.length; i++) {
+    var line = parts[i];
+    var barsMatch = line.match(/^\s*#\s*bars\s+(\d+)\s*$/i);
+    if (barsMatch) {
+      bars = clampEditorBars(barsMatch[1]);
+      continue;
+    }
+    var header = line.match(/^\s*#\s*eization(?:\s+(\d+))?\s*$/i);
+    if (header) {
+      version = header[1] ? parseInt(header[1], 10) : 1;
+      continue;
+    }
+    body.push(line);
+  }
+  return {
+    lines: editorLinesFrom(body.join("\n")),
+    bars: bars,
+    version: version
+  };
+}
+
+function editorSaveFile() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  var lines = editorLinesFrom(document.getElementById("allEdit").value);
+  if (!lines.length) {
+    editorNotice("Add at least one line.");
+    return;
+  }
+  if (lines.length > 500) {
+    editorNotice("Keep it to 500 lines.");
+    return;
+  }
+  var bars = clampEditorBars(document.getElementById("editBars").value);
+  document.getElementById("editBars").value = String(bars);
+  var blob = new Blob([editorFileText(lines, bars)], { type: "text/plain;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement("a");
+  link.href = url;
+  link.download = "eization.eiz";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+  }, 1500);
+}
+
+function editorOpenFile(file) {
+  if (!editorIsOpen() || !file) {
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function () {
+    var parsed = readEditorFile(String(reader.result || ""));
+    if (parsed.version && parsed.version > EDITOR_FILE_VERSION) {
+      editorNotice("This file needs a newer eization.");
+      return;
+    }
+    if (!parsed.lines.length) {
+      editorNotice("Add at least one line.");
+      return;
+    }
+    if (parsed.lines.length > 500) {
+      editorNotice("Keep it to 500 lines.");
+      return;
+    }
+    var area = document.getElementById("allEdit");
+    area.value = parsed.lines.join("\n");
+    if (parsed.bars) {
+      document.getElementById("editBars").value = String(parsed.bars);
+    }
+    clearEditorNotice();
+    refreshEditor();
+    area.focus();
+  };
+  reader.onerror = function () {
+    editorNotice("Could not read that file.");
+  };
+  reader.readAsText(file);
+}
+
 function editorDone() {
   if (!editorIsOpen()) {
     return;
@@ -503,6 +599,18 @@ function initEditor() {
   edit.addEventListener("click", ToggleEdit);
   document.getElementById("editCancel").addEventListener("click", editorCancel);
   document.getElementById("editDone").addEventListener("click", editorDone);
+  document.getElementById("editSave").addEventListener("click", editorSaveFile);
+  document.getElementById("editOpen").addEventListener("click", function () {
+    document.getElementById("editFile").click();
+  });
+  document.getElementById("editFile").addEventListener("change", function () {
+    var input = this;
+    var file = input.files && input.files[0];
+    input.value = "";
+    if (file) {
+      editorOpenFile(file);
+    }
+  });
   var duplicate = document.getElementById("editDuplicate");
   duplicate.addEventListener("pointerdown", function (event) {
     event.preventDefault();
