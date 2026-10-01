@@ -1211,6 +1211,9 @@ function setSoundOn(on) {
 
 function next() {
   if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    if (typeof editorNotice === "function") {
+      editorNotice("Finish or cancel editing first.");
+    }
     return;
   }
   unlockAudio();

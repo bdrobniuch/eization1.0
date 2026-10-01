@@ -96,10 +96,11 @@
     </div>
     <div id="textdiv">
         <div id="editHead">
-            <p id="editHint">One value per line. Add · and a caption to show it smaller.</p>
+            <p id="editHint">One value per line. Add · and a caption to show it smaller. Done keeps this list on this device.</p>
             <button type="button" id="editCancel">Cancel</button>
-            <button type="button" id="editDone">Done</button>
+            <button type="button" id="editDone" title="Keep this list on this device">Done</button>
         </div>
+        <p id="editError" hidden></p>
         <div id="editSymbols"></div>
         <div id="editMeta">
             <p id="editCount">0 values</p>
@@ -115,8 +116,7 @@
             <button type="button" id="editDuplicate" title="Copy the line at the cursor onto the next line">Duplicate line</button>
         </div>
         <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Exercise values, one per line" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
-        <p id="editPreview" class="is-empty" aria-hidden="true"></p>
-        <p id="editError" hidden></p>
+        <p id="editPreview" class="is-empty"></p>
     </div>
 
     <div id="about">

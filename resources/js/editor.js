@@ -143,11 +143,20 @@ function editorIsDirty() {
 }
 
 function editorNotice(message) {
+  editorMessage(message, false);
+}
+
+function editorStatus(message) {
+  editorMessage(message, true);
+}
+
+function editorMessage(message, note) {
   var error = document.getElementById("editError");
   if (!error) {
     return;
   }
   error.hidden = false;
+  error.classList.toggle("is-note", !!note);
   error.textContent = message;
 }
 
@@ -157,6 +166,7 @@ function clearEditorNotice() {
     return;
   }
   error.hidden = true;
+  error.classList.remove("is-note");
   error.textContent = "";
 }
 
@@ -167,8 +177,8 @@ function setEditButton(open) {
   }
   var icon = button.querySelector("i");
   button.setAttribute("aria-pressed", open ? "true" : "false");
-  button.title = open ? "Done" : "Edit exercise";
-  button.setAttribute("aria-label", open ? "Done" : "Edit exercise");
+  button.title = open ? "Keep this list on this device" : "Edit exercise";
+  button.setAttribute("aria-label", open ? "Keep this list on this device" : "Edit exercise");
   if (icon) {
     icon.className = open ? "fa-solid fa-check" : "fa-solid fa-pen-to-square";
   }
@@ -199,7 +209,7 @@ function selectExerciseChip(id) {
 function editorRestoreFace() {
   var face = document.getElementById("exerciseFace");
   if (face && typeof setComboLabel === "function") {
-    setComboLabel(face, "Custom");
+    setComboLabel(face, editorDraft.label || "");
   }
   currentExerciseId = editorDraft.id;
   selectExerciseChip(editorDraft.id);
@@ -215,6 +225,8 @@ function editorCloseQuiet() {
   document.body.classList.remove("is-editing");
   setEditButton(false);
   clearEditorNotice();
+  disarmEditorReplace();
+  disarmEditorOpen();
   if (typeof renderPreview === "function") {
     renderPreview();
   }
@@ -271,6 +283,7 @@ function refreshEditor() {
   if (count) {
     count.textContent = total === 1 ? "1 value" : total + " values";
   }
+  markSymbolScroll();
   if (!preview) {
     return;
   }
@@ -386,9 +399,6 @@ function editorOpen() {
   document.getElementById("textdiv").classList.add("is-open");
   document.body.classList.add("is-editing");
   setEditButton(true);
-  if (face && typeof setComboLabel === "function") {
-    setComboLabel(face, "Custom");
-  }
   refreshEditor();
   placeEditor();
   if (typeof layoutFrame === "function") {
@@ -481,6 +491,7 @@ function editorSaveFile() {
   setTimeout(function () {
     URL.revokeObjectURL(url);
   }, 1500);
+  editorStatus("Saved eization.eiz.");
 }
 
 function editorOpenFile(file) {
@@ -495,7 +506,7 @@ function editorOpenFile(file) {
       return;
     }
     if (!parsed.lines.length) {
-      editorNotice("Add at least one line.");
+      editorNotice("That file has no lines.");
       return;
     }
     if (parsed.lines.length > 500) {
@@ -515,6 +526,87 @@ function editorOpenFile(file) {
     editorNotice("Could not read that file.");
   };
   reader.readAsText(file);
+}
+
+function markSymbolScroll() {
+  var row = document.getElementById("editSymbols");
+  if (!row) {
+    return;
+  }
+  var more = row.scrollWidth - row.clientWidth - row.scrollLeft > 8;
+  row.classList.toggle("can-scroll", more);
+}
+
+var editorReplaceTimer = null;
+var editorOpenTimer = null;
+
+function disarmEditorReplace() {
+  var done = document.getElementById("editDone");
+  if (done) {
+    done.classList.remove("is-armed");
+    done.textContent = "Done";
+  }
+  if (editorReplaceTimer) {
+    clearTimeout(editorReplaceTimer);
+    editorReplaceTimer = null;
+  }
+  if (editorIsOpen()) {
+    setEditButton(true);
+  }
+}
+
+function armEditorReplace() {
+  var done = document.getElementById("editDone");
+  var header = document.getElementById("edit");
+  if (done) {
+    done.classList.add("is-armed");
+    done.textContent = "Replace saved list?";
+  }
+  if (header) {
+    header.title = "Replace saved list?";
+    header.setAttribute("aria-label", "Replace saved list?");
+  }
+  editorNotice("This replaces the custom list kept on this device.");
+  if (editorReplaceTimer) {
+    clearTimeout(editorReplaceTimer);
+  }
+  editorReplaceTimer = setTimeout(disarmEditorReplace, 4000);
+}
+
+function disarmEditorOpen() {
+  var open = document.getElementById("editOpen");
+  if (open) {
+    open.classList.remove("is-armed");
+  }
+  if (editorOpenTimer) {
+    clearTimeout(editorOpenTimer);
+    editorOpenTimer = null;
+  }
+}
+
+function armEditorOpen() {
+  var open = document.getElementById("editOpen");
+  if (open) {
+    open.classList.add("is-armed");
+  }
+  editorNotice("Opening a file replaces the lines in the box.");
+  if (editorOpenTimer) {
+    clearTimeout(editorOpenTimer);
+  }
+  editorOpenTimer = setTimeout(disarmEditorOpen, 4000);
+}
+
+function editorAskOpen() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  var open = document.getElementById("editOpen");
+  if (editorIsDirty() && open && !open.classList.contains("is-armed")) {
+    armEditorOpen();
+    return;
+  }
+  disarmEditorOpen();
+  document.getElementById("editFile").click();
 }
 
 function editorDone() {
@@ -537,6 +629,13 @@ function editorDone() {
     editorCancel();
     return;
   }
+  var replacing = editorDraft.id !== "custom" && typeof customRecord === "function" && customRecord();
+  var done = document.getElementById("editDone");
+  if (replacing && done && !done.classList.contains("is-armed")) {
+    armEditorReplace();
+    return;
+  }
+  disarmEditorReplace();
   var items = [];
   if (text === editorDraft.text) {
     var source = typeof chromaticScale !== "undefined" && chromaticScale ? chromaticScale : [];
@@ -600,9 +699,7 @@ function initEditor() {
   document.getElementById("editCancel").addEventListener("click", editorCancel);
   document.getElementById("editDone").addEventListener("click", editorDone);
   document.getElementById("editSave").addEventListener("click", editorSaveFile);
-  document.getElementById("editOpen").addEventListener("click", function () {
-    document.getElementById("editFile").click();
-  });
+  document.getElementById("editOpen").addEventListener("click", editorAskOpen);
   document.getElementById("editFile").addEventListener("change", function () {
     var input = this;
     var file = input.files && input.files[0];
@@ -626,6 +723,7 @@ function initEditor() {
   });
   area.addEventListener("input", function () {
     convertEditorCodes();
+    disarmEditorReplace();
     clearEditorNotice();
     refreshEditor();
   });
@@ -666,7 +764,11 @@ function initEditor() {
       editorDone();
     }
   });
-  document.getElementById("editBars").addEventListener("input", clearEditorNotice);
+  symbols.addEventListener("scroll", markSymbolScroll);
+  document.getElementById("editBars").addEventListener("input", function () {
+    disarmEditorReplace();
+    clearEditorNotice();
+  });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && editorIsOpen() && event.target !== area) {
       editorCancel();

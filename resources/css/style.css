@@ -1406,6 +1406,21 @@ body.is-editing #counter {
   color: #ffe08a;
 }
 
+#editError.is-note {
+  color: #ffffff;
+}
+
+#editDone.is-armed,
+#editOpen.is-armed {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
+#editSymbols.can-scroll {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent);
+}
+
 #textdiv .stepper {
   flex: 0 0 auto;
 }
