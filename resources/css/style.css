@@ -543,15 +543,16 @@ footer {
   position: fixed;
   z-index: 36;
   margin: 0;
-  padding: 0.5vmin 1.4vmin;
-  transform: translate(-50%, -100%);
-  background: rgba(0, 0, 0, 0.4);
+  padding: 0.55vmin 1.5vmin;
+  max-width: min(22rem, calc(100vw - 24px));
+  background: rgba(0, 0, 0, 0.55);
   border: 2px solid rgba(255, 255, 255, 0.85);
   color: #ffffff;
-  font-size: max(14px, 2.8vmin);
-  line-height: 1.25;
+  font-size: max(15px, 2.8vmin);
+  line-height: 1.3;
+  text-align: center;
   pointer-events: none;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 #helloCaption[hidden],
@@ -595,18 +596,30 @@ footer {
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
 }
 
-body.is-hello #topBar,
+body.is-hello #brand,
+body.is-hello #exerciseFace,
+body.is-hello #resetExercise,
+body.is-hello #edit,
+body.is-hello #counter,
 body.is-hello #divfooter > .checkbox-label,
 body.is-hello #grooveButton,
 body.is-hello #next,
+body.is-hello #tempoToggle,
 body.is-hello #bpmStepper .step-label,
 body.is-hello #bpmStepper .step-down,
 body.is-hello #bpmStepper .step-up,
 body.is-hello #bpmStepper input {
   opacity: 0.38;
+  pointer-events: none;
 }
 
-body.is-hello #tempoToggle {
+body.is-hello[data-hello="note"] #note {
+  opacity: 1;
+}
+
+body.is-hello[data-hello="next"] #next,
+body.is-hello[data-hello="tempoToggle"] #tempoToggle,
+body.is-hello[data-hello="edit"] #edit {
   opacity: 1;
   animation: helloBlink 0.9s ease-in-out infinite;
 }
@@ -635,7 +648,9 @@ body.is-hello #tempoToggle {
   #noteStack.is-turning .reel-prev {
     animation: none;
   }
-  body.is-hello #tempoToggle {
+  body.is-hello[data-hello="next"] #next,
+  body.is-hello[data-hello="tempoToggle"] #tempoToggle,
+  body.is-hello[data-hello="edit"] #edit {
     animation: none;
     background: #ffffff;
     color: #0C8A50;

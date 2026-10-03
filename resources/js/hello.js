@@ -4,9 +4,39 @@ var helloAim = null;
 var helloTouched = false;
 var helloReset = false;
 var helloPhraseRaf = 0;
-var HELLO_STEPS = 4;
-var HELLO_STEP_MS = 700;
+var HELLO_PHRASE_MS = 2000;
+var HELLO_GAP_MS = 600;
+var HELLO_MARGIN = 12;
 var helloStepIndex = 0;
+
+var HELLO_TOUR = [
+  {
+    id: "note",
+    side: "up",
+    text: "Shuffled Practice Ideas, one at a time.",
+    hold: 3400
+  },
+  {
+    id: "next",
+    side: "down",
+    text: "Next pulls another Practice Idea.",
+    hold: 3200,
+    advanceOnShow: true
+  },
+  {
+    id: "tempoToggle",
+    side: "down",
+    text: "Play runs the metronome and draws the next Practice Idea.",
+    phrase: true,
+    advanceAfter: true
+  },
+  {
+    id: "edit",
+    side: "up",
+    text: "Edit builds your own list.",
+    hold: 3200
+  }
+];
 
 document.addEventListener("pointerdown", function () {
   helloTouched = true;
@@ -32,6 +62,16 @@ function forgetHello() {
   } catch (err) {}
 }
 
+function clampHello(value, min, max) {
+  if (value < min) {
+    return min;
+  }
+  if (value > max) {
+    return max;
+  }
+  return value;
+}
+
 function placeHello(id, side) {
   var el = document.getElementById(id);
   var arrow = document.getElementById("helloArrow");
@@ -39,6 +79,7 @@ function placeHello(id, side) {
     return;
   }
   helloAim = { id: id, side: side };
+  document.body.setAttribute("data-hello", id);
   var box = el.getBoundingClientRect();
   arrow.className = side === "up" ? "points-up" : "points-down";
   arrow.hidden = false;
@@ -51,29 +92,45 @@ function placeHelloCaption() {
   var caption = document.getElementById("helloCaption");
   var skip = document.getElementById("helloSkip");
   var arrow = document.getElementById("helloArrow");
-  if (!caption || !document.body.classList.contains("is-hello")) {
+  var step = HELLO_TOUR[helloStepIndex];
+  if (!caption || !document.body.classList.contains("is-hello") || !step) {
     return;
   }
-  if (helloStepIndex === 0) {
-    caption.textContent = "Tap Play to keep time";
-  } else {
-    caption.textContent = "The bar fills, then the next Practice Idea";
-  }
+  caption.textContent = step.text;
   caption.hidden = false;
   if (skip) {
     skip.hidden = false;
-  }
-  if (arrow && !arrow.hidden) {
-    var top = parseFloat(arrow.style.top) || 0;
-    var left = parseFloat(arrow.style.left) || window.innerWidth / 2;
-    caption.style.left = left + "px";
-    caption.style.top = (helloAim && helloAim.side === "down" ? top - 36 : top + 28) + "px";
-  }
-  if (skip) {
     skip.style.left = "50%";
     skip.style.top = "auto";
     skip.style.bottom = "18px";
   }
+  if (!arrow || arrow.hidden) {
+    return;
+  }
+  var arrowTop = parseFloat(arrow.style.top) || 0;
+  var arrowLeft = parseFloat(arrow.style.left) || window.innerWidth / 2;
+  var preferBelow = helloAim && helloAim.side === "up";
+  caption.style.left = "0px";
+  caption.style.top = "0px";
+  caption.style.transform = "none";
+  var width = caption.offsetWidth;
+  var height = caption.offsetHeight;
+  var skipTop = skip && !skip.hidden ? skip.getBoundingClientRect().top : window.innerHeight;
+  var maxLeft = Math.max(HELLO_MARGIN, window.innerWidth - width - HELLO_MARGIN);
+  var left = clampHello(arrowLeft - width / 2, HELLO_MARGIN, maxLeft);
+  var top;
+  if (preferBelow) {
+    top = arrowTop + 22;
+  } else {
+    top = arrowTop - height - 14;
+  }
+  var maxTop = Math.max(HELLO_MARGIN, skipTop - height - HELLO_MARGIN);
+  top = clampHello(top, HELLO_MARGIN, maxTop);
+  if (!preferBelow && top + height > arrowTop - 4) {
+    top = clampHello(arrowTop + 22, HELLO_MARGIN, maxTop);
+  }
+  caption.style.left = left + "px";
+  caption.style.top = top + "px";
 }
 
 function helloStopPhrase() {
@@ -120,7 +177,7 @@ function helloPlayPhrase(done) {
     if (!start) {
       start = now;
     }
-    var t = (now - start) / HELLO_STEP_MS;
+    var t = (now - start) / HELLO_PHRASE_MS;
     if (t >= 1) {
       helloSetPhrase(1);
       helloPhraseRaf = 0;
@@ -153,10 +210,14 @@ function hideHelloChrome() {
   if (caption) {
     caption.hidden = true;
     caption.textContent = "";
+    caption.style.left = "";
+    caption.style.top = "";
+    caption.style.transform = "";
   }
   if (skip) {
     skip.hidden = true;
   }
+  document.body.removeAttribute("data-hello");
 }
 
 function endHello() {
@@ -173,8 +234,8 @@ function endHello() {
   }
   helloTimers = [];
   helloAim = null;
+  helloStepIndex = 0;
   markHello();
-  document.removeEventListener("pointerdown", endHello, true);
   window.removeEventListener("resize", onHelloResize);
 }
 
@@ -183,7 +244,7 @@ function settleHello() {
     return;
   }
   helloBackToStart();
-  helloTimers.push(setTimeout(endHello, 900));
+  helloTimers.push(setTimeout(endHello, 700));
 }
 
 function onHelloResize() {
@@ -215,47 +276,64 @@ function maybeHello() {
   helloReset = false;
   helloStepIndex = 0;
   document.body.classList.add("is-hello");
-  placeHello("tempoToggle", "down");
-  document.addEventListener("pointerdown", endHello, true);
   window.addEventListener("resize", onHelloResize);
   var skip = document.getElementById("helloSkip");
   if (skip && !skip._helloBound) {
     skip._helloBound = true;
-    skip.addEventListener("pointerdown", function (event) {
-      event.stopPropagation();
-    });
     skip.addEventListener("click", function (event) {
       event.preventDefault();
-      event.stopPropagation();
       endHello();
     });
   }
-  var step = 0;
-  function hop() {
+
+  function afterStep(step) {
     if (!document.body.classList.contains("is-hello")) {
       return;
     }
-    helloStepIndex = step === 0 ? 0 : 1;
-    placeHelloCaption();
-    helloPlayPhrase(function () {
+    if (step.advanceAfter && typeof advanceNote === "function") {
+      advanceNote();
+    }
+    helloTimers.push(setTimeout(function () {
       if (!document.body.classList.contains("is-hello")) {
         return;
       }
-      step++;
+      helloStepIndex++;
+      if (helloStepIndex >= HELLO_TOUR.length) {
+        settleHello();
+        return;
+      }
+      runStep();
+    }, HELLO_GAP_MS));
+  }
+
+  function runStep() {
+    if (!document.body.classList.contains("is-hello")) {
+      return;
+    }
+    var step = HELLO_TOUR[helloStepIndex];
+    if (!step) {
+      settleHello();
+      return;
+    }
+    placeHello(step.id, step.side);
+    if (step.advanceOnShow && typeof advanceNote === "function") {
       helloTimers.push(setTimeout(function () {
         if (!document.body.classList.contains("is-hello")) {
           return;
         }
-        if (step >= HELLO_STEPS) {
-          settleHello();
-          return;
-        }
-        if (typeof advanceNote === "function") {
-          advanceNote();
-        }
-        hop();
-      }, 180));
-    });
+        advanceNote();
+      }, 450));
+    }
+    if (step.phrase) {
+      helloPlayPhrase(function () {
+        afterStep(step);
+      });
+      return;
+    }
+    helloTimers.push(setTimeout(function () {
+      afterStep(step);
+    }, step.hold || 2200));
   }
-  helloTimers.push(setTimeout(hop, 400));
+
+  helloTimers.push(setTimeout(runStep, 350));
 }

@@ -29,7 +29,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/editor.js` | Edit desk exercises. `edit.js` does not load |
 | `resources/js/about.js` | About sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
-| `resources/js/hello.js` | First-run tour. Separate key `eization-hello` |
+| `resources/js/hello.js` | First-run tour (idea → Next → Play → Edit). Separate key `eization-hello` |
 | `resources/js/main.js` | Wiring and `init` |
 | `resources/css/style.css` | All layout |
 
