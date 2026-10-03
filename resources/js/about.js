@@ -77,6 +77,57 @@ function placeAbout() {
   sheet.style.height = Math.max(120, limit - top) + "px";
 }
 
+var ABOUT_PAGES = {
+  home: { title: "About", id: "aboutHome" },
+  how: { title: "How it works", id: "aboutHow", from: "aboutGoHow" },
+  author: { title: "About the author", id: "aboutAuthor", from: "aboutGoAuthor" },
+  device: { title: "This device", id: "aboutDevice", from: "aboutGoDevice" }
+};
+
+var aboutPage = "home";
+
+function setAboutPage(page) {
+  var name;
+  var sheet;
+  if (!ABOUT_PAGES[page]) {
+    page = "home";
+  }
+  if (page !== "device") {
+    if (typeof disarmRestoreDefaults === "function") {
+      disarmRestoreDefaults();
+    }
+    disarmUploadAll();
+  }
+  aboutPage = page;
+  for (name in ABOUT_PAGES) {
+    if (Object.prototype.hasOwnProperty.call(ABOUT_PAGES, name)) {
+      document.getElementById(ABOUT_PAGES[name].id).hidden = name !== page;
+    }
+  }
+  document.getElementById("aboutTitle").textContent = ABOUT_PAGES[page].title;
+  document.getElementById("aboutBack").hidden = page === "home";
+  sheet = document.getElementById("about");
+  if (sheet) {
+    sheet.scrollTop = 0;
+  }
+}
+
+function openAboutPage(page) {
+  if (!ABOUT_PAGES[page] || page === "home") {
+    return;
+  }
+  setAboutPage(page);
+  document.getElementById("aboutBack").focus();
+}
+
+function backAbout() {
+  var from = ABOUT_PAGES[aboutPage] && ABOUT_PAGES[aboutPage].from;
+  setAboutPage("home");
+  if (from) {
+    document.getElementById(from).focus();
+  }
+}
+
 function openAbout() {
   if (typeof closeGroovePanel === "function") {
     closeGroovePanel();
@@ -85,6 +136,7 @@ function openAbout() {
     closeExercisePanel();
   }
   var sheet = document.getElementById("about");
+  setAboutPage("home");
   sheet.classList.add("is-open");
   document.body.classList.add("is-about");
   document.getElementById("brand").setAttribute("aria-expanded", "true");
@@ -119,6 +171,7 @@ function closeAbout() {
   sheet.classList.remove("is-open");
   document.body.classList.remove("is-about");
   document.getElementById("brand").setAttribute("aria-expanded", "false");
+  setAboutPage("home");
   if (typeof layoutFrame === "function") {
     layoutFrame();
   }
@@ -284,6 +337,14 @@ function initAbout() {
     }
   });
   document.getElementById("aboutClose").addEventListener("click", closeAbout);
+  document.getElementById("aboutBack").addEventListener("click", backAbout);
+  document.getElementById("aboutNav").addEventListener("click", function (event) {
+    var button = event.target.closest("[data-about]");
+    if (!button) {
+      return;
+    }
+    openAboutPage(button.getAttribute("data-about"));
+  });
   document.getElementById("aboutLinks").addEventListener("click", function (event) {
     var link = event.target.closest("[data-link]");
     if (!link) {

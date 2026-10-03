@@ -1709,12 +1709,7 @@ body.is-about #counter {
   line-height: 1;
 }
 
-.about-icon.fa,
-.about-icon.fa-solid {
-  display: inline-flex;
-}
-
-.about-metro {
+.about-icon svg {
   width: 0.92em;
   height: 0.92em;
   display: block;
@@ -1746,9 +1741,16 @@ body.is-about #counter {
 #aboutHead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+#aboutBack[hidden],
+#aboutHome[hidden],
+#aboutHow[hidden],
+#aboutAuthor[hidden],
+#aboutDevice[hidden] {
+  display: none !important;
 }
 
 #about h1,
@@ -1759,7 +1761,10 @@ body.is-about #counter {
 }
 
 #about h1 {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 22px;
+  line-height: 1.2;
 }
 
 #about h2 {
@@ -1767,7 +1772,13 @@ body.is-about #counter {
   font-size: 18px;
 }
 
+#aboutHow h2:first-child {
+  margin-top: 0;
+}
+
+#aboutBack,
 #aboutClose,
+#aboutNav button,
 #supportReveal,
 .support-path,
 .support-copy,
@@ -1781,8 +1792,24 @@ body.is-about #counter {
   cursor: pointer;
 }
 
+#aboutBack,
 #aboutClose {
+  flex: 0 0 auto;
   padding: 0 14px;
+}
+
+#aboutNav {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+#aboutNav button {
+  padding: 0 16px;
+  font-size: 16px;
+  text-align: left;
 }
 
 #aboutBody {
