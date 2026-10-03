@@ -1,6 +1,6 @@
 # eization
 
-A practice desk for jazz piano. One static page, no build step, no backend. It runs from `file://` and from GitHub Pages.
+A practice desk for any instrument. One static page, no build step, no backend. It runs from `file://` and from GitHub Pages.
 
 ## Run
 

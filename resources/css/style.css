@@ -185,18 +185,25 @@ body.is-count-in {
 
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 1.2vmin 2vmin;
   top: 0;
   left: 0;
   right: 0;
   width: max-content;
   box-sizing: border-box;
-  padding: 0.6vmin 1.2vmin 0;
+  padding: 0.6vmin 1.2vmin 0.7vmin;
   justify-content: space-between; 
 }
 
 #editdiv {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: max(0.6vmin, 6px);
+}
+
+#editTools {
   display: flex;
   align-items: center;
   gap: 1vmin;
@@ -408,22 +415,41 @@ footer {
 #status {
   display: flex;
   align-items: center;
-  gap: 1.6vmin;
-  margin-left: 2vmin;
+  margin-left: 0;
 }
 
 #brand {
   display: flex;
   align-items: center;
-  gap: 0.7vmin;
+  gap: 0.9vmin;
+  height: 11vmin;
+  min-height: 44px;
   margin: 0;
-  padding: 0;
-  border: 0;
+  padding: 0 1.4vmin 0 0.9vmin;
+  box-sizing: border-box;
+  border: 3px solid rgba(255, 255, 255, 0.85);
   background: transparent;
   color: #ffffff;
   font: inherit;
   cursor: pointer;
   text-align: left;
+  white-space: nowrap;
+  opacity: 0.92;
+}
+
+#brand:hover,
+#brand:focus-visible,
+#brand[aria-expanded="true"] {
+  opacity: 1;
+}
+
+#brand[aria-expanded="true"] {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
+#brand[aria-expanded="true"] .combo-kicker {
+  opacity: 1;
 }
 
 .brand-mark {
@@ -446,14 +472,24 @@ footer {
   .brand-word {
     display: none;
   }
+
+  #brand .combo-kicker {
+    font-size: max(3.4vmin, 13px);
+    letter-spacing: 0.04em;
+    opacity: 0.95;
+  }
 }
 
 #counter {
   margin: 0;
-  font-size: 4.5vmin;
+  padding-right: 0.2vmin;
+  font-size: max(4vmin, 14px);
+  line-height: 1;
   color: #ffffff;
   opacity: 0.9;
   white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 #countIn {
@@ -1230,8 +1266,13 @@ body.bar-rest .click-pad.accent.beat {
 }
 
 body.is-editing #divnote,
-body.is-editing #counter {
+body.is-picking #divnote,
+body.is-setup #divnote {
   visibility: hidden;
+}
+
+body.is-editing #counter {
+  display: none;
 }
 
 #edit[aria-pressed="true"] {
@@ -1460,9 +1501,37 @@ body.is-editing #counter {
   line-height: 1;
 }
 
-body.is-about #divnote,
-body.is-about #counter {
+body.is-about #divnote {
   visibility: hidden;
+}
+
+body.is-about #counter {
+  display: none;
+}
+
+.about-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em;
+  height: 1.35em;
+  margin: 0 0.18em;
+  vertical-align: -0.28em;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-sizing: border-box;
+  font-size: 0.92em;
+  line-height: 1;
+}
+
+.about-icon.fa,
+.about-icon.fa-solid {
+  display: inline-flex;
+}
+
+.about-metro {
+  width: 0.92em;
+  height: 0.92em;
+  display: block;
 }
 
 #about {

@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eization 2.0 — jazz piano practice</title>
-    <meta name="description" content="eization is a free practice desk for jazz piano. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.">
+    <title>eization 2.0 — practice one idea at a time</title>
+    <meta name="description" content="eization is a free practice desk for any instrument. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.">
     <meta name="author" content="Błażej Drobniuch">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0C8A50">
@@ -14,16 +14,16 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="eization">
     <meta property="og:locale" content="en_US">
-    <meta property="og:title" content="eization 2.0 — jazz piano practice">
-    <meta property="og:description" content="eization is a free practice desk for jazz piano. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.">
+    <meta property="og:title" content="eization 2.0 — practice one idea at a time">
+    <meta property="og:description" content="eization is a free practice desk for any instrument. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.">
     <meta property="og:url" content="https://bdrobniuch.github.io/eization1.0/">
     <meta property="og:image" content="https://bdrobniuch.github.io/eization1.0/resources/icons/og.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="eization mark: a white quarter note cut out of a green and blue hexagon">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="eization 2.0 — jazz piano practice">
-    <meta name="twitter:description" content="eization is a free practice desk for jazz piano. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.">
+    <meta name="twitter:title" content="eization 2.0 — practice one idea at a time">
+    <meta name="twitter:description" content="eization is a free practice desk for any instrument. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.">
     <meta name="twitter:image" content="https://bdrobniuch.github.io/eization1.0/resources/icons/og.png">
     <link rel="icon" href="./resources/icons/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="./resources/icons/favicon-32.png" sizes="32x32" type="image/png">
@@ -35,7 +35,7 @@
       "@type": "WebApplication",
       "name": "eization",
       "url": "https://bdrobniuch.github.io/eization1.0/",
-      "description": "eization is a free practice desk for jazz piano. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.",
+      "description": "eization is a free practice desk for any instrument. One idea at a time — notes, scales, chords, progressions, and rhythms — with a metronome.",
       "applicationCategory": "MusicApplication",
       "operatingSystem": "Any",
       "browserRequirements": "Requires JavaScript",
@@ -71,22 +71,25 @@
                     <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
                         <path fill="currentColor" fill-rule="evenodd" d="M29.9 3.21A4.2 4.2 0 0 1 34.1 3.21L55.88 15.79A4.2 4.2 0 0 1 57.98 19.42L57.98 44.58A4.2 4.2 0 0 1 55.88 48.21L34.1 60.79A4.2 4.2 0 0 1 29.9 60.79L8.12 48.21A4.2 4.2 0 0 1 6.02 44.58L6.02 19.42A4.2 4.2 0 0 1 8.12 15.79Z M37.6 11H43.5V40A14.5 14.5 0 1 1 37.6 28.33Z M37.6 40A8.6 8.6 0 1 1 20.4 40A8.6 8.6 0 1 1 37.6 40Z"/>
                     </svg>
+                    <span class="combo-kicker">About</span>
                     <span class="brand-word">eization</span>
                 </button>
-                <p id="counter" title="Values left before this list starts over">left</p>
             </div>
 
             <div id="editdiv">
-                <div class="combo" id="exerciseCombo">
-                    <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="true" aria-expanded="false" aria-controls="exercisePanel" aria-label="Exercise: All Notes" title="Choose an exercise">
-                        <span class="combo-kicker">Exercise</span>
-                        <span class="combo-value">All Notes</span>
+                <div id="editTools">
+                    <div class="combo" id="exerciseCombo">
+                        <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="true" aria-expanded="false" aria-controls="exercisePanel" aria-label="Exercise: All Notes" title="Choose an exercise">
+                            <span class="combo-kicker">Exercise</span>
+                            <span class="combo-value">All Notes</span>
+                        </button>
+                    </div>
+                    <button type="button" class="icon-btn" id="resetExercise" title="Start this exercise again" aria-label="Reset exercise">
+                        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
                     </button>
+                    <button type="button" class="icon-btn" id="edit" title="Edit exercise" aria-label="Edit exercise" aria-pressed="false"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                 </div>
-                <button type="button" class="icon-btn" id="resetExercise" title="Start this exercise again" aria-label="Reset exercise">
-                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="icon-btn" id="edit" title="Edit exercise" aria-label="Edit exercise" aria-pressed="false"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                <p id="counter" title="How many are left before this exercise starts over">left</p>
             </div>
         </div>
     </div>
@@ -131,11 +134,13 @@
                 </svg>
                 <span>eization</span>
             </p>
-            <p>eization is a practice desk for jazz piano. It shows one idea at a time. You play that idea with the metronome, then take the next one.</p>
-            <p>Choose an exercise at the top. The large text is the idea. Next moves forward. The round arrow starts that exercise again. The pencil lets you write your own list, one value per line. Done keeps that list on this device until you clear it. The save and open icons copy that list to an .eiz file and back.</p>
-            <p>The metronome is at the bottom. Setup changes the meter, the clicks, the bars, swing, and the count-in. You can use it at the piano. Some exercises are rhythms you can also tap with your hands and feet.</p>
-            <h2>Błażej Drobniuch</h2>
-            <p>Błażej plays jazz piano in Kraków and Barcelona. He studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics. Clubs, bands, and electronic music as Zero Volume. eization is what he uses at the piano.</p>
+            <p>eization is a free practice desk for any instrument. It shows one idea at a time. That idea can be a note, a scale, a chord, a progression, or a rhythm. You play it with the metronome, then take the next one.</p>
+            <h2>How it works</h2>
+            <p>Choose an exercise at the top. The large text is the idea. <i class="fa-solid fa-forward about-icon" aria-hidden="true"></i> Next moves to the next idea. The number under the exercise shows how many are left before the list starts over. <i class="fa-solid fa-rotate-right about-icon" aria-hidden="true"></i> starts that exercise again.</p>
+            <p><i class="fa-solid fa-pen-to-square about-icon" aria-hidden="true"></i> lets you write your own list, one value per line. Done keeps that list on this device until you clear it. <i class="fa-solid fa-floppy-disk about-icon" aria-hidden="true"></i> and <i class="fa-solid fa-folder-open about-icon" aria-hidden="true"></i> copy that list to an .eiz file and back.</p>
+            <p>The metronome is at the bottom. BPM sets the tempo. <i class="fa-solid fa-play about-icon" aria-hidden="true"></i> Play starts and stops the click. Play keeps time on the idea that is showing; Next changes the idea. The bar above the metronome fills through the bars for this idea, then the next idea comes up. <span class="about-icon" aria-hidden="true"><svg class="about-metro" viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span> Setup lets you change the meter, how many Play and Rest bars you get and the clicks for each, swing feel, how many times to repeat, and the count-in. Some exercises are rhythms you can also tap with your hands and feet.</p>
+            <h2>About the author</h2>
+            <p>Błażej Drobniuch plays jazz piano in Kraków and Barcelona. He studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics. He plays in clubs and bands, and makes electronic music as Zero Volume. eization is the desk he uses to practice.</p>
             <ul id="aboutLinks">
                 <li><button type="button" data-link="site" aria-label="Site" title="Site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
                 <li><button type="button" data-link="linkedin" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM3.2 8.6h3v12.2h-3V8.6zm5.2 0h2.9v1.7h.1c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7v7.4h-3v-6.6c0-1.6 0-3.6-2.2-3.6s-2.5 1.7-2.5 3.5v6.7h-3V8.6z"/></svg></button></li>

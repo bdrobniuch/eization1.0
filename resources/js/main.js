@@ -296,7 +296,15 @@ function placeFooter() {
   footer.style.maxHeight = Math.max(160, window.innerHeight - top) + "px";
 }
 
+function syncFaceCover() {
+  var exercise = document.getElementById("exercisePanel");
+  var groove = document.getElementById("groovePanel");
+  document.body.classList.toggle("is-picking", !!(exercise && !exercise.hidden));
+  document.body.classList.toggle("is-setup", !!(groove && !groove.hidden));
+}
+
 function layoutFrame() {
+  syncFaceCover();
   fitToolbar(document.getElementById("linediv"), "left");
   fitToolbar(document.getElementById("divfooter"), "right");
   placeFooter();

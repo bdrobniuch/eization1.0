@@ -100,6 +100,9 @@ function closeAbout() {
   sheet.classList.remove("is-open");
   document.body.classList.remove("is-about");
   document.getElementById("brand").setAttribute("aria-expanded", "false");
+  if (typeof layoutFrame === "function") {
+    layoutFrame();
+  }
 }
 
 function fallbackCopy(text) {

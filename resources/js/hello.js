@@ -157,7 +157,12 @@ function maybeHello() {
     markHello();
     return;
   }
-  if (document.body.classList.contains("is-editing") || document.body.classList.contains("is-about")) {
+  if (
+    document.body.classList.contains("is-editing") ||
+    document.body.classList.contains("is-about") ||
+    document.body.classList.contains("is-picking") ||
+    document.body.classList.contains("is-setup")
+  ) {
     return;
   }
   var panel = document.getElementById("groovePanel");
