@@ -326,7 +326,7 @@ function aboutSharePayload() {
   var url = link && link.href ? link.href : window.location.href;
   return {
     title: "eization",
-    text: "A free practice desk for any instrument, one Practice Idea at a time.",
+    text: "Every Practice Idea gets the same turn, in time with the metronome.",
     url: url
   };
 }

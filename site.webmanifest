@@ -1,7 +1,7 @@
 {
-  "name": "eization — practice desk",
+  "name": "eization. Every Practice Idea gets the same turn, in time with the metronome.",
   "short_name": "eization",
-  "description": "A free practice desk for any instrument. One Practice Idea at a time, with a metronome.",
+  "description": "The changes you already know get the most reps. The rare ones wait. eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
