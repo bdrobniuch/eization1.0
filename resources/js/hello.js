@@ -52,6 +52,61 @@ var HELLO_TOUR = [
   }
 ];
 
+var HELLO_LAUNCH_END = HELLO_TOUR.length;
+
+HELLO_TOUR.push(
+  {
+    id: "exerciseFace",
+    side: "up",
+    text: "Choose an exercise here.",
+    hold: 3200
+  },
+  {
+    id: "note",
+    side: "up",
+    text: "Shuffled Practice Ideas, one at a time.",
+    hold: 3400
+  },
+  {
+    id: "next",
+    side: "down",
+    text: "Next pulls another Practice Idea.",
+    hold: 3200,
+    advanceOnShow: true
+  },
+  {
+    id: "counter",
+    side: "up",
+    text: "This number is how many are left.",
+    hold: 3200
+  },
+  {
+    id: "resetExercise",
+    side: "up",
+    text: "Reset starts this exercise again.",
+    hold: 3200
+  },
+  {
+    id: "bpm",
+    side: "down",
+    text: "BPM sets the tempo.",
+    hold: 3200
+  },
+  {
+    id: "tempoToggle",
+    side: "down",
+    text: "Play runs the metronome and draws the next Practice Idea.",
+    phrase: true,
+    advanceAfter: true
+  },
+  {
+    id: "grooveButton",
+    side: "down",
+    text: "Setup changes the metronome.",
+    hold: 3200
+  }
+);
+
 document.addEventListener("pointerdown", function () {
   helloTouched = true;
 }, true);
@@ -365,10 +420,12 @@ function beginHello(from, to) {
 }
 
 function showHelloPart(part) {
+  var showExercise = HELLO_LAUNCH_END;
+  var showMetronome = showExercise + 5;
   var slices = {
-    exercise: [0, 3],
-    metronome: [3, 5],
-    edit: [5, 6]
+    exercise: [showExercise, showExercise + 5],
+    metronome: [showMetronome, showMetronome + 3],
+    edit: [HELLO_LAUNCH_END - 1, HELLO_LAUNCH_END]
   };
   var slice = slices[part];
   if (!slice) {
@@ -396,5 +453,5 @@ function maybeHello() {
   if (panel && !panel.hidden) {
     return;
   }
-  beginHello(0, HELLO_TOUR.length);
+  beginHello(0, HELLO_LAUNCH_END);
 }

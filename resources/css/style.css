@@ -670,13 +670,16 @@ body.is-hello #bpmStepper input {
   pointer-events: none;
 }
 
-body.is-hello[data-hello="note"] #note {
+body.is-hello[data-hello="note"] #note,
+body.is-hello[data-hello="counter"] #counter {
   opacity: 1;
 }
 
 body.is-hello[data-hello="exerciseFace"] #exerciseFace,
 body.is-hello[data-hello="next"] #next,
+body.is-hello[data-hello="resetExercise"] #resetExercise,
 body.is-hello[data-hello="grooveButton"] #grooveButton,
+body.is-hello[data-hello="bpm"] #bpm,
 body.is-hello[data-hello="tempoToggle"] #tempoToggle,
 body.is-hello[data-hello="edit"] #edit {
   opacity: 1;
@@ -709,7 +712,9 @@ body.is-hello[data-hello="edit"] #edit {
   }
   body.is-hello[data-hello="exerciseFace"] #exerciseFace,
   body.is-hello[data-hello="next"] #next,
+  body.is-hello[data-hello="resetExercise"] #resetExercise,
   body.is-hello[data-hello="grooveButton"] #grooveButton,
+  body.is-hello[data-hello="bpm"] #bpm,
   body.is-hello[data-hello="tempoToggle"] #tempoToggle,
   body.is-hello[data-hello="edit"] #edit {
     animation: none;
