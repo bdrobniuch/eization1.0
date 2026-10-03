@@ -256,10 +256,31 @@ function syncClock() {
   }
 }
 
+// iOS treats web audio as ambient, so the Ring/Silent switch mutes the click.
+// "playback" plays through that switch. It is set only while a click is running,
+// and put back on pause so other audio is not held.
+// Safari before 16.4 has no audioSession. The click follows the silent switch there.
+function setAudioSession(type) {
+  var session = navigator.audioSession;
+  if (!session || !("type" in session)) {
+    return;
+  }
+  try {
+    session.type = type;
+  } catch (e) {}
+}
+
+function clickSessionOn() {
+  return !paused && currentBpm > 0 && soundOn;
+}
+
 function unlockAudio() {
   var AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) {
     return;
+  }
+  if (clickSessionOn()) {
+    setAudioSession("playback");
   }
   if (!audioContext) {
     audioContext = new AudioCtx();
@@ -267,8 +288,17 @@ function unlockAudio() {
       syncClock();
     };
   }
-  if (audioContext.state !== "running") {
-    audioContext.resume();
+  if (audioContext.state === "running") {
+    syncClock();
+    return;
+  }
+  var pending = audioContext.resume();
+  if (pending && typeof pending.then === "function") {
+    pending.then(function () {
+      syncClock();
+    }).catch(function () {
+      syncClock();
+    });
   }
   syncClock();
 }
@@ -873,6 +903,7 @@ function applyBpm(bpm) {
     currentBpm = 0;
     stopScheduler();
     paused = true;
+    setAudioSession("auto");
     renderTempoToggle();
     renderSwing();
     if (typeof rememberSetup === "function") {
@@ -944,6 +975,7 @@ function toggleTempo() {
     tempoHeld = currentBpm;
     stopScheduler();
     paused = true;
+    setAudioSession("auto");
     renderTempoToggle();
     return;
   }
@@ -1278,6 +1310,7 @@ function setSoundOn(on) {
     unlockAudio();
   } else {
     cancelFutureClicks();
+    setAudioSession("auto");
   }
 }
 
