@@ -15,6 +15,8 @@
 
 :root {
     --face-font: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", "Segoe UI Symbol", "Apple Symbols", serif;
+    --s: clamp(4px, 1vmin, 7.6px);
+    --chrome: max(44px, calc(var(--s) * 11));
 }
 
 html,
@@ -170,10 +172,10 @@ body.is-count-in {
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-  gap: 1vmin;
+  gap: calc(var(--s) * 1);
   width: max-content;
   box-sizing: border-box;
-  padding: 0 1.2vmin;
+  padding: 0 calc(var(--s) * 1.2);
 }
 
 #selectdiv {
@@ -186,13 +188,15 @@ body.is-count-in {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  gap: 1.2vmin 2vmin;
+  gap: calc(var(--s) * 1.2) calc(var(--s) * 2);
   top: 0;
   left: 0;
   right: 0;
-  width: max-content;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
-  padding: 0.6vmin 1.2vmin 0.7vmin;
+  padding: calc(var(--s) * 0.6) calc(var(--s) * 1.2) calc(var(--s) * 0.7);
   justify-content: space-between; 
 }
 
@@ -201,12 +205,19 @@ body.is-count-in {
   flex-direction: column;
   align-items: flex-end;
   gap: max(0.6vmin, 6px);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 #editTools {
   display: flex;
   align-items: center;
-  gap: 1vmin;
+  justify-content: flex-end;
+  gap: calc(var(--s) * 1);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 #noteMeasure {
@@ -286,7 +297,7 @@ footer {
 
 #beatsFace,
 #grooveButton {
-    font-size: 6vmin;
+    font-size: calc(var(--s) * 6);
     color: #ffffff;
     background-color: transparent;
     text-align: center;
@@ -319,6 +330,34 @@ footer {
 .stepper,
 .combo {
     flex-shrink: 0;
+}
+
+#exerciseCombo {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#exerciseFace {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#exerciseFace .combo-kicker,
+#exerciseFace::after {
+    flex: 0 0 auto;
+}
+
+#exerciseFace .combo-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .combo-face::after {
@@ -369,10 +408,13 @@ footer {
     background: transparent;
     color: #ffffff;
     font: inherit;
-    font-size: 3.4vmin;
-    min-width: 12vmin;
+    font-size: max(14px, calc(var(--s) * 3.4));
+    min-width: max(72px, calc(var(--s) * 12));
+    max-width: 100%;
     min-height: 40px;
-    padding: 0 1.6vmin;
+    padding: 0 calc(var(--s) * 1.6);
+    white-space: normal;
+    overflow-wrap: anywhere;
     cursor: pointer;
 }
 
@@ -406,7 +448,7 @@ footer {
     backdrop-filter: blur(16px);
     border: 2px solid rgba(255, 255, 255, 0.85);
     color: #ffffff;
-    font-size: max(14px, 2.8vmin);
+    font-size: clamp(14px, 2.8vmin, 20px);
     pointer-events: none;
     white-space: nowrap;
 }
@@ -424,11 +466,11 @@ footer {
 #brand {
   display: flex;
   align-items: center;
-  gap: 0.9vmin;
-  height: 11vmin;
+  gap: calc(var(--s) * 0.9);
+  height: var(--chrome);
   min-height: 44px;
   margin: 0;
-  padding: 0 1.4vmin 0 0.9vmin;
+  padding: 0 calc(var(--s) * 1.4) 0 calc(var(--s) * 0.9);
   box-sizing: border-box;
   border: 3px solid rgba(255, 255, 255, 0.85);
   background: transparent;
@@ -456,8 +498,8 @@ footer {
 }
 
 .brand-mark {
-  width: 4.6vmin;
-  height: 4.6vmin;
+  width: max(26px, calc(var(--s) * 4.6));
+  height: max(26px, calc(var(--s) * 4.6));
   min-width: 26px;
   min-height: 26px;
   display: block;
@@ -466,27 +508,37 @@ footer {
 
 .brand-word {
   font-weight: 600;
-  font-size: 3.5vmin;
+  font-size: max(15px, calc(var(--s) * 3.5));
   letter-spacing: 0.01em;
   line-height: 1;
 }
 
 @media (max-width: 840px) {
   .brand-word {
-    font-size: max(12px, 2.8vmin);
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  #brand .combo-kicker,
+  #exerciseFace .combo-kicker,
+  #bpmStepper .step-label {
+    display: none;
   }
 
-  #brand .combo-kicker {
-    font-size: max(3.4vmin, 13px);
-    letter-spacing: 0.04em;
-    opacity: 0.95;
+  #brand {
+    width: var(--chrome);
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
   }
 }
 
 #counter {
   margin: 0;
   padding-right: 0.2vmin;
-  font-size: max(4vmin, 14px);
+  font-size: clamp(14px, calc(var(--s) * 3.4), 26px);
   line-height: 1;
   color: #ffffff;
   opacity: 0.9;
@@ -501,7 +553,7 @@ footer {
   top: 8px;
   z-index: 12;
   margin: 0;
-  font-size: 11vmin;
+  font-size: clamp(48px, 11vmin, 160px);
   font-weight: 600;
   line-height: 1;
   color: #ffffff;
@@ -548,7 +600,7 @@ footer {
   background: rgba(0, 0, 0, 0.55);
   border: 2px solid rgba(255, 255, 255, 0.85);
   color: #ffffff;
-  font-size: max(15px, 2.8vmin);
+  font-size: clamp(15px, 2.8vmin, 22px);
   line-height: 1.3;
   text-align: center;
   pointer-events: none;
@@ -661,14 +713,14 @@ body.is-hello[data-hello="edit"] #edit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 11vmin;
-  height: 11vmin;
+  width: var(--chrome);
+  height: var(--chrome);
   min-width: 44px;
   min-height: 44px;
   padding: 0;
   box-sizing: border-box;
   flex: 0 0 auto;
-  font-size: 5.2vmin;
+  font-size: calc(var(--s) * 5.2);
   line-height: 1;
   color: #ffffff;
   background: transparent;
@@ -683,7 +735,7 @@ body.is-hello[data-hello="edit"] #edit {
 #divfooter .stepper,
 #divfooter .checkbox-label,
 #grooveButton {
-  height: 11vmin;
+  height: var(--chrome);
   min-height: 44px;
   box-sizing: border-box;
 }
@@ -708,14 +760,14 @@ body.is-hello[data-hello="edit"] #edit {
 }
 
 #exerciseFace {
-  gap: 1.1vmin;
-  font-size: 4.2vmin;
+  gap: calc(var(--s) * 1.1);
+  font-size: max(15px, calc(var(--s) * 4.2));
   white-space: nowrap;
-  padding: 0 1.6vmin;
+  padding: 0 calc(var(--s) * 1.6);
 }
 
 .combo-kicker {
-  font-size: 2.7vmin;
+  font-size: max(11px, calc(var(--s) * 2.4));
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -742,7 +794,7 @@ body.is-hello[data-hello="edit"] #edit {
 
 .groove-label {
     margin: 1vmin 0 0.6vmin;
-    font-size: 3vmin;
+    font-size: clamp(12px, 3vmin, 16px);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     opacity: 0.88;
@@ -750,7 +802,7 @@ body.is-hello[data-hello="edit"] #edit {
 
 .click-kind {
     margin: 0.4vmin 0 0.5vmin;
-    font-size: 2.6vmin;
+    font-size: clamp(12px, 2.6vmin, 15px);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     opacity: 0.9;
@@ -798,7 +850,7 @@ body.is-hello[data-hello="edit"] #edit {
     display: flex;
     flex-wrap: wrap;
     gap: 1vmin;
-    max-width: 46vmin;
+    max-width: min(46vmin, 28rem);
 }
 
 #meterPresets button {
@@ -806,8 +858,8 @@ body.is-hello[data-hello="edit"] #edit {
     background: transparent;
     color: #ffffff;
     font: inherit;
-    font-size: 3.4vmin;
-    min-width: 12vmin;
+    font-size: clamp(14px, 3.4vmin, 20px);
+    min-width: max(72px, calc(var(--s) * 12));
     min-height: 40px;
     padding: 0 1.2vmin;
     cursor: pointer;
@@ -853,7 +905,7 @@ body.is-hello[data-hello="edit"] #edit {
     background: transparent;
     color: inherit;
     font: inherit;
-    font-size: 5.4vmin;
+    font-size: clamp(20px, 5.4vmin, 40px);
     line-height: 1;
     font-variant-numeric: tabular-nums;
     text-align: center;
@@ -875,7 +927,7 @@ body.is-hello[data-hello="edit"] #edit {
 
 .meter-hint {
     margin: 0.2vmin 0 0;
-    font-size: 2.6vmin;
+    font-size: clamp(12px, 2.6vmin, 16px);
     letter-spacing: 0.04em;
     text-transform: lowercase;
     opacity: 0.7;
@@ -890,7 +942,7 @@ body.is-hello[data-hello="edit"] #edit {
     background: transparent;
     color: #ffffff;
     font: inherit;
-    font-size: 3.6vmin;
+    font-size: clamp(15px, 3.6vmin, 20px);
     cursor: pointer;
     opacity: 0.85;
 }
@@ -976,7 +1028,7 @@ body.is-hello[data-hello="edit"] #edit {
 .swing-modes {
     display: flex;
     width: 100%;
-    max-width: 420px;
+    max-width: min(420px, 100%);
     border: 3px solid rgba(255, 255, 255, 0.85);
 }
 
@@ -988,7 +1040,7 @@ body.is-hello[data-hello="edit"] #edit {
     background: transparent;
     color: #ffffff;
     font: inherit;
-    font-size: 3.2vmin;
+    font-size: clamp(13px, 3.2vmin, 16px);
     white-space: nowrap;
     cursor: pointer;
     opacity: 0.85;
@@ -1006,7 +1058,7 @@ body.is-hello[data-hello="edit"] #edit {
 
 #swingAmount {
     width: 100%;
-    max-width: 420px;
+    max-width: min(420px, 100%);
     margin-top: 8px;
 }
 
@@ -1066,7 +1118,7 @@ body.is-hello[data-hello="edit"] #edit {
 
 #swingReadout {
     margin: 0;
-    font-size: 14px;
+    font-size: clamp(14px, 2.6vmin, 16px);
     text-align: center;
     opacity: 0.75;
 }
@@ -1097,8 +1149,8 @@ body.is-hello[data-hello="edit"] #edit {
     color: inherit;
     font: inherit;
     margin: 0;
-    padding: 0 1.2vmin;
-    min-width: 8vmin;
+    padding: 0 calc(var(--s) * 1);
+    min-width: max(32px, calc(var(--s) * 7));
     min-height: 40px;
     touch-action: manipulation;
 }
@@ -1111,10 +1163,10 @@ body.is-hello[data-hello="edit"] #edit {
 }
 
 .stepper input {
-    width: 16vmin;
+    width: calc(var(--s) * 14);
     min-width: 52px;
     text-align: center;
-    font-size: 6vmin;
+    font-size: calc(var(--s) * 6);
     -moz-appearance: textfield;
     appearance: textfield;
 }
@@ -1128,7 +1180,7 @@ body.is-hello[data-hello="edit"] #edit {
 .stepper .step-down,
 .stepper .step-up,
 #tempoToggle {
-    font-size: 6vmin;
+    font-size: calc(var(--s) * 6);
     line-height: 1;
     cursor: pointer;
 }
@@ -1136,33 +1188,33 @@ body.is-hello[data-hello="edit"] #edit {
 .step-label {
     display: flex;
     align-items: center;
-    padding: 0 1.4vmin;
-    font-size: 3.2vmin;
+    padding: 0 calc(var(--s) * 1.2);
+    font-size: max(12px, calc(var(--s) * 3));
     letter-spacing: 0.04em;
     text-transform: uppercase;
     opacity: 0.8;
 }
 
 #bpmStepper .step-label {
-    font-size: 3.8vmin;
+    font-size: max(13px, calc(var(--s) * 3.4));
     font-weight: 600;
     opacity: 1;
 }
 
 #bpmStepper input {
-    width: 12vmin;
+    width: calc(var(--s) * 11);
 }
 
 .stepper-sm input {
-    width: 12vmin;
+    width: calc(var(--s) * 11);
     min-width: 40px;
-    font-size: 5vmin;
+    font-size: calc(var(--s) * 5);
 }
 
 .stepper-sm .step-down,
 .stepper-sm .step-up {
-    font-size: 5vmin;
-    min-width: 7vmin;
+    font-size: calc(var(--s) * 5);
+    min-width: max(28px, calc(var(--s) * 6));
 }
 
 #bpmStepper.is-paused .step-down,
@@ -1173,7 +1225,7 @@ body.is-hello[data-hello="edit"] #edit {
 
 #tempoToggle {
     border-left: 2px solid rgba(255, 255, 255, 0.45);
-    min-width: 10vmin;
+    min-width: max(40px, calc(var(--s) * 9));
 }
 
 #bpmStepper.is-paused #tempoToggle {
@@ -1182,11 +1234,11 @@ body.is-hello[data-hello="edit"] #edit {
 
 .click-pad {
     position: relative;
-    width: 9vmin;
-    height: 9vmin;
+    width: clamp(40px, 9vmin, 64px);
+    height: clamp(40px, 9vmin, 64px);
     min-width: 40px;
     min-height: 40px;
-    font-size: 3.4vmin;
+    font-size: clamp(14px, 3.4vmin, 18px);
     color: #ffffff;
     background: transparent;
     border: 2px solid rgba(255, 255, 255, 0.85);
@@ -1321,13 +1373,13 @@ body.bar-rest .click-pad.accent.beat {
     flex: 1;
     gap: 1.2vmin;
     min-width: 0;
-    height: 1.4vmin;
+    height: clamp(8px, 1.4vmin, 12px);
     min-height: 8px;
 }
 
 #repeatMark {
     margin: 0;
-    font-size: 2.8vmin;
+    font-size: clamp(12px, 2.8vmin, 16px);
     letter-spacing: 0.04em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -1357,14 +1409,14 @@ body.bar-rest .click-pad.accent.beat {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 11vmin;
+    width: var(--chrome);
     min-width: 44px;
     padding: 0;
 }
 
 .metro-icon {
-    width: 6.4vmin;
-    height: 6.4vmin;
+    width: clamp(28px, 6.4vmin, 46px);
+    height: clamp(28px, 6.4vmin, 46px);
     display: block;
 }
 
@@ -1624,7 +1676,7 @@ body.is-editing #counter {
 }
 .checkbox-label .fa,
 .checkbox-label .chrome-icon {
-  font-size: 5.4vmin;
+  font-size: calc(var(--s) * 5.2);
   color: #ffffff;
   opacity: 0.75;
   width: 1.4em;

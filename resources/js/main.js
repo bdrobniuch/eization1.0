@@ -7,6 +7,7 @@ function setComboLabel(face, text) {
   if (value) {
     value.textContent = text;
     face.setAttribute("aria-label", "Exercise: " + text);
+    face.setAttribute("title", text);
   } else if (face.firstChild) {
     face.firstChild.nodeValue = text;
   }
@@ -249,6 +250,52 @@ function renderGroove() {
   renderGrooveLabel();
 }
 
+function fitTopBar() {
+  var line = document.getElementById("linediv");
+  var combo = document.getElementById("exerciseCombo");
+  var face = document.getElementById("exerciseFace");
+  var tools = document.getElementById("editTools");
+  var status = document.getElementById("status");
+  if (!line || !combo || !face || !tools || !status) {
+    return;
+  }
+  line.style.zoom = "";
+  line.style.transform = "none";
+  line.style.width = "100%";
+  line.style.marginLeft = "0";
+  line.style.justifyContent = "space-between";
+  combo.style.maxWidth = "";
+  face.style.maxWidth = "";
+  var cs = window.getComputedStyle(line);
+  var pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  var lineGap = parseFloat(cs.columnGap);
+  if (isNaN(lineGap)) {
+    lineGap = parseFloat(cs.gap) || 0;
+  }
+  var toolCs = window.getComputedStyle(tools);
+  var toolGap = parseFloat(toolCs.columnGap);
+  if (isNaN(toolGap)) {
+    toolGap = parseFloat(toolCs.gap) || 0;
+  }
+  var fixed = status.offsetWidth;
+  var others = 0;
+  var i;
+  for (i = 0; i < tools.children.length; i++) {
+    if (tools.children[i] === combo) {
+      continue;
+    }
+    fixed += tools.children[i].offsetWidth;
+    others++;
+  }
+  var room = line.clientWidth - pad - lineGap - toolGap * others - fixed;
+  if (room < 64) {
+    room = 64;
+  }
+  var cap = Math.floor(room);
+  combo.style.maxWidth = cap + "px";
+  face.style.maxWidth = cap + "px";
+}
+
 function fitToolbar(inner, align) {
   if (!inner) {
     return;
@@ -321,7 +368,7 @@ function syncFaceCover() {
 
 function layoutFrame() {
   syncFaceCover();
-  fitToolbar(document.getElementById("linediv"), "left");
+  fitTopBar();
   fitToolbar(document.getElementById("divfooter"), "right");
   placeFooter();
   placeExercisePanel();
