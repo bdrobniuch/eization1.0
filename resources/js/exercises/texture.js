@@ -4,15 +4,10 @@ function textureItem(mark, name) {
 
 registerExercise({
   id: "texture",
-  label: "Texture",
+  label: "Rhythmic Devices",
   bars: 8,
   inMenu: true,
   items: [
-    textureItem("Laid back", "behind the beat"),
-    textureItem("Center", "with the click"),
-    textureItem("On top", "ahead of the beat"),
-    textureItem("Build", "spare, then fuller"),
-    textureItem("Recede", "full, then spare"),
     textureItem("Short", "about one bar"),
     textureItem("Medium", "two to four bars"),
     textureItem("Long", "more than four bars"),

@@ -5,7 +5,7 @@ function sonicItem(mark, name, italic) {
 
 registerExercise({
   id: "sonicDevices",
-  label: "Sonic Devices",
+  label: "Sonic Nuances",
   bars: 2,
   inMenu: true,
   items: [
@@ -15,12 +15,14 @@ registerExercise({
     sonicItem("Accent 1", "some notes, on the beat"),
     sonicItem("Accent &", "some notes, on the and"),
     sonicItem("Accent peaks", "the high and the low notes"),
-    sonicItem("Every note", "articulate each one"),
-    sonicItem("Even", "no extra accents"),
     sonicItem("Staccato", "short"),
     sonicItem("Legato", "connected"),
     sonicItem("Ghost", "soft, pitch still there"),
     sonicItem("Trill", "two adjacent notes"),
-    sonicItem("Tremolo", "a note or an octave")
+    sonicItem("Tremolo", "a note or an octave"),
+    sonicItem("Laid back", "behind the beat"),
+    sonicItem("On top", "ahead of the beat"),
+    sonicItem("Roll", "arpeggiated chord"),
+    sonicItem("Finger Pedal", "sustain top note")
   ]
 });
