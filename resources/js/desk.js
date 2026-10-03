@@ -1,4 +1,5 @@
 var DESK_KEY = "eization-desk";
+var DESK_EXERCISE_CAP = 40;
 var deskReady = false;
 var deskTimer = null;
 var deskNoteTimer = null;
@@ -67,42 +68,236 @@ function cleanClickList(list) {
   return out;
 }
 
-function firstBuiltInId() {
-  if (typeof menuOrder === "undefined" || typeof exercises === "undefined") {
-    return "";
+function cleanDeskLines(lines) {
+  var clean = [];
+  if (!lines || !lines.length) {
+    return clean;
   }
-  for (var i = 0; i < menuOrder.length; i++) {
-    var ex = exercises[menuOrder[i]];
-    if (ex && ex.inMenu) {
-      return ex.id;
+  for (var i = 0; i < lines.length && clean.length < 500; i++) {
+    var line = typeof itemToLine === "function" ? itemToLine(lines[i]) : String(lines[i] || "");
+    if (!line) {
+      continue;
     }
+    clean.push(line.length > 240 ? line.slice(0, 240) : line);
   }
-  return "";
+  return clean;
 }
 
-function customRecord() {
-  var data = readDesk();
-  var custom = data && data.custom;
-  if (!custom || !custom.lines || !custom.lines.length) {
-    return null;
+function cleanDeskName(name, fallback) {
+  var text = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  if (!text) {
+    text = fallback || "New Custom Exercise";
   }
+  if (text.length > 60) {
+    text = text.slice(0, 60);
+  }
+  return text;
+}
+
+function deskIdForSeed(seedId) {
+  return "ex:" + seedId;
+}
+
+function catalogLines(ex) {
   var lines = [];
-  var limit = custom.lines.length > 500 ? 500 : custom.lines.length;
-  for (var i = 0; i < limit; i++) {
-    var line = typeof itemToLine === "function" ? itemToLine(custom.lines[i]) : String(custom.lines[i] || "");
+  if (!ex || !ex.items) {
+    return lines;
+  }
+  for (var i = 0; i < ex.items.length; i++) {
+    var line = typeof itemToLine === "function" ? itemToLine(ex.items[i]) : String(ex.items[i] || "");
     if (line) {
       lines.push(line.length > 240 ? line.slice(0, 240) : line);
     }
   }
+  return lines;
+}
+
+function normalizeDeskExercise(raw) {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  var lines = cleanDeskLines(raw.lines);
   if (!lines.length) {
     return null;
   }
-  var bars = clampDeskInt(custom.bars, 1, 16, 1);
-  return { lines: lines, bars: bars };
+  var id = typeof raw.id === "string" && raw.id ? raw.id : "";
+  if (!id) {
+    return null;
+  }
+  var record = {
+    id: id,
+    name: cleanDeskName(raw.name, "Exercise"),
+    bars: clampDeskInt(raw.bars, 1, 16, 1),
+    lines: lines
+  };
+  if (typeof raw.seedId === "string" && raw.seedId) {
+    record.seedId = raw.seedId;
+  }
+  return record;
 }
 
-function customItems() {
-  var record = customRecord();
+function seedFromCatalog(seedId) {
+  if (typeof exercises === "undefined") {
+    return null;
+  }
+  var ex = exercises[seedId];
+  if (!ex || !ex.inMenu) {
+    return null;
+  }
+  var lines = catalogLines(ex);
+  if (!lines.length) {
+    return null;
+  }
+  return {
+    id: deskIdForSeed(seedId),
+    seedId: seedId,
+    name: cleanDeskName(ex.label, seedId),
+    bars: clampDeskInt(ex.bars, 1, 16, 1),
+    lines: lines
+  };
+}
+
+function listDeletedSeeds(data) {
+  var out = [];
+  var raw = data && data.deletedSeeds;
+  if (!raw || !raw.length) {
+    return out;
+  }
+  for (var i = 0; i < raw.length; i++) {
+    if (typeof raw[i] === "string" && raw[i] && out.indexOf(raw[i]) < 0) {
+      out.push(raw[i]);
+    }
+  }
+  return out;
+}
+
+function legacyCustomRecord(data) {
+  var custom = data && data.custom;
+  if (!custom || !custom.lines || !custom.lines.length) {
+    return null;
+  }
+  var lines = cleanDeskLines(custom.lines);
+  if (!lines.length) {
+    return null;
+  }
+  return {
+    id: "ex:legacy-custom",
+    name: "Custom",
+    bars: clampDeskInt(custom.bars, 1, 16, 1),
+    lines: lines
+  };
+}
+
+function buildSeededList(deleted) {
+  var list = [];
+  if (typeof menuOrder === "undefined" || typeof exercises === "undefined") {
+    return list;
+  }
+  for (var i = 0; i < menuOrder.length; i++) {
+    var seedId = menuOrder[i];
+    if (deleted.indexOf(seedId) >= 0) {
+      continue;
+    }
+    var row = seedFromCatalog(seedId);
+    if (row) {
+      list.push(row);
+    }
+  }
+  return list;
+}
+
+function mergeMissingSeeds(list, deleted) {
+  var have = {};
+  var i;
+  for (i = 0; i < list.length; i++) {
+    if (list[i].seedId) {
+      have[list[i].seedId] = true;
+    }
+  }
+  if (typeof menuOrder === "undefined") {
+    return list;
+  }
+  for (i = 0; i < menuOrder.length; i++) {
+    var seedId = menuOrder[i];
+    if (have[seedId] || deleted.indexOf(seedId) >= 0) {
+      continue;
+    }
+    var row = seedFromCatalog(seedId);
+    if (row) {
+      list.push(row);
+    }
+  }
+  return list;
+}
+
+function ensureDeskExercises() {
+  var data = deskState();
+  var deleted = listDeletedSeeds(data);
+  var list = [];
+  var i;
+  if (data.exercises && data.exercises.length) {
+    for (i = 0; i < data.exercises.length; i++) {
+      var row = normalizeDeskExercise(data.exercises[i]);
+      if (row) {
+        list.push(row);
+      }
+    }
+  }
+  var legacy = legacyCustomRecord(data);
+  if (legacy) {
+    var hasLegacy = false;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].id === legacy.id) {
+        hasLegacy = true;
+        break;
+      }
+    }
+    if (!hasLegacy) {
+      list.unshift(legacy);
+    }
+  }
+  if (!list.length) {
+    list = buildSeededList(deleted);
+  } else {
+    list = mergeMissingSeeds(list, deleted);
+  }
+  if (!list.length) {
+    list = buildSeededList([]);
+    deleted = [];
+  }
+  data.exercises = list;
+  data.deletedSeeds = deleted;
+  delete data.custom;
+  if (data.exercise === "custom") {
+    data.exercise = legacy ? legacy.id : (list[0] && list[0].id) || "";
+  } else if (data.exercise && typeof exercises !== "undefined" && exercises[data.exercise]) {
+    data.exercise = deskIdForSeed(data.exercise);
+  }
+  writeDesk(data);
+  return list;
+}
+
+function listDeskExercises() {
+  return ensureDeskExercises().slice();
+}
+
+function getDeskExercise(id) {
+  var list = ensureDeskExercises();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id) {
+      return list[i];
+    }
+  }
+  return null;
+}
+
+function firstDeskExerciseId() {
+  var list = ensureDeskExercises();
+  return list.length ? list[0].id : "";
+}
+
+function deskExerciseItems(id) {
+  var record = getDeskExercise(id);
   if (!record || typeof lineToItem !== "function") {
     return null;
   }
@@ -116,41 +311,229 @@ function customItems() {
   if (!items.length) {
     return null;
   }
-  return { items: items, bars: record.bars };
+  return { items: items, bars: record.bars, name: record.name };
 }
 
-function saveCustomExercise(lines, bars) {
-  var clean = [];
-  for (var i = 0; i < lines.length && clean.length < 500; i++) {
-    var line = typeof itemToLine === "function" ? itemToLine(lines[i]) : String(lines[i] || "");
-    if (!line) {
+function newDeskExerciseId() {
+  return "ex:" + Date.now().toString(36) + Math.floor(Math.random() * 36).toString(36);
+}
+
+function updateDeskExercise(id, part) {
+  var data = deskState();
+  ensureDeskExercises();
+  data = deskState();
+  var list = data.exercises || [];
+  var found = null;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id !== id) {
       continue;
     }
-    clean.push(line.length > 240 ? line.slice(0, 240) : line);
+    var next = {
+      id: id,
+      name: cleanDeskName(part.name != null ? part.name : list[i].name, list[i].name),
+      bars: clampDeskInt(part.bars != null ? part.bars : list[i].bars, 1, 16, 1),
+      lines: part.lines != null ? cleanDeskLines(part.lines) : list[i].lines.slice()
+    };
+    if (!next.lines.length) {
+      return null;
+    }
+    if (list[i].seedId) {
+      next.seedId = list[i].seedId;
+    }
+    list[i] = next;
+    found = next;
+    break;
   }
-  if (!clean.length) {
+  if (!found) {
+    return null;
+  }
+  data.exercises = list;
+  data.exercise = id;
+  writeDesk(data);
+  return found;
+}
+
+function createDeskExercise(part) {
+  ensureDeskExercises();
+  var data = deskState();
+  var list = data.exercises || [];
+  if (list.length >= DESK_EXERCISE_CAP) {
+    return null;
+  }
+  var lines = cleanDeskLines(part.lines);
+  if (!lines.length) {
+    return null;
+  }
+  var row = {
+    id: newDeskExerciseId(),
+    name: cleanDeskName(part.name, "New Custom Exercise"),
+    bars: clampDeskInt(part.bars, 1, 16, 1),
+    lines: lines
+  };
+  list.push(row);
+  data.exercises = list;
+  data.exercise = row.id;
+  writeDesk(data);
+  return row;
+}
+
+var DESK_BACKUP_VERSION = 1;
+
+function packDeskExercises() {
+  var list = ensureDeskExercises();
+  var exercises = [];
+  for (var i = 0; i < list.length; i++) {
+    var row = {
+      name: list[i].name,
+      bars: list[i].bars,
+      lines: list[i].lines.slice()
+    };
+    if (list[i].seedId) {
+      row.seedId = list[i].seedId;
+    }
+    exercises.push(row);
+  }
+  return {
+    eization: DESK_BACKUP_VERSION,
+    kind: "exercises",
+    exercises: exercises
+  };
+}
+
+function downloadAllDeskExercises() {
+  var payload = packDeskExercises();
+  if (!payload.exercises.length) {
     return false;
   }
-  patchDesk({
-    custom: {
-      bars: clampDeskInt(bars, 1, 16, 1),
-      lines: clean
-    },
-    exercise: "custom"
-  });
+  var blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], { type: "application/json;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement("a");
+  link.href = url;
+  link.download = "eization-exercises.json";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+  }, 1500);
   return true;
 }
 
-function noteCustomKept() {
-  var data = deskState();
-  if (data.customNoted) {
-    return;
+function parseDeskExercisesBackup(text) {
+  var data;
+  try {
+    data = JSON.parse(String(text || ""));
+  } catch (err) {
+    return { error: "That file is not valid JSON." };
   }
-  patchDesk({ customNoted: true });
+  if (!data || typeof data !== "object" || !data.exercises || !data.exercises.length) {
+    return { error: "That file has no exercises." };
+  }
+  if (data.eization && data.eization > DESK_BACKUP_VERSION) {
+    return { error: "This file needs a newer eization." };
+  }
+  var list = [];
+  var seenSeed = {};
+  for (var i = 0; i < data.exercises.length && list.length < DESK_EXERCISE_CAP; i++) {
+    var raw = data.exercises[i];
+    if (!raw || typeof raw !== "object") {
+      continue;
+    }
+    var lines = cleanDeskLines(raw.lines);
+    if (!lines.length) {
+      continue;
+    }
+    var row = {
+      id: newDeskExerciseId() + String(i),
+      name: cleanDeskName(raw.name, "Exercise"),
+      bars: clampDeskInt(raw.bars, 1, 16, 1),
+      lines: lines
+    };
+    if (typeof raw.seedId === "string" && raw.seedId && !seenSeed[raw.seedId]) {
+      row.seedId = raw.seedId;
+      row.id = deskIdForSeed(raw.seedId);
+      seenSeed[raw.seedId] = true;
+    }
+    list.push(row);
+  }
+  if (!list.length) {
+    return { error: "That file has no exercises." };
+  }
+  return { exercises: list };
+}
+
+function replaceDeskExercises(list) {
+  if (!list || !list.length) {
+    return false;
+  }
+  var haveSeed = {};
+  var i;
+  for (i = 0; i < list.length; i++) {
+    if (list[i].seedId) {
+      haveSeed[list[i].seedId] = true;
+    }
+  }
+  var deleted = [];
+  if (typeof menuOrder !== "undefined") {
+    for (i = 0; i < menuOrder.length; i++) {
+      if (!haveSeed[menuOrder[i]]) {
+        deleted.push(menuOrder[i]);
+      }
+    }
+  }
+  var data = deskState();
+  data.exercises = list;
+  data.deletedSeeds = deleted;
+  data.exercise = list[0].id;
+  writeDesk(data);
+  currentExerciseId = list[0].id;
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  if (typeof SelectExercise === "function") {
+    SelectExercise();
+  }
+  return true;
+}
+
+function deleteDeskExercise(id) {
+  ensureDeskExercises();
+  var data = deskState();
+  var list = data.exercises || [];
+  if (list.length <= 1) {
+    return false;
+  }
+  var next = [];
+  var removed = null;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id) {
+      removed = list[i];
+      continue;
+    }
+    next.push(list[i]);
+  }
+  if (!removed) {
+    return false;
+  }
+  data.exercises = next;
+  var deleted = listDeletedSeeds(data);
+  if (removed.seedId && deleted.indexOf(removed.seedId) < 0) {
+    deleted.push(removed.seedId);
+  }
+  data.deletedSeeds = deleted;
+  if (data.exercise === id) {
+    data.exercise = next[0].id;
+  }
+  writeDesk(data);
+  return true;
+}
+
+function showDeskNote(message) {
   var note = document.getElementById("deskNote");
   if (!note) {
     return;
   }
+  note.textContent = message;
   note.hidden = false;
   if (deskNoteTimer) {
     clearTimeout(deskNoteTimer);
@@ -158,33 +541,6 @@ function noteCustomKept() {
   deskNoteTimer = setTimeout(function () {
     note.hidden = true;
   }, 3200);
-}
-
-function clearCustomExercise() {
-  if (typeof editorIsOpen === "function" && editorIsOpen()) {
-    if (typeof editorIsDirty === "function" && editorIsDirty()) {
-      if (typeof editorNotice === "function") {
-        editorNotice("Finish or cancel editing first.");
-      }
-      return;
-    }
-    if (typeof editorCloseQuiet === "function") {
-      editorCloseQuiet();
-    }
-  }
-  var data = deskState();
-  delete data.custom;
-  writeDesk(data);
-  var wasCustom = currentExerciseId === "custom";
-  if (wasCustom) {
-    currentExerciseId = firstBuiltInId();
-  }
-  if (typeof buildExerciseMenu === "function") {
-    buildExerciseMenu();
-  }
-  if (wasCustom && typeof SelectExercise === "function") {
-    SelectExercise();
-  }
 }
 
 function writeSetupNow() {
@@ -212,6 +568,14 @@ function writeSetupNow() {
     data.restClicks = activeRestPattern().slice();
   }
   data.exercise = currentExerciseId || "";
+  data.sound = typeof soundOn === "boolean" ? !!soundOn : true;
+  if (!data.exercises || !data.exercises.length) {
+    ensureDeskExercises();
+    data = deskState();
+    data.bpm = clampDeskInt(bpm, 1, 500, 100);
+    data.exercise = currentExerciseId || "";
+    data.sound = typeof soundOn === "boolean" ? !!soundOn : true;
+  }
   writeDesk(data);
 }
 
@@ -319,7 +683,8 @@ function restoreDefaults() {
   } else if (typeof setSoundOn === "function") {
     setSoundOn(true);
   }
-  currentExerciseId = firstBuiltInId();
+  ensureDeskExercises();
+  currentExerciseId = firstDeskExerciseId();
   if (typeof buildExerciseMenu === "function") {
     buildExerciseMenu();
   }
@@ -333,6 +698,7 @@ function restoreDefaults() {
     renderGroove();
   }
   deskReady = keepReady;
+  showDeskNote("Defaults restored. Intro will play next time you open eization.");
 }
 
 function rememberSetup() {
@@ -349,6 +715,7 @@ function rememberSetup() {
 }
 
 function applyDesk() {
+  ensureDeskExercises();
   var data = readDesk();
   if (!data) {
     return;
@@ -431,9 +798,26 @@ function applyDesk() {
     activeRestPattern();
   }
   swingLitOffbeats = data.swingLit === true;
-  if (data.exercise === "custom" && customItems()) {
-    currentExerciseId = "custom";
-  } else if (data.exercise && typeof exercises !== "undefined" && exercises[data.exercise] && exercises[data.exercise].inMenu) {
+  if (typeof data.sound === "boolean") {
+    var volume = document.getElementById("volumeCheckbox");
+    if (volume) {
+      volume.checked = data.sound;
+      var volOn = volume.parentNode.querySelector(".volume-on");
+      var volOff = volume.parentNode.querySelector(".volume-off");
+      if (volOn) {
+        volOn.classList.toggle("is-hidden", !data.sound);
+      }
+      if (volOff) {
+        volOff.classList.toggle("is-hidden", data.sound);
+      }
+    }
+    if (typeof setSoundOn === "function") {
+      setSoundOn(data.sound);
+    }
+  }
+  if (data.exercise && getDeskExercise(data.exercise)) {
     currentExerciseId = data.exercise;
+  } else {
+    currentExerciseId = firstDeskExerciseId();
   }
 }

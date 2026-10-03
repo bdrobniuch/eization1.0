@@ -917,12 +917,16 @@ function renderTempoToggle() {
     return;
   }
   var off = paused || currentBpm === 0;
-  btn.setAttribute("aria-pressed", off ? "true" : "false");
+  btn.setAttribute("aria-pressed", off ? "false" : "true");
   btn.setAttribute("aria-label", off ? "Start tempo" : "Pause tempo");
   btn.title = off ? "Start tempo" : "Pause tempo";
-  var icon = btn.querySelector("i");
-  if (icon) {
-    icon.className = off ? "fa-solid fa-play" : "fa-solid fa-pause";
+  var play = btn.querySelector(".icon-play");
+  var pause = btn.querySelector(".icon-pause");
+  if (play) {
+    play.classList.toggle("is-hidden", !off);
+  }
+  if (pause) {
+    pause.classList.toggle("is-hidden", off);
   }
   if (box) {
     box.classList.toggle("is-paused", off);

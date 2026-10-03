@@ -1,4 +1,6 @@
 var currentExerciseId = "";
+var exerciseFaceFocus = null;
+var grooveFocus = null;
 
 function setComboLabel(face, text) {
   var value = face.querySelector(".combo-value");
@@ -20,6 +22,10 @@ function closeExercisePanel() {
   if (face) {
     face.setAttribute("aria-expanded", "false");
   }
+  if (exerciseFaceFocus && typeof exerciseFaceFocus.focus === "function") {
+    exerciseFaceFocus.focus();
+  }
+  exerciseFaceFocus = null;
   layoutFrame();
 }
 
@@ -43,16 +49,27 @@ function bindExercisePanel() {
       if (typeof closeAbout === "function") {
         closeAbout();
       }
+      exerciseFaceFocus = face;
     }
     panel.hidden = !willOpen;
     face.setAttribute("aria-expanded", willOpen ? "true" : "false");
     layoutFrame();
+    if (willOpen) {
+      var first = menu.querySelector("button.menu-new, button[data-value]");
+      if (first) {
+        first.focus();
+      }
+    }
   });
   menu.addEventListener("click", function (event) {
-    if (event.target.closest("[data-clear-custom]")) {
-      if (typeof clearCustomExercise === "function") {
-        clearCustomExercise();
+    if (event.target.closest("[data-new-exercise]")) {
+      panel.hidden = true;
+      face.setAttribute("aria-expanded", "false");
+      exerciseFaceFocus = null;
+      if (typeof editorOpenNew === "function") {
+        editorOpenNew();
       }
+      layoutFrame();
       return;
     }
     var item = event.target.closest("[data-value]");
@@ -67,18 +84,24 @@ function bindExercisePanel() {
     currentExerciseId = item.getAttribute("data-value");
     panel.hidden = true;
     face.setAttribute("aria-expanded", "false");
+    exerciseFaceFocus = null;
     SelectExercise();
+    face.focus();
     layoutFrame();
   });
 }
 
-function addComboItem(menu, value, label, selected) {
+function addComboItem(menu, value, label, selected, userMade) {
   var button = document.createElement("button");
   button.type = "button";
-  button.setAttribute("role", "option");
   button.setAttribute("data-value", value);
   button.setAttribute("aria-selected", selected ? "true" : "false");
   button.textContent = label;
+  button.title = label;
+  if (userMade) {
+    button.className = "menu-user";
+    button.title = label + " — On this device";
+  }
   menu.appendChild(button);
 }
 
@@ -86,51 +109,30 @@ function buildExerciseMenu() {
   var menu = document.getElementById("exerciseMenu");
   var face = document.getElementById("exerciseFace");
   menu.innerHTML = "";
-  var saved = typeof customItems === "function" ? customItems() : null;
-  if (currentExerciseId === "custom" && !saved) {
+  var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  if (!list.length && typeof ensureDeskExercises === "function") {
+    list = ensureDeskExercises();
+  }
+  if (currentExerciseId && !getDeskExercise(currentExerciseId)) {
     currentExerciseId = "";
   }
-  var first = null;
-  for (var i = 0; i < menuOrder.length; i++) {
-    var ex = exercises[menuOrder[i]];
-    if (!ex || !ex.inMenu) {
-      continue;
-    }
-    if (!first) {
-      first = ex;
-    }
-    addComboItem(menu, ex.id, ex.label, ex.id === (currentExerciseId || (first && first.id)));
+  if (!currentExerciseId && list.length) {
+    currentExerciseId = list[0].id;
   }
-  if (saved) {
-    var row = document.createElement("div");
-    row.className = "menu-custom";
-    var customSelected = currentExerciseId === "custom";
-    var customButton = document.createElement("button");
-    customButton.type = "button";
-    customButton.setAttribute("role", "option");
-    customButton.setAttribute("data-value", "custom");
-    customButton.setAttribute("aria-selected", customSelected ? "true" : "false");
-    customButton.title = "Kept on this device";
-    customButton.textContent = "Custom";
-    var clearButton = document.createElement("button");
-    clearButton.type = "button";
-    clearButton.setAttribute("data-clear-custom", "true");
-    clearButton.setAttribute("aria-label", "Remove custom exercise");
-    clearButton.title = "Remove custom exercise";
-    clearButton.textContent = "Clear";
-    row.appendChild(customButton);
-    row.appendChild(clearButton);
-    menu.insertBefore(row, menu.firstChild);
+  var fresh = document.createElement("button");
+  fresh.type = "button";
+  fresh.className = "menu-new";
+  fresh.setAttribute("data-new-exercise", "true");
+  fresh.textContent = "New exercise";
+  fresh.title = "Start a blank list on this device";
+  menu.appendChild(fresh);
+  var i;
+  for (i = 0; i < list.length; i++) {
+    var row = list[i];
+    addComboItem(menu, row.id, row.name, row.id === currentExerciseId, !row.seedId);
   }
-  if (!currentExerciseId && first) {
-    currentExerciseId = first.id;
-  }
-  if (currentExerciseId === "custom" && saved) {
-    setComboLabel(face, "Custom");
-    return;
-  }
-  var current = exercises[currentExerciseId];
-  setComboLabel(face, current ? current.label : "");
+  var current = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
+  setComboLabel(face, current ? current.name : "");
 }
 
 function SelectExercise() {
@@ -148,25 +150,18 @@ function SelectExercise() {
       editorCloseQuiet();
     }
   }
-  if (currentExerciseId === "custom" && typeof customItems === "function") {
-    var custom = customItems();
-    if (custom) {
-      newExercise(custom.items, custom.bars);
-      if (typeof rememberSetup === "function") {
-        rememberSetup();
-      }
-      return;
-    }
-    currentExerciseId = firstBuiltInId();
+  var loaded = typeof deskExerciseItems === "function" ? deskExerciseItems(currentExerciseId) : null;
+  if (!loaded) {
+    currentExerciseId = typeof firstDeskExerciseId === "function" ? firstDeskExerciseId() : "";
+    loaded = typeof deskExerciseItems === "function" ? deskExerciseItems(currentExerciseId) : null;
     if (typeof buildExerciseMenu === "function") {
       buildExerciseMenu();
     }
   }
-  var ex = exercises[currentExerciseId];
-  if (!ex) {
+  if (!loaded) {
     return;
   }
-  newExercise(ex.items, ex.bars || 1);
+  newExercise(loaded.items, loaded.bars);
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
@@ -266,6 +261,17 @@ function fitToolbar(inner, align) {
   var needed = inner.offsetWidth;
   if (needed > available - 4 && needed > 0) {
     var scale = (available - 8) / needed;
+    var minBtn = inner.querySelector(".icon-btn, #tempoToggle, #next, #grooveButton");
+    var natural = minBtn ? minBtn.offsetHeight : 44;
+    if (natural > 0) {
+      var floor = 44 / natural;
+      if (scale < floor) {
+        scale = floor;
+      }
+    }
+    if (scale > 1) {
+      scale = 1;
+    }
     inner.style.transform = "scale(" + scale + ")";
     inner.style.transformOrigin = align === "right" ? "right bottom" : "left top";
     inner.style.justifyContent = "flex-start";
@@ -284,6 +290,16 @@ function placeExercisePanel() {
   var top = bar.getBoundingClientRect().bottom;
   panel.style.top = top + "px";
   panel.style.maxHeight = Math.max(120, window.innerHeight - top - 8) + "px";
+}
+
+function placeCountIn() {
+  var el = document.getElementById("countIn");
+  var bar = document.getElementById("topBar");
+  if (!el || !bar) {
+    return;
+  }
+  var top = bar.getBoundingClientRect().bottom + 8;
+  el.style.top = Math.max(8, top) + "px";
 }
 
 function placeFooter() {
@@ -309,11 +325,15 @@ function layoutFrame() {
   fitToolbar(document.getElementById("divfooter"), "right");
   placeFooter();
   placeExercisePanel();
+  placeCountIn();
   if (typeof placeEditor === "function") {
     placeEditor();
   }
   if (typeof placeAbout === "function") {
     placeAbout();
+  }
+  if (typeof placeHelloCaption === "function") {
+    placeHelloCaption();
   }
   if (typeof chooseExerciseFont === "function" && chromaticScale.length) {
     chooseExerciseFont();
@@ -322,12 +342,16 @@ function layoutFrame() {
 
 function closeGroovePanel() {
   var panel = document.getElementById("groovePanel");
+  var button = document.getElementById("grooveButton");
   if (panel && !panel.hidden) {
     panel.hidden = true;
-    document.getElementById("grooveButton").setAttribute("aria-expanded", "false");
-    if (typeof disarmRestoreDefaults === "function") {
-      disarmRestoreDefaults();
+    if (button) {
+      button.setAttribute("aria-expanded", "false");
     }
+    if (grooveFocus && typeof grooveFocus.focus === "function") {
+      grooveFocus.focus();
+    }
+    grooveFocus = null;
     layoutFrame();
   }
 }
@@ -363,6 +387,9 @@ function init() {
   renderMeterSignature();
   document.getElementById("volumeCheckbox").addEventListener("change", function () {
     setSoundOn(this.checked);
+    if (typeof rememberSetup === "function") {
+      rememberSetup();
+    }
   });
   document.getElementById("bpm").addEventListener("input", updateInterval);
   document.getElementById("grooveButton").addEventListener("click", function () {
@@ -379,11 +406,18 @@ function init() {
         closeAbout();
       }
       closeExercisePanel();
+      grooveFocus = this;
     }
     panel.hidden = !willOpen;
     this.setAttribute("aria-expanded", panel.hidden ? "false" : "true");
     if (!panel.hidden) {
       renderGroove();
+      var first = panel.querySelector("button, input");
+      if (first) {
+        first.focus();
+      }
+    } else {
+      grooveFocus = null;
     }
     layoutFrame();
   });
@@ -481,6 +515,28 @@ function init() {
   document.getElementById("next").addEventListener("click", function () {
     closeGroovePanel();
     closeExercisePanel();
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") {
+      return;
+    }
+    if (typeof editorIsOpen === "function" && editorIsOpen()) {
+      return;
+    }
+    if (typeof aboutIsOpen === "function" && aboutIsOpen()) {
+      return;
+    }
+    var exercise = document.getElementById("exercisePanel");
+    if (exercise && !exercise.hidden) {
+      event.preventDefault();
+      closeExercisePanel();
+      return;
+    }
+    var groove = document.getElementById("groovePanel");
+    if (groove && !groove.hidden) {
+      event.preventDefault();
+      closeGroovePanel();
+    }
   });
   window.addEventListener("resize", layoutFrame);
   document.addEventListener("pointerdown", unlockAudio);

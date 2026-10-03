@@ -381,13 +381,16 @@ footer {
     color: #0C8A50;
 }
 
-#exerciseMenu .menu-custom {
-    display: flex;
-    gap: 1vmin;
+#exerciseMenu button.menu-user,
+#exerciseMenu button.menu-new {
+    border-style: dashed;
+    opacity: 0.95;
 }
 
-#exerciseMenu button[data-clear-custom] {
-    min-width: 0;
+#exerciseMenu button.menu-new {
+    width: 100%;
+    margin-bottom: 0.4vmin;
+    opacity: 0.9;
 }
 
 #deskNote {
@@ -470,7 +473,7 @@ footer {
 
 @media (max-width: 840px) {
   .brand-word {
-    display: none;
+    font-size: max(12px, 2.8vmin);
   }
 
   #brand .combo-kicker {
@@ -495,7 +498,7 @@ footer {
 #countIn {
   position: fixed;
   left: 2.4vmin;
-  top: 13vmin;
+  top: 8px;
   z-index: 12;
   margin: 0;
   font-size: 11vmin;
@@ -534,6 +537,42 @@ footer {
   height: 0;
   margin: 0;
   pointer-events: none;
+}
+
+#helloCaption {
+  position: fixed;
+  z-index: 36;
+  margin: 0;
+  padding: 0.5vmin 1.4vmin;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  color: #ffffff;
+  font-size: max(14px, 2.8vmin);
+  line-height: 1.25;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#helloCaption[hidden],
+#helloSkip[hidden] {
+  display: none !important;
+}
+
+#helloSkip {
+  position: fixed;
+  z-index: 37;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  min-height: 44px;
+  padding: 0 18px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 #helloArrow[hidden] {
@@ -860,14 +899,63 @@ body.is-hello #tempoToggle {
     align-items: flex-start;
 }
 
-#restoreDefaults {
-    margin-top: 2.8vmin;
+#aboutDeviceActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 1.2vmin 0 2vmin;
 }
 
-#restoreDefaults.is-armed {
+#aboutDeviceActions button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    cursor: pointer;
+}
+
+#uploadAllFile {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+#restoreDefaults.is-armed,
+#uploadAllExercises.is-armed {
     background: #ffffff;
     color: #0C8A50;
     opacity: 1;
+}
+
+.chrome-icon {
+  width: 1.15em;
+  height: 1.15em;
+  display: block;
+}
+
+.chrome-icon[hidden],
+.chrome-icon.is-hidden,
+.checkbox-label .chrome-icon[hidden],
+.checkbox-label .chrome-icon.is-hidden {
+  display: none !important;
+}
+
+.checkbox-label .chrome-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+#tempoToggle .chrome-icon {
+  width: 0.9em;
+  height: 0.9em;
 }
 
 .swing-modes {
@@ -1308,7 +1396,9 @@ body.is-editing #counter {
 }
 
 #editHead,
-#editMeta {
+#editMeta,
+#editNameRow,
+#editDanger {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1333,11 +1423,32 @@ body.is-editing #counter {
   opacity: 0.9;
 }
 
+#editNameRow label {
+  flex: 0 0 auto;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+#editName {
+  flex: 1 1 160px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.28);
+  color: #ffffff;
+  font: inherit;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
 #editCancel,
-#editDone,
+#editSaveAs,
+#editUpdate,
 #editDuplicate,
+#editClearList,
 #editSave,
-#editOpen {
+#editOpen,
+#editDelete {
   flex: 0 0 auto;
   min-height: 44px;
   padding: 0 14px;
@@ -1349,14 +1460,20 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
-#editSave,
-#editOpen {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  padding: 0;
-  font-size: 18px;
+#editCancel.edit-ghost {
+  border-color: rgba(255, 255, 255, 0.45);
+  opacity: 0.9;
+}
+
+#editUpdate {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
+#editUpdate:disabled,
+#editSaveAs:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 #editFile {
@@ -1371,19 +1488,24 @@ body.is-editing #counter {
   border: 0;
 }
 
-#editDone {
-  background: #ffffff;
-  color: #0C8A50;
+#editDanger {
+  justify-content: flex-start;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+#editDelete {
+  opacity: 0.85;
 }
 
 #editSymbols {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 #editSymbols button {
@@ -1403,7 +1525,7 @@ body.is-editing #counter {
 #allEdit {
   flex: 1 1 auto;
   width: 100%;
-  min-height: 120px;
+  min-height: 140px;
   margin: 0;
   padding: 10px 12px;
   border: 2px solid rgba(255, 255, 255, 0.85);
@@ -1452,15 +1574,10 @@ body.is-editing #counter {
   color: #ffffff;
 }
 
-#editDone.is-armed,
+#editDelete.is-armed,
 #editOpen.is-armed {
   background: #ffffff;
   color: #0C8A50;
-}
-
-#editSymbols.can-scroll {
-  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent);
-  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent);
 }
 
 #textdiv .stepper {
@@ -1490,15 +1607,17 @@ body.is-editing #counter {
   outline: 2px solid #ffffff;
   outline-offset: 3px;
 }
-.checkbox-label .fa {
+.checkbox-label .fa,
+.checkbox-label .chrome-icon {
   font-size: 5.4vmin;
   color: #ffffff;
   opacity: 0.75;
   width: 1.4em;
-  height: auto;
+  height: 1.4em;
   display: inline-block;
   text-align: center;
   line-height: 1;
+  vertical-align: middle;
 }
 
 body.is-about #divnote {

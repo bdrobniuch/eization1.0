@@ -6,6 +6,7 @@ var helloReset = false;
 var helloPhraseRaf = 0;
 var HELLO_STEPS = 4;
 var HELLO_STEP_MS = 700;
+var helloStepIndex = 0;
 
 document.addEventListener("pointerdown", function () {
   helloTouched = true;
@@ -43,6 +44,36 @@ function placeHello(id, side) {
   arrow.hidden = false;
   arrow.style.left = (box.left + box.width / 2) + "px";
   arrow.style.top = (side === "up" ? box.bottom + 10 : box.top - 10) + "px";
+  placeHelloCaption();
+}
+
+function placeHelloCaption() {
+  var caption = document.getElementById("helloCaption");
+  var skip = document.getElementById("helloSkip");
+  var arrow = document.getElementById("helloArrow");
+  if (!caption || !document.body.classList.contains("is-hello")) {
+    return;
+  }
+  if (helloStepIndex === 0) {
+    caption.textContent = "Tap Play to keep time";
+  } else {
+    caption.textContent = "The bar fills, then the next Practice Idea";
+  }
+  caption.hidden = false;
+  if (skip) {
+    skip.hidden = false;
+  }
+  if (arrow && !arrow.hidden) {
+    var top = parseFloat(arrow.style.top) || 0;
+    var left = parseFloat(arrow.style.left) || window.innerWidth / 2;
+    caption.style.left = left + "px";
+    caption.style.top = (helloAim && helloAim.side === "down" ? top - 36 : top + 28) + "px";
+  }
+  if (skip) {
+    skip.style.left = "50%";
+    skip.style.top = "auto";
+    skip.style.bottom = "18px";
+  }
 }
 
 function helloStopPhrase() {
@@ -112,6 +143,22 @@ function helloBackToStart() {
   }
 }
 
+function hideHelloChrome() {
+  var arrow = document.getElementById("helloArrow");
+  var caption = document.getElementById("helloCaption");
+  var skip = document.getElementById("helloSkip");
+  if (arrow) {
+    arrow.hidden = true;
+  }
+  if (caption) {
+    caption.hidden = true;
+    caption.textContent = "";
+  }
+  if (skip) {
+    skip.hidden = true;
+  }
+}
+
 function endHello() {
   if (!document.body.classList.contains("is-hello")) {
     return;
@@ -119,10 +166,7 @@ function endHello() {
   helloStopPhrase();
   helloBackToStart();
   document.body.classList.remove("is-hello");
-  var arrow = document.getElementById("helloArrow");
-  if (arrow) {
-    arrow.hidden = true;
-  }
+  hideHelloChrome();
   var i;
   for (i = 0; i < helloTimers.length; i++) {
     clearTimeout(helloTimers[i]);
@@ -154,7 +198,6 @@ function maybeHello() {
     return;
   }
   if (helloTouched) {
-    markHello();
     return;
   }
   if (
@@ -170,15 +213,30 @@ function maybeHello() {
     return;
   }
   helloReset = false;
+  helloStepIndex = 0;
   document.body.classList.add("is-hello");
   placeHello("tempoToggle", "down");
   document.addEventListener("pointerdown", endHello, true);
   window.addEventListener("resize", onHelloResize);
+  var skip = document.getElementById("helloSkip");
+  if (skip && !skip._helloBound) {
+    skip._helloBound = true;
+    skip.addEventListener("pointerdown", function (event) {
+      event.stopPropagation();
+    });
+    skip.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      endHello();
+    });
+  }
   var step = 0;
   function hop() {
     if (!document.body.classList.contains("is-hello")) {
       return;
     }
+    helloStepIndex = step === 0 ? 0 : 1;
+    placeHelloCaption();
     helloPlayPhrase(function () {
       if (!document.body.classList.contains("is-hello")) {
         return;

@@ -89,8 +89,16 @@ function exerciseMenu(w) {
     }
   }
   check("hidden exercises still registered", hidden === 9);
+  var deskList = w.listDeskExercises();
+  check("desk seeds the visible catalog", deskList.length === w.menuOrder.length);
   var buttons = w.document.querySelectorAll("#exerciseMenu [data-value]");
-  check("menu buttons match the visible list", buttons.length === w.menuOrder.length);
+  check("menu buttons match the desk list", buttons.length === deskList.length);
+  check("restore defaults lives in About", !!w.document.querySelector("#about #restoreDefaults"));
+  check("download all lives in About", !!w.document.querySelector("#about #downloadAllExercises"));
+  var packed = w.packDeskExercises();
+  check("desk backup packs exercises", !!(packed && packed.kind === "exercises" && packed.exercises.length === w.menuOrder.length));
+  var round = w.parseDeskExercisesBackup(JSON.stringify(packed));
+  check("desk backup parses back", !!(round && round.exercises && round.exercises.length === packed.exercises.length));
 }
 
 function clock(w) {
@@ -151,11 +159,12 @@ function neo(w) {
 }
 
 function editorFile(w) {
-  var text = w.editorFileText(["C \u00B7 File", "D"], 4);
+  var text = w.editorFileText(["C \u00B7 File", "D"], 4, "Cadence");
   var parsed = w.readEditorFile(text);
   check("exercise file is version 1", text.indexOf("# eization 1\n") === 0 && parsed.version === 1);
   check("exercise file keeps the lines", parsed.lines.length === 2 && parsed.lines[0] === "C \u00B7 File");
   check("exercise file keeps the bars", parsed.bars === 4);
+  check("exercise file keeps the name", parsed.name === "Cadence");
   var older = w.readEditorFile("# eization\n# bars 2\nG\n");
   check("an unversioned file still opens", older.version === 1 && older.lines[0] === "G" && older.bars === 2);
   var plain = w.readEditorFile("E\nF\n");
@@ -180,20 +189,31 @@ function deskRoundTrip(w) {
     beforeHello = localStorage.getItem("eization-hello");
   } catch (err) {}
   w.deskReady = true;
-  var saved = w.saveCustomExercise(["C \u00B7 Desk", "D"], 2);
-  check("custom exercise saves", saved === true);
-  var record = w.customRecord();
-  check("custom exercise reads back", !!(record && record.bars === 2 && record.lines.length === 2));
+  var created = w.createDeskExercise({ name: "Desk", bars: 2, lines: ["C \u00B7 Desk", "D"] });
+  check("custom exercise saves", !!(created && created.id));
+  var record = w.getDeskExercise(created.id);
+  check("custom exercise reads back", !!(record && record.bars === 2 && record.lines.length === 2 && record.name === "Desk"));
+  var seedId = w.listDeskExercises()[0].id;
+  w.updateDeskExercise(seedId, { name: "Renamed", bars: 3, lines: ["A", "B"] });
+  check("seeded exercise updates in place", w.getDeskExercise(seedId).name === "Renamed" && w.getDeskExercise(seedId).seedId);
+  w.setSoundOn(false);
   w.playBars = 0;
   w.restBars = 0;
   w.writeSetupNow();
   var stored = JSON.parse(localStorage.getItem("eization-desk"));
   check("play and rest are not both zero", stored.play === 1 && stored.rest === 0);
+  check("mute is stored on the desk", stored.sound === false);
   check("hello flag is not inside the desk", !stored.hello);
+  var beforeDelete = w.listDeskExercises().length;
+  var deletedSeed = w.getDeskExercise(seedId).seedId;
+  check("delete removes one exercise", w.deleteDeskExercise(seedId) === true && w.listDeskExercises().length === beforeDelete - 1);
+  stored = JSON.parse(localStorage.getItem("eization-desk"));
+  check("deleted seed is remembered", !!(stored && stored.deletedSeeds && stored.deletedSeeds.indexOf(deletedSeed) >= 0));
   w.restoreDefaults();
-  var deskGone = localStorage.getItem("eization-desk") === null;
+  var after = JSON.parse(localStorage.getItem("eization-desk") || "null");
   var helloGone = localStorage.getItem("eization-hello") === null;
-  check("restore clears the desk", deskGone);
+  check("restore re-seeds the desk", !!(after && after.exercises && after.exercises.length === w.menuOrder.length));
+  check("restore clears deleted seeds", !!(after && (!after.deletedSeeds || !after.deletedSeeds.length)));
   check("restore clears the intro flag", helloGone);
   check("restore leaves the metronome paused", w.paused === true);
   if (beforeHello) {

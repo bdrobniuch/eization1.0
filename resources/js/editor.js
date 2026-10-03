@@ -1,8 +1,10 @@
 var editorDraft = {
   label: "",
   id: "",
+  name: "",
   text: "",
-  bars: 1
+  bars: 1,
+  mode: "edit"
 };
 
 var EDITOR_SYMBOLS = [
@@ -132,6 +134,11 @@ function clampEditorBars(value) {
   return bars;
 }
 
+function editorNameValue() {
+  var field = document.getElementById("editName");
+  return field ? field.value : "";
+}
+
 function editorIsDirty() {
   if (!editorIsOpen()) {
     return false;
@@ -139,7 +146,9 @@ function editorIsDirty() {
   var area = document.getElementById("allEdit");
   var bars = clampEditorBars(document.getElementById("editBars").value);
   var text = editorLinesFrom(area.value).join("\n");
-  return text !== editorDraft.text || bars !== editorDraft.bars;
+  var name = editorNameValue().replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  var draftName = (editorDraft.name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  return text !== editorDraft.text || bars !== editorDraft.bars || name !== draftName;
 }
 
 function editorNotice(message) {
@@ -175,23 +184,82 @@ function setEditButton(open) {
   if (!button) {
     return;
   }
-  var icon = button.querySelector("i");
   button.setAttribute("aria-pressed", open ? "true" : "false");
-  button.title = open ? "Keep this list on this device" : "Edit exercise";
-  button.setAttribute("aria-label", open ? "Keep this list on this device" : "Edit exercise");
-  if (icon) {
-    icon.className = open ? "fa-solid fa-check" : "fa-solid fa-pen-to-square";
+  var openLabel = editorIsCreateMode() ? "Create exercise" : "Update this exercise";
+  button.title = open ? openLabel : "Edit exercise";
+  button.setAttribute("aria-label", open ? openLabel : "Edit exercise");
+  var check = button.querySelector(".icon-check");
+  var pen = button.querySelector(".icon-pen");
+  if (check && pen) {
+    check.classList.toggle("is-hidden", !open);
+    pen.classList.toggle("is-hidden", !!open);
   }
 }
 
-function clearExerciseChips() {
-  var menu = document.getElementById("exerciseMenu");
-  if (!menu) {
+function setEditorCommitsEnabled(on) {
+  var update = document.getElementById("editUpdate");
+  var saveAs = document.getElementById("editSaveAs");
+  if (update) {
+    update.disabled = !on;
+  }
+  if (saveAs) {
+    saveAs.disabled = !on;
+  }
+}
+
+function editorIsCreateMode() {
+  return editorDraft.mode === "create";
+}
+
+function syncEditorCommitLabels() {
+  var update = document.getElementById("editUpdate");
+  var saveAs = document.getElementById("editSaveAs");
+  var del = document.getElementById("editDelete");
+  if (editorIsCreateMode()) {
+    if (update) {
+      update.textContent = "Create";
+      update.title = "Keep this new list on this device";
+      update.setAttribute("aria-label", "Create exercise");
+    }
+    if (saveAs) {
+      saveAs.hidden = true;
+    }
+    if (del) {
+      del.hidden = true;
+    }
     return;
   }
-  var choices = menu.querySelectorAll("[data-value]");
-  for (var i = 0; i < choices.length; i++) {
-    choices[i].setAttribute("aria-selected", "false");
+  if (update) {
+    update.textContent = "Update";
+    update.title = "Update this exercise on this device";
+    update.setAttribute("aria-label", "Update exercise");
+  }
+  if (saveAs) {
+    saveAs.hidden = false;
+  }
+  if (del) {
+    del.hidden = false;
+  }
+}
+
+function refreshEditorHint() {
+  var hint = document.getElementById("editHint");
+  if (!hint) {
+    return;
+  }
+  var del = document.getElementById("editDelete");
+  if (del && del.classList.contains("is-armed")) {
+    hint.textContent = "";
+    return;
+  }
+  if (editorIsCreateMode()) {
+    hint.textContent = "Create keeps this new list on this device.";
+    return;
+  }
+  if (editorIsDirty()) {
+    hint.textContent = "Update overwrites this list. Save as new keeps the old one too.";
+  } else {
+    hint.textContent = "Update saves this exercise on this device.";
   }
 }
 
@@ -223,10 +291,13 @@ function editorCloseQuiet() {
   sheet.classList.remove("is-open");
   sheet.style.display = "";
   document.body.classList.remove("is-editing");
+  editorDraft.mode = "edit";
   setEditButton(false);
   clearEditorNotice();
-  disarmEditorReplace();
+  disarmEditorDelete();
   disarmEditorOpen();
+  setEditorCommitsEnabled(true);
+  syncEditorCommitLabels();
   if (typeof renderPreview === "function") {
     renderPreview();
   }
@@ -283,13 +354,13 @@ function refreshEditor() {
   if (count) {
     count.textContent = total === 1 ? "1 value" : total + " values";
   }
-  markSymbolScroll();
   if (!preview) {
     return;
   }
   var line = itemToLine(currentEditorLine());
   preview.classList.toggle("is-empty", !line);
   preview.innerHTML = line ? lineToItem(line) : "";
+  refreshEditorHint();
 }
 
 function insertEditorText(text) {
@@ -368,7 +439,33 @@ function duplicateEditorLine() {
   refreshEditor();
 }
 
-function editorOpen() {
+function clearEditorList() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  var area = document.getElementById("allEdit");
+  area.value = "";
+  area.setSelectionRange(0, 0);
+  clearEditorNotice();
+  refreshEditor();
+  if (window.matchMedia("(pointer: fine)").matches) {
+    area.focus();
+  }
+}
+
+function syncEditorFaceName() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  var face = document.getElementById("exerciseFace");
+  var name = editorNameValue().replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "") || "New Custom Exercise";
+  if (face && typeof setComboLabel === "function") {
+    setComboLabel(face, name);
+  }
+}
+
+function editorOpenSheet(options) {
+  options = options || {};
   if (typeof closeAbout === "function") {
     closeAbout();
   }
@@ -380,25 +477,45 @@ function editorOpen() {
   }
   var face = document.getElementById("exerciseFace");
   var shown = face ? face.querySelector(".combo-value") : null;
-  editorDraft.label = shown ? shown.textContent : "";
+  var desk = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
+  editorDraft.mode = options.mode === "create" ? "create" : "edit";
+  editorDraft.label = shown ? shown.textContent : (desk ? desk.name : "");
   editorDraft.id = typeof currentExerciseId === "string" ? currentExerciseId : "";
-  editorDraft.bars = typeof exerciseBars === "number" && exerciseBars > 0 ? exerciseBars : 1;
-  var source = typeof chromaticScale !== "undefined" && chromaticScale ? chromaticScale : [];
-  var lines = [];
-  for (var i = 0; i < source.length; i++) {
-    var line = itemToLine(source[i]);
-    if (line) {
-      lines.push(line);
+  if (editorIsCreateMode()) {
+    editorDraft.name = "New Custom Exercise";
+    editorDraft.bars = 1;
+    editorDraft.text = "";
+  } else {
+    editorDraft.name = desk ? desk.name : editorDraft.label;
+    editorDraft.bars = typeof exerciseBars === "number" && exerciseBars > 0 ? exerciseBars : 1;
+    var source = typeof chromaticScale !== "undefined" && chromaticScale ? chromaticScale : [];
+    var lines = [];
+    for (var i = 0; i < source.length; i++) {
+      var line = itemToLine(source[i]);
+      if (line) {
+        lines.push(line);
+      }
     }
+    editorDraft.text = lines.join("\n");
   }
   var area = document.getElementById("allEdit");
-  area.value = lines.join("\n");
-  editorDraft.text = lines.join("\n");
+  area.value = editorDraft.text;
   document.getElementById("editBars").value = String(editorDraft.bars);
+  var nameField = document.getElementById("editName");
+  if (nameField) {
+    nameField.value = editorDraft.name || "";
+  }
+  disarmEditorDelete();
+  disarmEditorOpen();
+  setEditorCommitsEnabled(true);
+  syncEditorCommitLabels();
   clearEditorNotice();
   document.getElementById("textdiv").classList.add("is-open");
   document.body.classList.add("is-editing");
   setEditButton(true);
+  if (editorIsCreateMode()) {
+    syncEditorFaceName();
+  }
   refreshEditor();
   placeEditor();
   if (typeof layoutFrame === "function") {
@@ -407,9 +524,36 @@ function editorOpen() {
   area.scrollTop = 0;
   area.setSelectionRange(0, 0);
   if (window.matchMedia("(pointer: fine)").matches) {
-    area.focus();
+    if (editorIsCreateMode() && nameField) {
+      nameField.focus();
+      nameField.select();
+    } else {
+      area.focus();
+    }
   }
   refreshEditor();
+}
+
+function editorOpen() {
+  editorOpenSheet({ mode: "edit" });
+}
+
+function editorOpenNew() {
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    if (typeof editorIsDirty === "function" && editorIsDirty()) {
+      editorNotice("Finish or cancel editing first.");
+      return;
+    }
+    editorCloseQuiet();
+  }
+  var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  if (typeof DESK_EXERCISE_CAP === "number" && list.length >= DESK_EXERCISE_CAP) {
+    if (typeof showDeskNote === "function") {
+      showDeskNote("Remove an exercise first.");
+    }
+    return;
+  }
+  editorOpenSheet({ mode: "create" });
 }
 
 function editorCancel() {
@@ -433,8 +577,13 @@ function editorCancel() {
 
 var EDITOR_FILE_VERSION = 1;
 
-function editorFileText(lines, bars) {
-  return "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n" + lines.join("\n") + "\n";
+function editorFileText(lines, bars, name) {
+  var out = "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n";
+  var clean = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  if (clean) {
+    out += "# name " + clean.slice(0, 60) + "\n";
+  }
+  return out + lines.join("\n") + "\n";
 }
 
 function readEditorFile(text) {
@@ -442,6 +591,7 @@ function readEditorFile(text) {
   var parts = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
   var bars = null;
   var version = null;
+  var name = null;
   var body = [];
   var i;
   for (i = 0; i < parts.length; i++) {
@@ -451,9 +601,17 @@ function readEditorFile(text) {
       bars = clampEditorBars(barsMatch[1]);
       continue;
     }
+    var nameMatch = line.match(/^\s*#\s*name\s+(.+?)\s*$/i);
+    if (nameMatch) {
+      name = nameMatch[1].slice(0, 60);
+      continue;
+    }
     var header = line.match(/^\s*#\s*eization(?:\s+(\d+))?\s*$/i);
     if (header) {
       version = header[1] ? parseInt(header[1], 10) : 1;
+      continue;
+    }
+    if (/^\s*#/.test(line)) {
       continue;
     }
     body.push(line);
@@ -461,6 +619,7 @@ function readEditorFile(text) {
   return {
     lines: editorLinesFrom(body.join("\n")),
     bars: bars,
+    name: name,
     version: version
   };
 }
@@ -480,7 +639,8 @@ function editorSaveFile() {
   }
   var bars = clampEditorBars(document.getElementById("editBars").value);
   document.getElementById("editBars").value = String(bars);
-  var blob = new Blob([editorFileText(lines, bars)], { type: "text/plain;charset=utf-8" });
+  var name = editorNameValue();
+  var blob = new Blob([editorFileText(lines, bars, name)], { type: "text/plain;charset=utf-8" });
   var url = URL.createObjectURL(blob);
   var link = document.createElement("a");
   link.href = url;
@@ -491,7 +651,7 @@ function editorSaveFile() {
   setTimeout(function () {
     URL.revokeObjectURL(url);
   }, 1500);
-  editorStatus("Saved eization.eiz.");
+  editorStatus("Downloaded eization.eiz.");
 }
 
 function editorOpenFile(file) {
@@ -518,7 +678,14 @@ function editorOpenFile(file) {
     if (parsed.bars) {
       document.getElementById("editBars").value = String(parsed.bars);
     }
-    clearEditorNotice();
+    if (parsed.name) {
+      var nameField = document.getElementById("editName");
+      if (nameField) {
+        nameField.value = parsed.name;
+      }
+      syncEditorFaceName();
+    }
+    editorNotice("Upload replaced the lines in the box. Update or Save as new to keep them on this device.");
     refreshEditor();
     area.focus();
   };
@@ -528,49 +695,38 @@ function editorOpenFile(file) {
   reader.readAsText(file);
 }
 
-function markSymbolScroll() {
-  var row = document.getElementById("editSymbols");
-  if (!row) {
-    return;
-  }
-  var more = row.scrollWidth - row.clientWidth - row.scrollLeft > 8;
-  row.classList.toggle("can-scroll", more);
-}
-
-var editorReplaceTimer = null;
+var editorDeleteTimer = null;
 var editorOpenTimer = null;
 
-function disarmEditorReplace() {
-  var done = document.getElementById("editDone");
-  if (done) {
-    done.classList.remove("is-armed");
-    done.textContent = "Done";
+function disarmEditorDelete() {
+  var del = document.getElementById("editDelete");
+  if (del) {
+    del.classList.remove("is-armed");
+    del.textContent = "Delete exercise";
   }
-  if (editorReplaceTimer) {
-    clearTimeout(editorReplaceTimer);
-    editorReplaceTimer = null;
+  if (editorDeleteTimer) {
+    clearTimeout(editorDeleteTimer);
+    editorDeleteTimer = null;
   }
   if (editorIsOpen()) {
-    setEditButton(true);
+    setEditorCommitsEnabled(true);
+    refreshEditorHint();
   }
 }
 
-function armEditorReplace() {
-  var done = document.getElementById("editDone");
-  var header = document.getElementById("edit");
-  if (done) {
-    done.classList.add("is-armed");
-    done.textContent = "Replace saved list?";
+function armEditorDelete() {
+  var del = document.getElementById("editDelete");
+  if (del) {
+    del.classList.add("is-armed");
+    del.textContent = "Delete from this device?";
   }
-  if (header) {
-    header.title = "Replace saved list?";
-    header.setAttribute("aria-label", "Replace saved list?");
+  setEditorCommitsEnabled(false);
+  editorNotice("Delete from this device?");
+  refreshEditorHint();
+  if (editorDeleteTimer) {
+    clearTimeout(editorDeleteTimer);
   }
-  editorNotice("This replaces the custom list kept on this device.");
-  if (editorReplaceTimer) {
-    clearTimeout(editorReplaceTimer);
-  }
-  editorReplaceTimer = setTimeout(disarmEditorReplace, 4000);
+  editorDeleteTimer = setTimeout(disarmEditorDelete, 4000);
 }
 
 function disarmEditorOpen() {
@@ -589,7 +745,7 @@ function armEditorOpen() {
   if (open) {
     open.classList.add("is-armed");
   }
-  editorNotice("Opening a file replaces the lines in the box.");
+  editorNotice("Upload replaces the lines in the box. Update or Save as new to keep them on this device.");
   if (editorOpenTimer) {
     clearTimeout(editorOpenTimer);
   }
@@ -609,8 +765,46 @@ function editorAskOpen() {
   document.getElementById("editFile").click();
 }
 
-function editorDone() {
+function resolveEditorName(raw) {
+  var name = String(raw || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  if (!name) {
+    name = "New Custom Exercise";
+    editorStatus("Named New Custom Exercise");
+    var field = document.getElementById("editName");
+    if (field) {
+      field.value = name;
+    }
+  }
+  if (name.length > 60) {
+    name = name.slice(0, 60);
+  }
+  return name;
+}
+
+function applyEditorToReel(lines, bars) {
+  var items = [];
+  for (var i = 0; i < lines.length; i++) {
+    items.push(lineToItem(lines[i]));
+  }
+  newExercise(items, bars);
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  if (typeof layoutFrame === "function") {
+    layoutFrame();
+  }
+}
+
+function editorUpdate() {
   if (!editorIsOpen()) {
+    return;
+  }
+  if (editorIsCreateMode()) {
+    editorSaveAsNew();
+    return;
+  }
+  if (!editorIsDirty()) {
+    editorCancel();
     return;
   }
   var lines = editorLinesFrom(document.getElementById("allEdit").value);
@@ -624,37 +818,95 @@ function editorDone() {
   }
   var bars = clampEditorBars(document.getElementById("editBars").value);
   document.getElementById("editBars").value = String(bars);
-  var text = lines.join("\n");
-  if (text === editorDraft.text && bars === editorDraft.bars) {
-    editorCancel();
+  var name = resolveEditorName(editorNameValue());
+  var saved = typeof updateDeskExercise === "function"
+    ? updateDeskExercise(editorDraft.id, { name: name, bars: bars, lines: lines })
+    : null;
+  if (!saved) {
+    editorNotice("Could not update this exercise.");
     return;
   }
-  var replacing = editorDraft.id !== "custom" && typeof customRecord === "function" && customRecord();
-  var done = document.getElementById("editDone");
-  if (replacing && done && !done.classList.contains("is-armed")) {
-    armEditorReplace();
+  currentExerciseId = saved.id;
+  editorCloseQuiet();
+  applyEditorToReel(saved.lines, saved.bars);
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
+}
+
+function editorSaveAsNew() {
+  if (!editorIsOpen()) {
     return;
   }
-  disarmEditorReplace();
-  var items = [];
-  if (text === editorDraft.text) {
-    var source = typeof chromaticScale !== "undefined" && chromaticScale ? chromaticScale : [];
-    items = source.slice();
-  } else {
-    for (var i = 0; i < lines.length; i++) {
-      items.push(lineToItem(lines[i]));
-    }
+  var lines = editorLinesFrom(document.getElementById("allEdit").value);
+  if (!lines.length) {
+    editorNotice("Add at least one line.");
+    return;
   }
-  if (typeof saveCustomExercise === "function") {
-    saveCustomExercise(lines, bars);
+  if (lines.length > 500) {
+    editorNotice("Keep it to 500 lines.");
+    return;
   }
-  currentExerciseId = "custom";
+  var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  if (typeof DESK_EXERCISE_CAP === "number" && list.length >= DESK_EXERCISE_CAP) {
+    editorNotice("Remove an exercise first.");
+    return;
+  }
+  var bars = clampEditorBars(document.getElementById("editBars").value);
+  document.getElementById("editBars").value = String(bars);
+  var name = resolveEditorName(editorNameValue());
+  var created = typeof createDeskExercise === "function"
+    ? createDeskExercise({ name: name, bars: bars, lines: lines })
+    : null;
+  if (!created) {
+    editorNotice("Remove an exercise first.");
+    return;
+  }
+  currentExerciseId = created.id;
+  editorCloseQuiet();
+  applyEditorToReel(created.lines, created.bars);
+  if (typeof showDeskNote === "function") {
+    showDeskNote("Added to this device");
+  }
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
+}
+
+function editorDelete() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  if (editorIsCreateMode()) {
+    editorNotice("Nothing to delete yet.");
+    return;
+  }
+  var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  if (list.length <= 1) {
+    editorNotice("Keep at least one exercise.");
+    return;
+  }
+  var del = document.getElementById("editDelete");
+  if (del && !del.classList.contains("is-armed")) {
+    armEditorDelete();
+    return;
+  }
+  var id = editorDraft.id;
+  disarmEditorDelete();
+  if (typeof deleteDeskExercise !== "function" || !deleteDeskExercise(id)) {
+    editorNotice("Keep at least one exercise.");
+    return;
+  }
+  currentExerciseId = typeof firstDeskExerciseId === "function" ? firstDeskExerciseId() : "";
+  editorCloseQuiet();
   if (typeof buildExerciseMenu === "function") {
     buildExerciseMenu();
   }
-  newExercise(items, bars);
-  if (typeof noteCustomKept === "function") {
-    noteCustomKept();
+  if (typeof SelectExercise === "function") {
+    SelectExercise();
+  }
+  if (typeof showDeskNote === "function") {
+    showDeskNote("Removed");
   }
   if (typeof layoutFrame === "function") {
     layoutFrame();
@@ -663,7 +915,7 @@ function editorDone() {
 
 function ToggleEdit() {
   if (editorIsOpen()) {
-    editorDone();
+    editorUpdate();
   } else {
     editorOpen();
   }
@@ -697,7 +949,10 @@ function initEditor() {
   var symbols = document.getElementById("editSymbols");
   edit.addEventListener("click", ToggleEdit);
   document.getElementById("editCancel").addEventListener("click", editorCancel);
-  document.getElementById("editDone").addEventListener("click", editorDone);
+  document.getElementById("editUpdate").addEventListener("click", editorUpdate);
+  document.getElementById("editSaveAs").addEventListener("click", editorSaveAsNew);
+  document.getElementById("editDelete").addEventListener("click", editorDelete);
+  document.getElementById("editClearList").addEventListener("click", clearEditorList);
   document.getElementById("editSave").addEventListener("click", editorSaveFile);
   document.getElementById("editOpen").addEventListener("click", editorAskOpen);
   document.getElementById("editFile").addEventListener("change", function () {
@@ -708,6 +963,15 @@ function initEditor() {
       editorOpenFile(file);
     }
   });
+  var nameField = document.getElementById("editName");
+  if (nameField) {
+    nameField.addEventListener("input", function () {
+      disarmEditorDelete();
+      clearEditorNotice();
+      syncEditorFaceName();
+      refreshEditorHint();
+    });
+  }
   var duplicate = document.getElementById("editDuplicate");
   duplicate.addEventListener("pointerdown", function (event) {
     event.preventDefault();
@@ -723,7 +987,7 @@ function initEditor() {
   });
   area.addEventListener("input", function () {
     convertEditorCodes();
-    disarmEditorReplace();
+    disarmEditorDelete();
     clearEditorNotice();
     refreshEditor();
   });
@@ -761,13 +1025,13 @@ function initEditor() {
     }
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      editorDone();
+      editorUpdate();
     }
   });
-  symbols.addEventListener("scroll", markSymbolScroll);
   document.getElementById("editBars").addEventListener("input", function () {
-    disarmEditorReplace();
+    disarmEditorDelete();
     clearEditorNotice();
+    refreshEditorHint();
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && editorIsOpen() && event.target !== area) {

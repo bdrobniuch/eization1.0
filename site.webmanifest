@@ -1,7 +1,7 @@
 {
   "name": "eization — practice desk",
   "short_name": "eization",
-  "description": "A free practice desk for any instrument. One idea at a time, with a metronome.",
+  "description": "A free practice desk for any instrument. One Practice Idea at a time, with a metronome.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

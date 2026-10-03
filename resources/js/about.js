@@ -92,7 +92,26 @@ function openAbout() {
   document.getElementById("aboutClose").focus();
 }
 
+var uploadAllTimer = null;
+
+function disarmUploadAll() {
+  var button = document.getElementById("uploadAllExercises");
+  if (uploadAllTimer) {
+    clearTimeout(uploadAllTimer);
+    uploadAllTimer = null;
+  }
+  if (!button) {
+    return;
+  }
+  button.classList.remove("is-armed");
+  button.textContent = "Upload all";
+}
+
 function closeAbout() {
+  if (typeof disarmRestoreDefaults === "function") {
+    disarmRestoreDefaults();
+  }
+  disarmUploadAll();
   var sheet = document.getElementById("about");
   if (!sheet || !sheet.classList.contains("is-open")) {
     return;
@@ -292,6 +311,58 @@ function initAbout() {
       return;
     }
     markCopied(button);
+  });
+  document.getElementById("downloadAllExercises").addEventListener("click", function () {
+    if (typeof downloadAllDeskExercises === "function" && downloadAllDeskExercises()) {
+      if (typeof showDeskNote === "function") {
+        showDeskNote("Downloaded eization-exercises.json");
+      }
+    }
+  });
+  document.getElementById("uploadAllExercises").addEventListener("click", function () {
+    if (!this.classList.contains("is-armed")) {
+      this.classList.add("is-armed");
+      this.textContent = "Replace exercises on this device?";
+      if (uploadAllTimer) {
+        clearTimeout(uploadAllTimer);
+      }
+      uploadAllTimer = setTimeout(disarmUploadAll, 4000);
+      return;
+    }
+    disarmUploadAll();
+    document.getElementById("uploadAllFile").click();
+  });
+  document.getElementById("uploadAllFile").addEventListener("change", function () {
+    var input = this;
+    var file = input.files && input.files[0];
+    input.value = "";
+    if (!file || typeof parseDeskExercisesBackup !== "function") {
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var parsed = parseDeskExercisesBackup(String(reader.result || ""));
+      if (parsed.error) {
+        if (typeof showDeskNote === "function") {
+          showDeskNote(parsed.error);
+        }
+        return;
+      }
+      if (typeof replaceDeskExercises === "function" && replaceDeskExercises(parsed.exercises)) {
+        if (typeof showDeskNote === "function") {
+          showDeskNote("Exercises replaced from file");
+        }
+        if (typeof layoutFrame === "function") {
+          layoutFrame();
+        }
+      }
+    };
+    reader.onerror = function () {
+      if (typeof showDeskNote === "function") {
+        showDeskNote("Could not read that file.");
+      }
+    };
+    reader.readAsText(file);
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && aboutIsOpen()) {
