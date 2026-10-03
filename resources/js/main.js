@@ -92,17 +92,13 @@ function bindExercisePanel() {
   });
 }
 
-function addComboItem(menu, value, label, selected, userMade) {
+function addComboItem(menu, value, label, selected) {
   var button = document.createElement("button");
   button.type = "button";
   button.setAttribute("data-value", value);
   button.setAttribute("aria-selected", selected ? "true" : "false");
   button.textContent = label;
   button.title = label;
-  if (userMade) {
-    button.className = "menu-user";
-    button.title = label + " — On this device";
-  }
   menu.appendChild(button);
 }
 
@@ -130,7 +126,7 @@ function buildExerciseMenu() {
   var i;
   for (i = 0; i < list.length; i++) {
     var row = list[i];
-    addComboItem(menu, row.id, row.name, row.id === currentExerciseId, !row.seedId);
+    addComboItem(menu, row.id, row.name, row.id === currentExerciseId);
   }
   var current = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
   setComboLabel(face, current ? current.name : "");
