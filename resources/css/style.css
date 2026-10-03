@@ -353,6 +353,10 @@ footer {
     flex: 0 0 auto;
 }
 
+#exerciseFace[aria-expanded="true"] .combo-kicker {
+    display: none;
+}
+
 #exerciseFace .combo-value {
     flex: 1 1 auto;
     min-width: 0;
@@ -391,6 +395,7 @@ footer {
     right: 0;
     z-index: 25;
     border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    padding-top: 8px;
 }
 
 #exercisePanel[hidden] {
@@ -669,7 +674,9 @@ body.is-hello[data-hello="note"] #note {
   opacity: 1;
 }
 
+body.is-hello[data-hello="exerciseFace"] #exerciseFace,
 body.is-hello[data-hello="next"] #next,
+body.is-hello[data-hello="grooveButton"] #grooveButton,
 body.is-hello[data-hello="tempoToggle"] #tempoToggle,
 body.is-hello[data-hello="edit"] #edit {
   opacity: 1;
@@ -700,7 +707,9 @@ body.is-hello[data-hello="edit"] #edit {
   #noteStack.is-turning .reel-prev {
     animation: none;
   }
+  body.is-hello[data-hello="exerciseFace"] #exerciseFace,
   body.is-hello[data-hello="next"] #next,
+  body.is-hello[data-hello="grooveButton"] #grooveButton,
   body.is-hello[data-hello="tempoToggle"] #tempoToggle,
   body.is-hello[data-hello="edit"] #edit {
     animation: none;
@@ -1778,6 +1787,8 @@ body.is-about #counter {
 
 #aboutBack,
 #aboutClose,
+#aboutShare,
+.about-show,
 #aboutNav button,
 #supportReveal,
 .support-path,
@@ -1796,6 +1807,19 @@ body.is-about #counter {
 #aboutClose {
   flex: 0 0 auto;
   padding: 0 14px;
+}
+
+#aboutShare,
+.about-show {
+  padding: 0 16px;
+}
+
+#aboutShare {
+  margin: 0 0 16px;
+}
+
+.about-show {
+  margin: 0 0 4px;
 }
 
 #aboutNav {

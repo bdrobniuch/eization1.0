@@ -330,12 +330,15 @@ function fitToolbar(inner, align) {
 
 function placeExercisePanel() {
   var panel = document.getElementById("exercisePanel");
-  var bar = document.getElementById("topBar");
-  if (!panel || panel.hidden || !bar) {
+  var face = document.getElementById("exerciseFace");
+  if (!panel || panel.hidden || !face) {
     return;
   }
-  var top = bar.getBoundingClientRect().bottom;
+  var box = face.getBoundingClientRect();
+  var top = box.bottom;
   panel.style.top = top + "px";
+  panel.style.left = "0px";
+  panel.style.right = "0px";
   panel.style.maxHeight = Math.max(120, window.innerHeight - top - 8) + "px";
 }
 

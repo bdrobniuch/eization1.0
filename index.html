@@ -120,7 +120,7 @@
             </div>
             <button type="button" id="editDuplicate" title="Copy the line at the cursor onto the next line">Duplicate line</button>
             <button type="button" id="editClearList" title="Clear all Practice Ideas in this list">Clear list</button>
-            <button type="button" id="editSave" title="Download this list as an .eiz file">Download</button>
+            <button type="button" id="editSave" title="Download this list as an .eiz file">Download this list</button>
             <button type="button" id="editOpen" title="Upload an .eiz file into the box">Upload</button>
             <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
         </div>
@@ -147,6 +147,7 @@
                     <span>eization</span>
                 </p>
                 <p>A free practice desk for any instrument, one Practice Idea at a time.</p>
+                <button type="button" id="aboutShare">Share</button>
                 <nav id="aboutNav" aria-label="About">
                     <button type="button" id="aboutGoHow" data-about="how">How it works</button>
                     <button type="button" id="aboutGoAuthor" data-about="author">About the author</button>
@@ -156,10 +157,13 @@
             <div id="aboutHow" hidden>
                 <h2>Exercise</h2>
                 <p>Choose an exercise at the top. The large text is the Practice Idea. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span> Reset starts that exercise again.</p>
+                <button type="button" class="about-show" data-hello="exercise">Show me</button>
                 <h2>Edit</h2>
-                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download and Upload copy the open list to an .eiz file and back. This device keeps a backup of every exercise.</p>
+                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back. This device can Download backup or Upload backup for every exercise.</p>
+                <button type="button" class="about-show" data-hello="edit">Show me</button>
                 <h2>Metronome</h2>
                 <p>BPM sets the tempo. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span> Play starts and stops the click, and keeps time on the Practice Idea that is showing. The bar above the metronome fills, then the next Practice Idea comes up. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</p>
+                <button type="button" class="about-show" data-hello="metronome">Show me</button>
             </div>
             <div id="aboutAuthor" hidden>
                 <p>Błażej Drobniuch plays jazz piano in Kraków and Barcelona. He studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics. He plays in clubs and bands, and makes electronic music as Zero Volume. eization is the desk he uses to practice.</p>
@@ -177,10 +181,10 @@
                 <div id="supportCard" hidden></div>
             </div>
             <div id="aboutDevice" hidden>
-                <p>Download all copies every exercise on this device to a JSON file. Upload all replaces the exercise list from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears lists you saved on this device. The intro may play the next time you open eization.</p>
+                <p>Download backup copies every exercise on this device to a JSON file. Upload backup replaces the exercise list from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears lists you saved on this device. The intro may play the next time you open eization.</p>
                 <div id="aboutDeviceActions">
-                    <button type="button" id="downloadAllExercises" title="Download every exercise on this device as a JSON file">Download all</button>
-                    <button type="button" id="uploadAllExercises" title="Replace exercises on this device from a JSON backup">Upload all</button>
+                    <button type="button" id="downloadAllExercises" title="Download every exercise on this device as a JSON file">Download backup</button>
+                    <button type="button" id="uploadAllExercises" title="Replace exercises on this device from a JSON backup">Upload backup</button>
                     <input id="uploadAllFile" type="file" accept=".json,application/json,text/plain" tabindex="-1" aria-hidden="true">
                     <button type="button" id="restoreDefaults" class="panel-toggle" title="Reset tempo, meter, and exercises on this device. Stock lists return. Intro may play next launch.">Restore defaults</button>
                 </div>

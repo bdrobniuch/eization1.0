@@ -156,7 +156,7 @@ function disarmUploadAll() {
     return;
   }
   button.classList.remove("is-armed");
-  button.textContent = "Upload all";
+  button.textContent = "Upload backup";
 }
 
 function closeAbout() {
@@ -321,6 +321,42 @@ function revealEmail() {
   button.setAttribute("aria-expanded", "true");
 }
 
+function aboutSharePayload() {
+  var link = document.querySelector("link[rel='canonical']");
+  var url = link && link.href ? link.href : window.location.href;
+  return {
+    title: "eization",
+    text: "A free practice desk for any instrument, one Practice Idea at a time.",
+    url: url
+  };
+}
+
+function copyAboutLink(url) {
+  copySupportText(url).then(function () {
+    if (typeof showDeskNote === "function") {
+      showDeskNote("Link copied.");
+    }
+  }, function () {
+    if (typeof showDeskNote === "function") {
+      showDeskNote("Could not copy that link.");
+    }
+  });
+}
+
+function shareAbout() {
+  var payload = aboutSharePayload();
+  if (navigator.share) {
+    navigator.share(payload).catch(function (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      copyAboutLink(payload.url);
+    });
+    return;
+  }
+  copyAboutLink(payload.url);
+}
+
 function initAbout() {
   var brand = document.getElementById("brand");
   brand.addEventListener("click", function () {
@@ -344,6 +380,14 @@ function initAbout() {
       return;
     }
     openAboutPage(button.getAttribute("data-about"));
+  });
+  document.getElementById("aboutShare").addEventListener("click", shareAbout);
+  document.getElementById("aboutHow").addEventListener("click", function (event) {
+    var button = event.target.closest("[data-hello]");
+    if (!button || typeof showHelloPart !== "function") {
+      return;
+    }
+    showHelloPart(button.getAttribute("data-hello"));
   });
   document.getElementById("aboutLinks").addEventListener("click", function (event) {
     var link = event.target.closest("[data-link]");

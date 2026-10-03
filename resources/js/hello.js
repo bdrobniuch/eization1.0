@@ -8,8 +8,16 @@ var HELLO_PHRASE_MS = 2000;
 var HELLO_GAP_MS = 600;
 var HELLO_MARGIN = 12;
 var helloStepIndex = 0;
+var helloSliceEnd = 0;
+var helloMoved = false;
 
 var HELLO_TOUR = [
+  {
+    id: "exerciseFace",
+    side: "up",
+    text: "Choose an exercise here.",
+    hold: 3200
+  },
   {
     id: "note",
     side: "up",
@@ -22,6 +30,12 @@ var HELLO_TOUR = [
     text: "Next pulls another Practice Idea.",
     hold: 3200,
     advanceOnShow: true
+  },
+  {
+    id: "grooveButton",
+    side: "down",
+    text: "Setup changes the metronome.",
+    hold: 3200
   },
   {
     id: "tempoToggle",
@@ -195,8 +209,18 @@ function helloBackToStart() {
     return;
   }
   helloReset = true;
+  if (!helloMoved) {
+    return;
+  }
   if (typeof resetExercise === "function") {
     resetExercise();
+  }
+}
+
+function helloAdvance() {
+  helloMoved = true;
+  if (typeof advanceNote === "function") {
+    advanceNote();
   }
 }
 
@@ -254,6 +278,105 @@ function onHelloResize() {
   placeHello(helloAim.id, helloAim.side);
 }
 
+function helloAfterStep(step) {
+  if (!document.body.classList.contains("is-hello")) {
+    return;
+  }
+  if (step.advanceAfter) {
+    helloAdvance();
+  }
+  helloTimers.push(setTimeout(function () {
+    if (!document.body.classList.contains("is-hello")) {
+      return;
+    }
+    helloStepIndex++;
+    if (helloStepIndex >= helloSliceEnd || helloStepIndex >= HELLO_TOUR.length) {
+      settleHello();
+      return;
+    }
+    runHelloStep();
+  }, HELLO_GAP_MS));
+}
+
+function runHelloStep() {
+  if (!document.body.classList.contains("is-hello")) {
+    return;
+  }
+  var step = HELLO_TOUR[helloStepIndex];
+  if (!step || helloStepIndex >= helloSliceEnd) {
+    settleHello();
+    return;
+  }
+  placeHello(step.id, step.side);
+  if (step.advanceOnShow) {
+    helloTimers.push(setTimeout(function () {
+      if (!document.body.classList.contains("is-hello")) {
+        return;
+      }
+      helloAdvance();
+    }, 450));
+  }
+  if (step.phrase) {
+    helloPlayPhrase(function () {
+      helloAfterStep(step);
+    });
+    return;
+  }
+  helloTimers.push(setTimeout(function () {
+    helloAfterStep(step);
+  }, step.hold || 2200));
+}
+
+function bindHelloSkip() {
+  var skip = document.getElementById("helloSkip");
+  if (skip && !skip._helloBound) {
+    skip._helloBound = true;
+    skip.addEventListener("click", function (event) {
+      event.preventDefault();
+      endHello();
+    });
+  }
+}
+
+function beginHello(from, to) {
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    return;
+  }
+  if (document.body.classList.contains("is-hello")) {
+    endHello();
+  }
+  if (typeof closeAbout === "function") {
+    closeAbout();
+  }
+  if (typeof closeExercisePanel === "function") {
+    closeExercisePanel();
+  }
+  if (typeof closeGroovePanel === "function") {
+    closeGroovePanel();
+  }
+  helloReset = false;
+  helloMoved = false;
+  helloStepIndex = from;
+  helloSliceEnd = to;
+  document.body.classList.add("is-hello");
+  window.addEventListener("resize", onHelloResize);
+  bindHelloSkip();
+  helloTimers.push(setTimeout(runHelloStep, 350));
+}
+
+function showHelloPart(part) {
+  var slices = {
+    exercise: [0, 3],
+    metronome: [3, 5],
+    edit: [5, 6]
+  };
+  var slice = slices[part];
+  if (!slice) {
+    return;
+  }
+  beginHello(slice[0], slice[1]);
+}
+
 function maybeHello() {
   if (helloSeen()) {
     return;
@@ -273,67 +396,5 @@ function maybeHello() {
   if (panel && !panel.hidden) {
     return;
   }
-  helloReset = false;
-  helloStepIndex = 0;
-  document.body.classList.add("is-hello");
-  window.addEventListener("resize", onHelloResize);
-  var skip = document.getElementById("helloSkip");
-  if (skip && !skip._helloBound) {
-    skip._helloBound = true;
-    skip.addEventListener("click", function (event) {
-      event.preventDefault();
-      endHello();
-    });
-  }
-
-  function afterStep(step) {
-    if (!document.body.classList.contains("is-hello")) {
-      return;
-    }
-    if (step.advanceAfter && typeof advanceNote === "function") {
-      advanceNote();
-    }
-    helloTimers.push(setTimeout(function () {
-      if (!document.body.classList.contains("is-hello")) {
-        return;
-      }
-      helloStepIndex++;
-      if (helloStepIndex >= HELLO_TOUR.length) {
-        settleHello();
-        return;
-      }
-      runStep();
-    }, HELLO_GAP_MS));
-  }
-
-  function runStep() {
-    if (!document.body.classList.contains("is-hello")) {
-      return;
-    }
-    var step = HELLO_TOUR[helloStepIndex];
-    if (!step) {
-      settleHello();
-      return;
-    }
-    placeHello(step.id, step.side);
-    if (step.advanceOnShow && typeof advanceNote === "function") {
-      helloTimers.push(setTimeout(function () {
-        if (!document.body.classList.contains("is-hello")) {
-          return;
-        }
-        advanceNote();
-      }, 450));
-    }
-    if (step.phrase) {
-      helloPlayPhrase(function () {
-        afterStep(step);
-      });
-      return;
-    }
-    helloTimers.push(setTimeout(function () {
-      afterStep(step);
-    }, step.hold || 2200));
-  }
-
-  helloTimers.push(setTimeout(runStep, 350));
+  beginHello(0, HELLO_TOUR.length);
 }
