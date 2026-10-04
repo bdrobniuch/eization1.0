@@ -435,6 +435,9 @@ function showHelloPart(part) {
 }
 
 function maybeHello() {
+  if (typeof shareBlocksHello === "function" && shareBlocksHello()) {
+    return;
+  }
   if (helloSeen()) {
     return;
   }

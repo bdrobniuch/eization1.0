@@ -63,6 +63,8 @@ function run() {
     editorLines(w);
     editorFile(w);
     deskRoundTrip(w);
+    shareCase(w);
+    chatCase(w);
     check("metronome stays paused", w.paused === true);
   } catch (err) {
     check("threw " + (err && err.message ? err.message : err), false);
@@ -189,6 +191,146 @@ function editorLines(w) {
   check("blank line is dropped", w.lineToItem("   ") === "");
   var longLine = new Array(300).join("a");
   check("a line stops at 240 characters", w.lineToItem(longLine).length === 240);
+}
+
+function shareRows(w, shareId) {
+  var list = w.listDeskExercises();
+  var rows = [];
+  var i;
+  for (i = 0; i < list.length; i++) {
+    if (list[i].shareId === shareId) {
+      rows.push(list[i]);
+    }
+  }
+  return rows;
+}
+
+function shareCase(w) {
+  var base = "https://eization.com/";
+  var week = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"] };
+  var url = w.shareExerciseUrl(week, base);
+  var read = url ? w.readShareHash(url.slice(url.indexOf("#"))) : null;
+  check("share link round trip", !!(read && read.shareId === "teach001" && read.name === "Week" && read.bars === 4 && read.lines.length === 2 && read.lines[0] === "Dm7 G7"));
+  check("share lives in edit", !!w.document.getElementById("editShare"));
+  check("share prompt is in the page", !!w.document.getElementById("shareAsk"));
+  check("intro edit line stays", w.I18N.en["hello.edit"] === "Edit builds your own list." && w.I18N.es["hello.edit"] === "Editar arma tu propia lista.");
+  var before = w.listDeskExercises().length;
+  w.location.hash = url.slice(url.indexOf("#"));
+  w.offerSharedExercise();
+  check("share prompt is up", w.document.getElementById("shareAsk").hidden === false);
+  check("share add is the action", w.document.getElementById("shareAdd").hidden === false);
+  var added = w.confirmShareAdd();
+  var rows = shareRows(w, "teach001");
+  check("add keeps the other exercises", added === true && w.listDeskExercises().length === before + 1 && rows.length === 1);
+  check("add drops the hash", w.location.hash.indexOf("#s=") < 0);
+  check("add leaves the prompt", w.document.getElementById("shareAsk").hidden === true);
+  check("add holds the intro", w.shareBlocksHello() === true);
+  var count = w.listDeskExercises().length;
+  w.location.hash = url.slice(url.indexOf("#"));
+  w.offerSharedExercise();
+  check("exact match does not add", w.listDeskExercises().length === count && w.document.getElementById("shareAsk").hidden === true);
+  check("exact match drops the hash", w.location.hash.indexOf("#s=") < 0);
+  var changed = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "C6"] };
+  var url2 = w.shareExerciseUrl(changed, base);
+  w.location.hash = url2.slice(url2.indexOf("#"));
+  w.offerSharedExercise();
+  check("changed list asks to add beside", w.document.getElementById("shareAddToo").hidden === false && w.document.getElementById("shareKeep").hidden === false);
+  var oldLine = rows[0].lines[1];
+  w.confirmShareAdd();
+  rows = shareRows(w, "teach001");
+  check("old lines remain", w.getDeskExercise(rows[0].id).lines[1] === oldLine && rows.length === 2);
+  var second = rows[0].lines[1] === "C6" ? rows[0] : rows[1];
+  var first = second === rows[0] ? rows[1] : rows[0];
+  w.location.hash = url.slice(url.indexOf("#"));
+  w.offerSharedExercise();
+  check("old link selects the old row", w.currentExerciseId === first.id);
+  w.location.hash = url2.slice(url2.indexOf("#"));
+  w.offerSharedExercise();
+  check("new link selects the new row", w.currentExerciseId === second.id);
+  w.updateDeskExercise(first.id, { name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"] });
+  check("update keeps shareId", w.getDeskExercise(first.id).shareId === "teach001");
+  var parsed = w.parseDeskExercisesBackup(JSON.stringify(w.packDeskExercises()));
+  var kept = 0;
+  var i;
+  for (i = 0; i < parsed.exercises.length; i++) {
+    if (parsed.exercises[i].shareId === "teach001") {
+      kept++;
+    }
+  }
+  check("backup keeps both versions", kept === 2);
+  var many = [];
+  for (i = 0; i < 200; i++) {
+    many.push("Cmaj7 Dm7 G7 Cmaj7 line " + i + " extra words to grow the link");
+  }
+  check("a long list is not a link", w.shareExerciseUrl({ v: 1, id: "teach001", name: "Scales", bars: 1, lines: many }, base) === "");
+  var guard = 0;
+  while (w.listDeskExercises().length < w.DESK_EXERCISE_CAP && guard < 50) {
+    if (!w.createDeskExercise({ name: "Pad", bars: 1, lines: ["G"] })) {
+      break;
+    }
+    guard++;
+  }
+  var fullUrl = w.shareExerciseUrl({ v: 1, id: "full0001", name: "Extra", bars: 1, lines: ["A"] }, base);
+  w.location.hash = fullUrl.slice(fullUrl.indexOf("#"));
+  w.offerSharedExercise();
+  var hashBefore = w.location.hash;
+  check("a full menu refuses", w.confirmShareAdd() === false);
+  check("a full menu keeps the hash", w.location.hash === hashBefore && w.location.hash.indexOf("#s=") === 0);
+  check("a full menu keeps the prompt", w.document.getElementById("shareAsk").hidden === false && w.document.getElementById("shareAskNote").hidden === false);
+  w.dismissShareAsk();
+  check("not now drops the hash", w.location.hash.indexOf("#s=") < 0);
+  w.location.hash = "#s=not-valid";
+  w.offerSharedExercise();
+  check("a bad hash is dropped", w.location.hash.indexOf("#s=") < 0);
+  check("address still opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
+}
+
+function chatCase(w) {
+  var upload = w.document.getElementById("editOpen");
+  var share = w.document.getElementById("editShare");
+  var hint = w.document.getElementById("editHintLine");
+  var send = w.document.getElementById("editSend");
+  var between = false;
+  var node = upload ? upload.nextSibling : null;
+  var prompt;
+  var shortGpt;
+  var shortClaude;
+  var longText;
+  var longGpt;
+  var longClaude;
+  var empty;
+  var desk;
+  while (node && node !== share) {
+    if (node.nodeType === 1 && (node.id === "editHintLine" || node.id === "editShareHint")) {
+      between = true;
+    }
+    node = node.nextSibling;
+  }
+  check("ask lives in edit", !!w.document.getElementById("editAsk"));
+  check("share still lives in edit", !!share);
+  check("hint sits under the send row", !!(hint && send && hint.previousElementSibling === send));
+  check("hint is not between share and upload", !between);
+  prompt = w.buildChatPrompt({ name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"], lang: "en" });
+  check("prompt carries the lines", prompt.indexOf("Dm7 G7") >= 0 && prompt.indexOf("Cmaj7") >= 0 && prompt.indexOf("one example per line") >= 0);
+  shortGpt = w.chatAskUrl(prompt, "chatgpt");
+  shortClaude = w.chatAskUrl(prompt, "claude");
+  check("short chatgpt address fits", !!(shortGpt && shortGpt.copy === false && shortGpt.href.indexOf("https://chatgpt.com/?q=") === 0 && shortGpt.href.length <= 2000));
+  check("short claude address fits", !!(shortClaude && shortClaude.copy === false && shortClaude.href.indexOf("https://claude.ai/new?q=") === 0 && shortClaude.href.length <= 2000));
+  longText = new Array(800).join("line ");
+  longGpt = w.chatAskUrl(longText, "chatgpt");
+  longClaude = w.chatAskUrl(longText, "claude");
+  check("long question is copied", !!(longGpt && longGpt.copy === true && longGpt.href === "https://chatgpt.com/"));
+  check("long claude question is copied", !!(longClaude && longClaude.copy === true && longClaude.href === "https://claude.ai/new"));
+  empty = w.buildChatPrompt({ name: "New", bars: 1, lines: [], lang: "en" });
+  check("empty list still asks", empty.length > 0 && empty.indexOf("one example per line") >= 0);
+  desk = JSON.stringify(w.listDeskExercises());
+  w.document.getElementById("editAsk").click();
+  check("opening the menu does not write the desk", JSON.stringify(w.listDeskExercises()) === desk);
+  check("chat menu opens", w.document.getElementById("editAskMenu").hidden === false);
+  check("hint asks to paste", w.document.getElementById("editHintLine").textContent === w.t("edit.askHint"));
+  w.document.getElementById("editAsk").click();
+  check("chat menu closes", w.document.getElementById("editAskMenu").hidden === true);
+  check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own list." && w.I18N.es["hello.edit"] === "Editar arma tu propia lista.");
 }
 
 function deskRoundTrip(w) {

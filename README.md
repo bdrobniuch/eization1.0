@@ -49,11 +49,15 @@ The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhyt
 
 When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. Add the Spanish page under `es/`, link it from `es/practice.html`, and list that URL too. `hreflang` on each page points at the other language. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
 
+Share in Edit copies a link to the open exercise. The link is a `#s=` hash on that page (`https://eization.com/` or `https://eization.com/es/`). Opening it can add that exercise on this device. An exact match selects the stored copy. A changed list can be added beside it. Nothing is replaced. A list that does not fit in the link stays on this device, and Download this list still writes the `.eiz` file.
+
+Ask a chat opens the open exercise in an outside chat. The reply is pasted into the box. The site does not call a model.
+
 On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download this list and Upload copy the open list to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 
 ## Saved on this device
 
-`eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, and `deletedSeeds`. It does not store whether the metronome is running.
+`eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, and `deletedSeeds`. A shared exercise also stores `shareId` on its row. Two rows may share one `shareId`. It does not store whether the metronome is running.
 
 `eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in About) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
 

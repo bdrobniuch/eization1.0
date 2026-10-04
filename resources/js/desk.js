@@ -139,7 +139,90 @@ function normalizeDeskExercise(raw) {
   if (typeof raw.seedId === "string" && raw.seedId) {
     record.seedId = raw.seedId;
   }
+  var shareId = cleanShareId(raw.shareId);
+  if (shareId) {
+    record.shareId = shareId;
+  }
   return record;
+}
+
+function cleanShareId(value) {
+  var text = String(value || "");
+  if (!/^[a-z0-9]{8}$/.test(text)) {
+    return "";
+  }
+  return text;
+}
+
+function shareLinesMatch(a, b) {
+  if (!a || !b || a.length !== b.length) {
+    return false;
+  }
+  var i;
+  for (i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function shareSnapshot(part) {
+  if (!part) {
+    return null;
+  }
+  var shareId = cleanShareId(part.id || part.shareId);
+  var lines = cleanDeskLines(part.lines);
+  if (!shareId || !lines.length) {
+    return null;
+  }
+  return {
+    shareId: shareId,
+    name: cleanDeskName(part.name, t("edit.defaultName")),
+    bars: clampDeskInt(part.bars, 1, 16, 1),
+    lines: lines
+  };
+}
+
+function findDeskShare(part) {
+  var snap = shareSnapshot(part);
+  var out = { exact: null, related: null, snapshot: snap };
+  if (!snap) {
+    return out;
+  }
+  var list = ensureDeskExercises();
+  var i;
+  for (i = 0; i < list.length; i++) {
+    var row = list[i];
+    if (cleanShareId(row.shareId) !== snap.shareId) {
+      continue;
+    }
+    if (!out.related) {
+      out.related = row;
+    }
+    if (row.name === snap.name && row.bars === snap.bars && shareLinesMatch(row.lines, snap.lines)) {
+      out.exact = row;
+      break;
+    }
+  }
+  return out;
+}
+
+function deskShareOffer(part) {
+  var found = findDeskShare(part);
+  if (!found.snapshot) {
+    return { kind: "bad", full: false, exact: null, related: null };
+  }
+  if (found.exact) {
+    return { kind: "exact", full: false, exact: found.exact, related: found.related };
+  }
+  var full = ensureDeskExercises().length >= DESK_EXERCISE_CAP;
+  return {
+    kind: found.related ? "changed" : "new",
+    full: full,
+    exact: null,
+    related: found.related
+  };
 }
 
 function seedFromCatalog(seedId) {
@@ -346,6 +429,16 @@ function updateDeskExercise(id, part) {
     if (list[i].seedId) {
       next.seedId = list[i].seedId;
     }
+    var shareId = cleanShareId(list[i].shareId);
+    if (part.shareId != null) {
+      var nextShare = cleanShareId(part.shareId);
+      if (nextShare) {
+        shareId = nextShare;
+      }
+    }
+    if (shareId) {
+      next.shareId = shareId;
+    }
     list[i] = next;
     found = next;
     break;
@@ -378,6 +471,10 @@ function createDeskExercise(part) {
     bars: clampDeskInt(part.bars, 1, 16, 1),
     lines: lines
   };
+  var shareId = cleanShareId(part.shareId);
+  if (shareId) {
+    row.shareId = shareId;
+  }
   list.push(row);
   data.exercises = list;
   data.exercise = row.id;
@@ -400,6 +497,9 @@ function packDeskExercises() {
     };
     if (list[i].seedId) {
       row.seedId = list[i].seedId;
+    }
+    if (list[i].shareId) {
+      row.shareId = list[i].shareId;
     }
     exercises.push(row);
   }
@@ -463,6 +563,10 @@ function parseDeskExercisesBackup(text) {
       row.seedId = raw.seedId;
       row.id = deskIdForSeed(raw.seedId);
       seenSeed[raw.seedId] = true;
+    }
+    var shareId = cleanShareId(raw.shareId);
+    if (shareId) {
+      row.shareId = shareId;
     }
     list.push(row);
   }

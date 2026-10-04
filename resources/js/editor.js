@@ -286,6 +286,7 @@ function editorCloseQuiet() {
   clearEditorNotice();
   disarmEditorDelete();
   disarmEditorOpen();
+  editorAskMenu(false);
   setEditorCommitsEnabled(true);
   syncEditorCommitLabels();
   if (typeof renderPreview === "function") {
@@ -500,6 +501,7 @@ function editorOpenSheet(options) {
   setEditorCommitsEnabled(true);
   syncEditorCommitLabels();
   clearEditorNotice();
+  editorAskMenu(false);
   document.getElementById("textdiv").classList.add("is-open");
   document.body.classList.add("is-editing");
   setEditButton(true);
@@ -784,6 +786,7 @@ function editorApplyLanguage() {
   var trimmed;
   setEditButton(editorIsOpen());
   syncEditorCommitLabels();
+  syncEditHintLine();
   for (i = 0; i < buttons.length && i < EDITOR_SYMBOLS.length; i++) {
     buttons[i].setAttribute("aria-label", t(EDITOR_SYMBOLS[i].key));
     buttons[i].title = t(EDITOR_SYMBOLS[i].key);
@@ -969,6 +972,273 @@ function buildEditorSymbols() {
   }
 }
 
+var SHARE_URL_MAX = 8000;
+
+function newShareId() {
+  var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+  var out = "";
+  var i;
+  if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+    var bytes = new Uint8Array(8);
+    window.crypto.getRandomValues(bytes);
+    for (i = 0; i < 8; i++) {
+      out += alphabet[bytes[i] % 36];
+    }
+    return out;
+  }
+  for (i = 0; i < 8; i++) {
+    out += alphabet[Math.floor(Math.random() * 36)];
+  }
+  return out;
+}
+
+function shareEncode(text) {
+  return btoa(unescape(encodeURIComponent(text))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function shareDecode(text) {
+  var pad = String(text || "").replace(/-/g, "+").replace(/_/g, "/");
+  while (pad.length % 4) {
+    pad += "=";
+  }
+  return decodeURIComponent(escape(atob(pad)));
+}
+
+function shareHashFromPayload(payload) {
+  if (!payload || payload.v !== 1 || typeof shareSnapshot !== "function") {
+    return "";
+  }
+  var snap = shareSnapshot({
+    id: payload.id,
+    name: payload.name,
+    bars: payload.bars,
+    lines: payload.lines
+  });
+  if (!snap) {
+    return "";
+  }
+  return "#s=" + shareEncode(JSON.stringify({
+    v: 1,
+    id: snap.shareId,
+    name: snap.name,
+    bars: snap.bars,
+    lines: snap.lines
+  }));
+}
+
+function sharePageBase() {
+  var link = document.querySelector("link[rel='canonical']");
+  var url = link && link.href ? link.href : window.location.href;
+  return String(url).split("#")[0].split("?")[0];
+}
+
+function shareExerciseUrl(payload, base) {
+  var hash = shareHashFromPayload(payload);
+  if (!hash) {
+    return "";
+  }
+  var root = base == null ? sharePageBase() : String(base);
+  var url = root + hash;
+  if (url.length > SHARE_URL_MAX) {
+    return "";
+  }
+  return url;
+}
+
+function readShareHash(hash) {
+  var text = String(hash || "");
+  if (text.charAt(0) === "#") {
+    text = text.slice(1);
+  }
+  if (text.indexOf("s=") !== 0) {
+    return null;
+  }
+  var json;
+  try {
+    json = JSON.parse(shareDecode(text.slice(2)));
+  } catch (err) {
+    return null;
+  }
+  if (!json || json.v !== 1 || typeof shareSnapshot !== "function") {
+    return null;
+  }
+  return shareSnapshot({
+    id: json.id,
+    name: json.name,
+    bars: json.bars,
+    lines: json.lines
+  });
+}
+
+var CHAT_URL_MAX = 2000;
+
+var CHAT_TARGETS = {
+  chatgpt: { bare: "https://chatgpt.com/", query: "https://chatgpt.com/?q=" },
+  claude: { bare: "https://claude.ai/new", query: "https://claude.ai/new?q=" }
+};
+
+function buildChatPrompt(spec) {
+  var lang = spec && spec.lang === "es" ? "es" : "en";
+  var name = spec && spec.name ? String(spec.name) : "";
+  var bars = spec && spec.bars ? spec.bars : 1;
+  var lines = spec && spec.lines ? spec.lines : [];
+  var body = [];
+  var i;
+  if (lang === "es") {
+    body.push("Ayúdame a escribir un ejercicio de eization. Cada línea es un ejemplo. Un punto medio (·) separa una imagen o unos acordes de un texto. Mantén cada línea corta. Responde solo con los ejemplos, uno por línea. No añadas un título, una cabecera # eization, ni un enlace #s=.");
+    body.push("");
+    body.push("Nombre: " + name);
+    body.push("Compases: " + bars);
+  } else {
+    body.push("Help me write an eization exercise. Each line is one example. A middle dot (·) splits a picture or chords from a caption. Keep each line short. Reply with only the examples, one example per line. Do not add a title, a # eization header, or a #s= link.");
+    body.push("");
+    body.push("Name: " + name);
+    body.push("Bars: " + bars);
+  }
+  body.push("");
+  if (lines.length) {
+    body.push(lang === "es" ? "Ejemplos actuales:" : "Current examples:");
+    for (i = 0; i < lines.length; i++) {
+      body.push(String(lines[i]));
+    }
+  } else {
+    body.push(lang === "es" ? "El recuadro está vacío. Escribe los ejemplos." : "The box is empty. Write the examples.");
+  }
+  return body.join("\n");
+}
+
+function chatAskUrl(prompt, target) {
+  var spec = CHAT_TARGETS[target] || CHAT_TARGETS.chatgpt;
+  var href = spec.query + encodeURIComponent(prompt || "");
+  if (href.length > CHAT_URL_MAX) {
+    return { href: spec.bare, copy: true };
+  }
+  return { href: href, copy: false };
+}
+
+function syncEditHintLine() {
+  var line = document.getElementById("editHintLine");
+  var menu = document.getElementById("editAskMenu");
+  if (!line) {
+    return;
+  }
+  line.textContent = t(menu && !menu.hidden ? "edit.askHint" : "edit.shareHint");
+}
+
+function editorAskMenu(open) {
+  var menu = document.getElementById("editAskMenu");
+  var button = document.getElementById("editAsk");
+  if (!menu || !button) {
+    return;
+  }
+  menu.hidden = !open;
+  button.setAttribute("aria-expanded", open ? "true" : "false");
+  syncEditHintLine();
+}
+
+function editorOpenChat(target) {
+  var lines;
+  var bars;
+  var prompt;
+  var ask;
+  if (!editorIsOpen()) {
+    return;
+  }
+  lines = editorLinesFrom(document.getElementById("allEdit").value);
+  if (lines.length > 500) {
+    editorNotice(t("edit.tooMany"));
+    return;
+  }
+  bars = clampEditorBars(document.getElementById("editBars").value);
+  document.getElementById("editBars").value = String(bars);
+  prompt = buildChatPrompt({
+    name: editorNameValue(),
+    bars: bars,
+    lines: lines,
+    lang: typeof eizationLang === "string" ? eizationLang : "en"
+  });
+  ask = chatAskUrl(prompt, target);
+  editorAskMenu(false);
+  window.open(ask.href, "_blank", "noopener");
+  if (!ask.copy || typeof copySupportText !== "function") {
+    return;
+  }
+  copySupportText(prompt).then(function () {
+    editorNotice(t("edit.askCopied"));
+  }, function () {
+    editorNotice(t("edit.askCopyFail"));
+  });
+}
+
+function editorShare() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  var lines = editorLinesFrom(document.getElementById("allEdit").value);
+  if (!lines.length) {
+    editorNotice(t("edit.oneLine"));
+    return;
+  }
+  if (lines.length > 500) {
+    editorNotice(t("edit.tooMany"));
+    return;
+  }
+  var bars = clampEditorBars(document.getElementById("editBars").value);
+  document.getElementById("editBars").value = String(bars);
+  var shareId = "";
+  var saved = null;
+  if (!editorIsCreateMode() && editorDraft.id && typeof getDeskExercise === "function") {
+    saved = getDeskExercise(editorDraft.id);
+  }
+  if (saved && saved.shareId) {
+    shareId = saved.shareId;
+  } else {
+    shareId = newShareId();
+  }
+  var snap = typeof shareSnapshot === "function"
+    ? shareSnapshot({ id: shareId, name: editorNameValue(), bars: bars, lines: lines })
+    : null;
+  var url = snap ? shareExerciseUrl({ v: 1, id: snap.shareId, name: snap.name, bars: snap.bars, lines: snap.lines }) : "";
+  if (!url) {
+    editorNotice(t("edit.shareLong"));
+    return;
+  }
+  if (saved && !saved.shareId && typeof updateDeskExercise === "function") {
+    updateDeskExercise(saved.id, { shareId: shareId });
+  }
+  var copyOk = false;
+  var sheet = false;
+  if (navigator.share) {
+    sheet = true;
+    navigator.share({
+      title: snap.name || "eization",
+      text: t("share.text"),
+      url: url
+    }).catch(function (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      if (!copyOk && typeof showDeskNote === "function") {
+        showDeskNote(t("share.fail"));
+      }
+    });
+  }
+  if (typeof copySupportText === "function") {
+    copySupportText(url).then(function () {
+      copyOk = true;
+      if (typeof showDeskNote === "function") {
+        showDeskNote(t("share.copied"));
+      }
+    }, function () {
+      if (!sheet && typeof showDeskNote === "function") {
+        showDeskNote(t("share.fail"));
+      }
+    });
+  } else if (!sheet && typeof showDeskNote === "function") {
+    showDeskNote(t("share.fail"));
+  }
+}
+
 function initEditor() {
   buildEditorSymbols();
   var edit = document.getElementById("edit");
@@ -981,7 +1251,19 @@ function initEditor() {
   document.getElementById("editDelete").addEventListener("click", editorDelete);
   document.getElementById("editClearList").addEventListener("click", clearEditorList);
   document.getElementById("editSave").addEventListener("click", editorSaveFile);
+  document.getElementById("editShare").addEventListener("click", editorShare);
+  document.getElementById("editAsk").addEventListener("click", function () {
+    var menu = document.getElementById("editAskMenu");
+    editorAskMenu(!!(menu && menu.hidden));
+  });
+  document.getElementById("editAskChatgpt").addEventListener("click", function () {
+    editorOpenChat("chatgpt");
+  });
+  document.getElementById("editAskClaude").addEventListener("click", function () {
+    editorOpenChat("claude");
+  });
   document.getElementById("editOpen").addEventListener("click", editorAskOpen);
+  syncEditHintLine();
   document.getElementById("editFile").addEventListener("change", function () {
     var input = this;
     var file = input.files && input.files[0];

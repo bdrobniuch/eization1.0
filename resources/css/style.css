@@ -470,6 +470,51 @@ footer {
     display: none !important;
 }
 
+#shareAsk {
+    position: fixed;
+    left: 50%;
+    top: 1.6vmin;
+    z-index: 41;
+    width: min(92vw, 520px);
+    margin: 0;
+    padding: 1.2vmin 1.6vmin;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    font-size: clamp(14px, 2.8vmin, 20px);
+    pointer-events: auto;
+    box-sizing: border-box;
+}
+
+#shareAsk[hidden],
+#shareAsk [hidden] {
+    display: none !important;
+}
+
+#shareAsk p {
+    margin: 0 0 0.6vmin;
+}
+
+#shareAskActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#shareAskActions button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
 #status {
   display: flex;
   align-items: center;
@@ -1484,8 +1529,16 @@ body.is-editing #counter {
   -webkit-overflow-scrolling: touch;
 }
 
+#editMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
 #editHead,
-#editMeta,
+#editWrite,
+#editSend,
 #editNameRow,
 #editDanger {
   display: flex;
@@ -1500,11 +1553,29 @@ body.is-editing #counter {
   margin: 0;
 }
 
-#editHint {
+#editHint,
+#editHintLine {
   flex: 1 1 160px;
   font-size: 14px;
   line-height: 1.35;
   opacity: 0.9;
+}
+
+#editHintLine {
+  flex: none;
+  margin: 0;
+}
+
+#editAskMenu {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+#editAskMenu[hidden] {
+  display: none !important;
 }
 
 #editCount {
@@ -1536,6 +1607,10 @@ body.is-editing #counter {
 #editDuplicate,
 #editClearList,
 #editSave,
+#editShare,
+#editAsk,
+#editAskChatgpt,
+#editAskClaude,
 #editOpen,
 #editDelete {
   flex: 0 0 auto;

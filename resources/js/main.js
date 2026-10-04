@@ -436,6 +436,165 @@ function clearExerciseQuery() {
   } catch (err) {}
 }
 
+var shareOffer = null;
+var shareAddedThisVisit = false;
+
+function shareBlocksHello() {
+  if (shareAddedThisVisit) {
+    return true;
+  }
+  var bar = document.getElementById("shareAsk");
+  return !!(bar && !bar.hidden);
+}
+
+function clearShareHash() {
+  if (!window.history || typeof window.history.replaceState !== "function") {
+    return;
+  }
+  try {
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  } catch (err) {}
+}
+
+function hideShareAsk() {
+  var bar = document.getElementById("shareAsk");
+  if (bar) {
+    bar.hidden = true;
+  }
+}
+
+function showShareAsk(kind, full, snap) {
+  shareOffer = snap;
+  var bar = document.getElementById("shareAsk");
+  if (!bar) {
+    return;
+  }
+  var name = document.getElementById("shareAskName");
+  if (name) {
+    name.textContent = snap.name;
+  }
+  var add = document.getElementById("shareAdd");
+  var addToo = document.getElementById("shareAddToo");
+  var keep = document.getElementById("shareKeep");
+  if (add) {
+    add.hidden = kind !== "new";
+  }
+  if (addToo) {
+    addToo.hidden = kind !== "changed";
+  }
+  if (keep) {
+    keep.hidden = kind !== "changed";
+  }
+  var note = document.getElementById("shareAskNote");
+  if (note) {
+    note.hidden = !full;
+    note.textContent = full ? t("edit.removeFirst") : "";
+  }
+  bar.hidden = false;
+}
+
+function finishShareSelect(id, message) {
+  clearShareHash();
+  hideShareAsk();
+  shareOffer = null;
+  if (typeof closeAbout === "function" && typeof aboutIsOpen === "function" && aboutIsOpen()) {
+    closeAbout();
+  }
+  currentExerciseId = id;
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  if (typeof SelectExercise === "function") {
+    SelectExercise();
+  }
+  if (message && typeof showDeskNote === "function") {
+    showDeskNote(message);
+  }
+}
+
+function confirmShareAdd() {
+  if (!shareOffer || typeof createDeskExercise !== "function" || typeof findDeskShare !== "function") {
+    return false;
+  }
+  var found = findDeskShare(shareOffer);
+  if (found.exact) {
+    finishShareSelect(found.exact.id, t("share.already"));
+    return true;
+  }
+  if (typeof listDeskExercises === "function" && listDeskExercises().length >= DESK_EXERCISE_CAP) {
+    var note = document.getElementById("shareAskNote");
+    if (note) {
+      note.hidden = false;
+      note.textContent = t("edit.removeFirst");
+    }
+    return false;
+  }
+  var created = createDeskExercise({
+    name: shareOffer.name,
+    bars: shareOffer.bars,
+    lines: shareOffer.lines,
+    shareId: shareOffer.shareId
+  });
+  if (!created) {
+    var failed = document.getElementById("shareAskNote");
+    if (failed) {
+      failed.hidden = false;
+      failed.textContent = t("edit.removeFirst");
+    }
+    return false;
+  }
+  shareAddedThisVisit = true;
+  finishShareSelect(created.id, t("edit.added"));
+  return true;
+}
+
+function keepShareExercise() {
+  if (!shareOffer || typeof findDeskShare !== "function") {
+    return;
+  }
+  var found = findDeskShare(shareOffer);
+  var row = found.related || found.exact;
+  if (!row) {
+    dismissShareAsk();
+    return;
+  }
+  finishShareSelect(row.id, "");
+}
+
+function dismissShareAsk() {
+  clearShareHash();
+  hideShareAsk();
+  shareOffer = null;
+  if (typeof helloTouched !== "undefined") {
+    helloTouched = false;
+  }
+  if (typeof maybeHello === "function") {
+    maybeHello();
+  }
+}
+
+function offerSharedExercise() {
+  var hash = window.location.hash || "";
+  if (hash.indexOf("#s=") !== 0) {
+    return;
+  }
+  var snap = typeof readShareHash === "function" ? readShareHash(hash) : null;
+  if (!snap || typeof deskShareOffer !== "function") {
+    clearShareHash();
+    return;
+  }
+  var offer = deskShareOffer(snap);
+  if (offer.kind === "bad") {
+    clearShareHash();
+    return;
+  }
+  if (offer.kind === "exact" && offer.exact) {
+    finishShareSelect(offer.exact.id, t("share.already"));
+    return;
+  }
+  showShareAsk(offer.kind, offer.full, snap);
+}
+
 function openExerciseFromAddress() {
   var seed = exerciseSeedFromQuery(window.location.search);
   if (!seed || typeof menuOrder === "undefined" || menuOrder.indexOf(seed) < 0) {
@@ -649,6 +808,23 @@ function init() {
   document.addEventListener("pointerdown", unlockAudio);
   renderGroove();
   SelectExercise();
+  var shareAdd = document.getElementById("shareAdd");
+  var shareAddToo = document.getElementById("shareAddToo");
+  var shareKeep = document.getElementById("shareKeep");
+  var shareNotNow = document.getElementById("shareNotNow");
+  if (shareAdd) {
+    shareAdd.addEventListener("click", confirmShareAdd);
+  }
+  if (shareAddToo) {
+    shareAddToo.addEventListener("click", confirmShareAdd);
+  }
+  if (shareKeep) {
+    shareKeep.addEventListener("click", keepShareExercise);
+  }
+  if (shareNotNow) {
+    shareNotNow.addEventListener("click", dismissShareAsk);
+  }
+  offerSharedExercise();
   startMetronome();
   layoutFrame();
   deskReady = true;

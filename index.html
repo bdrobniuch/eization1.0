@@ -110,6 +110,17 @@
         </div>
     </div>
     <p id="deskNote" hidden role="status">Kept on this device.</p>
+    <div id="shareAsk" hidden>
+        <p id="shareAskName"></p>
+        <p id="shareAskLead" data-i18n="share.text">Each example comes up once, in time with the metronome.</p>
+        <p id="shareAskNote" hidden></p>
+        <div id="shareAskActions">
+            <button type="button" id="shareAdd" data-i18n="share.add">Add</button>
+            <button type="button" id="shareAddToo" hidden data-i18n="share.addToo">Add this one too</button>
+            <button type="button" id="shareKeep" hidden data-i18n="share.keep" data-i18n-title="share.keepTitle" title="Keep the one on this device">Keep</button>
+            <button type="button" id="shareNotNow" data-i18n="share.notNow">Not now</button>
+        </div>
+    </div>
     <div id="exercisePanel" hidden>
         <div id="exerciseMenu" data-i18n-aria="menu.kicker" aria-label="Exercise"></div>
     </div>
@@ -126,18 +137,29 @@
         </div>
         <p id="editError" hidden role="status" aria-live="polite"></p>
         <div id="editMeta">
-            <p id="editCount">0 examples</p>
-            <div class="stepper stepper-sm" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
-                <span class="step-label" data-i18n="edit.bars">Bars</span>
-                <button type="button" class="step-down" data-i18n-aria="edit.fewerBars" aria-label="Fewer bars" data-i18n-title="edit.fewerBars" title="Fewer bars">−</button>
-                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
-                <button type="button" class="step-up" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
+            <div id="editWrite">
+                <p id="editCount">0 examples</p>
+                <div class="stepper stepper-sm" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
+                    <span class="step-label" data-i18n="edit.bars">Bars</span>
+                    <button type="button" class="step-down" data-i18n-aria="edit.fewerBars" aria-label="Fewer bars" data-i18n-title="edit.fewerBars" title="Fewer bars">−</button>
+                    <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
+                    <button type="button" class="step-up" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
+                </div>
+                <button type="button" id="editDuplicate" data-i18n-title="edit.duplicateTitle" title="Copy the line at the cursor onto the next line" data-i18n="edit.duplicate">Duplicate line</button>
+                <button type="button" id="editClearList" data-i18n-title="edit.clearTitle" title="Clear all examples in this exercise" data-i18n="edit.clear">Clear list</button>
             </div>
-            <button type="button" id="editDuplicate" data-i18n-title="edit.duplicateTitle" title="Copy the line at the cursor onto the next line" data-i18n="edit.duplicate">Duplicate line</button>
-            <button type="button" id="editClearList" data-i18n-title="edit.clearTitle" title="Clear all examples in this exercise" data-i18n="edit.clear">Clear list</button>
-            <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this list as an .eiz file" data-i18n="edit.download">Download this list</button>
-            <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box" data-i18n="edit.upload">Upload</button>
-            <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
+            <div id="editSend">
+                <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this list as an .eiz file" data-i18n="edit.download">Download this list</button>
+                <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box" data-i18n="edit.upload">Upload</button>
+                <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
+                <button type="button" id="editShare" data-i18n-title="edit.shareTitle" title="Copy a link to this exercise" data-i18n="edit.share">Share</button>
+                <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in a chat" data-i18n="edit.ask">Ask a chat</button>
+                <div id="editAskMenu" hidden>
+                    <button type="button" id="editAskChatgpt" data-i18n="edit.askChatgpt">ChatGPT</button>
+                    <button type="button" id="editAskClaude" data-i18n="edit.askClaude">Claude</button>
+                </div>
+            </div>
+            <p id="editHintLine">Share copies a link. Someone can open this exercise in eization.</p>
         </div>
         <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.areaAria" aria-label="Examples, one per line" data-i18n-placeholder="edit.placeholder" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
         <p id="editPreview" class="is-empty"></p>
@@ -178,7 +200,7 @@
                 <p><span data-i18n="how.ex1">Choose an exercise at the top. The large text is the example. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span><span data-i18n="how.ex2"> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span><span data-i18n="how.ex3"> Reset starts that exercise again.</span></p>
                 <button type="button" class="about-show" data-hello="exercise" data-i18n="about.show">Show me</button>
                 <h2 data-i18n="how.editTitle">Edit</h2>
-                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span data-i18n="how.edit"> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back. This device can Download backup or Upload backup for every exercise.</span></p>
+                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span data-i18n="how.edit"> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back. This device can Download backup or Upload backup for every exercise. Share copies a link. Someone can open this exercise in eization. Ask a chat opens this exercise in a chat. Paste the reply into the box, then Update.</span></p>
                 <button type="button" class="about-show" data-hello="edit" data-i18n="about.show">Show me</button>
                 <h2 data-i18n="how.metroTitle">Metronome</h2>
                 <p><span data-i18n="how.metro1">BPM sets the tempo. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span><span data-i18n="how.metro2"> Play starts and stops the click, and keeps time on the example that is showing. The bar above the metronome fills, then the next example comes up. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span><span data-i18n="how.metro3"> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</span></p>
