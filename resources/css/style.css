@@ -13,8 +13,17 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: "Noto Music";
+    src: url("../fonts/Noto_Music/NotoMusic-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+1D100, U+1D10E, U+1D13B-1D13F, U+1D157-1D158, U+1D15D-1D161, U+1D165, U+1D16E-1D16F;
+}
+
 :root {
-    --face-font: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", "Segoe UI Symbol", "Apple Symbols", serif;
+    --face-font: "Noto Music", Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", "Segoe UI Symbol", "Apple Symbols", serif;
     --s: clamp(4px, 1vmin, 7.6px);
     --chrome: max(44px, calc(var(--s) * 11));
 }

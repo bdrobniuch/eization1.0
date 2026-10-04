@@ -23,17 +23,7 @@ var EDITOR_SYMBOLS = [
   { char: "\u00B7", label: "Caption" },
   { char: "\u2612", label: "Played" },
   { char: "\u2610", label: "Open" },
-  { char: "\uD834\uDD00", label: "Staff barline" },
-  { char: "\uD834\uDD5D", label: "Whole note" },
-  { char: "\uD834\uDD5E", label: "Half note" },
-  { char: "\uD834\uDD5F", label: "Quarter note" },
-  { char: "\uD834\uDD60", label: "Eighth note" },
-  { char: "\uD834\uDD61", label: "Sixteenth note" },
-  { char: "\uD834\uDD3B", label: "Whole rest" },
-  { char: "\uD834\uDD3C", label: "Half rest" },
-  { char: "\uD834\uDD3D", label: "Quarter rest" },
-  { char: "\uD834\uDD3E", label: "Eighth rest" },
-  { char: "\uD834\uDD3F", label: "Sixteenth rest" }
+  { char: "\uD834\uDD00", label: "Staff barline" }
 ];
 
 function editorIsOpen() {
