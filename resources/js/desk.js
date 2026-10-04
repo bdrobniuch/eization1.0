@@ -23,7 +23,13 @@ function readDesk() {
 function writeDesk(data) {
   try {
     localStorage.setItem(DESK_KEY, JSON.stringify(data));
-  } catch (err) {}
+    return true;
+  } catch (err) {
+    if (typeof showDeskNote === "function" && typeof t === "function") {
+      showDeskNote(t("desk.keepFail"));
+    }
+    return false;
+  }
 }
 
 function deskState() {
@@ -349,7 +355,9 @@ function updateDeskExercise(id, part) {
   }
   data.exercises = list;
   data.exercise = id;
-  writeDesk(data);
+  if (!writeDesk(data)) {
+    return null;
+  }
   return found;
 }
 
@@ -373,7 +381,9 @@ function createDeskExercise(part) {
   list.push(row);
   data.exercises = list;
   data.exercise = row.id;
-  writeDesk(data);
+  if (!writeDesk(data)) {
+    return null;
+  }
   return row;
 }
 
@@ -485,7 +495,9 @@ function replaceDeskExercises(list) {
   data.exercises = list;
   data.deletedSeeds = deleted;
   data.exercise = list[0].id;
-  writeDesk(data);
+  if (!writeDesk(data)) {
+    return false;
+  }
   currentExerciseId = list[0].id;
   if (typeof buildExerciseMenu === "function") {
     buildExerciseMenu();
@@ -524,7 +536,9 @@ function deleteDeskExercise(id) {
   if (data.exercise === id) {
     data.exercise = next[0].id;
   }
-  writeDesk(data);
+  if (!writeDesk(data)) {
+    return false;
+  }
   return true;
 }
 

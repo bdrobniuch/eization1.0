@@ -888,7 +888,6 @@ function editorSaveAsNew() {
     ? createDeskExercise({ name: name, bars: bars, lines: lines })
     : null;
   if (!created) {
-    editorNotice(t("edit.removeFirst"));
     return;
   }
   currentExerciseId = created.id;
@@ -923,7 +922,6 @@ function editorDelete() {
   var id = editorDraft.id;
   disarmEditorDelete();
   if (typeof deleteDeskExercise !== "function" || !deleteDeskExercise(id)) {
-    editorNotice(t("edit.keepOne"));
     return;
   }
   currentExerciseId = typeof firstDeskExerciseId === "function" ? firstDeskExerciseId() : "";
