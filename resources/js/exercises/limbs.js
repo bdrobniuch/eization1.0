@@ -1,7 +1,7 @@
 function limbGrid(cells) {
   var hit = "&#9746;";
   var rest = "&#9744;";
-  var right = "&#127295;";
+  var right = "&#127361;";
   var left = "&#127291;";
   var bar = "&#119040;";
   var face = bar;
@@ -13,7 +13,7 @@ function limbGrid(cells) {
       face += hit;
     } else if (c === ".") {
       face += rest;
-    } else if (c === "P") {
+    } else if (c === "R") {
       face += right;
     } else if (c === "L") {
       face += left;
@@ -53,10 +53,10 @@ registerExercise({
     limbItem("x..x..x.|..x..x..", "Bossa nova"),
     limbItem("..x..x..|x..x..x.", "Bossa nova (2-3)"),
     limbItem("x.xxx.x.|x.x.....", "Shave and a haircut"),
-    limbTwice("PLPLPLPL", "Singles"),
-    limbTwice("PPLLPPLL", "Doubles"),
-    limbTwice("PLPPLPLL", "Paradiddle"),
-    limbTwice("LPLLPLPP", "Paradiddle (left)"),
-    limbTwice("PLLPLPPL", "Inverted paradiddle")
+    limbTwice("RLRLRLRL", "Singles"),
+    limbTwice("RRLLRRLL", "Doubles"),
+    limbTwice("RLRRLRLL", "Paradiddle"),
+    limbTwice("LRLLRLRR", "Paradiddle (left)"),
+    limbTwice("RLLRLRRL", "Inverted paradiddle")
   ]
 });
