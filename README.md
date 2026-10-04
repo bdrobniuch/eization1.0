@@ -38,7 +38,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/css/style.css` | Practice screen layout |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
-| `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html` | How to practice that kind of line with the metronome |
+| `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html`, `free-play.html` | How to practice that kind of line with the metronome |
 | `resources/css/guide.css` | Layout for `practice.html` and the exercise pages |
 
 ## Adding an exercise

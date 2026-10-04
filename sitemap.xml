@@ -240,4 +240,16 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/rhythms.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/rhythms.html"/>
   </url>
+  <url>
+    <loc>https://eization.com/free-play.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/free-play.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/free-play.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/free-play.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/free-play.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/free-play.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/free-play.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/free-play.html"/>
+  </url>
 </urlset>

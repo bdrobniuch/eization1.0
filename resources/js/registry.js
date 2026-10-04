@@ -13,7 +13,8 @@ var menuOrder = [
   "sonicDevices",
   "texture",
   "motive",
-  "limbs"
+  "limbs",
+  "freePlay"
 ];
 
 function registerExercise(def) {

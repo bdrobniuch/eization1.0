@@ -73,7 +73,9 @@ function run() {
 function exerciseMenu(w) {
   var i;
   var seen = {};
-  check("menu has 13 exercises", w.menuOrder.length === 13);
+  check("menu has 14 exercises", w.menuOrder.length === 14);
+  check("free play is last", w.menuOrder[w.menuOrder.length - 1] === "freePlay");
+  check("free play captions use the middle dot", w.itemToLine(w.exercises.freePlay.items[0]).indexOf(" \u00B7 ") > 0);
   for (i = 0; i < w.menuOrder.length; i++) {
     var id = w.menuOrder[i];
     var ex = w.exercises[id];
