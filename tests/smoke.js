@@ -98,6 +98,7 @@ function exerciseMenu(w) {
   check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");
   check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
   check("practice page is linked from About", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
+  check("books page is linked from About", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
   check("restore defaults lives in About", !!w.document.querySelector("#about #restoreDefaults"));
   check("download all lives in About", !!w.document.querySelector("#about #downloadAllExercises"));
   var packed = w.packDeskExercises();
@@ -214,6 +215,8 @@ function deskRoundTrip(w) {
   check("delete removes one exercise", w.deleteDeskExercise(seedId) === true && w.listDeskExercises().length === beforeDelete - 1);
   stored = JSON.parse(localStorage.getItem("eization-desk"));
   check("deleted seed is remembered", !!(stored && stored.deletedSeeds && stored.deletedSeeds.indexOf(deletedSeed) >= 0));
+  check("address skips a removed exercise", w.exerciseIdFromQuery("?exercise=" + deletedSeed) === "");
+  check("address still opens a kept exercise", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   w.restoreDefaults();
   var after = JSON.parse(localStorage.getItem("eization-desk") || "null");
   var helloGone = localStorage.getItem("eization-hello") === null;

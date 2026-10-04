@@ -1844,9 +1844,19 @@ body.is-about #counter {
   text-align: left;
 }
 
+#aboutNav a:link,
+#aboutNav a:visited,
+#aboutNav a:hover,
+#aboutNav a:active {
+  color: #ffffff;
+  text-decoration: none;
+}
+
 #aboutNav a {
   display: flex;
   align-items: center;
+  align-self: stretch;
+  width: 100%;
   box-sizing: border-box;
   text-decoration: none;
 }

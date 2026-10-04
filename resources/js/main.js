@@ -1,4 +1,5 @@
 var currentExerciseId = "";
+var openedExerciseFromAddress = false;
 var exerciseFaceFocus = null;
 var grooveFocus = null;
 
@@ -402,33 +403,53 @@ function closeGroovePanel() {
   }
 }
 
-function exerciseIdFromQuery(search) {
-  var seed = "";
+function exerciseSeedFromQuery(search) {
   try {
-    seed = new URLSearchParams(search || "").get("exercise") || "";
+    return new URLSearchParams(search || "").get("exercise") || "";
   } catch (err) {
     return "";
   }
+}
+
+function exerciseIdFromQuery(search) {
+  var seed = exerciseSeedFromQuery(search);
   if (!seed || typeof menuOrder === "undefined" || menuOrder.indexOf(seed) < 0) {
     return "";
   }
-  var id = typeof deskIdForSeed === "function" ? deskIdForSeed(seed) : "";
-  if (!id || typeof getDeskExercise !== "function" || !getDeskExercise(id)) {
-    return "";
+  var wanted = typeof deskIdForSeed === "function" ? deskIdForSeed(seed) : "";
+  var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  var i;
+  for (i = 0; i < list.length; i++) {
+    if (list[i].id === wanted || list[i].seedId === seed) {
+      return list[i].id;
+    }
   }
-  return id;
+  return "";
+}
+
+function clearExerciseQuery() {
+  if (!window.history || typeof window.history.replaceState !== "function") {
+    return;
+  }
+  try {
+    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+  } catch (err) {}
 }
 
 function openExerciseFromAddress() {
-  var id = exerciseIdFromQuery(window.location.search);
-  if (!id) {
+  var seed = exerciseSeedFromQuery(window.location.search);
+  if (!seed || typeof menuOrder === "undefined" || menuOrder.indexOf(seed) < 0) {
     return;
   }
-  currentExerciseId = id;
-  if (window.history && typeof window.history.replaceState === "function") {
-    try {
-      window.history.replaceState(null, "", window.location.pathname + window.location.hash);
-    } catch (err) {}
+  var id = exerciseIdFromQuery(window.location.search);
+  clearExerciseQuery();
+  if (id) {
+    currentExerciseId = id;
+    openedExerciseFromAddress = true;
+    return;
+  }
+  if (typeof showDeskNote === "function") {
+    showDeskNote("That exercise is not on this device.");
   }
 }
 
@@ -622,6 +643,9 @@ function init() {
   startMetronome();
   layoutFrame();
   deskReady = true;
+  if (openedExerciseFromAddress && typeof rememberSetup === "function") {
+    rememberSetup();
+  }
   if (typeof maybeHello === "function") {
     setTimeout(maybeHello, 400);
   }

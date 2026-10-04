@@ -70,7 +70,8 @@ p {
     line-height: 1.45;
 }
 
-a {
+a:link,
+a:visited {
     color: #ffffff;
 }
 
@@ -81,6 +82,14 @@ p a {
 a:focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 3px;
+}
+
+.open:link,
+.open:visited,
+.open:hover,
+.open:active {
+    color: #ffffff;
+    text-decoration: none;
 }
 
 .open {
