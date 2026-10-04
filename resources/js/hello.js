@@ -21,13 +21,13 @@ var HELLO_TOUR = [
   {
     id: "note",
     side: "up",
-    text: "Shuffled Practice Ideas, one at a time.",
+    text: "One example at a time.",
     hold: 3400
   },
   {
     id: "next",
     side: "down",
-    text: "Next pulls another Practice Idea.",
+    text: "Next brings the next example.",
     hold: 3200,
     advanceOnShow: true
   },
@@ -40,7 +40,7 @@ var HELLO_TOUR = [
   {
     id: "tempoToggle",
     side: "down",
-    text: "Play runs the metronome and draws the next Practice Idea.",
+    text: "Play runs the metronome. The next example comes up in time.",
     phrase: true,
     advanceAfter: true
   },
@@ -64,13 +64,13 @@ HELLO_TOUR.push(
   {
     id: "note",
     side: "up",
-    text: "Shuffled Practice Ideas, one at a time.",
+    text: "One example at a time.",
     hold: 3400
   },
   {
     id: "next",
     side: "down",
-    text: "Next pulls another Practice Idea.",
+    text: "Next brings the next example.",
     hold: 3200,
     advanceOnShow: true
   },
@@ -95,7 +95,7 @@ HELLO_TOUR.push(
   {
     id: "tempoToggle",
     side: "down",
-    text: "Play runs the metronome and draws the next Practice Idea.",
+    text: "Play runs the metronome. The next example comes up in time.",
     phrase: true,
     advanceAfter: true
   },

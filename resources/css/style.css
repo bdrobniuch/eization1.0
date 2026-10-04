@@ -1795,6 +1795,8 @@ body.is-about #counter {
 .about-show,
 #aboutNav button,
 #supportReveal,
+#sendPractice,
+#shareFeedback,
 .support-path,
 .support-copy,
 #aboutLinks button {
@@ -1926,7 +1928,9 @@ body.is-about #counter {
   display: none !important;
 }
 
-#supportReveal {
+#supportReveal,
+#sendPractice,
+#shareFeedback {
   padding: 0 16px;
 }
 

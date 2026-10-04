@@ -326,7 +326,7 @@ function aboutSharePayload() {
   var url = link && link.href ? link.href : window.location.href;
   return {
     title: "eization",
-    text: "Every Practice Idea gets the same turn, in time with the metronome.",
+    text: "Each example comes up once, in time with the metronome.",
     url: url
   };
 }
@@ -355,6 +355,88 @@ function shareAbout() {
     return;
   }
   copyAboutLink(payload.url);
+}
+
+function openMailDraft(subject, body) {
+  var address = openSeal(SEALED.mail);
+  var link = document.createElement("a");
+  link.href = "mailto:" + address + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function practiceBackupFile() {
+  if (typeof packDeskExercises !== "function" || typeof File !== "function") {
+    return null;
+  }
+  var payload = packDeskExercises();
+  if (!payload || !payload.exercises || !payload.exercises.length) {
+    return null;
+  }
+  return new File(
+    [JSON.stringify(payload, null, 2) + "\n"],
+    "eization-exercises.json",
+    { type: "application/json" }
+  );
+}
+
+function sendPracticeByMail() {
+  if (typeof downloadAllDeskExercises !== "function" || !downloadAllDeskExercises()) {
+    if (typeof showDeskNote === "function") {
+      showDeskNote("No exercises to send.");
+    }
+    return;
+  }
+  openMailDraft(
+    "How I practice",
+    "Hi Błażej,\n\nHere is how I practice.\n\nAttach eization-exercises.json from your downloads.\n"
+  );
+  if (typeof showDeskNote === "function") {
+      showDeskNote("Backup downloaded. Attach it to the draft.");
+  }
+}
+
+function trySharePractice(file) {
+  var payload = {
+    files: [file],
+    text: "Hi Błażej, here is how I practice."
+  };
+  if (!navigator.share || !navigator.canShare) {
+    return false;
+  }
+  try {
+    if (!navigator.canShare(payload)) {
+      return false;
+    }
+    navigator.share(payload).catch(function (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      sendPracticeByMail();
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function sendPractice() {
+  var file = practiceBackupFile();
+  if (!file) {
+    if (typeof showDeskNote === "function") {
+      showDeskNote("No exercises to send.");
+    }
+    return;
+  }
+  if (trySharePractice(file)) {
+    return;
+  }
+  sendPracticeByMail();
+}
+
+function writeFeedback() {
+  openMailDraft("eization", "Hi Błażej,\n\n");
 }
 
 function initAbout() {
@@ -397,6 +479,8 @@ function initAbout() {
     window.open(openSeal(SEALED[link.getAttribute("data-link")]), "_blank", "noopener,noreferrer");
   });
   document.getElementById("aboutEmail").addEventListener("click", revealEmail);
+  document.getElementById("sendPractice").addEventListener("click", sendPractice);
+  document.getElementById("shareFeedback").addEventListener("click", writeFeedback);
   document.getElementById("emailLine").addEventListener("click", function (event) {
     var button = event.target.closest(".support-copy");
     if (!button) {

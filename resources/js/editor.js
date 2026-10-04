@@ -352,7 +352,7 @@ function refreshEditor() {
   var preview = document.getElementById("editPreview");
   var total = visibleLineCount(area.value);
   if (count) {
-    count.textContent = total === 1 ? "1 value" : total + " values";
+    count.textContent = total === 1 ? "1 example" : total + " examples";
   }
   if (!preview) {
     return;

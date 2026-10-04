@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eization. Every Practice Idea gets the same turn, in time with the metronome.</title>
-    <meta name="description" content="The changes you already know get the most reps. The rare ones wait. eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again. You see one idea. Play keeps time. Next brings the next one.">
+    <title>eization. Each example comes up once, in time with the metronome.</title>
+    <meta name="description" content="What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.">
     <meta name="author" content="Błażej Drobniuch">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0C8A50">
@@ -14,16 +14,16 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="eization">
     <meta property="og:locale" content="en_US">
-    <meta property="og:title" content="eization. Every Practice Idea gets the same turn, in time with the metronome.">
-    <meta property="og:description" content="The changes you already know get the most reps. The rare ones wait. eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again. You see one idea. Play keeps time. Next brings the next one.">
+    <meta property="og:title" content="eization. Each example comes up once, in time with the metronome.">
+    <meta property="og:description" content="What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.">
     <meta property="og:url" content="https://bdrobniuch.github.io/eization1.0/">
     <meta property="og:image" content="https://bdrobniuch.github.io/eization1.0/resources/icons/og.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="eization mark: a white quarter note cut out of a green and blue hexagon">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="eization. Every Practice Idea gets the same turn, in time with the metronome.">
-    <meta name="twitter:description" content="The changes you already know get the most reps. The rare ones wait. eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again. You see one idea. Play keeps time. Next brings the next one.">
+    <meta name="twitter:title" content="eization. Each example comes up once, in time with the metronome.">
+    <meta name="twitter:description" content="What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.">
     <meta name="twitter:image" content="https://bdrobniuch.github.io/eization1.0/resources/icons/og.png">
     <link rel="icon" href="./resources/icons/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="./resources/icons/favicon-32.png" sizes="32x32" type="image/png">
@@ -35,7 +35,7 @@
       "@type": "WebApplication",
       "name": "eization",
       "url": "https://bdrobniuch.github.io/eization1.0/",
-      "description": "The changes you already know get the most reps. The rare ones wait. eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again. You see one idea. Play keeps time. Next brings the next one.",
+      "description": "What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.",
       "applicationCategory": "MusicApplication",
       "operatingSystem": "Any",
       "browserRequirements": "Requires JavaScript",
@@ -111,20 +111,20 @@
         </div>
         <p id="editError" hidden role="status" aria-live="polite"></p>
         <div id="editMeta">
-            <p id="editCount">0 values</p>
-            <div class="stepper stepper-sm" title="How many bars each value lasts">
+            <p id="editCount">0 examples</p>
+            <div class="stepper stepper-sm" title="How many bars each example lasts">
                 <span class="step-label">Bars</span>
                 <button type="button" class="step-down" aria-label="Fewer bars" title="Fewer bars">−</button>
-                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Bars each value lasts" title="How many bars each value lasts">
+                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Bars on each example" title="How many bars each example lasts">
                 <button type="button" class="step-up" aria-label="More bars" title="More bars">+</button>
             </div>
             <button type="button" id="editDuplicate" title="Copy the line at the cursor onto the next line">Duplicate line</button>
-            <button type="button" id="editClearList" title="Clear all Practice Ideas in this list">Clear list</button>
+            <button type="button" id="editClearList" title="Clear all examples in this exercise">Clear list</button>
             <button type="button" id="editSave" title="Download this list as an .eiz file">Download this list</button>
             <button type="button" id="editOpen" title="Upload an .eiz file into the box">Upload</button>
             <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
         </div>
-        <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Practice Ideas, one per line" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
+        <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Examples, one per line" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
         <p id="editPreview" class="is-empty"></p>
         <div id="editSymbols"></div>
         <div id="editDanger">
@@ -146,9 +146,9 @@
                     </svg>
                     <span>eization</span>
                 </p>
-                <p>The changes you already know get the most reps. The rare ones wait.</p>
-                <p>eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again.</p>
-                <p>You see one idea. Play keeps time. Next brings the next one.</p>
+                <p>What you already know gets played the most. The rest waits.</p>
+                <p>Each example in the exercise comes up once, with the metronome. Then the order changes.</p>
+                <p>You see one example. Play keeps time. Next brings the next one.</p>
                 <button type="button" id="aboutShare">Share</button>
                 <nav id="aboutNav" aria-label="About">
                     <button type="button" id="aboutGoHow" data-about="how">How it works</button>
@@ -158,17 +158,18 @@
             </div>
             <div id="aboutHow" hidden>
                 <h2>Exercise</h2>
-                <p>Choose an exercise at the top. The large text is the Practice Idea. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span> Reset starts that exercise again.</p>
+                <p>Choose an exercise at the top. The large text is the example. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span> Reset starts that exercise again.</p>
                 <button type="button" class="about-show" data-hello="exercise">Show me</button>
                 <h2>Edit</h2>
                 <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back. This device can Download backup or Upload backup for every exercise.</p>
                 <button type="button" class="about-show" data-hello="edit">Show me</button>
                 <h2>Metronome</h2>
-                <p>BPM sets the tempo. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span> Play starts and stops the click, and keeps time on the Practice Idea that is showing. The bar above the metronome fills, then the next Practice Idea comes up. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</p>
+                <p>BPM sets the tempo. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span> Play starts and stops the click, and keeps time on the example that is showing. The bar above the metronome fills, then the next example comes up. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</p>
                 <button type="button" class="about-show" data-hello="metronome">Show me</button>
             </div>
             <div id="aboutAuthor" hidden>
-                <p>Błażej Drobniuch plays jazz piano in Kraków and Barcelona. He studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics. He plays in clubs and bands, and makes electronic music as Zero Volume. eization is the desk he uses to practice.</p>
+                <p>I’m Błażej Drobniuch. I play jazz piano and guitar. I studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics in Barcelona. I play with my quartet, and I make electronic music as Zero Volume.</p>
+                <p>I made eization because I practice from my own exercises, and I want each example to come up once before the list starts again.</p>
                 <ul id="aboutLinks">
                     <li><button type="button" data-link="site" aria-label="Site" title="Site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
                     <li><button type="button" data-link="linkedin" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM3.2 8.6h3v12.2h-3V8.6zm5.2 0h2.9v1.7h.1c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7v7.4h-3v-6.6c0-1.6 0-3.6-2.2-3.6s-2.5 1.7-2.5 3.5v6.7h-3V8.6z"/></svg></button></li>
@@ -177,6 +178,12 @@
                     <li><button type="button" id="aboutEmail" aria-expanded="false" aria-label="Reveal email" title="Reveal email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
                 </ul>
                 <p id="emailLine" hidden></p>
+                <h2>Your exercises</h2>
+                <p>Send the backup if you want me to see the exercises you kept and the ones you wrote.</p>
+                <button type="button" id="sendPractice" title="Download your exercises and open a mail draft. Attach the file.">Send my lists</button>
+                <h2>A note</h2>
+                <p>If something helps, or gets in the way, write to me.</p>
+                <button type="button" id="shareFeedback" title="Open a mail draft">Share feedback</button>
                 <h2>Support</h2>
                 <p>eization is free. If it helps you practice, you can buy me a coffee.</p>
                 <button type="button" id="supportReveal">Buy me a coffee</button>
@@ -266,22 +273,22 @@
                 </div>
             </div>
             <p class="groove-label">Repeat</p>
-            <div id="repeatRow" title="How many times to play the current value before the next one. A 4-bar exercise at 2 plays 8 bars. Play and rest keep counting through those bars.">
+            <div id="repeatRow" title="How many times to play the current example before the next one. A 4-bar exercise at 2 plays 8 bars. Play and rest keep counting through those bars.">
                 <div class="stepper stepper-sm">
                     <span class="step-label">×</span>
                     <button type="button" class="step-down" aria-label="Repeat fewer times" title="Repeat fewer times">−</button>
-                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Repeat count" title="How many times to play the current value">
+                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Repeat count" title="How many times to play the current example">
                     <button type="button" class="step-up" aria-label="Repeat more times" title="Repeat more times">+</button>
                 </div>
             </div>
             <div id="practiceToggles">
                 <div class="practice-toggle">
                     <p class="groove-label">Count in</p>
-                    <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false" title="Counts one bar before you start, and again before the next value.">One bar</button>
+                    <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false" title="Counts one bar before you start, and again before the next example.">One bar</button>
                 </div>
                 <div class="practice-toggle">
                     <p class="groove-label">Nearby</p>
-                    <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true" title="Shows the next value above and the previous one below.">Show nearby</button>
+                    <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true" title="Shows the next example above and the previous one below.">Show nearby</button>
                 </div>
             </div>
             <p class="groove-label">Swing</p>
@@ -333,7 +340,7 @@
                 </button>
             </div>
 
-            <button type="button" class="icon-btn" id="next" onclick="next()" title="Next value" aria-label="Next"><svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></button>
+            <button type="button" class="icon-btn" id="next" onclick="next()" title="Next example" aria-label="Next"><svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></button>
 
 
         </div>

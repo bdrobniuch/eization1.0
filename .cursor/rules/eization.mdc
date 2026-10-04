@@ -1,5 +1,5 @@
 ---
-description: How to change eization without breaking the practice desk
+description: How to change eization without breaking practice
 alwaysApply: true
 ---
 
@@ -8,6 +8,8 @@ alwaysApply: true
 Static page. Plain scripts, shared globals, no modules, no bundler, no framework. Paths stay relative (`./resources/...`). Keep `.nojekyll`. The map is `README.md`.
 
 The visible UI is settled. Change behavior in the existing layout. Do not restyle hidden exercises, and do not load `randompicker.js` or `edit.js`.
+
+Visible copy says exercise for the list and example for one line. A musician should not read desk, Practice Idea, or value. `eization-desk` stays the storage key.
 
 ## Leave these alone
 
@@ -19,4 +21,4 @@ The visible UI is settled. Change behavior in the existing layout. Do not restyl
 
 ## Adding an exercise
 
-New file under `resources/js/exercises/`, script tag after `registry.js` and before `picker.js`, `registerExercise({ id, inMenu })`. Add the id to `menuOrder` only if it should seed into the desk menu. `inMenu: false` means keep the file and omit the id. The rhythms id is `limbs`.
+New file under `resources/js/exercises/`, script tag after `registry.js` and before `picker.js`, `registerExercise({ id, inMenu })`. Add the id to `menuOrder` only if it should seed into the exercise menu. `inMenu: false` means keep the file and omit the id. The rhythms id is `limbs`.

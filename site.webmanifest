@@ -1,7 +1,7 @@
 {
-  "name": "eization. Every Practice Idea gets the same turn, in time with the metronome.",
+  "name": "eization. Each example comes up once, in time with the metronome.",
   "short_name": "eization",
-  "description": "The changes you already know get the most reps. The rare ones wait. eization deals every Practice Idea in the list once, in time with the metronome, then shuffles again.",
+  "description": "What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

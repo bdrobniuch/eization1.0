@@ -1,6 +1,6 @@
 # eization
 
-A practice desk for any instrument. One static page, no build step, no backend. It runs from `file://` and from GitHub Pages.
+Practice for any instrument. One example at a time, with the metronome. One static page, no build step, no backend. It runs from `file://` and from GitHub Pages.
 
 ## Run
 
@@ -24,26 +24,26 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | --- | --- |
 | `resources/js/registry.js` | `registerExercise` and `menuOrder` (the seed catalog) |
 | `resources/js/exercises/` | One seed exercise per file |
-| `resources/js/picker.js` | The current value, the reel, and the face size |
+| `resources/js/picker.js` | The current example, the reel, and the face size |
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
-| `resources/js/editor.js` | Edit desk exercises. `edit.js` does not load |
+| `resources/js/editor.js` | Edit exercises. `edit.js` does not load |
 | `resources/js/about.js` | About sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
-| `resources/js/hello.js` | First-run tour (exercise → idea → Next → Setup → Play → Edit). Show me also points at the ideas-left count, Reset, and BPM. Separate key `eization-hello` |
+| `resources/js/hello.js` | First-run tour (exercise → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
 | `resources/js/main.js` | Wiring and `init` |
 | `resources/css/style.css` | All layout |
 
 ## Adding an exercise
 
-Add a script tag after `registry.js` and before `picker.js`. Call `registerExercise` with a new `id`. Put that id in `menuOrder` only when it should seed into the desk menu. An exercise with `inMenu: false` stays in the code and stays out of the seed list. Do not delete those files to tidy the list.
+Add a script tag after `registry.js` and before `picker.js`. Call `registerExercise` with a new `id`. Put that id in `menuOrder` only when it should seed into the exercise menu. An exercise with `inMenu: false` stays in the code and stays out of the seed list. Do not delete those files to tidy the list.
 
 The rhythms exercise id is `limbs`. Its menu label is Rhythms.
 
-On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download this list and Upload copy the open list to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one value per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON.
+On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download this list and Upload copy the open list to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 
 ## Saved on this device
 
-`eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the desk exercise list, and `deletedSeeds`. It does not store whether the metronome is running.
+`eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, and `deletedSeeds`. It does not store whether the metronome is running.
 
 `eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in About) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
 
