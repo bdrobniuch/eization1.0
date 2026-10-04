@@ -402,10 +402,41 @@ function closeGroovePanel() {
   }
 }
 
+function exerciseIdFromQuery(search) {
+  var seed = "";
+  try {
+    seed = new URLSearchParams(search || "").get("exercise") || "";
+  } catch (err) {
+    return "";
+  }
+  if (!seed || typeof menuOrder === "undefined" || menuOrder.indexOf(seed) < 0) {
+    return "";
+  }
+  var id = typeof deskIdForSeed === "function" ? deskIdForSeed(seed) : "";
+  if (!id || typeof getDeskExercise !== "function" || !getDeskExercise(id)) {
+    return "";
+  }
+  return id;
+}
+
+function openExerciseFromAddress() {
+  var id = exerciseIdFromQuery(window.location.search);
+  if (!id) {
+    return;
+  }
+  currentExerciseId = id;
+  if (window.history && typeof window.history.replaceState === "function") {
+    try {
+      window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    } catch (err) {}
+  }
+}
+
 function init() {
   if (typeof applyDesk === "function") {
     applyDesk();
   }
+  openExerciseFromAddress();
   buildExerciseMenu();
   bindExercisePanel();
   document.getElementById("meterTop").addEventListener("input", function () {

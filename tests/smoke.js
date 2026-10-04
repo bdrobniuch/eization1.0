@@ -93,6 +93,11 @@ function exerciseMenu(w) {
   check("desk seeds the visible catalog", deskList.length === w.menuOrder.length);
   var buttons = w.document.querySelectorAll("#exerciseMenu [data-value]");
   check("menu buttons match the desk list", buttons.length === deskList.length);
+  check("address opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
+  check("address opens rhythms", w.exerciseIdFromQuery("?exercise=limbs") === "ex:limbs");
+  check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");
+  check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
+  check("practice page is linked from About", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
   check("restore defaults lives in About", !!w.document.querySelector("#about #restoreDefaults"));
   check("download all lives in About", !!w.document.querySelector("#about #downloadAllExercises"));
   var packed = w.packDeskExercises();

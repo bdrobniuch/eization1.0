@@ -1,0 +1,153 @@
+@font-face {
+    font-family: "Open Sans";
+    src: url("../fonts/Open_Sans/OpenSans-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Open Sans";
+    src: url("../fonts/Open_Sans/OpenSans-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100%;
+    color: #ffffff;
+    background-color: #0C8A50;
+    background-image: linear-gradient(to bottom, #0C8A50, #0977BB);
+    font-family: "Open Sans", "Segoe UI", sans-serif;
+}
+
+.sheet {
+    box-sizing: border-box;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 28px 20px 72px;
+}
+
+.home {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 28px;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.home svg {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+}
+
+h1 {
+    margin: 0 0 16px;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.15;
+}
+
+h2 {
+    margin: 28px 0 8px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+p {
+    margin: 0 0 12px;
+    font-size: 17px;
+    line-height: 1.45;
+}
+
+a {
+    color: #ffffff;
+}
+
+p a {
+    text-underline-offset: 3px;
+}
+
+a:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.open {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: 8px 0 16px;
+    padding: 0 16px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.exercises {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+}
+
+.exercises a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    text-decoration: none;
+}
+
+.exercises a:hover,
+.open:hover,
+.home:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.opens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0 16px;
+}
+
+.opens .open {
+    margin: 0;
+}
+
+cite {
+    font-style: italic;
+}
+
+.books {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+}
+
+.books li {
+    margin: 0;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.books a {
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+.books p {
+    margin: 6px 0 0;
+    font-size: 16px;
+}

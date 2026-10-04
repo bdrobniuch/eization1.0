@@ -1794,6 +1794,7 @@ body.is-about #counter {
 #aboutShare,
 .about-show,
 #aboutNav button,
+#aboutNav a,
 #supportReveal,
 #sendPractice,
 #shareFeedback,
@@ -1836,10 +1837,18 @@ body.is-about #counter {
   margin: 4px 0 0;
 }
 
-#aboutNav button {
+#aboutNav button,
+#aboutNav a {
   padding: 0 16px;
   font-size: 16px;
   text-align: left;
+}
+
+#aboutNav a {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  text-decoration: none;
 }
 
 #aboutBody {

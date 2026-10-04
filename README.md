@@ -1,6 +1,6 @@
 # eization
 
-Practice for any instrument. One example at a time, with the metronome. One static page, no build step, no backend. It runs from `file://` and from GitHub Pages.
+Practice for any instrument. One example at a time, with the metronome. The practice screen is one static page. Guide pages sit beside it. No build step, no backend. It runs from `file://` and from GitHub Pages.
 
 ## Run
 
@@ -10,11 +10,14 @@ Open `index.html`, or serve this folder as the site root. Asset paths are relati
 
 GitHub Pages, branch of your choice, folder `/` (the repo root). Keep `.nojekyll` so Pages does not drop files that start with `_`.
 
-The public address used for search and link previews is `https://bdrobniuch.github.io/eization1.0/`. If that address changes, update these together:
+The public address used for search and link previews is `https://eization.com/`. `CNAME` keeps that host on GitHub Pages. If that address changes, update these together:
 
-- the canonical link, Open Graph URL, and image URLs in `index.html`
+- the canonical link, Open Graph URL, and image URLs in `index.html`, `practice.html`, the book pages, and each exercise page
 - `robots.txt`
 - `sitemap.xml`
+- `CNAME`
+
+After a publish, submit `sitemap.xml` in Google Search Console for that host.
 
 ## Where things live
 
@@ -31,13 +34,19 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
 | `resources/js/main.js` | Wiring and `init` |
-| `resources/css/style.css` | All layout |
+| `resources/css/style.css` | Practice screen layout |
+| `practice.html` | How to practice one example at a time. Links to each stock exercise |
+| `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
+| `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html` | How to practice that kind of line with the metronome |
+| `resources/css/guide.css` | Layout for `practice.html` and the exercise pages |
 
 ## Adding an exercise
 
 Add a script tag after `registry.js` and before `picker.js`. Call `registerExercise` with a new `id`. Put that id in `menuOrder` only when it should seed into the exercise menu. An exercise with `inMenu: false` stays in the code and stays out of the seed list. Do not delete those files to tidy the list.
 
-The rhythms exercise id is `limbs`. Its menu label is Rhythms.
+The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhythms.html`.
+
+When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
 
 On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download this list and Upload copy the open list to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 
