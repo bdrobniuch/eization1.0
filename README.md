@@ -25,7 +25,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 
 | File | Role |
 | --- | --- |
-| `resources/js/i18n.js` | English and Spanish. `localStorage` key `eization-lang` after a choice. First visit follows the browser | 
+| `resources/js/i18n.js` | English and Spanish. `localStorage` key `eization-lang` after a choice. First visit follows the browser. `es/` is the Spanish HTML search engines and link previews read | 
 | `resources/js/registry.js` | `registerExercise` and `menuOrder` (the seed catalog) |
 | `resources/js/exercises/` | One seed exercise per file |
 | `resources/js/picker.js` | The current example, the reel, and the face size |
@@ -47,7 +47,7 @@ Add a script tag after `registry.js` and before `picker.js`. Call `registerExerc
 
 The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhythms.html`.
 
-When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
+When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. Add the Spanish page under `es/`, link it from `es/practice.html`, and list that URL too. `hreflang` on each page points at the other language. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
 
 On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download this list and Upload copy the open list to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 

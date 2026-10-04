@@ -283,7 +283,7 @@ var I18N = {
   },
   es: {
     "doc.title": "eization. Cada ejemplo sale una vez, a tiempo con el metrónomo.",
-    "meta.description": "Lo que ya sabes es lo que más suena. El resto espera. Cada ejemplo del ejercicio sale una vez, con el metrónomo. Luego cambia el orden. Ves un ejemplo. Play lleva el tiempo. Siguiente trae el otro.",
+    "meta.description": "Metrónomo para practicar escalas, acordes y tu propia lista. Lo que ya sabes es lo que más suena. El resto espera. Cada ejemplo sale una vez. Luego cambia el orden.",
     "lang.group": "Idioma",
     "brand.kicker": "Acerca",
     "brand.aria": "Acerca de eization",
@@ -597,11 +597,16 @@ function readStoredLang() {
 
 function preferredLang() {
   var stored = readStoredLang();
+  var page;
   var list;
   var i;
   var code;
   if (stored === "es" || stored === "en") {
     return stored;
+  }
+  page = document.documentElement.getAttribute("data-page-lang");
+  if (page === "es" || page === "en") {
+    return page;
   }
   list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
   for (i = 0; i < list.length; i++) {
@@ -748,10 +753,17 @@ function prepareLanguage() {
 
 document.addEventListener("click", function (event) {
   var button = event.target.closest("[data-set-lang]");
+  var lang;
+  var href;
   if (!button) {
     return;
   }
-  setEizationLang(button.getAttribute("data-set-lang"));
+  lang = button.getAttribute("data-set-lang");
+  href = button.getAttribute("data-lang-href");
+  setEizationLang(lang);
+  if (href && button.tagName !== "A") {
+    window.location.href = href;
+  }
 });
 
 prepareLanguage();

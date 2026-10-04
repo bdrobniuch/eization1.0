@@ -1,63 +1,243 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://eization.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/"/>
   </url>
   <url>
     <loc>https://eization.com/practice.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/practice.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/practice.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/practice.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/practice.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/practice.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/practice.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/practice.html"/>
   </url>
   <url>
     <loc>https://eization.com/books.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/books.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/books.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/books.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/books.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/books.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/books.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/books.html"/>
   </url>
   <url>
     <loc>https://eization.com/melodic-lines.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/melodic-lines.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/melodic-lines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/melodic-lines.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/melodic-lines.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/melodic-lines.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/melodic-lines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/melodic-lines.html"/>
   </url>
   <url>
     <loc>https://eization.com/scales-and-sets.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/scales-and-sets.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/scales-and-sets.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/scales-and-sets.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/scales-and-sets.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/scales-and-sets.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/scales-and-sets.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/scales-and-sets.html"/>
   </url>
   <url>
     <loc>https://eization.com/changes.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/changes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/changes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/changes.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/changes.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/changes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/changes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/changes.html"/>
   </url>
   <url>
     <loc>https://eization.com/time.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/time.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/time.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/time.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/time.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/time.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/time.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/time.html"/>
   </url>
   <url>
     <loc>https://eization.com/notes.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/notes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/notes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/notes.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/notes.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/notes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/notes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/notes.html"/>
   </url>
   <url>
     <loc>https://eization.com/scales.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/scales.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/scales.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/scales.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/scales.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/scales.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/scales.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/scales.html"/>
   </url>
   <url>
     <loc>https://eization.com/chords.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/chords.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/chords.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/chords.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/chords.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/chords.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/chords.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/chords.html"/>
   </url>
   <url>
     <loc>https://eization.com/chord-tones.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/chord-tones.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/chord-tones.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/chord-tones.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/chord-tones.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/chord-tones.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/chord-tones.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/chord-tones.html"/>
   </url>
   <url>
     <loc>https://eization.com/progressions.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/progressions.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/progressions.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/progressions.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/progressions.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/progressions.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/progressions.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/progressions.html"/>
   </url>
   <url>
     <loc>https://eization.com/intervals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/intervals.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/intervals.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/intervals.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/intervals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/intervals.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/intervals.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/intervals.html"/>
   </url>
   <url>
     <loc>https://eization.com/approach-notes.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/approach-notes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/approach-notes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/approach-notes.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/approach-notes.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/approach-notes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/approach-notes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/approach-notes.html"/>
   </url>
   <url>
     <loc>https://eization.com/play-rest.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/play-rest.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/play-rest.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/play-rest.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/play-rest.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/play-rest.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/play-rest.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/play-rest.html"/>
   </url>
   <url>
     <loc>https://eization.com/finger-patterns.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/finger-patterns.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/finger-patterns.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/finger-patterns.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/finger-patterns.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/finger-patterns.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/finger-patterns.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/finger-patterns.html"/>
   </url>
   <url>
     <loc>https://eization.com/sonic-nuances.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/sonic-nuances.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/sonic-nuances.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/sonic-nuances.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/sonic-nuances.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/sonic-nuances.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/sonic-nuances.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/sonic-nuances.html"/>
   </url>
   <url>
     <loc>https://eization.com/rhythmic-devices.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/rhythmic-devices.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/rhythmic-devices.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/rhythmic-devices.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/rhythmic-devices.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/rhythmic-devices.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/rhythmic-devices.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/rhythmic-devices.html"/>
   </url>
   <url>
     <loc>https://eization.com/motivic-development.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/motivic-development.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/motivic-development.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/motivic-development.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/motivic-development.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/motivic-development.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/motivic-development.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/motivic-development.html"/>
   </url>
   <url>
     <loc>https://eization.com/rhythms.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/rhythms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/rhythms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/rhythms.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/rhythms.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/rhythms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/rhythms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/rhythms.html"/>
   </url>
 </urlset>
