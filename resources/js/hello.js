@@ -15,39 +15,39 @@ var HELLO_TOUR = [
   {
     id: "exerciseFace",
     side: "up",
-    text: "Choose an exercise here.",
+    key: "hello.exercise",
     hold: 3200
   },
   {
     id: "note",
     side: "up",
-    text: "One example at a time.",
+    key: "hello.example",
     hold: 3400
   },
   {
     id: "next",
     side: "down",
-    text: "Next brings the next example.",
+    key: "hello.next",
     hold: 3200,
     advanceOnShow: true
   },
   {
     id: "grooveButton",
     side: "down",
-    text: "Setup changes the metronome.",
+    key: "hello.setup",
     hold: 3200
   },
   {
     id: "tempoToggle",
     side: "down",
-    text: "Play runs the metronome. The next example comes up in time.",
+    key: "hello.play",
     phrase: true,
     advanceAfter: true
   },
   {
     id: "edit",
     side: "up",
-    text: "Edit builds your own list.",
+    key: "hello.edit",
     hold: 3200
   }
 ];
@@ -58,51 +58,51 @@ HELLO_TOUR.push(
   {
     id: "exerciseFace",
     side: "up",
-    text: "Choose an exercise here.",
+    key: "hello.exercise",
     hold: 3200
   },
   {
     id: "note",
     side: "up",
-    text: "One example at a time.",
+    key: "hello.example",
     hold: 3400
   },
   {
     id: "next",
     side: "down",
-    text: "Next brings the next example.",
+    key: "hello.next",
     hold: 3200,
     advanceOnShow: true
   },
   {
     id: "counter",
     side: "up",
-    text: "This number is how many are left.",
+    key: "hello.left",
     hold: 3200
   },
   {
     id: "resetExercise",
     side: "up",
-    text: "Reset starts this exercise again.",
+    key: "hello.reset",
     hold: 3200
   },
   {
     id: "bpm",
     side: "down",
-    text: "BPM sets the tempo.",
+    key: "hello.bpm",
     hold: 3200
   },
   {
     id: "tempoToggle",
     side: "down",
-    text: "Play runs the metronome. The next example comes up in time.",
+    key: "hello.play",
     phrase: true,
     advanceAfter: true
   },
   {
     id: "grooveButton",
     side: "down",
-    text: "Setup changes the metronome.",
+    key: "hello.setup",
     hold: 3200
   }
 );
@@ -165,7 +165,7 @@ function placeHelloCaption() {
   if (!caption || !document.body.classList.contains("is-hello") || !step) {
     return;
   }
-  caption.textContent = step.text;
+  caption.textContent = t(step.key);
   caption.hidden = false;
   if (skip) {
     skip.hidden = false;

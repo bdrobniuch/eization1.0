@@ -592,7 +592,7 @@ function renderRepeatMark(iteration) {
     n = repeatCount;
   }
   el.hidden = false;
-  el.textContent = n + " of " + repeatCount;
+  el.textContent = tr("repeat.mark", { n: n, total: repeatCount });
 }
 
 function setCountIn(on) {
@@ -949,8 +949,8 @@ function renderTempoToggle() {
   }
   var off = paused || currentBpm === 0;
   btn.setAttribute("aria-pressed", off ? "false" : "true");
-  btn.setAttribute("aria-label", off ? "Start tempo" : "Pause tempo");
-  btn.title = off ? "Start tempo" : "Pause tempo";
+  btn.setAttribute("aria-label", off ? t("tempo.start") : t("tempo.pause"));
+  btn.title = off ? t("tempo.start") : t("tempo.pause");
   var play = btn.querySelector(".icon-play");
   var pause = btn.querySelector(".icon-pause");
   if (play) {
@@ -1082,11 +1082,11 @@ function renderSwing() {
   var handle = document.getElementById("swingHandle");
   if (handle) {
     handle.setAttribute("aria-valuenow", String(Math.round(shown * 100) / 100));
-    handle.setAttribute("aria-valuetext", swingAuto ? "Auto" : "Set");
+    handle.setAttribute("aria-valuetext", swingAuto ? t("groove.auto") : t("groove.set"));
   }
   var readout = document.getElementById("swingReadout");
   if (readout) {
-    readout.textContent = swingAuto ? "Auto" : "Set";
+    readout.textContent = swingAuto ? t("groove.auto") : t("groove.set");
   }
   var ghost = document.getElementById("swingRecommended");
   if (ghost) {
@@ -1317,7 +1317,7 @@ function setSoundOn(on) {
 function next() {
   if (typeof editorIsOpen === "function" && editorIsOpen()) {
     if (typeof editorNotice === "function") {
-      editorNotice("Finish or cancel editing first.");
+      editorNotice(t("edit.finish"));
     }
     return;
   }

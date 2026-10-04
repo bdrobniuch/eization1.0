@@ -37,17 +37,17 @@ function paymentFields(world) {
   var bic = openSeal(SEALED.bic);
   var title = openSeal(SEALED.title);
   var fields = [
-    { label: "Recipient", value: name, copy: name },
+    { label: t("support.recipient"), value: name, copy: name },
     { label: "IBAN", value: groupIban(iban), copy: iban },
     { label: world ? "BIC / SWIFT" : "BIC", value: bic, copy: bic }
   ];
   if (world) {
     var bank = openSeal(SEALED.bank);
     var corr = openSeal(SEALED.corr);
-    fields.push({ label: "Bank", value: bank, copy: bank });
-    fields.push({ label: "Correspondent BIC", value: corr, copy: corr });
+    fields.push({ label: t("support.bank"), value: bank, copy: bank });
+    fields.push({ label: t("support.corr"), value: corr, copy: corr });
   }
-  fields.push({ label: "Reference", value: title, copy: title });
+  fields.push({ label: t("support.reference"), value: title, copy: title });
   return fields;
 }
 
@@ -78,10 +78,10 @@ function placeAbout() {
 }
 
 var ABOUT_PAGES = {
-  home: { title: "About", id: "aboutHome" },
-  how: { title: "How it works", id: "aboutHow", from: "aboutGoHow" },
-  author: { title: "About the author", id: "aboutAuthor", from: "aboutGoAuthor" },
-  device: { title: "This device", id: "aboutDevice", from: "aboutGoDevice" }
+  home: { titleKey: "about.title", id: "aboutHome" },
+  how: { titleKey: "about.howTitle", id: "aboutHow", from: "aboutGoHow" },
+  author: { titleKey: "about.authorTitle", id: "aboutAuthor", from: "aboutGoAuthor" },
+  device: { titleKey: "about.deviceTitle", id: "aboutDevice", from: "aboutGoDevice" }
 };
 
 var aboutPage = "home";
@@ -104,7 +104,7 @@ function setAboutPage(page) {
       document.getElementById(ABOUT_PAGES[name].id).hidden = name !== page;
     }
   }
-  document.getElementById("aboutTitle").textContent = ABOUT_PAGES[page].title;
+  document.getElementById("aboutTitle").textContent = t(ABOUT_PAGES[page].titleKey);
   document.getElementById("aboutBack").hidden = page === "home";
   sheet = document.getElementById("about");
   if (sheet) {
@@ -156,7 +156,7 @@ function disarmUploadAll() {
     return;
   }
   button.classList.remove("is-armed");
-  button.textContent = "Upload backup";
+  button.textContent = t("device.upload");
 }
 
 function closeAbout() {
@@ -230,7 +230,7 @@ function supportFields(fields) {
     var copy = document.createElement("button");
     copy.type = "button";
     copy.className = "support-copy";
-    copy.textContent = "Copy";
+    copy.textContent = t("support.copy");
     copy.setAttribute("data-copy", field.copy);
     row.appendChild(copy);
     box.appendChild(row);
@@ -248,41 +248,73 @@ function showSupportPath(path) {
   document.getElementById("pathWorld").setAttribute("aria-pressed", europe ? "false" : "true");
 }
 
+function fillSupportCard(card) {
+  var paths = document.createElement("div");
+  var europe = document.createElement("div");
+  var europeNote = document.createElement("p");
+  var world = document.createElement("div");
+  var worldNote = document.createElement("p");
+  paths.className = "support-paths";
+  paths.innerHTML = '<button type="button" id="pathEurope" class="support-path is-on" data-path="europe" aria-pressed="true">' + t("support.europeBtn") + '</button><button type="button" id="pathWorld" class="support-path" data-path="world" aria-pressed="false">' + t("support.worldBtn") + '</button>';
+  card.appendChild(paths);
+  europe.id = "supportEurope";
+  europeNote.className = "support-note";
+  europeNote.textContent = t("support.europe");
+  europe.appendChild(europeNote);
+  europe.appendChild(supportFields(paymentFields(false)));
+  card.appendChild(europe);
+  world.id = "supportWorld";
+  world.hidden = true;
+  worldNote.className = "support-note";
+  worldNote.textContent = t("support.world");
+  world.appendChild(worldNote);
+  world.appendChild(supportFields(paymentFields(true)));
+  card.appendChild(world);
+}
+
 function revealSupport() {
   var card = document.getElementById("supportCard");
   var button = document.getElementById("supportReveal");
+  var sheet;
+  var top;
   if (!card || card.childNodes.length) {
     card.hidden = false;
     button.hidden = true;
     return;
   }
-  var paths = document.createElement("div");
-  paths.className = "support-paths";
-  paths.innerHTML = '<button type="button" id="pathEurope" class="support-path is-on" data-path="europe" aria-pressed="true">Europe</button><button type="button" id="pathWorld" class="support-path" data-path="world" aria-pressed="false">Anywhere else</button>';
-  card.appendChild(paths);
-  var europe = document.createElement("div");
-  europe.id = "supportEurope";
-  var europeNote = document.createElement("p");
-  europeNote.className = "support-note";
-  europeNote.textContent = "Send euros. Copy each line into your bank app. You choose the amount.";
-  europe.appendChild(europeNote);
-  europe.appendChild(supportFields(paymentFields(false)));
-  card.appendChild(europe);
-  var world = document.createElement("div");
-  world.id = "supportWorld";
-  world.hidden = true;
-  var worldNote = document.createElement("p");
-  worldNote.className = "support-note";
-  worldNote.textContent = "Send euros by SWIFT. Copy each line. You choose the amount. It can take a few days.";
-  world.appendChild(worldNote);
-  world.appendChild(supportFields(paymentFields(true)));
-  card.appendChild(world);
+  fillSupportCard(card);
   card.hidden = false;
   card.classList.add("is-shown");
   button.hidden = true;
-  var sheet = document.getElementById("about");
-  var top = card.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop;
+  sheet = document.getElementById("about");
+  top = card.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop;
   sheet.scrollTop = Math.max(0, top - 8);
+}
+
+function aboutApplyLanguage() {
+  var title = document.getElementById("aboutTitle");
+  var upload = document.getElementById("uploadAllExercises");
+  var card = document.getElementById("supportCard");
+  var emailCopy = document.querySelector("#emailLine .support-copy");
+  var europeOn = true;
+  if (title && ABOUT_PAGES[aboutPage]) {
+    title.textContent = t(ABOUT_PAGES[aboutPage].titleKey);
+  }
+  if (upload && upload.classList.contains("is-armed")) {
+    upload.textContent = t("device.uploadAsk");
+  }
+  if (emailCopy && !emailCopy._copyTimer) {
+    emailCopy.textContent = t("support.copy");
+  }
+  if (!card || !card.childNodes.length) {
+    return;
+  }
+  if (document.getElementById("pathEurope")) {
+    europeOn = document.getElementById("pathEurope").classList.contains("is-on");
+  }
+  card.innerHTML = "";
+  fillSupportCard(card);
+  showSupportPath(europeOn ? "europe" : "world");
 }
 
 function markCopied(button) {
@@ -291,9 +323,9 @@ function markCopied(button) {
     if (button._copyTimer) {
       window.clearTimeout(button._copyTimer);
     }
-    button.textContent = "Copied!";
+    button.textContent = t("support.copied");
     button._copyTimer = window.setTimeout(function () {
-      button.textContent = "Copy";
+      button.textContent = t("support.copy");
       button._copyTimer = 0;
     }, 2000);
   });
@@ -313,7 +345,7 @@ function revealEmail() {
   var copy = document.createElement("button");
   copy.type = "button";
   copy.className = "support-copy";
-  copy.textContent = "Copy";
+  copy.textContent = t("support.copy");
   copy.setAttribute("data-copy", address);
   line.appendChild(text);
   line.appendChild(copy);
@@ -326,7 +358,7 @@ function aboutSharePayload() {
   var url = link && link.href ? link.href : window.location.href;
   return {
     title: "eization",
-    text: "Each example comes up once, in time with the metronome.",
+    text: t("share.text"),
     url: url
   };
 }
@@ -334,11 +366,11 @@ function aboutSharePayload() {
 function copyAboutLink(url) {
   copySupportText(url).then(function () {
     if (typeof showDeskNote === "function") {
-      showDeskNote("Link copied.");
+      showDeskNote(t("share.copied"));
     }
   }, function () {
     if (typeof showDeskNote === "function") {
-      showDeskNote("Could not copy that link.");
+      showDeskNote(t("share.fail"));
     }
   });
 }
@@ -384,23 +416,23 @@ function practiceBackupFile() {
 function sendPracticeByMail() {
   if (typeof downloadAllDeskExercises !== "function" || !downloadAllDeskExercises()) {
     if (typeof showDeskNote === "function") {
-      showDeskNote("No exercises to send.");
+      showDeskNote(t("mail.none"));
     }
     return;
   }
   openMailDraft(
-    "How I practice",
-    "Hi Błażej,\n\nHere is how I practice.\n\nAttach eization-exercises.json from your downloads.\n"
+    t("mail.practiceSubject"),
+    t("mail.practiceBody")
   );
   if (typeof showDeskNote === "function") {
-      showDeskNote("Backup downloaded. Attach it to the draft.");
+      showDeskNote(t("mail.sent"));
   }
 }
 
 function trySharePractice(file) {
   var payload = {
     files: [file],
-    text: "Hi Błażej, here is how I practice."
+    text: t("mail.practiceShare")
   };
   if (!navigator.share || !navigator.canShare) {
     return false;
@@ -425,7 +457,7 @@ function sendPractice() {
   var file = practiceBackupFile();
   if (!file) {
     if (typeof showDeskNote === "function") {
-      showDeskNote("No exercises to send.");
+      showDeskNote(t("mail.none"));
     }
     return;
   }
@@ -436,7 +468,7 @@ function sendPractice() {
 }
 
 function writeFeedback() {
-  openMailDraft("eization", "Hi Błażej,\n\n");
+  openMailDraft("eization", t("mail.feedbackBody"));
 }
 
 function initAbout() {
@@ -444,7 +476,7 @@ function initAbout() {
   brand.addEventListener("click", function () {
     if (typeof editorIsOpen === "function" && editorIsOpen()) {
       if (typeof editorNotice === "function") {
-        editorNotice("Finish or cancel editing first.");
+        editorNotice(t("edit.finish"));
       }
       return;
     }
@@ -504,14 +536,14 @@ function initAbout() {
   document.getElementById("downloadAllExercises").addEventListener("click", function () {
     if (typeof downloadAllDeskExercises === "function" && downloadAllDeskExercises()) {
       if (typeof showDeskNote === "function") {
-        showDeskNote("Downloaded eization-exercises.json");
+        showDeskNote(t("mail.downloaded"));
       }
     }
   });
   document.getElementById("uploadAllExercises").addEventListener("click", function () {
     if (!this.classList.contains("is-armed")) {
       this.classList.add("is-armed");
-      this.textContent = "Replace exercises on this device?";
+      this.textContent = t("device.uploadAsk");
       if (uploadAllTimer) {
         clearTimeout(uploadAllTimer);
       }
@@ -539,7 +571,7 @@ function initAbout() {
       }
       if (typeof replaceDeskExercises === "function" && replaceDeskExercises(parsed.exercises)) {
         if (typeof showDeskNote === "function") {
-          showDeskNote("Exercises replaced from file");
+          showDeskNote(t("mail.replaced"));
         }
         if (typeof layoutFrame === "function") {
           layoutFrame();
@@ -548,7 +580,7 @@ function initAbout() {
     };
     reader.onerror = function () {
       if (typeof showDeskNote === "function") {
-        showDeskNote("Could not read that file.");
+        showDeskNote(t("edit.badFile"));
       }
     };
     reader.readAsText(file);

@@ -25,6 +25,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 
 | File | Role |
 | --- | --- |
+| `resources/js/i18n.js` | English and Spanish. `localStorage` key `eization-lang` after a choice. First visit follows the browser | 
 | `resources/js/registry.js` | `registerExercise` and `menuOrder` (the seed catalog) |
 | `resources/js/exercises/` | One seed exercise per file |
 | `resources/js/picker.js` | The current example, the reel, and the face size |

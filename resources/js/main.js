@@ -7,7 +7,7 @@ function setComboLabel(face, text) {
   var value = face.querySelector(".combo-value");
   if (value) {
     value.textContent = text;
-    face.setAttribute("aria-label", "Exercise: " + text);
+    face.setAttribute("aria-label", tr("menu.exerciseAria", { name: text }));
     face.setAttribute("title", text);
   } else if (face.firstChild) {
     face.firstChild.nodeValue = text;
@@ -39,7 +39,7 @@ function bindExercisePanel() {
     event.stopPropagation();
     if (typeof editorIsOpen === "function" && editorIsOpen()) {
       if (typeof editorNotice === "function") {
-        editorNotice("Finish or cancel editing first.");
+        editorNotice(t("edit.finish"));
       }
       return;
     }
@@ -121,23 +121,23 @@ function buildExerciseMenu() {
   fresh.type = "button";
   fresh.className = "menu-new";
   fresh.setAttribute("data-new-exercise", "true");
-  fresh.textContent = "New exercise";
-  fresh.title = "Start a blank list on this device";
+  fresh.textContent = t("menu.new");
+  fresh.title = t("menu.newTitle");
   menu.appendChild(fresh);
   var i;
   for (i = 0; i < list.length; i++) {
     var row = list[i];
-    addComboItem(menu, row.id, row.name, row.id === currentExerciseId);
+    addComboItem(menu, row.id, exerciseDisplayName(row), row.id === currentExerciseId);
   }
   var current = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
-  setComboLabel(face, current ? current.name : "");
+  setComboLabel(face, current ? exerciseDisplayName(current) : "");
 }
 
 function SelectExercise() {
   if (typeof editorIsOpen === "function" && editorIsOpen()) {
     if (typeof editorIsDirty === "function" && editorIsDirty()) {
       if (typeof editorNotice === "function") {
-        editorNotice("Cancel editing before choosing another exercise.");
+        editorNotice(t("edit.cancelFirst"));
       }
       if (typeof editorRestoreFace === "function") {
         editorRestoreFace();
@@ -167,11 +167,11 @@ function SelectExercise() {
 
 function renderMeterSignature() {
   var names = {
-    1: "whole note",
-    2: "half note",
-    4: "quarter note",
-    8: "eighth note",
-    16: "sixteenth note"
+    1: t("note.whole"),
+    2: t("note.half"),
+    4: t("note.quarter"),
+    8: t("note.eighth"),
+    16: t("note.sixteenth")
   };
   var bottom = document.getElementById("meterBottom");
   var hint = document.getElementById("meterHint");
@@ -211,8 +211,8 @@ function renderGrooveLabel() {
   if (!button) {
     return;
   }
-  button.title = "Meter, clicks, bars, swing, and count-in";
-  button.setAttribute("aria-label", "Setup");
+  button.title = t("groove.setupTitle");
+  button.setAttribute("aria-label", t("groove.setupAria"));
 }
 
 function fillClickGrid(grid, pattern) {
@@ -229,7 +229,7 @@ function fillClickGrid(grid, pattern) {
       pad.setAttribute("data-step", String(step));
       pad.textContent = k === 0 ? String(step / 2 + 1) : "&";
       pad.setAttribute("aria-pressed", level ? "true" : "false");
-      pad.title = level === 2 ? "Accent. Tap to turn it off." : (level === 1 ? "Click. Tap for an accent." : "Off. Tap for a click.");
+      pad.title = level === 2 ? t("click.accent") : (level === 1 ? t("click.on") : t("click.off"));
       pair.appendChild(pad);
     }
     grid.appendChild(pair);
@@ -449,8 +449,17 @@ function openExerciseFromAddress() {
     return;
   }
   if (typeof showDeskNote === "function") {
-    showDeskNote("That exercise is not on this device.");
+    showDeskNote(t("desk.notHere"));
   }
+}
+
+function restoreApplyLanguage() {
+  var button = document.getElementById("restoreDefaults");
+  if (!button || !button.classList.contains("is-armed")) {
+    return;
+  }
+  button.textContent = t("device.clearAsk");
+  button.setAttribute("aria-label", t("device.clearAsk"));
 }
 
 function init() {
@@ -493,7 +502,7 @@ function init() {
   document.getElementById("grooveButton").addEventListener("click", function () {
     if (typeof editorIsOpen === "function" && editorIsOpen()) {
       if (typeof editorNotice === "function") {
-        editorNotice("Finish or cancel editing first.");
+        editorNotice(t("edit.finish"));
       }
       return;
     }
@@ -571,13 +580,13 @@ function init() {
     if (!this.classList.contains("is-armed")) {
       if (typeof editorIsOpen === "function" && editorIsOpen() && typeof editorIsDirty === "function" && editorIsDirty()) {
         if (typeof editorNotice === "function") {
-          editorNotice("Finish or cancel editing first.");
+          editorNotice(t("edit.finish"));
         }
         return;
       }
       this.classList.add("is-armed");
-      this.textContent = "Clear saved setup?";
-      this.setAttribute("aria-label", "Clear saved setup?");
+      this.textContent = t("device.clearAsk");
+      this.setAttribute("aria-label", t("device.clearAsk"));
       if (restoreTimer) {
         clearTimeout(restoreTimer);
       }

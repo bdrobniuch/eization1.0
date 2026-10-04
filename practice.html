@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Practice one example at a time, with the metronome. eization.</title>
-    <meta name="description" content="Practice scales, chords, and your own list with a metronome. You see one example. Each example comes up once. Then the order changes.">
+    <title data-i18n="practice.title">Practice one example at a time, with the metronome. eization.</title>
+    <meta name="description" data-i18n-content="practice.description" content="Practice scales, chords, and your own list with a metronome. You see one example. Each example comes up once. Then the order changes.">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0C8A50">
     <link rel="canonical" href="https://eization.com/practice.html">
@@ -84,55 +84,60 @@
             </svg>
             <span>eization</span>
         </a>
-        <h1>Practice one example at a time</h1>
-        <p>What you already know gets played the most. The rest waits.</p>
-        <p>Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.</p>
-        <p><a class="open" href="./">Open eization</a></p>
+        <div class="lang-switch" role="group" data-i18n-aria="lang.group" aria-label="Language">
+            <button type="button" data-set-lang="en" aria-pressed="true">English</button>
+            <button type="button" data-set-lang="es" aria-pressed="false">Español</button>
+        </div>
+        <h1 data-i18n="practice.h1">Practice one example at a time</h1>
+        <p data-i18n="practice.lead1">What you already know gets played the most. The rest waits.</p>
+        <p data-i18n="practice.lead2">Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.</p>
+        <p><a class="open" href="./" data-i18n="practice.open">Open eization</a></p>
 
-        <h2>From a book you already own</h2>
-        <p>Type each line you are working on, one example per line. Play the list with the metronome. Next brings the next line. The exercises on this site are eization’s own lists.</p>
-        <p><a class="open" href="./books.html">Books you own</a></p>
+        <h2 data-i18n="practice.bookTitle">From a book you already own</h2>
+        <p data-i18n="practice.book">Type each line you are working on, one example per line. Play the list with the metronome. Next brings the next line. The exercises on this site are eization’s own lists.</p>
+        <p><a class="open" href="./books.html" data-i18n="practice.books">Books you own</a></p>
 
-        <h2>From a lesson you watched</h2>
-        <p>Pause after each example. Put that example on its own line. Practice the list with the metronome before you watch the next lesson.</p>
+        <h2 data-i18n="practice.lessonTitle">From a lesson you watched</h2>
+        <p data-i18n="practice.lesson">Pause after each example. Put that example on its own line. Practice the list with the metronome before you watch the next lesson.</p>
 
-        <h2>Your own list</h2>
-        <p>Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back.</p>
+        <h2 data-i18n="practice.ownTitle">Your own list</h2>
+        <p data-i18n="practice.own">Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back.</p>
 
-        <h2>Exercises</h2>
+        <h2 data-i18n="practice.listTitle">Exercises</h2>
         <ul class="exercises">
-            <li><a href="./notes.html">All Notes</a></li>
-            <li><a href="./scales.html">Scales</a></li>
-            <li><a href="./chords.html">All Chords</a></li>
-            <li><a href="./chord-tones.html">Chord Tones</a></li>
-            <li><a href="./progressions.html">Essential Progressions</a></li>
-            <li><a href="./intervals.html">All Intervals</a></li>
-            <li><a href="./approach-notes.html">Approach Notes</a></li>
-            <li><a href="./play-rest.html">Play/Rest</a></li>
-            <li><a href="./finger-patterns.html">Finger Patterns</a></li>
-            <li><a href="./sonic-nuances.html">Sonic Nuances</a></li>
-            <li><a href="./rhythmic-devices.html">Rhythmic Devices</a></li>
-            <li><a href="./motivic-development.html">Motivic Development</a></li>
-            <li><a href="./rhythms.html">Rhythms</a></li>
+            <li><a href="./notes.html" data-i18n="seed.allNotes">All Notes</a></li>
+            <li><a href="./scales.html" data-i18n="seed.scales">Scales</a></li>
+            <li><a href="./chords.html" data-i18n="seed.allChords">All Chords</a></li>
+            <li><a href="./chord-tones.html" data-i18n="seed.chordTones">Chord Tones</a></li>
+            <li><a href="./progressions.html" data-i18n="seed.essentialProgressions">Essential Progressions</a></li>
+            <li><a href="./intervals.html" data-i18n="seed.intervals">All Intervals</a></li>
+            <li><a href="./approach-notes.html" data-i18n="seed.approachNotes">Approach Notes</a></li>
+            <li><a href="./play-rest.html" data-i18n="seed.playRest">Play/Rest</a></li>
+            <li><a href="./finger-patterns.html" data-i18n="seed.fingers">Finger Patterns</a></li>
+            <li><a href="./sonic-nuances.html" data-i18n="seed.sonicDevices">Sonic Nuances</a></li>
+            <li><a href="./rhythmic-devices.html" data-i18n="seed.texture">Rhythmic Devices</a></li>
+            <li><a href="./motivic-development.html" data-i18n="seed.motive">Motivic Development</a></li>
+            <li><a href="./rhythms.html" data-i18n="seed.limbs">Rhythms</a></li>
         </ul>
 
-        <h2>How do I practice scales with a metronome?</h2>
-        <p>Open Scales. You see one scale. Play starts the click and keeps time on that scale. When the bar fills, the next scale comes up. Each scale comes up once. Then the order changes.</p>
-        <p><a class="open" href="./?exercise=scales">Open Scales</a></p>
+        <h2 data-i18n="practice.qScales">How do I practice scales with a metronome?</h2>
+        <p data-i18n="practice.aScales">Open Scales. You see one scale. Play starts the click and keeps time on that scale. When the bar fills, the next scale comes up. Each scale comes up once. Then the order changes.</p>
+        <p><a class="open" href="./?exercise=scales" data-i18n="practice.openScales">Open Scales</a></p>
 
-        <h2>How do I practice one line from a book I already own?</h2>
-        <p>Type each line you are working on, one example per line. Edit keeps the list on this device. Play keeps time. Next brings the next line.</p>
-        <p><a class="open" href="./books.html">Books you own</a></p>
+        <h2 data-i18n="practice.qBook">How do I practice one line from a book I already own?</h2>
+        <p data-i18n="practice.aBook">Type each line you are working on, one example per line. Edit keeps the list on this device. Play keeps time. Next brings the next line.</p>
+        <p><a class="open" href="./books.html" data-i18n="practice.books">Books you own</a></p>
 
-        <h2>How do I practice examples from a lesson I watched?</h2>
-        <p>Pause after each example. Put that example on its own line. Practice the list with the metronome before you watch the next lesson.</p>
+        <h2 data-i18n="practice.qLesson">How do I practice examples from a lesson I watched?</h2>
+        <p data-i18n="practice.lesson">Pause after each example. Put that example on its own line. Practice the list with the metronome before you watch the next lesson.</p>
 
-        <h2>Does an example come up again before the others?</h2>
-        <p>Each example in the exercise comes up once. Then the order changes.</p>
+        <h2 data-i18n="practice.qAgain">Does an example come up again before the others?</h2>
+        <p data-i18n="practice.aAgain">Each example in the exercise comes up once. Then the order changes.</p>
 
-        <h2>Can I keep my own list?</h2>
-        <p>Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back.</p>
+        <h2 data-i18n="practice.qKeep">Can I keep my own list?</h2>
+        <p data-i18n="practice.own">Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back.</p>
     </article>
+    <script src="./resources/js/i18n.js"></script>
 </body>
 
 </html>

@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eization. Each example comes up once, in time with the metronome.</title>
-    <meta name="description" content="What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.">
+    <title data-i18n="doc.title">eization. Each example comes up once, in time with the metronome.</title>
+    <meta name="description" data-i18n-content="meta.description" content="What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes. You see one example. Play keeps time. Next brings the next one.">
     <meta name="author" content="Błażej Drobniuch">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0C8A50">
@@ -65,11 +65,11 @@
     <div id="topBar">
         <div id="linediv">
             <div id="status">
-                <button type="button" id="brand" aria-label="About eization" aria-expanded="false" title="About">
+                <button type="button" id="brand" data-i18n-aria="brand.aria" aria-label="About eization" aria-expanded="false" data-i18n-title="brand.title" title="About">
                     <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
                         <path fill="currentColor" fill-rule="evenodd" d="M29.9 3.21A4.2 4.2 0 0 1 34.1 3.21L55.88 15.79A4.2 4.2 0 0 1 57.98 19.42L57.98 44.58A4.2 4.2 0 0 1 55.88 48.21L34.1 60.79A4.2 4.2 0 0 1 29.9 60.79L8.12 48.21A4.2 4.2 0 0 1 6.02 44.58L6.02 19.42A4.2 4.2 0 0 1 8.12 15.79Z M37.6 11H43.5V40A14.5 14.5 0 1 1 37.6 28.33Z M37.6 40A8.6 8.6 0 1 1 20.4 40A8.6 8.6 0 1 1 37.6 40Z"/>
                     </svg>
-                    <span class="combo-kicker">About</span>
+                    <span class="combo-kicker" data-i18n="brand.kicker">About</span>
                     <span class="brand-word">eization</span>
                 </button>
             </div>
@@ -77,66 +77,66 @@
             <div id="editdiv">
                 <div id="editTools">
                     <div class="combo" id="exerciseCombo">
-                        <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="true" aria-expanded="false" aria-controls="exercisePanel" aria-label="Exercise: All Notes" title="Choose an exercise">
-                            <span class="combo-kicker">Exercise</span>
+                        <button type="button" class="combo-face" id="exerciseFace" aria-haspopup="true" aria-expanded="false" aria-controls="exercisePanel" aria-label="Exercise: All Notes" data-i18n-title="menu.choose" title="Choose an exercise">
+                            <span class="combo-kicker" data-i18n="menu.kicker">Exercise</span>
                             <span class="combo-value">All Notes</span>
                         </button>
                     </div>
-                    <button type="button" class="icon-btn" id="resetExercise" title="Start this exercise again" aria-label="Reset exercise">
+                    <button type="button" class="icon-btn" id="resetExercise" data-i18n-title="menu.resetTitle" title="Start this exercise again" data-i18n-aria="menu.resetAria" aria-label="Reset exercise">
                         <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
                     </button>
-                    <button type="button" class="icon-btn" id="edit" title="Edit exercise" aria-label="Edit exercise" aria-pressed="false">
+                    <button type="button" class="icon-btn" id="edit" data-i18n-title="edit.open" title="Edit exercise" data-i18n-aria="edit.open" aria-label="Edit exercise" aria-pressed="false">
                         <svg class="chrome-icon icon-pen" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                         <svg class="chrome-icon icon-check is-hidden" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5 10 17.5 19 7"/></svg>
                     </button>
                 </div>
-                <p id="counter" title="How many are left before this exercise starts over" aria-live="polite">left</p>
+                <p id="counter" data-i18n-title="count.title" title="How many are left before this exercise starts over" aria-live="polite">left</p>
             </div>
         </div>
     </div>
     <p id="deskNote" hidden role="status">Kept on this device.</p>
     <div id="exercisePanel" hidden>
-        <div id="exerciseMenu" aria-label="Exercise"></div>
+        <div id="exerciseMenu" data-i18n-aria="menu.kicker" aria-label="Exercise"></div>
     </div>
     <div id="textdiv">
         <div id="editHead">
-            <button type="button" id="editCancel" class="edit-ghost">Cancel</button>
-            <p id="editHint">Update saves this exercise on this device.</p>
-            <button type="button" id="editSaveAs" title="Keep a new copy on this device">Save as new</button>
-            <button type="button" id="editUpdate" title="Update this exercise on this device">Update</button>
+            <button type="button" id="editCancel" class="edit-ghost" data-i18n="edit.cancel">Cancel</button>
+            <p id="editHint" data-i18n="edit.hintUpdate">Update saves this exercise on this device.</p>
+            <button type="button" id="editSaveAs" data-i18n-title="edit.saveAsTitle" title="Keep a new copy on this device" data-i18n="edit.saveAs">Save as new</button>
+            <button type="button" id="editUpdate" data-i18n-title="edit.updateTitle" title="Update this exercise on this device" data-i18n="edit.update">Update</button>
         </div>
         <div id="editNameRow">
-            <label for="editName">Name</label>
-            <input id="editName" type="text" maxlength="60" placeholder="New Custom Exercise" autocomplete="off" spellcheck="false">
+            <label for="editName" data-i18n="edit.name">Name</label>
+            <input id="editName" type="text" maxlength="60" data-i18n-placeholder="edit.defaultName" placeholder="New Custom Exercise" autocomplete="off" spellcheck="false">
         </div>
         <p id="editError" hidden role="status" aria-live="polite"></p>
         <div id="editMeta">
             <p id="editCount">0 examples</p>
-            <div class="stepper stepper-sm" title="How many bars each example lasts">
-                <span class="step-label">Bars</span>
-                <button type="button" class="step-down" aria-label="Fewer bars" title="Fewer bars">−</button>
-                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Bars on each example" title="How many bars each example lasts">
-                <button type="button" class="step-up" aria-label="More bars" title="More bars">+</button>
+            <div class="stepper stepper-sm" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
+                <span class="step-label" data-i18n="edit.bars">Bars</span>
+                <button type="button" class="step-down" data-i18n-aria="edit.fewerBars" aria-label="Fewer bars" data-i18n-title="edit.fewerBars" title="Fewer bars">−</button>
+                <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
+                <button type="button" class="step-up" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
             </div>
-            <button type="button" id="editDuplicate" title="Copy the line at the cursor onto the next line">Duplicate line</button>
-            <button type="button" id="editClearList" title="Clear all examples in this exercise">Clear list</button>
-            <button type="button" id="editSave" title="Download this list as an .eiz file">Download this list</button>
-            <button type="button" id="editOpen" title="Upload an .eiz file into the box">Upload</button>
+            <button type="button" id="editDuplicate" data-i18n-title="edit.duplicateTitle" title="Copy the line at the cursor onto the next line" data-i18n="edit.duplicate">Duplicate line</button>
+            <button type="button" id="editClearList" data-i18n-title="edit.clearTitle" title="Clear all examples in this exercise" data-i18n="edit.clear">Clear list</button>
+            <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this list as an .eiz file" data-i18n="edit.download">Download this list</button>
+            <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box" data-i18n="edit.upload">Upload</button>
             <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
         </div>
-        <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Examples, one per line" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
+        <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.areaAria" aria-label="Examples, one per line" data-i18n-placeholder="edit.placeholder" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
         <p id="editPreview" class="is-empty"></p>
         <div id="editSymbols"></div>
         <div id="editDanger">
-            <button type="button" id="editDelete" title="Delete this exercise from this device">Delete exercise</button>
+            <button type="button" id="editDelete" data-i18n-title="edit.deleteTitle" title="Delete this exercise from this device" data-i18n="edit.delete">Delete exercise</button>
         </div>
     </div>
 
     <div id="about">
         <div id="aboutHead">
-            <button type="button" id="aboutBack" hidden>Back</button>
+            <button type="button" id="aboutBack" data-i18n="about.back" hidden>Back</button>
             <h1 id="aboutTitle">About</h1>
-            <button type="button" id="aboutClose">Close</button>
+            <button type="button" id="aboutClose" data-i18n="about.close">Close</button>
         </div>
         <div id="aboutBody">
             <div id="aboutHome">
@@ -146,59 +146,65 @@
                     </svg>
                     <span>eization</span>
                 </p>
-                <p>What you already know gets played the most. The rest waits.</p>
-                <p>Each example in the exercise comes up once, with the metronome. Then the order changes.</p>
-                <p>You see one example. Play keeps time. Next brings the next one.</p>
-                <button type="button" id="aboutShare">Share</button>
-                <nav id="aboutNav" aria-label="About">
-                    <button type="button" id="aboutGoHow" data-about="how">How it works</button>
-                    <a href="./practice.html">How to practice</a>
-                    <a href="./books.html">Books you own</a>
-                    <button type="button" id="aboutGoAuthor" data-about="author">About the author</button>
-                    <button type="button" id="aboutGoDevice" data-about="device">This device</button>
+                <p data-i18n="about.lead1">What you already know gets played the most. The rest waits.</p>
+                <p data-i18n="about.lead2">Each example in the exercise comes up once, with the metronome. Then the order changes.</p>
+                <p data-i18n="about.lead3">You see one example. Play keeps time. Next brings the next one.</p>
+                <button type="button" id="aboutShare" data-i18n="about.share">Share</button>
+                <nav id="aboutNav" data-i18n-aria="about.nav" aria-label="About">
+                    <button type="button" id="aboutGoHow" data-about="how" data-i18n="about.how">How it works</button>
+                    <a href="./practice.html" data-i18n="about.practice">How to practice</a>
+                    <a href="./books.html" data-i18n="about.books">Books you own</a>
+                    <button type="button" id="aboutGoAuthor" data-about="author" data-i18n="about.author">About the author</button>
+                    <button type="button" id="aboutGoDevice" data-about="device" data-i18n="about.device">This device</button>
                 </nav>
             </div>
             <div id="aboutHow" hidden>
-                <h2>Exercise</h2>
-                <p>Choose an exercise at the top. The large text is the example. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span> Reset starts that exercise again.</p>
-                <button type="button" class="about-show" data-hello="exercise">Show me</button>
-                <h2>Edit</h2>
-                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back. This device can Download backup or Upload backup for every exercise.</p>
-                <button type="button" class="about-show" data-hello="edit">Show me</button>
-                <h2>Metronome</h2>
-                <p>BPM sets the tempo. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span> Play starts and stops the click, and keeps time on the example that is showing. The bar above the metronome fills, then the next example comes up. <span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</p>
-                <button type="button" class="about-show" data-hello="metronome">Show me</button>
+                <h2 data-i18n="menu.kicker">Exercise</h2>
+                <p><span data-i18n="how.ex1">Choose an exercise at the top. The large text is the example. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span><span data-i18n="how.ex2"> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span><span data-i18n="how.ex3"> Reset starts that exercise again.</span></p>
+                <button type="button" class="about-show" data-hello="exercise" data-i18n="about.show">Show me</button>
+                <h2 data-i18n="how.editTitle">Edit</h2>
+                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span data-i18n="how.edit"> Edit changes any exercise on this device. Update and Save as new keep lists on this device. Download this list and Upload copy the open list to an .eiz file and back. This device can Download backup or Upload backup for every exercise.</span></p>
+                <button type="button" class="about-show" data-hello="edit" data-i18n="about.show">Show me</button>
+                <h2 data-i18n="how.metroTitle">Metronome</h2>
+                <p><span data-i18n="how.metro1">BPM sets the tempo. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span><span data-i18n="how.metro2"> Play starts and stops the click, and keeps time on the example that is showing. The bar above the metronome fills, then the next example comes up. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span><span data-i18n="how.metro3"> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</span></p>
+                <button type="button" class="about-show" data-hello="metronome" data-i18n="about.show">Show me</button>
             </div>
             <div id="aboutAuthor" hidden>
-                <p>I’m Błażej Drobniuch. I play jazz piano and guitar. I studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics in Barcelona. I play with my quartet, and I make electronic music as Zero Volume.</p>
-                <p>I made eization because I practice from my own exercises, and I want each example to come up once before the list starts again.</p>
+                <p data-i18n="author.bio">I’m Błażej Drobniuch. I play jazz piano and guitar. I studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics in Barcelona. I play with my quartet, and I make electronic music as Zero Volume.</p>
+                <p data-i18n="author.why">I made eization because I practice from my own exercises, and I want each example to come up once before the list starts again.</p>
                 <ul id="aboutLinks">
-                    <li><button type="button" data-link="site" aria-label="Site" title="Site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
+                    <li><button type="button" data-link="site" data-i18n-aria="author.site" aria-label="Site" data-i18n-title="author.site" title="Site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
                     <li><button type="button" data-link="linkedin" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM3.2 8.6h3v12.2h-3V8.6zm5.2 0h2.9v1.7h.1c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7v7.4h-3v-6.6c0-1.6 0-3.6-2.2-3.6s-2.5 1.7-2.5 3.5v6.7h-3V8.6z"/></svg></button></li>
                     <li><button type="button" data-link="instagram" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor"/></svg></button></li>
                     <li><button type="button" data-link="github" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.3 6.9 9.6.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.4 9.4 0 0 1 5 0c2-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 4-1.4 6.9-5.1 6.9-9.6C22 6.6 17.5 2 12 2z"/></svg></button></li>
-                    <li><button type="button" id="aboutEmail" aria-expanded="false" aria-label="Reveal email" title="Reveal email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
+                    <li><button type="button" id="aboutEmail" aria-expanded="false" data-i18n-aria="author.email" aria-label="Reveal email" data-i18n-title="author.email" title="Reveal email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
                 </ul>
                 <p id="emailLine" hidden></p>
-                <h2>Your exercises</h2>
-                <p>Send the backup if you want me to see the exercises you kept and the ones you wrote.</p>
-                <button type="button" id="sendPractice" title="Download your exercises and open a mail draft. Attach the file.">Send my lists</button>
-                <h2>A note</h2>
-                <p>If something helps, or gets in the way, write to me.</p>
-                <button type="button" id="shareFeedback" title="Open a mail draft">Share feedback</button>
-                <h2>Support</h2>
-                <p>eization is free. If it helps you practice, you can buy me a coffee.</p>
-                <button type="button" id="supportReveal">Buy me a coffee</button>
+                <h2 data-i18n="author.yours">Your exercises</h2>
+                <p data-i18n="author.sendBody">Send the backup if you want me to see the exercises you kept and the ones you wrote.</p>
+                <button type="button" id="sendPractice" data-i18n-title="author.sendTitle" title="Download your exercises and open a mail draft. Attach the file." data-i18n="author.send">Send my lists</button>
+                <h2 data-i18n="author.note">A note</h2>
+                <p data-i18n="author.noteBody">If something helps, or gets in the way, write to me.</p>
+                <button type="button" id="shareFeedback" data-i18n-title="author.feedbackTitle" title="Open a mail draft" data-i18n="author.feedback">Share feedback</button>
+                <h2 data-i18n="author.support">Support</h2>
+                <p data-i18n="author.free">eization is free. If it helps you practice, you can buy me a coffee.</p>
+                <button type="button" id="supportReveal" data-i18n="author.coffee">Buy me a coffee</button>
                 <div id="supportCard" hidden></div>
             </div>
             <div id="aboutDevice" hidden>
-                <p>Download backup copies every exercise on this device to a JSON file. Upload backup replaces the exercise list from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears lists you saved on this device. The intro may play the next time you open eization.</p>
+                <p data-i18n="device.body">Download backup copies every exercise on this device to a JSON file. Upload backup replaces the exercise list from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears lists you saved on this device. The intro may play the next time you open eization.</p>
                 <div id="aboutDeviceActions">
-                    <button type="button" id="downloadAllExercises" title="Download every exercise on this device as a JSON file">Download backup</button>
-                    <button type="button" id="uploadAllExercises" title="Replace exercises on this device from a JSON backup">Upload backup</button>
+                    <button type="button" id="downloadAllExercises" data-i18n-title="device.downloadTitle" title="Download every exercise on this device as a JSON file" data-i18n="device.download">Download backup</button>
+                    <button type="button" id="uploadAllExercises" data-i18n-title="device.uploadTitle" title="Replace exercises on this device from a JSON backup" data-i18n="device.upload">Upload backup</button>
                     <input id="uploadAllFile" type="file" accept=".json,application/json,text/plain" tabindex="-1" aria-hidden="true">
-                    <button type="button" id="restoreDefaults" class="panel-toggle" title="Reset tempo, meter, and exercises on this device. Stock lists return. Intro may play next launch.">Restore defaults</button>
+                    <button type="button" id="restoreDefaults" class="panel-toggle" data-i18n-title="device.restoreTitle" title="Reset tempo, meter, and exercises on this device. Stock lists return. Intro may play next launch." data-i18n="device.restore" data-i18n-aria="device.restore">Restore defaults</button>
                 </div>
+                <h2 data-i18n="device.lang">Language</h2>
+                <div id="langSwitch" role="group" data-i18n-aria="lang.group" aria-label="Language">
+                    <button type="button" data-set-lang="en" aria-pressed="true">English</button>
+                    <button type="button" data-set-lang="es" aria-pressed="false">Español</button>
+                </div>
+                <p data-i18n="device.langNote">This choice stays on this device.</p>
             </div>
         </div>
     </div>
@@ -209,7 +215,7 @@
 
     <div id="helloArrow" hidden aria-hidden="true"></div>
     <p id="helloCaption" hidden aria-live="polite"></p>
-    <button type="button" id="helloSkip" hidden>Skip intro</button>
+    <button type="button" id="helloSkip" data-i18n="hello.skip" hidden>Skip intro</button>
 
     <div id="divnote">
         <div id="noteStack">
@@ -225,7 +231,7 @@
 
     <footer>
         <div id="groovePanel" hidden>
-            <p class="groove-label">Meter</p>
+            <p class="groove-label" data-i18n="groove.meter">Meter</p>
             <div id="meterRow">
                 <div id="meterPresets">
                     <button type="button" data-top="4" data-unit="4" aria-pressed="true">4/4</button>
@@ -235,76 +241,76 @@
                     <button type="button" data-top="11" data-unit="4">11/4</button>
                     <button type="button" data-top="6" data-unit="8">6/8</button>
                 </div>
-                <div class="meter-sig" title="Top number: how many units in a bar. Bottom number: 1 whole, 2 half, 4 quarter, 8 eighth, 16 sixteenth. BPM is the speed of that note.">
+                <div class="meter-sig" data-i18n-title="groove.meterTitle" title="Top number: how many units in a bar. Bottom number: 1 whole, 2 half, 4 quarter, 8 eighth, 16 sixteenth. BPM is the speed of that note.">
                     <div class="stepper stepper-sm">
-                        <button type="button" class="step-down" aria-label="Fewer units in a bar" title="Fewer units in a bar">−</button>
-                        <input id="meterTop" type="number" min="1" max="32" step="1" value="4" inputmode="numeric" aria-label="Units in a bar" title="How many units in a bar">
-                        <button type="button" class="step-up" aria-label="More units in a bar" title="More units in a bar">+</button>
+                        <button type="button" class="step-down" data-i18n-aria="groove.fewerUnits" aria-label="Fewer units in a bar" data-i18n-title="groove.fewerUnits" title="Fewer units in a bar">−</button>
+                        <input id="meterTop" type="number" min="1" max="32" step="1" value="4" inputmode="numeric" data-i18n-aria="groove.unitsAria" aria-label="Units in a bar" data-i18n-title="groove.unitsTitle" title="How many units in a bar">
+                        <button type="button" class="step-up" data-i18n-aria="groove.moreUnits" aria-label="More units in a bar" data-i18n-title="groove.moreUnits" title="More units in a bar">+</button>
                     </div>
                     <div class="sig-rule"></div>
                     <div class="sig-unit">
-                        <button type="button" id="unitDown" aria-label="Longer note" title="Longer note">−</button>
+                        <button type="button" id="unitDown" data-i18n-aria="groove.longer" aria-label="Longer note" data-i18n-title="groove.longer" title="Longer note">−</button>
                         <span id="meterBottom">4</span>
-                        <button type="button" id="unitUp" aria-label="Shorter note" title="Shorter note">+</button>
+                        <button type="button" id="unitUp" data-i18n-aria="groove.shorter" aria-label="Shorter note" data-i18n-title="groove.shorter" title="Shorter note">+</button>
                     </div>
                     <p id="meterHint" class="meter-hint">quarter note</p>
                 </div>
             </div>
-            <p class="groove-label">Click</p>
-            <div class="tone-zone play" title="White is a click. Brighter is an accent. Tap a pad to change it.">
-                <p class="click-kind">Play</p>
+            <p class="groove-label" data-i18n="groove.click">Click</p>
+            <div class="tone-zone play" data-i18n-title="groove.playZone" title="White is a click. Brighter is an accent. Tap a pad to change it.">
+                <p class="click-kind" data-i18n="groove.play">Play</p>
                 <div id="clickGrid"></div>
             </div>
-            <div class="tone-zone rest" title="Clicks used on rest bars. Tap a pad to change it.">
-                <p class="click-kind">Rest</p>
+            <div class="tone-zone rest" data-i18n-title="groove.restZone" title="Clicks used on rest bars. Tap a pad to change it.">
+                <p class="click-kind" data-i18n="groove.rest">Rest</p>
                 <div id="restClickGrid"></div>
             </div>
-            <p class="groove-label">Bars</p>
-            <div id="cycleRow" title="How many play bars, then how many rest bars. Each uses its own clicks.">
+            <p class="groove-label" data-i18n="groove.bars">Bars</p>
+            <div id="cycleRow" data-i18n-title="groove.barsTitle" title="How many play bars, then how many rest bars. Each uses its own clicks.">
                 <div class="stepper stepper-sm play">
-                    <span class="step-label">Play</span>
-                    <button type="button" class="step-down" aria-label="Fewer play bars" title="Fewer play bars">−</button>
-                    <input id="playBars" type="number" min="0" max="16" step="1" value="1" inputmode="numeric" aria-label="Play bars" title="Play bars">
-                    <button type="button" class="step-up" aria-label="More play bars" title="More play bars">+</button>
+                    <span class="step-label" data-i18n="groove.play">Play</span>
+                    <button type="button" class="step-down" data-i18n-aria="groove.fewerPlay" aria-label="Fewer play bars" data-i18n-title="groove.fewerPlay" title="Fewer play bars">−</button>
+                    <input id="playBars" type="number" min="0" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="groove.playAria" aria-label="Play bars" data-i18n-title="groove.playAria" title="Play bars">
+                    <button type="button" class="step-up" data-i18n-aria="groove.morePlay" aria-label="More play bars" data-i18n-title="groove.morePlay" title="More play bars">+</button>
                 </div>
                 <div class="stepper stepper-sm rest">
-                    <span class="step-label">Rest</span>
-                    <button type="button" class="step-down" aria-label="Fewer rest bars" title="Fewer rest bars">−</button>
-                    <input id="restBars" type="number" min="0" max="16" step="1" value="0" inputmode="numeric" aria-label="Rest bars" title="Rest bars">
-                    <button type="button" class="step-up" aria-label="More rest bars" title="More rest bars">+</button>
+                    <span class="step-label" data-i18n="groove.rest">Rest</span>
+                    <button type="button" class="step-down" data-i18n-aria="groove.fewerRest" aria-label="Fewer rest bars" data-i18n-title="groove.fewerRest" title="Fewer rest bars">−</button>
+                    <input id="restBars" type="number" min="0" max="16" step="1" value="0" inputmode="numeric" data-i18n-aria="groove.restAria" aria-label="Rest bars" data-i18n-title="groove.restAria" title="Rest bars">
+                    <button type="button" class="step-up" data-i18n-aria="groove.moreRest" aria-label="More rest bars" data-i18n-title="groove.moreRest" title="More rest bars">+</button>
                 </div>
             </div>
-            <p class="groove-label">Repeat</p>
-            <div id="repeatRow" title="How many times to play the current example before the next one. A 4-bar exercise at 2 plays 8 bars. Play and rest keep counting through those bars.">
+            <p class="groove-label" data-i18n="groove.repeat">Repeat</p>
+            <div id="repeatRow" data-i18n-title="groove.repeatTitle" title="How many times to play the current example before the next one. A 4-bar exercise at 2 plays 8 bars. Play and rest keep counting through those bars.">
                 <div class="stepper stepper-sm">
                     <span class="step-label">×</span>
-                    <button type="button" class="step-down" aria-label="Repeat fewer times" title="Repeat fewer times">−</button>
-                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="Repeat count" title="How many times to play the current example">
-                    <button type="button" class="step-up" aria-label="Repeat more times" title="Repeat more times">+</button>
+                    <button type="button" class="step-down" data-i18n-aria="groove.fewerRepeat" aria-label="Repeat fewer times" data-i18n-title="groove.fewerRepeat" title="Repeat fewer times">−</button>
+                    <input id="repeatCount" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="groove.repeatAria" aria-label="Repeat count" data-i18n-title="groove.repeatCountTitle" title="How many times to play the current example">
+                    <button type="button" class="step-up" data-i18n-aria="groove.moreRepeat" aria-label="Repeat more times" data-i18n-title="groove.moreRepeat" title="Repeat more times">+</button>
                 </div>
             </div>
             <div id="practiceToggles">
                 <div class="practice-toggle">
-                    <p class="groove-label">Count in</p>
-                    <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false" title="Counts one bar before you start, and again before the next example.">One bar</button>
+                    <p class="groove-label" data-i18n="groove.countIn">Count in</p>
+                    <button type="button" id="countInToggle" class="panel-toggle" aria-pressed="false" data-i18n-title="groove.oneBarTitle" title="Counts one bar before you start, and again before the next example." data-i18n="groove.oneBar">One bar</button>
                 </div>
                 <div class="practice-toggle">
-                    <p class="groove-label">Nearby</p>
-                    <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true" title="Shows the next example above and the previous one below.">Show nearby</button>
+                    <p class="groove-label" data-i18n="groove.nearby">Nearby</p>
+                    <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true" data-i18n-title="groove.nearbyTitle" title="Shows the next example above and the previous one below." data-i18n="groove.showNearby">Show nearby</button>
                 </div>
             </div>
-            <p class="groove-label">Swing</p>
-            <div class="swing-modes" role="radiogroup" aria-label="Swing">
-                <button type="button" id="swingModeOff" role="radio" aria-checked="true" title="Straight. The &amp; sits halfway between the beats.">Off</button>
-                <button type="button" id="swingModeTriplet" role="radio" aria-checked="false" title="The &amp; lands on the last third of the beat.">Triplet</button>
-                <button type="button" id="swingModeFeel" role="radio" aria-checked="false" title="The &amp; follows the tempo. Numbered beats stay on the grid.">Swing</button>
-                <button type="button" id="swingModeNeo" role="radio" aria-checked="false" title="Beats 2 and 4 sit a little late. The &amp; stays straight. In 6/8 the second group sits late.">Neo</button>
+            <p class="groove-label" data-i18n="groove.swing">Swing</p>
+            <div class="swing-modes" role="radiogroup" data-i18n-aria="groove.swing" aria-label="Swing">
+                <button type="button" id="swingModeOff" role="radio" aria-checked="true" data-i18n-title="groove.offTitle" title="Straight. The &amp; sits halfway between the beats." data-i18n="groove.off">Off</button>
+                <button type="button" id="swingModeTriplet" role="radio" aria-checked="false" data-i18n-title="groove.tripletTitle" title="The &amp; lands on the last third of the beat." data-i18n="groove.triplet">Triplet</button>
+                <button type="button" id="swingModeFeel" role="radio" aria-checked="false" data-i18n-title="groove.swingTitle" title="The &amp; follows the tempo. Numbered beats stay on the grid." data-i18n="groove.swingMode">Swing</button>
+                <button type="button" id="swingModeNeo" role="radio" aria-checked="false" data-i18n-title="groove.neoTitle" title="Beats 2 and 4 sit a little late. The &amp; stays straight. In 6/8 the second group sits late." data-i18n="groove.neo">Neo</button>
             </div>
             <div id="swingAmount" hidden>
-                <div id="swingSlider" title="Left is straight. Right is heavier.">
+                <div id="swingSlider" data-i18n-title="groove.sliderTitle" title="Left is straight. Right is heavier.">
                     <div class="swing-line"></div>
-                    <button type="button" id="swingRecommended" class="swing-ghost" tabindex="-1" title="Recommended for this tempo. Tap to follow it." aria-label="Follow the recommended swing"></button>
-                    <button type="button" id="swingHandle" class="swing-handle" role="slider" aria-valuemin="1" aria-valuemax="3.5" aria-valuenow="1" aria-label="Swing amount" aria-orientation="horizontal"></button>
+                    <button type="button" id="swingRecommended" class="swing-ghost" tabindex="-1" data-i18n-title="groove.followTitle" title="Recommended for this tempo. Tap to follow it." data-i18n-aria="groove.follow" aria-label="Follow the recommended swing"></button>
+                    <button type="button" id="swingHandle" class="swing-handle" role="slider" aria-valuemin="1" aria-valuemax="3.5" aria-valuenow="1" data-i18n-aria="groove.amount" aria-label="Swing amount" aria-orientation="horizontal"></button>
                 </div>
                 <p id="swingReadout">Auto</p>
             </div>
@@ -316,13 +322,13 @@
         <div id="bottomBar">
         <div id="divfooter">
 
-            <label class="checkbox-label" title="Metronome sound on/off" aria-label="Metronome sound on/off">
-                <input type="checkbox" id="volumeCheckbox" checked aria-label="Metronome sound on/off" />
+            <label class="checkbox-label" data-i18n-title="tempo.sound" title="Metronome sound on/off" data-i18n-aria="tempo.sound" aria-label="Metronome sound on/off">
+                <input type="checkbox" id="volumeCheckbox" checked data-i18n-aria="tempo.sound" aria-label="Metronome sound on/off" />
                 <svg class="chrome-icon volume-on" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M11 5 6 9H3v6h3l5 4V5Zm5.5 4.5a4 4 0 0 1 0 5M17.5 7a7 7 0 0 1 0 10"/></svg>
                 <svg class="chrome-icon volume-off is-hidden" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M11 5 6 9H3v6h3l5 4V5Zm10 3-8 8m0-8 8 8"/></svg>
             </label>
 
-            <button type="button" id="grooveButton" title="Meter, clicks, bars, swing, and count-in" aria-label="Setup" aria-expanded="false">
+            <button type="button" id="grooveButton" data-i18n-title="groove.setupTitle" title="Meter, clicks, bars, swing, and count-in" data-i18n-aria="groove.setupAria" aria-label="Setup" aria-expanded="false">
                 <svg class="metro-icon" viewBox="0 0 32 32" aria-hidden="true">
                     <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/>
                     <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/>
@@ -332,23 +338,24 @@
 
             <div class="stepper" id="bpmStepper">
                 <span class="step-label">BPM</span>
-                <button type="button" class="step-down" aria-label="Slower" title="Slower">−</button>
+                <button type="button" class="step-down" data-i18n-aria="tempo.slower" aria-label="Slower" data-i18n-title="tempo.slower" title="Slower">−</button>
                 <input type="number" id="bpm" min="0" max="500" step="1" value="100" maxlength="3"
-                    title="Tempo in BPM. This is the speed of the bottom number." aria-label="Tempo" inputmode="numeric">
-                <button type="button" class="step-up" aria-label="Faster" title="Faster">+</button>
-                <button type="button" id="tempoToggle" aria-label="Start tempo" aria-pressed="false" title="Start tempo">
+                    data-i18n-title="tempo.title" title="Tempo in BPM. This is the speed of the bottom number." data-i18n-aria="tempo.aria" aria-label="Tempo" inputmode="numeric">
+                <button type="button" class="step-up" data-i18n-aria="tempo.faster" aria-label="Faster" data-i18n-title="tempo.faster" title="Faster">+</button>
+                <button type="button" id="tempoToggle" data-i18n-aria="tempo.start" aria-label="Start tempo" aria-pressed="false" data-i18n-title="tempo.start" title="Start tempo">
                     <svg class="chrome-icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg>
                     <svg class="chrome-icon icon-pause is-hidden" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6Zm8 0h4v14h-4Z"/></svg>
                 </button>
             </div>
 
-            <button type="button" class="icon-btn" id="next" onclick="next()" title="Next example" aria-label="Next"><svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></button>
+            <button type="button" class="icon-btn" id="next" onclick="next()" data-i18n-title="next.title" title="Next example" data-i18n-aria="next.aria" aria-label="Next"><svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></button>
 
 
         </div>
         </div>
     </footer>
     <div id="noteMeasure" aria-hidden="true"></div>
+    <script src="./resources/js/i18n.js"></script>
     <script src="./resources/js/registry.js"></script>
     <script src="./resources/js/exercises/notes.js"></script>
     <script src="./resources/js/exercises/chords.js"></script>

@@ -86,7 +86,7 @@ function cleanDeskLines(lines) {
 function cleanDeskName(name, fallback) {
   var text = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
   if (!text) {
-    text = fallback || "New Custom Exercise";
+    text = fallback || t("edit.defaultName");
   }
   if (text.length > 60) {
     text = text.slice(0, 60);
@@ -126,7 +126,7 @@ function normalizeDeskExercise(raw) {
   }
   var record = {
     id: id,
-    name: cleanDeskName(raw.name, "Exercise"),
+    name: cleanDeskName(raw.name, t("menu.kicker")),
     bars: clampDeskInt(raw.bars, 1, 16, 1),
     lines: lines
   };
@@ -182,7 +182,7 @@ function legacyCustomRecord(data) {
   }
   return {
     id: "ex:legacy-custom",
-    name: "Custom",
+    name: t("edit.defaultName"),
     bars: clampDeskInt(custom.bars, 1, 16, 1),
     lines: lines
   };
@@ -366,7 +366,7 @@ function createDeskExercise(part) {
   }
   var row = {
     id: newDeskExerciseId(),
-    name: cleanDeskName(part.name, "New Custom Exercise"),
+    name: cleanDeskName(part.name, t("edit.defaultName")),
     bars: clampDeskInt(part.bars, 1, 16, 1),
     lines: lines
   };
@@ -424,13 +424,13 @@ function parseDeskExercisesBackup(text) {
   try {
     data = JSON.parse(String(text || ""));
   } catch (err) {
-    return { error: "That file is not valid JSON." };
+    return { error: t("desk.badJson") };
   }
   if (!data || typeof data !== "object" || !data.exercises || !data.exercises.length) {
-    return { error: "That file has no exercises." };
+    return { error: t("desk.noExercises") };
   }
   if (data.eization && data.eization > DESK_BACKUP_VERSION) {
-    return { error: "This file needs a newer eization." };
+    return { error: t("desk.newer") };
   }
   var list = [];
   var seenSeed = {};
@@ -445,7 +445,7 @@ function parseDeskExercisesBackup(text) {
     }
     var row = {
       id: newDeskExerciseId() + String(i),
-      name: cleanDeskName(raw.name, "Exercise"),
+      name: cleanDeskName(raw.name, t("menu.kicker")),
       bars: clampDeskInt(raw.bars, 1, 16, 1),
       lines: lines
     };
@@ -457,7 +457,7 @@ function parseDeskExercisesBackup(text) {
     list.push(row);
   }
   if (!list.length) {
-    return { error: "That file has no exercises." };
+    return { error: t("desk.noExercises") };
   }
   return { exercises: list };
 }
@@ -591,15 +591,15 @@ function disarmRestoreDefaults() {
     return;
   }
   button.classList.remove("is-armed");
-  button.textContent = "Restore defaults";
-  button.setAttribute("aria-label", "Restore defaults");
+  button.textContent = t("device.restore");
+  button.setAttribute("aria-label", t("device.restore"));
 }
 
 function restoreDefaults() {
   if (typeof editorIsOpen === "function" && editorIsOpen()) {
     if (typeof editorIsDirty === "function" && editorIsDirty()) {
       if (typeof editorNotice === "function") {
-        editorNotice("Finish or cancel editing first.");
+        editorNotice(t("edit.finish"));
       }
       return;
     }
@@ -698,7 +698,7 @@ function restoreDefaults() {
     renderGroove();
   }
   deskReady = keepReady;
-  showDeskNote("Defaults restored. Intro will play next time you open eization.");
+  showDeskNote(t("device.restored"));
 }
 
 function rememberSetup() {

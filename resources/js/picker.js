@@ -232,7 +232,7 @@ function updateRemaining() {
   }
   var total = chromaticScale ? chromaticScale.length : 0;
   var left = cycleGap ? total : notePool.length;
-  el.textContent = left + " left";
+  el.textContent = tr(left === 1 ? "count.one" : "count.many", { n: left });
 }
 
 function showCurrentNote(text) {
@@ -415,7 +415,7 @@ function newExercise(items, bars) {
 function resetExercise() {
   if (typeof editorIsOpen === "function" && editorIsOpen()) {
     if (typeof editorNotice === "function") {
-      editorNotice("Finish or cancel editing first.");
+      editorNotice(t("edit.finish"));
     }
     return;
   }

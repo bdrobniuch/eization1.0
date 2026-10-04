@@ -1941,6 +1941,30 @@ body.is-about #counter {
   padding-top: 12px;
 }
 
+#langSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+#langSwitch button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#langSwitch button.is-on {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
 .support-path {
   flex: 1 1 0;
   padding: 0 8px;
