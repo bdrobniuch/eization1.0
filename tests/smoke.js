@@ -213,7 +213,7 @@ function shareCase(w) {
   check("share link round trip", !!(read && read.shareId === "teach001" && read.name === "Week" && read.bars === 4 && read.lines.length === 2 && read.lines[0] === "Dm7 G7"));
   check("share lives in edit", !!w.document.getElementById("editShare"));
   check("share prompt is in the page", !!w.document.getElementById("shareAsk"));
-  check("intro edit line stays", w.I18N.en["hello.edit"] === "Edit builds your own list." && w.I18N.es["hello.edit"] === "Editar arma tu propia lista.");
+  check("intro edit line stays", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
   var scales = w.getDeskExercise("ex:scales");
   var factoryCount = w.listDeskExercises().length;
   var factoryLines = scales.lines.slice();
@@ -401,7 +401,7 @@ function chatCase(w) {
   w.document.getElementById("editAsk").click();
   check("chat menu closes", menu.hidden === true);
   check("paste line leaves with the chats", w.document.getElementById("editHint").textContent !== w.t("edit.askHint"));
-  check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own list." && w.I18N.es["hello.edit"] === "Editar arma tu propia lista.");
+  check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
 }
 
 function deskRoundTrip(w) {

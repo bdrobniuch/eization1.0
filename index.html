@@ -199,7 +199,7 @@
             </div>
             <div id="aboutHow" hidden>
                 <h2 data-i18n="menu.kicker">Exercise</h2>
-                <p><span data-i18n="how.ex1">Choose an exercise at the top. The large text is the example. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span><span data-i18n="how.ex2"> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span><span data-i18n="how.ex3"> Reset starts that exercise again.</span></p>
+                <p><span data-i18n="how.ex1">Choose an exercise at the top. The large text is the example. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span><span data-i18n="how.ex2"> Next moves to the next one. The number under the exercise shows how many are left before the exercise starts over. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span><span data-i18n="how.ex3"> Reset starts that exercise again.</span></p>
                 <button type="button" class="about-show" data-hello="exercise" data-i18n="about.show">Show me</button>
                 <h2 data-i18n="how.editTitle">Edit</h2>
                 <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span data-i18n="how.edit"> Edit changes any exercise on this device. Update and Save as new keep exercises on this device. Download and Upload copy the open exercise to an .eiz file and back. This device can Download backup or Upload backup for every exercise. Share copies a link. Someone can open this exercise in eization. Ask AI opens this exercise in ChatGPT, Claude, or Gemini. Paste the reply into the box, then Update.</span></p>
@@ -210,7 +210,7 @@
             </div>
             <div id="aboutAuthor" hidden>
                 <p data-i18n="author.bio">I’m Błażej Drobniuch. I play jazz piano and guitar. I studied at the Cracow School of Jazz and Contemporary Music, then at Taller de Músics in Barcelona. I play with my quartet, and I make electronic music as Zero Volume.</p>
-                <p data-i18n="author.why">I made eization because I practice from my own exercises, and I want each example to come up once before the list starts again.</p>
+                <p data-i18n="author.why">I made eization because I practice from my own exercises, and I want each example to come up once before the exercise starts again.</p>
                 <ul id="aboutLinks">
                     <li><button type="button" data-link="site" data-i18n-aria="author.site" aria-label="Site" data-i18n-title="author.site" title="Site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li>
                     <li><button type="button" data-link="linkedin" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4.7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM3.2 8.6h3v12.2h-3V8.6zm5.2 0h2.9v1.7h.1c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7v7.4h-3v-6.6c0-1.6 0-3.6-2.2-3.6s-2.5 1.7-2.5 3.5v6.7h-3V8.6z"/></svg></button></li>
@@ -221,7 +221,7 @@
                 <p id="emailLine" hidden></p>
                 <h2 data-i18n="author.yours">Your exercises</h2>
                 <p data-i18n="author.sendBody">Send the backup if you want me to see the exercises you kept and the ones you wrote.</p>
-                <button type="button" id="sendPractice" data-i18n-title="author.sendTitle" title="Download your exercises and open a mail draft. Attach the file." data-i18n="author.send">Send my lists</button>
+                <button type="button" id="sendPractice" data-i18n-title="author.sendTitle" title="Download your exercises and open a mail draft. Attach the file." data-i18n="author.send">Send my exercises</button>
                 <h2 data-i18n="author.note">A note</h2>
                 <p data-i18n="author.noteBody">If something helps, or gets in the way, write to me.</p>
                 <button type="button" id="shareFeedback" data-i18n-title="author.feedbackTitle" title="Open a mail draft" data-i18n="author.feedback">Share feedback</button>
@@ -231,12 +231,12 @@
                 <div id="supportCard" hidden></div>
             </div>
             <div id="aboutDevice" hidden>
-                <p data-i18n="device.body">Download backup copies every exercise on this device to a JSON file. Upload backup replaces the exercise list from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears lists you saved on this device. The intro may play the next time you open eization.</p>
+                <p data-i18n="device.body">Download backup copies every exercise on this device to a JSON file. Upload backup replaces the exercises from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears exercises you saved on this device. The intro may play the next time you open eization.</p>
                 <div id="aboutDeviceActions">
                     <button type="button" id="downloadAllExercises" data-i18n-title="device.downloadTitle" title="Download every exercise on this device as a JSON file" data-i18n="device.download">Download backup</button>
                     <button type="button" id="uploadAllExercises" data-i18n-title="device.uploadTitle" title="Replace exercises on this device from a JSON backup" data-i18n="device.upload">Upload backup</button>
                     <input id="uploadAllFile" type="file" accept=".json,application/json,text/plain" tabindex="-1" aria-hidden="true">
-                    <button type="button" id="restoreDefaults" class="panel-toggle" data-i18n-title="device.restoreTitle" title="Reset tempo, meter, and exercises on this device. Stock lists return. Intro may play next launch." data-i18n="device.restore" data-i18n-aria="device.restore">Restore defaults</button>
+                    <button type="button" id="restoreDefaults" class="panel-toggle" data-i18n-title="device.restoreTitle" title="Reset tempo, meter, and exercises on this device. Stock exercises return. Intro may play next launch." data-i18n="device.restore" data-i18n-aria="device.restore">Restore defaults</button>
                 </div>
                 <h2 data-i18n="device.lang">Language</h2>
                 <div id="langSwitch" role="group" data-i18n-aria="lang.group" aria-label="Language">
