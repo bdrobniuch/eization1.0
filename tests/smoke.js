@@ -224,7 +224,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 28 share links", keys.length === 28);
+  check("more catalog has 31 share links", keys.length === 31);
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -247,7 +247,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 28 share links", esHashes.length === 28);
+  check("spanish more catalog has 31 share links", esHashes.length === 31);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
