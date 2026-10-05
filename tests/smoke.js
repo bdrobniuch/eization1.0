@@ -66,6 +66,9 @@ function run() {
     shareCase(w);
     chatCase(w);
     foreignDesk(w);
+    check("practice screen can stay awake", typeof w.keepPracticeAwake === "function" && typeof w.practiceScreenAwake === "function");
+    w.keepPracticeAwake();
+    check("staying awake leaves play stopped", w.paused === true);
     check("metronome stays paused", w.paused === true);
   } catch (err) {
     check("threw " + (err && err.message ? err.message : err), false);

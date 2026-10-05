@@ -985,6 +985,9 @@ function toggleTempo() {
     shown = resume;
     input.value = String(shown);
   }
+  if (typeof keepPracticeAwake === "function") {
+    keepPracticeAwake(true);
+  }
   applyBpm(shown);
 }
 
@@ -1320,6 +1323,9 @@ function next() {
       editorNotice(t("edit.finish"));
     }
     return;
+  }
+  if (typeof keepPracticeAwake === "function") {
+    keepPracticeAwake(true);
   }
   unlockAudio();
   advanceNote();

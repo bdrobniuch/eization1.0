@@ -34,6 +34,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/about.js` | About sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
+| `resources/js/awake.js` | Keeps the practice display on while that page is in front. Screen wake lock, then a muted looping clip with a silent audio track if the device refuses the lock |
 | `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/css/style.css` | Practice screen layout |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
@@ -58,6 +59,8 @@ On first visit the catalog is copied into `eization-desk.exercises`. The menu re
 ## Saved on this device
 
 `eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, and `deletedSeeds`. A shared exercise also stores `shareId` on its row. Two rows may share one `shareId`. It does not store whether the metronome is running.
+
+The practice screen keeps the display on while that page is in front, so a phone or tablet can sit on the stand while you play. It asks for a screen wake lock as soon as the page is open, again after the first tap, Play, or Next, and again when you come back to it. If the device refuses the lock (older iOS, some Home Screen installs, Low Power Mode), a muted looping video with a silent audio track plays instead. That clip is not the metronome, and the hello tour still must not start the metronome. Switching apps lets the device sleep. Low Power Mode can still turn the screen off.
 
 `eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in About) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
 
