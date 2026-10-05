@@ -919,6 +919,9 @@ function init() {
   startMetronome();
   layoutFrame();
   deskReady = true;
+  if (typeof watchForeignDesk === "function") {
+    watchForeignDesk();
+  }
   if (openedExerciseFromAddress && typeof rememberSetup === "function") {
     rememberSetup();
   }

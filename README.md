@@ -61,6 +61,8 @@ On first visit the catalog is copied into `eization-desk.exercises`. The menu re
 
 `eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in About) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
 
+Another open tab keeps its own screen. Update asks before it replaces an exercise whose lines changed in that other tab. A second Update replaces them. If the other tab removes the exercise on screen, this tab switches to the one now stored. Tempo and meter from the other tab stay there until this tab is reloaded.
+
 Constraints for later sessions are in `.cursor/rules/eization.mdc`.
 
 ## Tests

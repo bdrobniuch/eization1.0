@@ -4,7 +4,8 @@ var editorDraft = {
   name: "",
   text: "",
   bars: 1,
-  mode: "edit"
+  mode: "edit",
+  storedLines: null
 };
 
 var EDITOR_SYMBOLS = [
@@ -238,7 +239,8 @@ function refreshEditorHint() {
     return;
   }
   var del = document.getElementById("editDelete");
-  if (del && del.classList.contains("is-armed")) {
+  var update = document.getElementById("editUpdate");
+  if ((del && del.classList.contains("is-armed")) || (update && update.classList.contains("is-armed"))) {
     hint.textContent = "";
     return;
   }
@@ -300,6 +302,9 @@ function editorCloseQuiet() {
   syncEditorCommitLabels();
   if (typeof renderPreview === "function") {
     renderPreview();
+  }
+  if (typeof deskForeignPending !== "undefined" && deskForeignPending && typeof applyForeignDeskList === "function") {
+    applyForeignDeskList(true);
   }
 }
 
@@ -498,6 +503,7 @@ function editorOpenSheet(options) {
     }
     editorDraft.text = lines.join("\n");
   }
+  editorDraft.storedLines = editorIsCreateMode() ? null : editorStoredLinesNow(editorDraft.id);
   var area = document.getElementById("allEdit");
   area.value = editorDraft.text;
   document.getElementById("editBars").value = String(editorDraft.bars);
@@ -604,6 +610,7 @@ function editorOpenSharePreview(spec) {
     editorDraft.bars = target.bars;
     editorDraft.text = editorPlainLines(target.lines);
   }
+  editorDraft.storedLines = editorDraft.mode === "create" || !target ? null : editorPlainLines(target.lines);
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
   document.getElementById("editBars").value = String(spec.bars || 1);
@@ -779,6 +786,63 @@ function editorOpenFile(file) {
 
 var editorDeleteTimer = null;
 var editorOpenTimer = null;
+var editorStaleTimer = null;
+
+function editorStoredLinesNow(id) {
+  var row = typeof getDeskExercise === "function" ? getDeskExercise(id) : null;
+  if (!row) {
+    return null;
+  }
+  return editorPlainLines(row.lines);
+}
+
+function editorLinesChangedUnderfoot() {
+  var now;
+  if (editorIsCreateMode() || editorDraft.storedLines == null) {
+    return false;
+  }
+  now = editorStoredLinesNow(editorDraft.id);
+  if (now == null) {
+    return false;
+  }
+  return now !== editorDraft.storedLines;
+}
+
+function disarmEditorStale() {
+  var update = document.getElementById("editUpdate");
+  var armed = !!(update && update.classList.contains("is-armed"));
+  if (update) {
+    update.classList.remove("is-armed");
+  }
+  if (editorStaleTimer) {
+    clearTimeout(editorStaleTimer);
+    editorStaleTimer = null;
+  }
+  if (armed) {
+    var error = document.getElementById("editError");
+    if (error && error.textContent === t("edit.staleAsk")) {
+      clearEditorNotice();
+    }
+    syncEditorCommitLabels();
+    refreshEditorHint();
+  }
+}
+
+function armEditorStale() {
+  var update = document.getElementById("editUpdate");
+  disarmEditorDelete();
+  if (update) {
+    update.classList.add("is-armed");
+    update.textContent = t("edit.staleAsk");
+    update.setAttribute("aria-label", t("edit.staleAsk"));
+  }
+  editorNotice(t("edit.staleAsk"));
+  refreshEditorHint();
+  if (editorStaleTimer) {
+    clearTimeout(editorStaleTimer);
+  }
+  editorStaleTimer = setTimeout(disarmEditorStale, 4000);
+}
 
 function disarmEditorDelete() {
   var del = document.getElementById("editDelete");
@@ -790,6 +854,7 @@ function disarmEditorDelete() {
     clearTimeout(editorDeleteTimer);
     editorDeleteTimer = null;
   }
+  disarmEditorStale();
   if (editorIsOpen()) {
     setEditorCommitsEnabled(true);
     refreshEditorHint();
@@ -797,6 +862,7 @@ function disarmEditorDelete() {
 }
 
 function armEditorDelete() {
+  disarmEditorStale();
   var del = document.getElementById("editDelete");
   if (del) {
     del.classList.add("is-armed");
@@ -876,6 +942,11 @@ function editorApplyLanguage() {
   var trimmed;
   setEditButton(editorIsOpen());
   syncEditorCommitLabels();
+  var update = document.getElementById("editUpdate");
+  if (update && update.classList.contains("is-armed")) {
+    update.textContent = t("edit.staleAsk");
+    update.setAttribute("aria-label", t("edit.staleAsk"));
+  }
   refreshEditorHint();
   for (i = 0; i < buttons.length && i < EDITOR_SYMBOLS.length; i++) {
     buttons[i].setAttribute("aria-label", t(EDITOR_SYMBOLS[i].key));
@@ -941,6 +1012,12 @@ function editorUpdate() {
   var bars = clampEditorBars(document.getElementById("editBars").value);
   document.getElementById("editBars").value = String(bars);
   var name = resolveEditorName(editorNameValue());
+  var updateButton = document.getElementById("editUpdate");
+  if (editorLinesChangedUnderfoot() && (!updateButton || !updateButton.classList.contains("is-armed"))) {
+    armEditorStale();
+    return;
+  }
+  disarmEditorStale();
   var saved = typeof updateDeskExercise === "function"
     ? updateDeskExercise(editorDraft.id, { name: name, bars: bars, lines: lines })
     : null;

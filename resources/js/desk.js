@@ -3,6 +3,9 @@ var DESK_EXERCISE_CAP = 40;
 var deskReady = false;
 var deskTimer = null;
 var deskNoteTimer = null;
+var deskSeenStamp = "";
+var deskForeignPending = false;
+var deskWatching = false;
 
 function readDesk() {
   try {
@@ -20,9 +23,29 @@ function readDesk() {
   }
 }
 
+function deskExerciseStamp(data) {
+  var list = data && data.exercises ? data.exercises : [];
+  var parts = [];
+  var i;
+  var row;
+  var lines;
+  var deleted;
+  for (i = 0; i < list.length; i++) {
+    row = list[i];
+    if (!row || !row.id) {
+      continue;
+    }
+    lines = row.lines && row.lines.length ? row.lines.join("\n") : "";
+    parts.push(row.id + "\n" + (row.name || "") + "\n" + (row.bars || "") + "\n" + (row.seedId || "") + "\n" + (row.shareId || "") + "\n" + lines);
+  }
+  deleted = data && data.deletedSeeds && data.deletedSeeds.length ? data.deletedSeeds.join("\n") : "";
+  return parts.join("\n\n") + "\n---\n" + deleted;
+}
+
 function writeDesk(data) {
   try {
     localStorage.setItem(DESK_KEY, JSON.stringify(data));
+    deskSeenStamp = deskExerciseStamp(data);
     return true;
   } catch (err) {
     if (typeof showDeskNote === "function" && typeof t === "function") {
@@ -30,6 +53,65 @@ function writeDesk(data) {
     }
     return false;
   }
+}
+
+function applyForeignDeskList(reloadOpenExercise) {
+  var previousId = typeof currentExerciseId === "string" ? currentExerciseId : "";
+  var row = previousId && typeof getDeskExercise === "function" ? getDeskExercise(previousId) : null;
+  var gone = !!(previousId && !row);
+  var reload = false;
+  var data;
+  var nextId;
+  deskForeignPending = false;
+  if (reloadOpenExercise && row && typeof editorDraft !== "undefined" && editorDraft.storedLines != null && typeof editorPlainLines === "function") {
+    reload = editorPlainLines(row.lines) !== editorDraft.storedLines;
+  }
+  if (gone) {
+    data = readDesk();
+    nextId = "";
+    if (data && data.exercise && typeof getDeskExercise === "function" && getDeskExercise(data.exercise)) {
+      nextId = data.exercise;
+    } else if (typeof firstDeskExerciseId === "function") {
+      nextId = firstDeskExerciseId();
+    }
+    currentExerciseId = nextId;
+  }
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  if ((gone || reload) && typeof SelectExercise === "function") {
+    SelectExercise();
+  }
+  if (gone && typeof showDeskNote === "function" && typeof t === "function") {
+    showDeskNote(t("desk.otherWindow"));
+  }
+}
+
+function onForeignDesk(event) {
+  var data;
+  var stamp;
+  if (!event || event.key !== DESK_KEY || event.newValue == null) {
+    return;
+  }
+  data = readDesk();
+  stamp = deskExerciseStamp(data);
+  if (stamp === deskSeenStamp) {
+    return;
+  }
+  deskSeenStamp = stamp;
+  if (typeof editorIsOpen === "function" && editorIsOpen()) {
+    deskForeignPending = true;
+    return;
+  }
+  applyForeignDeskList(false);
+}
+
+function watchForeignDesk() {
+  if (deskWatching) {
+    return;
+  }
+  deskWatching = true;
+  window.addEventListener("storage", onForeignDesk);
 }
 
 function deskState() {

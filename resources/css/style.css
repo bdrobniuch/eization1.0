@@ -1746,6 +1746,11 @@ body.is-editing #counter {
   color: #0C8A50;
 }
 
+#editUpdate.is-armed {
+  background: #ffe08a;
+  color: #143024;
+}
+
 #textdiv .stepper {
   flex: 0 0 auto;
 }

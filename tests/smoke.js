@@ -65,6 +65,7 @@ function run() {
     deskRoundTrip(w);
     shareCase(w);
     chatCase(w);
+    foreignDesk(w);
     check("metronome stays paused", w.paused === true);
   } catch (err) {
     check("threw " + (err && err.message ? err.message : err), false);
@@ -402,6 +403,79 @@ function chatCase(w) {
   check("chat menu closes", menu.hidden === true);
   check("paste line leaves with the chats", w.document.getElementById("editHint").textContent !== w.t("edit.askHint"));
   check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
+}
+
+function foreignDesk(w) {
+  w.restoreDefaults();
+  localStorage.setItem("eization-hello", "1");
+  var created = w.createDeskExercise({ name: "Other", bars: 1, lines: ["One", "Two"] });
+  var id = created && created.id;
+  var area;
+  var update;
+  var data;
+  var i;
+  var next;
+  var face;
+  var during;
+  var openId;
+  check("other-window strings", w.I18N.en["edit.staleAsk"] === "This exercise changed in another window." && w.I18N.es["edit.staleAsk"] === "Este ejercicio cambi\u00F3 en otra ventana." && w.I18N.en["desk.otherWindow"] === "That exercise was removed in another window." && w.I18N.es["desk.otherWindow"] === "Ese ejercicio se quit\u00F3 en otra ventana.");
+  if (!id) {
+    check("other-window exercise saves", false);
+    return;
+  }
+  w.currentExerciseId = id;
+  w.SelectExercise();
+  w.editorOpen();
+  area = w.document.getElementById("allEdit");
+  area.value = area.value + "\nZed";
+  area.dispatchEvent(new w.Event("input"));
+  data = JSON.parse(localStorage.getItem("eization-desk"));
+  for (i = 0; i < data.exercises.length; i++) {
+    if (data.exercises[i].id === id) {
+      data.exercises[i].lines = ["From the other window"];
+    }
+  }
+  localStorage.setItem("eization-desk", JSON.stringify(data));
+  w.document.getElementById("editUpdate").click();
+  update = w.document.getElementById("editUpdate");
+  check("stale update waits", !!(update && update.classList.contains("is-armed") && update.textContent === w.t("edit.staleAsk") && w.editorIsOpen() && w.getDeskExercise(id).lines.length === 1 && w.getDeskExercise(id).lines[0] === "From the other window"));
+  update.click();
+  check("second update replaces", !!(w.getDeskExercise(id) && w.getDeskExercise(id).lines[w.getDeskExercise(id).lines.length - 1] === "Zed" && !w.editorIsOpen()));
+  data = JSON.parse(localStorage.getItem("eization-desk"));
+  for (i = 0; i < data.exercises.length; i++) {
+    if (data.exercises[i].id === id) {
+      data.exercises[i].name = "Renamed elsewhere";
+    }
+  }
+  localStorage.setItem("eization-desk", JSON.stringify(data));
+  w.document.getElementById("deskNote").hidden = true;
+  w.dispatchEvent(new w.StorageEvent("storage", { key: "eization-desk", newValue: localStorage.getItem("eization-desk") }));
+  face = w.document.getElementById("exerciseFace").querySelector(".combo-value");
+  check("another window renames the menu", w.currentExerciseId === id && face.textContent === "Renamed elsewhere" && w.document.getElementById("deskNote").hidden === true);
+  data = JSON.parse(localStorage.getItem("eization-desk"));
+  data.bpm = 123;
+  localStorage.setItem("eization-desk", JSON.stringify(data));
+  w.dispatchEvent(new w.StorageEvent("storage", { key: "eization-desk", newValue: localStorage.getItem("eization-desk") }));
+  check("setup from another window stays put", w.currentExerciseId === id && w.document.getElementById("bpm").value !== "123");
+  w.editorOpen();
+  during = w.document.getElementById("allEdit").value;
+  openId = w.currentExerciseId;
+  data = JSON.parse(localStorage.getItem("eization-desk"));
+  next = [];
+  for (i = 0; i < data.exercises.length; i++) {
+    if (data.exercises[i].id !== openId) {
+      next.push(data.exercises[i]);
+    }
+  }
+  data.exercises = next;
+  data.exercise = next[0].id;
+  localStorage.setItem("eization-desk", JSON.stringify(data));
+  w.dispatchEvent(new w.StorageEvent("storage", { key: "eization-desk", newValue: localStorage.getItem("eization-desk") }));
+  check("edit stays open across another window", w.editorIsOpen() && w.document.getElementById("allEdit").value === during && w.currentExerciseId === openId);
+  w.editorCancel();
+  check("closing edit follows a removal", !w.editorIsOpen() && w.currentExerciseId !== openId && w.document.getElementById("deskNote").textContent === w.t("desk.otherWindow") && w.document.getElementById("deskNote").hidden === false);
+  w.restoreDefaults();
+  localStorage.setItem("eization-hello", "1");
 }
 
 function deskRoundTrip(w) {
