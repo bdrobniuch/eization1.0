@@ -345,6 +345,7 @@ function chatCase(w) {
   check("download and clear drop the extra word", w.document.getElementById("editSave").textContent === w.t("edit.download") && w.document.getElementById("editClearList").textContent === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Vista previa");
   prompt = w.buildChatPrompt({ name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"], lang: "en" });
   check("prompt carries the lines", prompt.indexOf("Dm7 G7") >= 0 && prompt.indexOf("Cmaj7") >= 0 && prompt.indexOf("one example per line") >= 0);
+  check("prompt coaches then hands back a block", prompt.indexOf("Do not rewrite until they ask") >= 0 && prompt.indexOf("paste it into the eization Edit box") >= 0 && prompt.indexOf("B\u266D \u00B7 \u266D7 of C") >= 0 && prompt.indexOf("A\u266F \u00B7 \u266D7 of C") >= 0);
   shortGpt = w.chatAskUrl(prompt, "chatgpt");
   shortClaude = w.chatAskUrl(prompt, "claude");
   shortGemini = w.chatAskUrl(prompt, "gemini");
@@ -359,7 +360,12 @@ function chatCase(w) {
   check("long claude question is copied", !!(longClaude && longClaude.copy === true && longClaude.href === "https://claude.ai/new"));
   check("long gemini question is copied", !!(longGemini && longGemini.copy === true && longGemini.href === "https://gemini.google.com/app"));
   empty = w.buildChatPrompt({ name: "New", bars: 1, lines: [], lang: "en" });
-  check("empty list still asks", empty.length > 0 && empty.indexOf("one example per line") >= 0);
+  check("empty list still asks", empty.indexOf("one example per line") >= 0 && empty.indexOf("The box is empty.") >= 0 && empty.indexOf("three starters") >= 0);
+  var emptyEs = w.buildChatPrompt({ name: "Nuevo", bars: 1, lines: [], lang: "es" });
+  check("spanish prompt coaches", emptyEs.indexOf("Un ejemplo por l\u00EDnea") >= 0 && emptyEs.indexOf("El recuadro est\u00E1 vac\u00EDo.") >= 0 && emptyEs.indexOf("pulsen Actualizar") >= 0);
+  var toneLines = ["1", "\u266D3", "3", "\u266D5", "5", "\u266F5", "\u266D\u266D7", "\u266D7", "7", "\u266D9", "9", "\u266F9", "11", "\u266F11", "\u266D13", "13"];
+  check("chord tones prompt fits", w.chatAskUrl(w.buildChatPrompt({ name: "Chord Tones", bars: 1, lines: toneLines, lang: "en" }), "gemini").copy === false);
+  check("spanish chord tones prompt fits", w.chatAskUrl(w.buildChatPrompt({ name: "Notas del acorde", bars: 1, lines: toneLines, lang: "es" }), "gemini").copy === false);
   desk = JSON.stringify(w.listDeskExercises());
   w.document.getElementById("editAsk").click();
   check("opening the menu does not write the desk", JSON.stringify(w.listDeskExercises()) === desk);

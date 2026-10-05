@@ -1186,21 +1186,19 @@ var CHAT_TARGETS = {
 function chatPromptRules(lang) {
   if (lang === "es") {
     return [
-      "Ayúdame a escribir un ejercicio de eization. Se ve un ejemplo a la vez, con el metrónomo, durante los compases de abajo. Cada ejemplo sale una vez y luego cambia el orden. Las líneas son el mismo tipo de tarea y cortas para leerlas al tocar.",
-      "Un ejemplo por línea. Texto plano. Sin título, sin cabecera # eization y sin enlace #s=. Las alteraciones son ♭ ♯ ♮, no palabras, y sin HTML. \" · \" separa lo que se toca de un texto corto. Una línea de más de 240 caracteres se corta. Más de 500 líneas no se abre.",
-      "Antes de reescribir, di qué hace falta para un buen ejercicio: un ejemplo por línea, el mismo tipo de tarea, corto para leerlo al tocar, y un texto tras · solo si la línea tiene dos partes.",
-      "\"Añade notas\" a unos grados significa una línea por escritura. Naturales una vez: C D E F G A B. Las dos escrituras en el resto: C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭. La nota a la izquierda de · y el grado a la derecha: B♭ · ♭7 de C y A♯ · ♭7 de C. Hazlo con cada grado del recuadro, sobre la fundamental que nombren. Si no hay fundamental, pregunta una vez y sugiere C. Conserva los nombres de grado. Las mismas escrituras al añadir notas a acordes.",
-      "Lee antes el nombre, los compases y las líneas. Si hay líneas, di qué lista es, ofrece uno o dos pasos que encajen y pregunta. No reescribas hasta que lo pidan. Si el recuadro está vacío, ofrece tres comienzos: escrituras de notas, nombres de escalas, o acordes con un texto tras ·. Pregunta cuál escribir. Habla hasta que terminen. No pegues la lista entera en cada turno.",
-      "Cuando terminen o pidan el texto, pon los ejemplos en un solo bloque, un ejemplo por línea y nada más dentro. Debajo, diles que copien ese texto, lo peguen en el recuadro de Editar de eization y pulsen Actualizar. Guardar como nuevo conserva el ejercicio anterior."
+      "Ayúdame con un ejercicio de eization. Un ejemplo en pantalla, con el metrónomo, los compases de abajo. Cada uno sale una vez y luego cambia el orden.",
+      "Un ejemplo por línea. Texto plano. Sin título, sin # eization, sin #s=. Signos, no palabras ni HTML. \" · \" separa lo que se toca de un texto. Corte a 240 caracteres. Más de 500 líneas no abre.",
+      "Añade notas: una línea por escritura de cada grado. Naturales una vez (C D E F G A B). El resto en sostenido y bemol. Nota, \" · \", grado. Ejemplo: B♭ · ♭7 de C y A♯ · ♭7 de C. Cada grado del recuadro, sobre la fundamental dicha. Si no hay, pregunta una vez y sugiere C. Conserva el grado. Igual para acordes.",
+      "Si hay líneas, di qué lista es, qué necesita una buena línea, ofrece uno o dos pasos y pregunta. No reescribas hasta que lo pidan. Si el recuadro está vacío, ofrece tres comienzos (notas, escalas o acordes con texto) y pregunta cuál.",
+      "Al terminar o si piden el texto, un bloque, un ejemplo por línea, nada más dentro. Diles que lo copien, lo peguen en Editar en eization y pulsen Actualizar. Guardar como nuevo conserva el anterior."
     ].join("\n\n");
   }
   return [
-    "Help me write an eization exercise. One example is on screen at a time, with the metronome, for the bars below. Each example comes up once, then the order changes. Lines are the same kind of task and short enough to read while playing.",
-    "One example per line. Plain text. No title, no # eization header, no #s= link. Accidentals are ♭ ♯ ♮, not words, and no HTML. \" · \" splits what to play from a short caption. A line past 240 characters is cut. More than 500 lines will not open.",
-    "Before you rewrite, say what a good exercise needs: one example per line, the same kind of task, short enough to read while playing, and a caption after · only when the line has two parts.",
-    "\"Add notes\" on degrees means one line per spelling. Naturals once: C D E F G A B. Both spellings otherwise: C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭. Note on the left of ·, degree on the right: B♭ · ♭7 of C and A♯ · ♭7 of C. Do that for every degree in the box, on the root they name. No root: ask once and suggest C. Keep the degree names. Same spellings when they add notes to chords.",
-    "Read the name, bars, and lines below first. If there are lines, say what the list is, offer one or two fitting next steps, and ask. Do not rewrite until they ask. If the box is empty, offer three starters: note spellings, scale names, or chord changes with a caption after ·. Ask which to write. Talk until they are done. Do not paste the full list every turn.",
-    "When they are done or ask for the text, put the examples in one fenced block, one example per line, nothing else in the block. Under it, tell them to copy that text, paste it into the eization Edit box, and press Update. Save as new keeps the old exercise."
+    "Help me write an eization exercise. One example shows at a time with the metronome for the bars below. Each comes up once, then the order changes.",
+    "Write one example per line. Plain text. No title, no # eization header, no #s= link. Accidental signs, not words or HTML. \" · \" splits what to play from a caption. Cut at 240 characters. Over 500 lines will not open.",
+    "Add notes: one line per spelling of each degree. Naturals once (C D E F G A B). Other pitches as both sharp and flat. Note, \" · \", degree. Example: B♭ · ♭7 of C and A♯ · ♭7 of C. Every degree in the box, on the named root. No root: ask once, suggest C. Keep degree names. Same spellings for chords.",
+    "If there are lines, say what the list is, name what a good line needs, offer one or two next steps, and ask. Do not rewrite until they ask. If the box is empty, offer three starters (notes, scales, or changes with a caption) and ask which to write.",
+    "When they finish or ask for the text, put examples in one fenced block, one per line, nothing else inside. Then tell them to copy it, paste it into the eization Edit box, and press Update. Save as new keeps the old exercise."
   ].join("\n\n");
 }
 
