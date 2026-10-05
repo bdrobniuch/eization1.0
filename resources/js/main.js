@@ -112,7 +112,11 @@ function bindExercisePanel() {
     }
     var choices = menu.querySelectorAll("[data-value]");
     for (var i = 0; i < choices.length; i++) {
-      choices[i].setAttribute("aria-selected", choices[i] === item ? "true" : "false");
+      if (choices[i] === item) {
+        choices[i].setAttribute("aria-current", "true");
+      } else {
+        choices[i].removeAttribute("aria-current");
+      }
     }
     setComboLabel(face, item.textContent);
     currentExerciseId = item.getAttribute("data-value");
@@ -132,7 +136,9 @@ function addComboItem(menu, value, label, selected) {
   var button = document.createElement("button");
   button.type = "button";
   button.setAttribute("data-value", value);
-  button.setAttribute("aria-selected", selected ? "true" : "false");
+  if (selected) {
+    button.setAttribute("aria-current", "true");
+  }
   button.textContent = label;
   button.title = label;
   menu.appendChild(button);

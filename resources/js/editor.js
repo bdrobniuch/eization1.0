@@ -271,7 +271,11 @@ function selectExerciseChip(id) {
   }
   var choices = menu.querySelectorAll("[data-value]");
   for (var i = 0; i < choices.length; i++) {
-    choices[i].setAttribute("aria-selected", choices[i].getAttribute("data-value") === id ? "true" : "false");
+    if (choices[i].getAttribute("data-value") === id) {
+      choices[i].setAttribute("aria-current", "true");
+    } else {
+      choices[i].removeAttribute("aria-current");
+    }
   }
 }
 
