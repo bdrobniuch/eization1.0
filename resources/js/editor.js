@@ -1183,6 +1183,27 @@ var CHAT_TARGETS = {
   gemini: { bare: "https://gemini.google.com/app", query: "https://gemini.google.com/app?q=" }
 };
 
+function chatPromptRules(lang) {
+  if (lang === "es") {
+    return [
+      "Ayúdame a escribir un ejercicio de eization. Se ve un ejemplo a la vez, con el metrónomo, durante los compases de abajo. Cada ejemplo sale una vez y luego cambia el orden. Las líneas son el mismo tipo de tarea y cortas para leerlas al tocar.",
+      "Un ejemplo por línea. Texto plano. Sin título, sin cabecera # eization y sin enlace #s=. Las alteraciones son ♭ ♯ ♮, no palabras, y sin HTML. \" · \" separa lo que se toca de un texto corto. Una línea de más de 240 caracteres se corta. Más de 500 líneas no se abre.",
+      "Antes de reescribir, di qué hace falta para un buen ejercicio: un ejemplo por línea, el mismo tipo de tarea, corto para leerlo al tocar, y un texto tras · solo si la línea tiene dos partes.",
+      "\"Añade notas\" a unos grados significa una línea por escritura. Naturales una vez: C D E F G A B. Las dos escrituras en el resto: C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭. La nota a la izquierda de · y el grado a la derecha: B♭ · ♭7 de C y A♯ · ♭7 de C. Hazlo con cada grado del recuadro, sobre la fundamental que nombren. Si no hay fundamental, pregunta una vez y sugiere C. Conserva los nombres de grado. Las mismas escrituras al añadir notas a acordes.",
+      "Lee antes el nombre, los compases y las líneas. Si hay líneas, di qué lista es, ofrece uno o dos pasos que encajen y pregunta. No reescribas hasta que lo pidan. Si el recuadro está vacío, ofrece tres comienzos: escrituras de notas, nombres de escalas, o acordes con un texto tras ·. Pregunta cuál escribir. Habla hasta que terminen. No pegues la lista entera en cada turno.",
+      "Cuando terminen o pidan el texto, pon los ejemplos en un solo bloque, un ejemplo por línea y nada más dentro. Debajo, diles que copien ese texto, lo peguen en el recuadro de Editar de eization y pulsen Actualizar. Guardar como nuevo conserva el ejercicio anterior."
+    ].join("\n\n");
+  }
+  return [
+    "Help me write an eization exercise. One example is on screen at a time, with the metronome, for the bars below. Each example comes up once, then the order changes. Lines are the same kind of task and short enough to read while playing.",
+    "One example per line. Plain text. No title, no # eization header, no #s= link. Accidentals are ♭ ♯ ♮, not words, and no HTML. \" · \" splits what to play from a short caption. A line past 240 characters is cut. More than 500 lines will not open.",
+    "Before you rewrite, say what a good exercise needs: one example per line, the same kind of task, short enough to read while playing, and a caption after · only when the line has two parts.",
+    "\"Add notes\" on degrees means one line per spelling. Naturals once: C D E F G A B. Both spellings otherwise: C♯/D♭, D♯/E♭, F♯/G♭, G♯/A♭, A♯/B♭. Note on the left of ·, degree on the right: B♭ · ♭7 of C and A♯ · ♭7 of C. Do that for every degree in the box, on the root they name. No root: ask once and suggest C. Keep the degree names. Same spellings when they add notes to chords.",
+    "Read the name, bars, and lines below first. If there are lines, say what the list is, offer one or two fitting next steps, and ask. Do not rewrite until they ask. If the box is empty, offer three starters: note spellings, scale names, or chord changes with a caption after ·. Ask which to write. Talk until they are done. Do not paste the full list every turn.",
+    "When they are done or ask for the text, put the examples in one fenced block, one example per line, nothing else in the block. Under it, tell them to copy that text, paste it into the eization Edit box, and press Update. Save as new keeps the old exercise."
+  ].join("\n\n");
+}
+
 function buildChatPrompt(spec) {
   var lang = spec && spec.lang === "es" ? "es" : "en";
   var name = spec && spec.name ? String(spec.name) : "";
@@ -1190,14 +1211,12 @@ function buildChatPrompt(spec) {
   var lines = spec && spec.lines ? spec.lines : [];
   var body = [];
   var i;
+  body.push(chatPromptRules(lang));
+  body.push("");
   if (lang === "es") {
-    body.push("Ayúdame a escribir un ejercicio de eization. Cada línea es un ejemplo. Un punto medio (·) separa una imagen o unos acordes de un texto. Mantén cada línea corta. Responde solo con los ejemplos, uno por línea. No añadas un título, una cabecera # eization, ni un enlace #s=.");
-    body.push("");
     body.push("Nombre: " + name);
     body.push("Compases: " + bars);
   } else {
-    body.push("Help me write an eization exercise. Each line is one example. A middle dot (·) splits a picture or chords from a caption. Keep each line short. Reply with only the examples, one example per line. Do not add a title, a # eization header, or a #s= link.");
-    body.push("");
     body.push("Name: " + name);
     body.push("Bars: " + bars);
   }
@@ -1208,7 +1227,7 @@ function buildChatPrompt(spec) {
       body.push(String(lines[i]));
     }
   } else {
-    body.push(lang === "es" ? "El recuadro está vacío. Escribe los ejemplos." : "The box is empty. Write the examples.");
+    body.push(lang === "es" ? "El recuadro está vacío." : "The box is empty.");
   }
   return body.join("\n");
 }
