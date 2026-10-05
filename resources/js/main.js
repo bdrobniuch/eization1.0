@@ -437,6 +437,7 @@ function clearExerciseQuery() {
 }
 
 var shareOffer = null;
+var sharePreview = null;
 var shareAddedThisVisit = false;
 
 function shareBlocksHello() {
@@ -473,17 +474,25 @@ function showShareAsk(kind, full, snap) {
   if (name) {
     name.textContent = snap.name;
   }
+  var lead = document.getElementById("shareAskLead");
+  if (lead) {
+    lead.textContent = kind === "changed" ? t("share.differ") : t("share.text");
+  }
   var add = document.getElementById("shareAdd");
-  var addToo = document.getElementById("shareAddToo");
-  var keep = document.getElementById("shareKeep");
+  var update = document.getElementById("shareUpdate");
+  var addNew = document.getElementById("shareAddNew");
+  var preview = document.getElementById("sharePreview");
   if (add) {
     add.hidden = kind !== "new";
   }
-  if (addToo) {
-    addToo.hidden = kind !== "changed";
+  if (update) {
+    update.hidden = kind !== "changed";
   }
-  if (keep) {
-    keep.hidden = kind !== "changed";
+  if (addNew) {
+    addNew.hidden = kind !== "changed";
+  }
+  if (preview) {
+    preview.hidden = false;
   }
   var note = document.getElementById("shareAskNote");
   if (note) {
@@ -518,7 +527,7 @@ function confirmShareAdd() {
   }
   var found = findDeskShare(shareOffer);
   if (found.exact) {
-    finishShareSelect(found.exact.id, t("share.already"));
+    finishShareSelect(found.exact.id, "");
     return true;
   }
   if (typeof listDeskExercises === "function" && listDeskExercises().length >= DESK_EXERCISE_CAP) {
@@ -548,17 +557,93 @@ function confirmShareAdd() {
   return true;
 }
 
-function keepShareExercise() {
-  if (!shareOffer || typeof findDeskShare !== "function") {
+function confirmShareUpdate() {
+  if (!shareOffer || typeof findDeskShare !== "function" || typeof updateDeskExercise !== "function") {
     return;
   }
   var found = findDeskShare(shareOffer);
-  var row = found.related || found.exact;
-  if (!row) {
+  if (found.exact) {
+    finishShareSelect(found.exact.id, "");
+    return;
+  }
+  if (!found.related) {
+    confirmShareAdd();
+    return;
+  }
+  var saved = updateDeskExercise(found.related.id, {
+    name: shareOffer.name,
+    bars: shareOffer.bars,
+    lines: shareOffer.lines
+  });
+  if (!saved) {
+    return;
+  }
+  finishShareSelect(saved.id, t("share.updated"));
+}
+
+function finishShareEdit(added) {
+  sharePreview = null;
+  clearShareHash();
+  hideShareAsk();
+  shareOffer = null;
+  if (added) {
+    shareAddedThisVisit = true;
+  }
+}
+
+function restoreShareAsk() {
+  if (!shareOffer || typeof deskShareOffer !== "function") {
+    return;
+  }
+  var offer = deskShareOffer(shareOffer);
+  if (offer.kind === "exact" && offer.exact) {
+    finishShareSelect(offer.exact.id, "");
+    return;
+  }
+  if (offer.kind === "bad") {
     dismissShareAsk();
     return;
   }
-  finishShareSelect(row.id, "");
+  showShareAsk(offer.kind, offer.full, shareOffer);
+}
+
+function cancelSharePreview() {
+  var label = sharePreview && sharePreview.label ? sharePreview.label : "";
+  var face = document.getElementById("exerciseFace");
+  sharePreview = null;
+  if (face && label && typeof setComboLabel === "function") {
+    setComboLabel(face, label);
+  }
+  if (typeof editorCloseQuiet === "function") {
+    editorCloseQuiet();
+  }
+  if (typeof chooseExerciseFont === "function") {
+    chooseExerciseFont();
+  }
+  if (typeof layoutFrame === "function") {
+    layoutFrame();
+  }
+  restoreShareAsk();
+}
+
+function previewShareExercise() {
+  if (!shareOffer || typeof findDeskShare !== "function" || typeof editorOpenSharePreview !== "function") {
+    return;
+  }
+  var found = findDeskShare(shareOffer);
+  if (found.exact) {
+    finishShareSelect(found.exact.id, "");
+    return;
+  }
+  sharePreview = { mode: found.related ? "changed" : "new", label: "" };
+  hideShareAsk();
+  editorOpenSharePreview({
+    mode: found.related ? "edit" : "create",
+    target: found.related,
+    name: shareOffer.name,
+    bars: shareOffer.bars,
+    lines: shareOffer.lines
+  });
 }
 
 function dismissShareAsk() {
@@ -589,7 +674,7 @@ function offerSharedExercise() {
     return;
   }
   if (offer.kind === "exact" && offer.exact) {
-    finishShareSelect(offer.exact.id, t("share.already"));
+    finishShareSelect(offer.exact.id, "");
     return;
   }
   showShareAsk(offer.kind, offer.full, snap);
@@ -809,17 +894,21 @@ function init() {
   renderGroove();
   SelectExercise();
   var shareAdd = document.getElementById("shareAdd");
-  var shareAddToo = document.getElementById("shareAddToo");
-  var shareKeep = document.getElementById("shareKeep");
+  var shareUpdate = document.getElementById("shareUpdate");
+  var shareAddNew = document.getElementById("shareAddNew");
+  var sharePreviewButton = document.getElementById("sharePreview");
   var shareNotNow = document.getElementById("shareNotNow");
   if (shareAdd) {
     shareAdd.addEventListener("click", confirmShareAdd);
   }
-  if (shareAddToo) {
-    shareAddToo.addEventListener("click", confirmShareAdd);
+  if (shareUpdate) {
+    shareUpdate.addEventListener("click", confirmShareUpdate);
   }
-  if (shareKeep) {
-    shareKeep.addEventListener("click", keepShareExercise);
+  if (shareAddNew) {
+    shareAddNew.addEventListener("click", confirmShareAdd);
+  }
+  if (sharePreviewButton) {
+    sharePreviewButton.addEventListener("click", previewShareExercise);
   }
   if (shareNotNow) {
     shareNotNow.addEventListener("click", dismissShareAsk);

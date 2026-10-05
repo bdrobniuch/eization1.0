@@ -1536,11 +1536,26 @@ body.is-editing #counter {
   gap: 8px;
 }
 
+#editExercise {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+#editExerciseLabel {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+
 #editHead,
 #editWrite,
 #editSend,
-#editNameRow,
-#editDanger {
+#editNameRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1650,13 +1665,6 @@ body.is-editing #counter {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-#editDanger {
-  justify-content: flex-start;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 #editDelete {

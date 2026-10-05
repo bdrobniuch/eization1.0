@@ -228,7 +228,7 @@ function syncEditorCommitLabels() {
     saveAs.hidden = false;
   }
   if (del) {
-    del.hidden = false;
+    del.hidden = typeof sharePreview !== "undefined" && !!sharePreview;
   }
 }
 
@@ -240,6 +240,10 @@ function refreshEditorHint() {
   var del = document.getElementById("editDelete");
   if (del && del.classList.contains("is-armed")) {
     hint.textContent = "";
+    return;
+  }
+  if (typeof sharePreview !== "undefined" && sharePreview) {
+    hint.textContent = sharePreview.mode === "changed" ? t("edit.hintShare") : t("edit.hintCreate");
     return;
   }
   if (editorIsCreateMode()) {
@@ -548,8 +552,89 @@ function editorOpenNew() {
   editorOpenSheet({ mode: "create" });
 }
 
+function editorPlainLines(lines) {
+  var out = [];
+  var i;
+  var line;
+  if (!lines) {
+    return "";
+  }
+  for (i = 0; i < lines.length; i++) {
+    line = itemToLine(lines[i]);
+    if (line) {
+      out.push(line);
+    }
+  }
+  return out.join("\n");
+}
+
+function editorOpenSharePreview(spec) {
+  spec = spec || {};
+  if (typeof closeAbout === "function") {
+    closeAbout();
+  }
+  if (typeof closeExercisePanel === "function") {
+    closeExercisePanel();
+  }
+  if (typeof closeGroovePanel === "function") {
+    closeGroovePanel();
+  }
+  var target = spec.target;
+  var face = document.getElementById("exerciseFace");
+  var shown = face ? face.querySelector(".combo-value") : null;
+  editorDraft.mode = spec.mode === "create" ? "create" : "edit";
+  editorDraft.label = shown ? shown.textContent : "";
+  if (typeof sharePreview !== "undefined" && sharePreview) {
+    sharePreview.label = editorDraft.label;
+  }
+  if (editorIsCreateMode() || !target) {
+    editorDraft.mode = "create";
+    editorDraft.id = typeof currentExerciseId === "string" ? currentExerciseId : "";
+    editorDraft.name = t("edit.defaultName");
+    editorDraft.bars = 1;
+    editorDraft.text = "";
+  } else {
+    editorDraft.id = target.id;
+    editorDraft.name = typeof exerciseDisplayName === "function" ? exerciseDisplayName(target) : target.name;
+    editorDraft.bars = target.bars;
+    editorDraft.text = editorPlainLines(target.lines);
+  }
+  var area = document.getElementById("allEdit");
+  area.value = editorPlainLines(spec.lines);
+  document.getElementById("editBars").value = String(spec.bars || 1);
+  var nameField = document.getElementById("editName");
+  if (nameField) {
+    nameField.value = spec.name || "";
+  }
+  disarmEditorDelete();
+  disarmEditorOpen();
+  setEditorCommitsEnabled(true);
+  syncEditorCommitLabels();
+  clearEditorNotice();
+  editorAskMenu(false);
+  document.getElementById("textdiv").classList.add("is-open");
+  document.body.classList.add("is-editing");
+  setEditButton(true);
+  syncEditorFaceName();
+  refreshEditor();
+  placeEditor();
+  if (typeof layoutFrame === "function") {
+    layoutFrame();
+  }
+  area.scrollTop = 0;
+  area.setSelectionRange(0, 0);
+  if (window.matchMedia("(pointer: fine)").matches) {
+    area.focus();
+  }
+  refreshEditor();
+}
+
 function editorCancel() {
   if (!editorIsOpen()) {
+    return;
+  }
+  if (typeof sharePreview !== "undefined" && sharePreview && typeof cancelSharePreview === "function") {
+    cancelSharePreview();
     return;
   }
   var face = document.getElementById("exerciseFace");
@@ -858,9 +943,16 @@ function editorUpdate() {
     editorNotice(t("edit.noUpdate"));
     return;
   }
+  var fromShare = typeof sharePreview !== "undefined" && !!sharePreview;
   currentExerciseId = saved.id;
   editorCloseQuiet();
+  if (fromShare && typeof finishShareEdit === "function") {
+    finishShareEdit(false);
+  }
   applyEditorToReel(saved.lines, saved.bars);
+  if (fromShare && typeof showDeskNote === "function") {
+    showDeskNote(t("share.updated"));
+  }
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
@@ -887,14 +979,22 @@ function editorSaveAsNew() {
   var bars = clampEditorBars(document.getElementById("editBars").value);
   document.getElementById("editBars").value = String(bars);
   var name = resolveEditorName(editorNameValue());
+  var fromShare = typeof sharePreview !== "undefined" && !!sharePreview;
+  var part = { name: name, bars: bars, lines: lines };
+  if (fromShare && typeof shareOffer !== "undefined" && shareOffer && shareOffer.shareId) {
+    part.shareId = shareOffer.shareId;
+  }
   var created = typeof createDeskExercise === "function"
-    ? createDeskExercise({ name: name, bars: bars, lines: lines })
+    ? createDeskExercise(part)
     : null;
   if (!created) {
     return;
   }
   currentExerciseId = created.id;
   editorCloseQuiet();
+  if (fromShare && typeof finishShareEdit === "function") {
+    finishShareEdit(true);
+  }
   applyEditorToReel(created.lines, created.bars);
   if (typeof showDeskNote === "function") {
     showDeskNote(t("edit.added"));
