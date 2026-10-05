@@ -952,11 +952,14 @@ function editorUpdate() {
   currentExerciseId = saved.id;
   editorCloseQuiet();
   if (fromShare && typeof finishShareEdit === "function") {
-    finishShareEdit(false);
+    finishShareEdit();
   }
   applyEditorToReel(saved.lines, saved.bars);
   if (fromShare && typeof showDeskNote === "function") {
     showDeskNote(t("share.updated"));
+  }
+  if (fromShare && typeof offerHelloAfterShare === "function") {
+    offerHelloAfterShare();
   }
   if (typeof rememberSetup === "function") {
     rememberSetup();
@@ -998,9 +1001,12 @@ function editorSaveAsNew() {
   currentExerciseId = created.id;
   editorCloseQuiet();
   if (fromShare && typeof finishShareEdit === "function") {
-    finishShareEdit(true);
+    finishShareEdit();
   }
   applyEditorToReel(created.lines, created.bars);
+  if (fromShare && typeof offerHelloAfterShare === "function") {
+    offerHelloAfterShare();
+  }
   if (typeof showDeskNote === "function") {
     showDeskNote(t("edit.added"));
   }

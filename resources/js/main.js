@@ -438,14 +438,19 @@ function clearExerciseQuery() {
 
 var shareOffer = null;
 var sharePreview = null;
-var shareAddedThisVisit = false;
 
 function shareBlocksHello() {
-  if (shareAddedThisVisit) {
-    return true;
-  }
   var bar = document.getElementById("shareAsk");
   return !!(bar && !bar.hidden);
+}
+
+function offerHelloAfterShare() {
+  if (typeof helloTouched !== "undefined") {
+    helloTouched = false;
+  }
+  if (typeof maybeHello === "function") {
+    maybeHello();
+  }
 }
 
 function clearShareHash() {
@@ -528,6 +533,7 @@ function confirmShareAdd() {
   var found = findDeskShare(shareOffer);
   if (found.exact) {
     finishShareSelect(found.exact.id, "");
+    offerHelloAfterShare();
     return true;
   }
   if (typeof listDeskExercises === "function" && listDeskExercises().length >= DESK_EXERCISE_CAP) {
@@ -552,8 +558,8 @@ function confirmShareAdd() {
     }
     return false;
   }
-  shareAddedThisVisit = true;
   finishShareSelect(created.id, t("edit.added"));
+  offerHelloAfterShare();
   return true;
 }
 
@@ -564,6 +570,7 @@ function confirmShareUpdate() {
   var found = findDeskShare(shareOffer);
   if (found.exact) {
     finishShareSelect(found.exact.id, "");
+    offerHelloAfterShare();
     return;
   }
   if (!found.related) {
@@ -579,16 +586,14 @@ function confirmShareUpdate() {
     return;
   }
   finishShareSelect(saved.id, t("share.updated"));
+  offerHelloAfterShare();
 }
 
-function finishShareEdit(added) {
+function finishShareEdit() {
   sharePreview = null;
   clearShareHash();
   hideShareAsk();
   shareOffer = null;
-  if (added) {
-    shareAddedThisVisit = true;
-  }
 }
 
 function restoreShareAsk() {
@@ -598,6 +603,7 @@ function restoreShareAsk() {
   var offer = deskShareOffer(shareOffer);
   if (offer.kind === "exact" && offer.exact) {
     finishShareSelect(offer.exact.id, "");
+    offerHelloAfterShare();
     return;
   }
   if (offer.kind === "bad") {
@@ -633,6 +639,7 @@ function previewShareExercise() {
   var found = findDeskShare(shareOffer);
   if (found.exact) {
     finishShareSelect(found.exact.id, "");
+    offerHelloAfterShare();
     return;
   }
   sharePreview = { mode: found.related ? "changed" : "new", label: "" };
@@ -650,12 +657,7 @@ function dismissShareAsk() {
   clearShareHash();
   hideShareAsk();
   shareOffer = null;
-  if (typeof helloTouched !== "undefined") {
-    helloTouched = false;
-  }
-  if (typeof maybeHello === "function") {
-    maybeHello();
-  }
+  offerHelloAfterShare();
 }
 
 function offerSharedExercise() {
