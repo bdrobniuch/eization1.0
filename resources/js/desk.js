@@ -192,15 +192,29 @@ function findDeskShare(part) {
   }
   var list = ensureDeskExercises();
   var i;
+  var row;
   for (i = 0; i < list.length; i++) {
-    var row = list[i];
+    row = list[i];
     if (cleanShareId(row.shareId) !== snap.shareId) {
       continue;
     }
     if (!out.related) {
       out.related = row;
     }
-    if (row.name === snap.name && row.bars === snap.bars && shareLinesMatch(row.lines, snap.lines)) {
+    if (row.bars === snap.bars && shareLinesMatch(row.lines, snap.lines) && (row.name === snap.name || row.seedId)) {
+      out.exact = row;
+      break;
+    }
+  }
+  if (out.exact || out.related) {
+    return out;
+  }
+  for (i = 0; i < list.length; i++) {
+    row = list[i];
+    if (!row.seedId) {
+      continue;
+    }
+    if (row.bars === snap.bars && shareLinesMatch(row.lines, snap.lines)) {
       out.exact = row;
       break;
     }
