@@ -2,6 +2,38 @@ var currentExerciseId = "";
 var openedExerciseFromAddress = false;
 var exerciseFaceFocus = null;
 var grooveFocus = null;
+var analyticsOff = false;
+var nextExampleSeen = {};
+
+try {
+  analyticsOff = String(window.location.search || "").indexOf("smoke=1") !== -1;
+} catch (err) {
+  analyticsOff = true;
+}
+
+function analyticsExerciseId() {
+  var row = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
+  if (row && row.seedId) {
+    return row.seedId;
+  }
+  return "custom";
+}
+
+function track(name, params) {
+  if (analyticsOff || typeof gtag !== "function") {
+    return;
+  }
+  gtag("event", name, params || {});
+}
+
+function trackNextExample() {
+  var id = analyticsExerciseId();
+  if (nextExampleSeen[id]) {
+    return;
+  }
+  nextExampleSeen[id] = true;
+  track("next_example", { exercise_id: id });
+}
 
 function setComboLabel(face, text) {
   var value = face.querySelector(".combo-value");
@@ -88,6 +120,9 @@ function bindExercisePanel() {
     face.setAttribute("aria-expanded", "false");
     exerciseFaceFocus = null;
     SelectExercise();
+    if (typeof editorIsOpen !== "function" || !editorIsOpen()) {
+      track("select_exercise", { exercise_id: analyticsExerciseId() });
+    }
     face.focus();
     layoutFrame();
   });
@@ -565,17 +600,16 @@ function confirmShareAdd() {
 
 function confirmShareUpdate() {
   if (!shareOffer || typeof findDeskShare !== "function" || typeof updateDeskExercise !== "function") {
-    return;
+    return false;
   }
   var found = findDeskShare(shareOffer);
   if (found.exact) {
     finishShareSelect(found.exact.id, "");
     offerHelloAfterShare();
-    return;
+    return true;
   }
   if (!found.related) {
-    confirmShareAdd();
-    return;
+    return confirmShareAdd();
   }
   var saved = updateDeskExercise(found.related.id, {
     name: shareOffer.name,
@@ -583,10 +617,11 @@ function confirmShareUpdate() {
     lines: shareOffer.lines
   });
   if (!saved) {
-    return;
+    return false;
   }
   finishShareSelect(saved.id, t("share.updated"));
   offerHelloAfterShare();
+  return true;
 }
 
 function finishShareEdit() {
@@ -634,13 +669,13 @@ function cancelSharePreview() {
 
 function previewShareExercise() {
   if (!shareOffer || typeof findDeskShare !== "function" || typeof editorOpenSharePreview !== "function") {
-    return;
+    return false;
   }
   var found = findDeskShare(shareOffer);
   if (found.exact) {
     finishShareSelect(found.exact.id, "");
     offerHelloAfterShare();
-    return;
+    return false;
   }
   sharePreview = { mode: found.related ? "changed" : "new", label: "" };
   hideShareAsk();
@@ -651,6 +686,7 @@ function previewShareExercise() {
     bars: shareOffer.bars,
     lines: shareOffer.lines
   });
+  return true;
 }
 
 function dismissShareAsk() {
@@ -859,8 +895,15 @@ function init() {
   document.getElementById("swingModeNeo").addEventListener("click", function () {
     setSwingMode("neo");
   });
-  document.getElementById("tempoToggle").addEventListener("click", toggleTempo);
-  document.getElementById("resetExercise").addEventListener("click", resetExercise);
+  document.getElementById("tempoToggle").addEventListener("click", function () {
+    var starting = paused || !(currentBpm > 0);
+    toggleTempo();
+    track(starting ? "tempo_start" : "tempo_stop", { exercise_id: analyticsExerciseId() });
+  });
+  document.getElementById("resetExercise").addEventListener("click", function () {
+    resetExercise();
+    track("reset_exercise", { exercise_id: analyticsExerciseId() });
+  });
   document.getElementById("divnote").addEventListener("pointerdown", function () {
     closeGroovePanel();
     closeExercisePanel();
@@ -868,6 +911,7 @@ function init() {
   document.getElementById("next").addEventListener("click", function () {
     closeGroovePanel();
     closeExercisePanel();
+    trackNextExample();
   });
   document.addEventListener("keydown", function (event) {
     if (event.key !== "Escape") {
@@ -901,19 +945,38 @@ function init() {
   var sharePreviewButton = document.getElementById("sharePreview");
   var shareNotNow = document.getElementById("shareNotNow");
   if (shareAdd) {
-    shareAdd.addEventListener("click", confirmShareAdd);
+    shareAdd.addEventListener("click", function () {
+      if (confirmShareAdd()) {
+        track("share_add");
+      }
+    });
   }
   if (shareUpdate) {
-    shareUpdate.addEventListener("click", confirmShareUpdate);
+    shareUpdate.addEventListener("click", function () {
+      if (confirmShareUpdate()) {
+        track("share_update");
+      }
+    });
   }
   if (shareAddNew) {
-    shareAddNew.addEventListener("click", confirmShareAdd);
+    shareAddNew.addEventListener("click", function () {
+      if (confirmShareAdd()) {
+        track("share_add_new");
+      }
+    });
   }
   if (sharePreviewButton) {
-    sharePreviewButton.addEventListener("click", previewShareExercise);
+    sharePreviewButton.addEventListener("click", function () {
+      if (previewShareExercise()) {
+        track("share_preview");
+      }
+    });
   }
   if (shareNotNow) {
-    shareNotNow.addEventListener("click", dismissShareAsk);
+    shareNotNow.addEventListener("click", function () {
+      dismissShareAsk();
+      track("share_dismiss");
+    });
   }
   offerSharedExercise();
   startMetronome();

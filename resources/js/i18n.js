@@ -815,6 +815,12 @@ document.addEventListener("click", function (event) {
   lang = button.getAttribute("data-set-lang");
   href = button.getAttribute("data-lang-href");
   setEizationLang(lang);
+  if (typeof track === "function") {
+    track("set_language", {
+      lang: lang === "es" ? "es" : "en",
+      transport_type: "beacon"
+    });
+  }
   if (href && button.tagName !== "A") {
     window.location.href = href;
   }

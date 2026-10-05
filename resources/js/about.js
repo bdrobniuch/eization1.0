@@ -501,18 +501,41 @@ function initAbout() {
     if (!button || typeof showHelloPart !== "function") {
       return;
     }
-    showHelloPart(button.getAttribute("data-hello"));
+    var topic = button.getAttribute("data-hello");
+    if (topic !== "exercise" && topic !== "edit" && topic !== "metronome") {
+      return;
+    }
+    showHelloPart(topic);
+    if (typeof track === "function") {
+      track("hello_show", { topic: topic });
+    }
   });
   document.getElementById("aboutLinks").addEventListener("click", function (event) {
     var link = event.target.closest("[data-link]");
     if (!link) {
       return;
     }
+    var kind = link.getAttribute("data-link");
+    if (kind === "site" || kind === "linkedin" || kind === "instagram" || kind === "github") {
+      if (typeof track === "function") {
+        track("about_outbound", { link: kind });
+      }
+    }
     window.open(openSeal(SEALED[link.getAttribute("data-link")]), "_blank", "noopener,noreferrer");
   });
   document.getElementById("aboutEmail").addEventListener("click", revealEmail);
-  document.getElementById("sendPractice").addEventListener("click", sendPractice);
-  document.getElementById("shareFeedback").addEventListener("click", writeFeedback);
+  document.getElementById("sendPractice").addEventListener("click", function () {
+    if (typeof track === "function") {
+      track("about_send");
+    }
+    sendPractice();
+  });
+  document.getElementById("shareFeedback").addEventListener("click", function () {
+    if (typeof track === "function") {
+      track("about_feedback");
+    }
+    writeFeedback();
+  });
   document.getElementById("emailLine").addEventListener("click", function (event) {
     var button = event.target.closest(".support-copy");
     if (!button) {
@@ -520,7 +543,12 @@ function initAbout() {
     }
     markCopied(button);
   });
-  document.getElementById("supportReveal").addEventListener("click", revealSupport);
+  document.getElementById("supportReveal").addEventListener("click", function () {
+    if (typeof track === "function") {
+      track("about_coffee");
+    }
+    revealSupport();
+  });
   document.getElementById("supportCard").addEventListener("click", function (event) {
     var path = event.target.closest("[data-path]");
     if (path) {
@@ -535,6 +563,9 @@ function initAbout() {
   });
   document.getElementById("downloadAllExercises").addEventListener("click", function () {
     if (typeof downloadAllDeskExercises === "function" && downloadAllDeskExercises()) {
+      if (typeof track === "function") {
+        track("backup_download");
+      }
       if (typeof showDeskNote === "function") {
         showDeskNote(t("mail.downloaded"));
       }
@@ -570,6 +601,9 @@ function initAbout() {
         return;
       }
       if (typeof replaceDeskExercises === "function" && replaceDeskExercises(parsed.exercises)) {
+        if (typeof track === "function") {
+          track("backup_upload");
+        }
         if (typeof showDeskNote === "function") {
           showDeskNote(t("mail.replaced"));
         }

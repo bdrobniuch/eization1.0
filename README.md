@@ -34,7 +34,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/about.js` | About sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
-| `resources/js/main.js` | Wiring and `init` |
+| `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/css/style.css` | Practice screen layout |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
@@ -60,6 +60,10 @@ On first visit the catalog is copied into `eization-desk.exercises`. The menu re
 `eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, and `deletedSeeds`. A shared exercise also stores `shareId` on its row. Two rows may share one `shareId`. It does not store whether the metronome is running.
 
 `eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in About) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
+
+## Analytics
+
+The practice screen already loads the Google tag. A few clicks also send an event: tempo start and stop, the exercise you choose, one Next per exercise each visit, edit, share, the intro, language, and About. A parameter is a seed id (`custom` when the exercise was made on this device), `model`, `lang`, `link`, or `topic`. The example on screen, a custom title, the email, and payment details stay out. `?smoke=1` sends no events. In the Google Analytics property, register `exercise_id`, `model`, `lang`, `link`, and `topic` as event-scoped custom dimensions.
 
 Another open tab keeps its own screen. Update asks before it replaces an exercise whose lines changed in that other tab. A second Update replaces them. If the other tab removes the exercise on screen, this tab switches to the one now stored. Tempo and meter from the other tab stay there until this tab is reloaded.
 

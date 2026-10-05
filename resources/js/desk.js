@@ -821,6 +821,10 @@ function restoreDefaults() {
       editorCloseQuiet();
     }
   }
+  if (typeof track === "function") {
+    track("restore_defaults");
+  }
+  nextExampleSeen = {};
   var keepReady = deskReady;
   deskReady = false;
   if (deskTimer) {

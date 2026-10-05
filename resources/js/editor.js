@@ -539,6 +539,11 @@ function editorOpenSheet(options) {
     }
   }
   refreshEditor();
+  if (typeof track === "function") {
+    track("edit_open", {
+      exercise_id: editorIsCreateMode() ? "custom" : (typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom")
+    });
+  }
 }
 
 function editorOpen() {
@@ -741,6 +746,9 @@ function editorSaveFile() {
     URL.revokeObjectURL(url);
   }, 1500);
   editorStatus(t("edit.downloaded"));
+  if (typeof track === "function") {
+    track("edit_download");
+  }
 }
 
 function editorOpenFile(file) {
@@ -776,6 +784,9 @@ function editorOpenFile(file) {
     }
     editorNotice(t("edit.uploadReplaced"));
     refreshEditor();
+    if (typeof track === "function") {
+      track("edit_upload");
+    }
     area.focus();
   };
   reader.onerror = function () {
@@ -1041,6 +1052,9 @@ function editorUpdate() {
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
+  if (typeof track === "function") {
+    track("edit_update", { exercise_id: typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom" });
+  }
 }
 
 function editorSaveAsNew() {
@@ -1090,6 +1104,9 @@ function editorSaveAsNew() {
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
+  if (typeof track === "function") {
+    track("edit_save_as", { exercise_id: "custom" });
+  }
 }
 
 function editorDelete() {
@@ -1111,9 +1128,13 @@ function editorDelete() {
     return;
   }
   var id = editorDraft.id;
+  var removedId = typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom";
   disarmEditorDelete();
   if (typeof deleteDeskExercise !== "function" || !deleteDeskExercise(id)) {
     return;
+  }
+  if (typeof track === "function") {
+    track("edit_delete", { exercise_id: removedId });
   }
   currentExerciseId = typeof firstDeskExerciseId === "function" ? firstDeskExerciseId() : "";
   editorCloseQuiet();
@@ -1356,6 +1377,9 @@ function editorOpenChat(target) {
   });
   ask = chatAskUrl(prompt, target);
   editorAskMenu(false);
+  if ((target === "chatgpt" || target === "claude" || target === "gemini") && typeof track === "function") {
+    track("edit_ask", { model: target });
+  }
   window.open(ask.href, "_blank", "noopener");
   if (!ask.copy || typeof copySupportText !== "function") {
     return;
@@ -1399,6 +1423,9 @@ function editorShare() {
   if (!url) {
     editorNotice(t("edit.shareLong"));
     return;
+  }
+  if (typeof track === "function") {
+    track("edit_share");
   }
   if (saved && !saved.shareId && typeof updateDeskExercise === "function") {
     updateDeskExercise(saved.id, { shareId: shareId });
