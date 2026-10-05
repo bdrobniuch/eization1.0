@@ -63,7 +63,7 @@ function Build-Page([string]$lang) {
   $chA = [char]0x00E1; $chE = [char]0x00E9; $chI = [char]0x00ED; $chO = [char]0x00F3; $chU = [char]0x00FA; $chN = [char]0x00F1
   if ($isEs) {
     $title = "M${chA}s ejercicios para problemas habituales. eization."
-    $desc = "Veinte ejercicios extra para problemas habituales de estudiantes. Abre uno en eization. A${chN}adir o Vista previa lo deja en este dispositivo."
+    $desc = "Veintiocho ejercicios extra para problemas habituales de estudiantes. Abre uno en eization. A${chN}adir o Vista previa lo deja en este dispositivo."
     $h1 = "M${chA}s ejercicios"
     $lead1 = "Lo que ya sabes es lo que m${chA}s suena. El resto espera. Estos ejercicios extra no est${chA}n en el men${chU} por defecto. Abre uno: eization pregunta A${chN}adir o Vista previa."
     $lead2 = "Cada ejemplo sale una vez, con el metr${chO}nomo. Luego cambia el orden. Los libros de abajo siguen siendo los libros: practican una l${chI}nea que ya tienes, no la reimprimen."
@@ -88,7 +88,7 @@ function Build-Page([string]$lang) {
 "@
   } else {
     $title = 'More exercises for common practice problems. eization.'
-    $desc = 'Twenty extra exercises for common student practice problems. Open one in eization. Add or Preview keeps it on this device.'
+    $desc = 'Twenty-eight extra exercises for common student practice problems. Open one in eization. Add or Preview keeps it on this device.'
     $h1 = 'More exercises'
     $lead1 = 'What you already know gets played the most. The rest waits. These extra exercises are not in the default menu. Open one: eization asks Add or Preview.'
     $lead2 = 'Each example comes up once, with the metronome. Then the order changes. The books linked below stay the books: practice a line you already have; they do not reprint it.'
