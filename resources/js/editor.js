@@ -1192,19 +1192,19 @@ var CHAT_TARGETS = {
 function chatPromptRules(lang) {
   if (lang === "es") {
     return [
-      "Ayúdame con un ejercicio de eization. Un ejemplo en pantalla, con el metrónomo, los compases de abajo. Cada uno sale una vez y luego cambia el orden.",
-      "Un ejemplo por línea. Texto plano. Sin título, sin # eization, sin #s=. Signos, no palabras ni HTML. \" · \" separa lo que se toca de un texto. Corte a 240 caracteres. Más de 500 líneas no abre.",
-      "Añade notas: una línea por escritura de cada grado. Naturales una vez (C D E F G A B). El resto en sostenido y bemol. Nota, \" · \", grado. Ejemplo: B♭ · ♭7 de C y A♯ · ♭7 de C. Cada grado del recuadro, sobre la fundamental dicha. Si no hay, pregunta una vez y sugiere C. Conserva el grado. Igual para acordes.",
-      "Si hay líneas, di qué lista es, qué necesita una buena línea, ofrece uno o dos pasos y pregunta. No reescribas hasta que lo pidan. Si el recuadro está vacío, ofrece tres comienzos (notas, escalas o acordes con texto) y pregunta cuál.",
-      "Al terminar o si piden el texto, un bloque, un ejemplo por línea, nada más dentro. Diles que lo copien, lo peguen en Editar en eization y pulsen Actualizar. Guardar como nuevo conserva el anterior."
+      "Ayúdame con un ejercicio de eization. Un ejemplo a la vez, con el metrónomo. Cada uno sale una vez y luego cambia el orden.",
+      "Un ejemplo por línea. Sin título, sin # eization, sin #s=. Signos, no palabras ni HTML. \" · \" separa lo que se toca de un texto.",
+      "Añade notas: una línea por escritura. Naturales una vez (C D E F G A B). El resto en sostenido y bemol. Ejemplo: B♭ · ♭7 de C y A♯ · ♭7 de C. Cada grado del recuadro, sobre la fundamental. Si no hay, pregunta una vez y sugiere C.",
+      "Si hay líneas, di qué lista es, qué necesita una buena línea, ofrece un paso y pregunta. No reescribas hasta que lo pidan. Si el recuadro está vacío, ofrece tres comienzos (notas, escalas o acordes) y pregunta cuál.",
+      "Al terminar, un bloque, un ejemplo por línea. Diles que lo copien, lo peguen en Editar y pulsen Actualizar. Guardar como nuevo conserva el anterior."
     ].join("\n\n");
   }
   return [
-    "Help me write an eization exercise. One example shows at a time with the metronome for the bars below. Each comes up once, then the order changes.",
-    "Write one example per line. Plain text. No title, no # eization header, no #s= link. Accidental signs, not words or HTML. \" · \" splits what to play from a caption. Cut at 240 characters. Over 500 lines will not open.",
-    "Add notes: one line per spelling of each degree. Naturals once (C D E F G A B). Other pitches as both sharp and flat. Note, \" · \", degree. Example: B♭ · ♭7 of C and A♯ · ♭7 of C. Every degree in the box, on the named root. No root: ask once, suggest C. Keep degree names. Same spellings for chords.",
-    "If there are lines, say what the list is, name what a good line needs, offer one or two next steps, and ask. Do not rewrite until they ask. If the box is empty, offer three starters (notes, scales, or changes with a caption) and ask which to write.",
-    "When they finish or ask for the text, put examples in one fenced block, one per line, nothing else inside. Then tell them to copy it, paste it into the eization Edit box, and press Update. Save as new keeps the old exercise."
+    "Help me write an eization exercise. One example shows at a time, with the metronome. Each comes up once, then the order changes.",
+    "Write one example per line. No title, no # eization header, no #s= link. Signs, not words or HTML. \" · \" splits play from a caption.",
+    "Add notes: one line per spelling. Naturals once (C D E F G A B). Other pitches sharp and flat. Example: B♭ · ♭7 of C and A♯ · ♭7 of C. Every degree in the box, on the named root. No root: ask once, suggest C.",
+    "If there are lines, say what the list is, name what a good line needs, offer a next step, and ask. Do not rewrite until they ask. If the box is empty, offer three starters (notes, scales, or changes with a caption) and ask which to write.",
+    "When they finish, one block, one per line. Tell them to copy it, paste it into the eization Edit box, and press Update. Save as new keeps the old exercise."
   ].join("\n\n");
 }
 
