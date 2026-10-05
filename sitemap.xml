@@ -37,6 +37,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/books.html"/>
   </url>
   <url>
+    <loc>https://eization.com/more.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/more.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/more.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/more.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/more.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/more.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/more.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/more.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/melodic-lines.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/melodic-lines.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/melodic-lines.html"/>

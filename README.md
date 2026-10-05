@@ -38,6 +38,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/css/style.css` | Practice screen layout |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
+| `more.html` | Extra exercises as share links. Open one to Add or Preview in eization. Not in the default menu. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
 | `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html`, `free-play.html` | How to practice that kind of line with the metronome |
 | `resources/css/guide.css` | Layout for `practice.html` and the exercise pages |
@@ -51,6 +52,8 @@ The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhyt
 When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. Add the Spanish page under `es/`, link it from `es/practice.html`, and list that URL too. `hreflang` on each page points at the other language. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
 
 Share in Edit copies a link to the open exercise. The link is a `#s=` hash on that page (`https://eization.com/` or `https://eization.com/es/`). Opening it can add that exercise on this device. An exact match opens the stored exercise and says nothing. A link whose examples match a factory exercise already on this device opens that exercise the same way, even when the title is in the other language. A different exercise can replace the stored one or be added beside it. On a first visit the intro waits while that question or Preview is open, then plays once the exercise is on screen. An exercise that does not fit in the link stays on this device, and Download still writes the `.eiz` file.
+
+`more.html` (and `es/more.html`) is a catalog of extra exercises that use those share links. They are not seeded into the menu. Each Open in eization link lands on the practice screen with Add / Preview (or Update when the same share id is already on the device).
 
 Ask AI opens the open exercise in ChatGPT, Claude, or Gemini. The chat coaches the exercise. When it is ready, the reply is a block of examples to paste into the box. The site does not call a model.
 

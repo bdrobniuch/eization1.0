@@ -63,6 +63,7 @@ function run() {
     editorLines(w);
     editorFile(w);
     deskRoundTrip(w);
+    moreCatalog(w);
     shareCase(w);
     chatCase(w);
     foreignDesk(w);
@@ -107,6 +108,7 @@ function exerciseMenu(w) {
   check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
   check("practice page is linked from About", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
   check("books page is linked from About", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
+  check("more page is linked from About", !!w.document.querySelector("#aboutNav a[href='./more.html']"));
   check("restore defaults lives in About", !!w.document.querySelector("#about #restoreDefaults"));
   check("download all lives in About", !!w.document.querySelector("#about #downloadAllExercises"));
   var packed = w.packDeskExercises();
@@ -207,6 +209,46 @@ function shareRows(w, shareId) {
     }
   }
   return rows;
+}
+
+function moreCatalog(w) {
+  var req = new XMLHttpRequest();
+  req.open("GET", "../more.html", false);
+  req.send(null);
+  check("more catalog loads", req.status === 0 || (req.status >= 200 && req.status < 300));
+  var html = req.responseText || "";
+  var hashes = html.match(/#s=[A-Za-z0-9_-]+/g) || [];
+  var uniq = {};
+  var i;
+  for (i = 0; i < hashes.length; i++) {
+    uniq[hashes[i]] = true;
+  }
+  var keys = Object.keys(uniq);
+  check("more catalog has 20 share links", keys.length === 20);
+  check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
+  check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
+  if (!keys.length) {
+    return;
+  }
+  var before = w.listDeskExercises().length;
+  w.location.hash = keys[0];
+  w.offerSharedExercise();
+  check("more link opens share ask", w.document.getElementById("shareAsk").hidden === false);
+  check("more link offers add", w.document.getElementById("shareAdd").hidden === false);
+  check("more link offers preview", w.document.getElementById("sharePreview").hidden === false);
+  w.previewShareExercise();
+  check("more preview opens edit", w.document.body.classList.contains("is-editing"));
+  w.editorCancel();
+  var added = w.confirmShareAdd();
+  check("more add keeps the exercise", added === true && w.listDeskExercises().length === before + 1);
+  check("more add drops the hash", w.location.hash.indexOf("#s=") < 0);
+  var esReq = new XMLHttpRequest();
+  esReq.open("GET", "../es/more.html", false);
+  esReq.send(null);
+  var esHtml = esReq.responseText || "";
+  var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
+  check("spanish more catalog has 20 share links", esHashes.length === 20);
+  check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
 function shareCase(w) {
