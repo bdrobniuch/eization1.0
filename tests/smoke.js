@@ -310,18 +310,21 @@ function shareCase(w) {
 function chatCase(w) {
   var upload = w.document.getElementById("editOpen");
   var share = w.document.getElementById("editShare");
-  var hint = w.document.getElementById("editHintLine");
   var send = w.document.getElementById("editSend");
   var between = false;
   var node = upload ? upload.nextSibling : null;
   var prompt;
   var shortGpt;
   var shortClaude;
+  var shortGemini;
   var longText;
   var longGpt;
   var longClaude;
+  var longGemini;
   var empty;
   var desk;
+  var label;
+  var menu;
   while (node && node !== share) {
     if (node.nodeType === 1 && (node.id === "editHintLine" || node.id === "editShareHint")) {
       between = true;
@@ -330,8 +333,10 @@ function chatCase(w) {
   }
   check("ask lives in edit", !!w.document.getElementById("editAsk"));
   check("share still lives in edit", !!share);
-  check("hint sits under the send row", !!(hint && send && hint.previousElementSibling === send));
+  check("share sentence stays off the exercise row", !w.document.getElementById("editHintLine"));
   check("hint is not between share and upload", !between);
+  label = w.document.getElementById("editExerciseLabel");
+  check("exercise label sits on the action row", !!(label && send && label.parentNode === send && label.classList.contains("combo-kicker")));
   var exerciseRow = w.document.getElementById("editExercise");
   var nameRow = w.document.getElementById("editNameRow");
   var deleteButton = w.document.getElementById("editDelete");
@@ -342,22 +347,29 @@ function chatCase(w) {
   check("prompt carries the lines", prompt.indexOf("Dm7 G7") >= 0 && prompt.indexOf("Cmaj7") >= 0 && prompt.indexOf("one example per line") >= 0);
   shortGpt = w.chatAskUrl(prompt, "chatgpt");
   shortClaude = w.chatAskUrl(prompt, "claude");
+  shortGemini = w.chatAskUrl(prompt, "gemini");
   check("short chatgpt address fits", !!(shortGpt && shortGpt.copy === false && shortGpt.href.indexOf("https://chatgpt.com/?q=") === 0 && shortGpt.href.length <= 2000));
   check("short claude address fits", !!(shortClaude && shortClaude.copy === false && shortClaude.href.indexOf("https://claude.ai/new?q=") === 0 && shortClaude.href.length <= 2000));
+  check("short gemini address fits", !!(shortGemini && shortGemini.copy === false && shortGemini.href.indexOf("https://gemini.google.com/app?q=") === 0 && shortGemini.href.length <= 2000));
   longText = new Array(800).join("line ");
   longGpt = w.chatAskUrl(longText, "chatgpt");
   longClaude = w.chatAskUrl(longText, "claude");
+  longGemini = w.chatAskUrl(longText, "gemini");
   check("long question is copied", !!(longGpt && longGpt.copy === true && longGpt.href === "https://chatgpt.com/"));
   check("long claude question is copied", !!(longClaude && longClaude.copy === true && longClaude.href === "https://claude.ai/new"));
+  check("long gemini question is copied", !!(longGemini && longGemini.copy === true && longGemini.href === "https://gemini.google.com/app"));
   empty = w.buildChatPrompt({ name: "New", bars: 1, lines: [], lang: "en" });
   check("empty list still asks", empty.length > 0 && empty.indexOf("one example per line") >= 0);
   desk = JSON.stringify(w.listDeskExercises());
   w.document.getElementById("editAsk").click();
   check("opening the menu does not write the desk", JSON.stringify(w.listDeskExercises()) === desk);
-  check("chat menu opens", w.document.getElementById("editAskMenu").hidden === false);
-  check("hint asks to paste", w.document.getElementById("editHintLine").textContent === w.t("edit.askHint"));
+  menu = w.document.getElementById("editAskMenu");
+  check("chat menu opens", menu.hidden === false);
+  check("three chats sit in one row", !!(w.document.getElementById("editAskGemini") && w.getComputedStyle(menu).flexDirection === "row" && w.I18N.en["edit.ask"] === "Ask AI" && w.I18N.es["edit.ask"] === "Preguntar a la IA" && w.I18N.en["edit.askGemini"] === "Gemini"));
+  check("hint asks to paste", w.document.getElementById("editHint").textContent === w.t("edit.askHint"));
   w.document.getElementById("editAsk").click();
-  check("chat menu closes", w.document.getElementById("editAskMenu").hidden === true);
+  check("chat menu closes", menu.hidden === true);
+  check("paste line leaves with the chats", w.document.getElementById("editHint").textContent !== w.t("edit.askHint"));
   check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own list." && w.I18N.es["hello.edit"] === "Editar arma tu propia lista.");
 }
 

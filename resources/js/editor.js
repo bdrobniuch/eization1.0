@@ -242,6 +242,11 @@ function refreshEditorHint() {
     hint.textContent = "";
     return;
   }
+  var askMenu = document.getElementById("editAskMenu");
+  if (askMenu && !askMenu.hidden) {
+    hint.textContent = t("edit.askHint");
+    return;
+  }
   if (typeof sharePreview !== "undefined" && sharePreview) {
     hint.textContent = sharePreview.mode === "changed" ? t("edit.hintShare") : t("edit.hintCreate");
     return;
@@ -871,7 +876,7 @@ function editorApplyLanguage() {
   var trimmed;
   setEditButton(editorIsOpen());
   syncEditorCommitLabels();
-  syncEditHintLine();
+  refreshEditorHint();
   for (i = 0; i < buttons.length && i < EDITOR_SYMBOLS.length; i++) {
     buttons[i].setAttribute("aria-label", t(EDITOR_SYMBOLS[i].key));
     buttons[i].title = t(EDITOR_SYMBOLS[i].key);
@@ -1174,7 +1179,8 @@ var CHAT_URL_MAX = 2000;
 
 var CHAT_TARGETS = {
   chatgpt: { bare: "https://chatgpt.com/", query: "https://chatgpt.com/?q=" },
-  claude: { bare: "https://claude.ai/new", query: "https://claude.ai/new?q=" }
+  claude: { bare: "https://claude.ai/new", query: "https://claude.ai/new?q=" },
+  gemini: { bare: "https://gemini.google.com/app", query: "https://gemini.google.com/app?q=" }
 };
 
 function buildChatPrompt(spec) {
@@ -1216,15 +1222,6 @@ function chatAskUrl(prompt, target) {
   return { href: href, copy: false };
 }
 
-function syncEditHintLine() {
-  var line = document.getElementById("editHintLine");
-  var menu = document.getElementById("editAskMenu");
-  if (!line) {
-    return;
-  }
-  line.textContent = t(menu && !menu.hidden ? "edit.askHint" : "edit.shareHint");
-}
-
 function editorAskMenu(open) {
   var menu = document.getElementById("editAskMenu");
   var button = document.getElementById("editAsk");
@@ -1233,7 +1230,7 @@ function editorAskMenu(open) {
   }
   menu.hidden = !open;
   button.setAttribute("aria-expanded", open ? "true" : "false");
-  syncEditHintLine();
+  refreshEditorHint();
 }
 
 function editorOpenChat(target) {
@@ -1362,8 +1359,11 @@ function initEditor() {
   document.getElementById("editAskClaude").addEventListener("click", function () {
     editorOpenChat("claude");
   });
+  document.getElementById("editAskGemini").addEventListener("click", function () {
+    editorOpenChat("gemini");
+  });
   document.getElementById("editOpen").addEventListener("click", editorAskOpen);
-  syncEditHintLine();
+  refreshEditorHint();
   document.getElementById("editFile").addEventListener("change", function () {
     var input = this;
     var file = input.files && input.files[0];

@@ -51,7 +51,7 @@ When the new id is in `menuOrder`, add a page at the site root, link it from `pr
 
 Share in Edit copies a link to the open exercise. The link is a `#s=` hash on that page (`https://eization.com/` or `https://eization.com/es/`). Opening it can add that exercise on this device. An exact match opens the stored exercise and says nothing. A different exercise can replace the stored one or be added beside it. An exercise that does not fit in the link stays on this device, and Download still writes the `.eiz` file.
 
-Ask a chat opens the open exercise in an outside chat. The reply is pasted into the box. The site does not call a model.
+Ask AI opens the open exercise in ChatGPT, Claude, or Gemini. The reply is pasted into the box. The site does not call a model.
 
 On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download and Upload copy the open exercise to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 

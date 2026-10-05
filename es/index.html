@@ -134,20 +134,20 @@
             <button type="button" id="editUpdate" data-i18n-title="edit.updateTitle" title="Update this exercise on this device" data-i18n="edit.update">Update</button>
         </div>
         <div id="editExercise">
-            <p id="editExerciseLabel" data-i18n="edit.exercise">Exercise</p>
             <div id="editSend">
+                <p id="editExerciseLabel" class="combo-kicker" data-i18n="edit.exercise">Exercise</p>
                 <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this exercise as an .eiz file" data-i18n="edit.download">Download</button>
                 <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box" data-i18n="edit.upload">Upload</button>
                 <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
                 <button type="button" id="editShare" data-i18n-title="edit.shareTitle" title="Copy a link to this exercise" data-i18n="edit.share">Share</button>
-                <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in a chat" data-i18n="edit.ask">Ask a chat</button>
+                <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in ChatGPT, Claude, or Gemini" data-i18n="edit.ask">Ask AI</button>
                 <button type="button" id="editDelete" data-i18n-title="edit.deleteTitle" title="Delete this exercise from this device" data-i18n="edit.delete">Delete</button>
                 <div id="editAskMenu" hidden>
                     <button type="button" id="editAskChatgpt" data-i18n="edit.askChatgpt">ChatGPT</button>
                     <button type="button" id="editAskClaude" data-i18n="edit.askClaude">Claude</button>
+                    <button type="button" id="editAskGemini" data-i18n="edit.askGemini">Gemini</button>
                 </div>
             </div>
-            <p id="editHintLine">Share copies a link. Someone can open this exercise in eization.</p>
         </div>
         <div id="editNameRow">
             <label for="editName" data-i18n="edit.name">Name</label>
@@ -203,7 +203,7 @@
                 <p><span data-i18n="how.ex1">Choose an exercise at the top. The large text is the example. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 5v14l9-7Zm10 0h3v14h-3Z"/></svg></span><span data-i18n="how.ex2"> Next moves to the next one. The number under the exercise shows how many are left before the list starts over. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg></span><span data-i18n="how.ex3"> Reset starts that exercise again.</span></p>
                 <button type="button" class="about-show" data-hello="exercise" data-i18n="about.show">Show me</button>
                 <h2 data-i18n="how.editTitle">Edit</h2>
-                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span data-i18n="how.edit"> Edit changes any exercise on this device. Update and Save as new keep exercises on this device. Download and Upload copy the open exercise to an .eiz file and back. This device can Download backup or Upload backup for every exercise. Share copies a link. Someone can open this exercise in eization. Ask a chat opens this exercise in a chat. Paste the reply into the box, then Update.</span></p>
+                <p><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span data-i18n="how.edit"> Edit changes any exercise on this device. Update and Save as new keep exercises on this device. Download and Upload copy the open exercise to an .eiz file and back. This device can Download backup or Upload backup for every exercise. Share copies a link. Someone can open this exercise in eization. Ask AI opens this exercise in ChatGPT, Claude, or Gemini. Paste the reply into the box, then Update.</span></p>
                 <button type="button" class="about-show" data-hello="edit" data-i18n="about.show">Show me</button>
                 <h2 data-i18n="how.metroTitle">Metronome</h2>
                 <p><span data-i18n="how.metro1">BPM sets the tempo. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7Z"/></svg></span><span data-i18n="how.metro2"> Play starts and stops the click, and keeps time on the example that is showing. The bar above the metronome fills, then the next example comes up. </span><span class="about-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" d="M5 30 13 8h6l8 22z"/><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M16 26 23 11"/><circle cx="24" cy="9.5" r="3.4" fill="currentColor"/></svg></span><span data-i18n="how.metro3"> Setup changes the meter, Play and Rest bars and their clicks, swing, repeats, and the count-in. Some exercises are rhythms you can tap with your hands and feet.</span></p>

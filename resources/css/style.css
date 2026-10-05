@@ -1547,9 +1547,7 @@ body.is-editing #counter {
 
 #editExerciseLabel {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.35;
-  opacity: 0.9;
+  align-self: center;
 }
 
 #editHead,
@@ -1568,24 +1566,19 @@ body.is-editing #counter {
   margin: 0;
 }
 
-#editHint,
-#editHintLine {
+#editHint {
   flex: 1 1 160px;
   font-size: 14px;
   line-height: 1.35;
   opacity: 0.9;
 }
 
-#editHintLine {
-  flex: none;
-  margin: 0;
-}
-
 #editAskMenu {
   flex: 1 0 100%;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
@@ -1626,6 +1619,7 @@ body.is-editing #counter {
 #editAsk,
 #editAskChatgpt,
 #editAskClaude,
+#editAskGemini,
 #editOpen,
 #editDelete {
   flex: 0 0 auto;
