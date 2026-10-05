@@ -135,12 +135,27 @@
         <div id="editExercise">
             <div id="editSend">
                 <p id="editExerciseLabel" class="combo-kicker" data-i18n="edit.exercise">Exercise</p>
-                <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this exercise as an .eiz file" data-i18n="edit.download">Download</button>
-                <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box" data-i18n="edit.upload">Upload</button>
+                <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this exercise as an .eiz file">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v10.5M8 11l4 4 4-4M5 20h14"/></svg>
+                    <span class="btn-label" data-i18n="edit.download">Download</span>
+                </button>
+                <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V6M8 9.5 12 5.5l4 4M5 20h14"/></svg>
+                    <span class="btn-label" data-i18n="edit.upload">Upload</span>
+                </button>
                 <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
-                <button type="button" id="editShare" data-i18n-title="edit.shareTitle" title="Copy a link to this exercise" data-i18n="edit.share">Share</button>
-                <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in ChatGPT, Claude, or Gemini" data-i18n="edit.ask">Ask AI</button>
-                <button type="button" id="editDelete" data-i18n-title="edit.deleteTitle" title="Delete this exercise from this device" data-i18n="edit.delete">Delete</button>
+                <button type="button" id="editShare" data-i18n-title="edit.shareTitle" title="Copy a link to this exercise">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg>
+                    <span class="btn-label" data-i18n="edit.share">Share</span>
+                </button>
+                <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in ChatGPT, Claude, or Gemini">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5 13.6 9.4 19.5 12 13.6 14.6 12 20.5 10.4 14.6 4.5 12 10.4 9.4Z"/></svg>
+                    <span class="btn-label" data-i18n="edit.ask">Ask AI</span>
+                </button>
+                <button type="button" id="editDelete" data-i18n-title="edit.deleteTitle" title="Delete this exercise from this device">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4.5h6V7M7 7l.8 13h8.4L17 7"/></svg>
+                    <span class="btn-label" data-i18n="edit.delete">Delete</span>
+                </button>
                 <div id="editAskMenu" hidden>
                     <button type="button" id="editAskChatgpt" data-i18n="edit.askChatgpt">ChatGPT</button>
                     <button type="button" id="editAskClaude" data-i18n="edit.askClaude">Claude</button>

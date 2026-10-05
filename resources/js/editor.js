@@ -859,11 +859,22 @@ function armEditorStale() {
   editorStaleTimer = setTimeout(disarmEditorStale, 4000);
 }
 
+function setButtonLabel(button, text) {
+  var label = button ? button.querySelector(".btn-label") : null;
+  if (label) {
+    label.textContent = text;
+    return;
+  }
+  if (button) {
+    button.textContent = text;
+  }
+}
+
 function disarmEditorDelete() {
   var del = document.getElementById("editDelete");
   if (del) {
     del.classList.remove("is-armed");
-    del.textContent = t("edit.delete");
+    setButtonLabel(del, t("edit.delete"));
   }
   if (editorDeleteTimer) {
     clearTimeout(editorDeleteTimer);
@@ -881,7 +892,7 @@ function armEditorDelete() {
   var del = document.getElementById("editDelete");
   if (del) {
     del.classList.add("is-armed");
-    del.textContent = t("edit.deleteAsk");
+    setButtonLabel(del, t("edit.deleteAsk"));
   }
   setEditorCommitsEnabled(false);
   editorNotice(t("edit.deleteAsk"));
@@ -968,7 +979,7 @@ function editorApplyLanguage() {
     buttons[i].title = t(EDITOR_SYMBOLS[i].key);
   }
   if (del && del.classList.contains("is-armed")) {
-    del.textContent = t("edit.deleteAsk");
+    setButtonLabel(del, t("edit.deleteAsk"));
   }
   if (!editorIsOpen() || !field) {
     refreshEditor();

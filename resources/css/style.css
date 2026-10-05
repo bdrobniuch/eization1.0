@@ -1635,6 +1635,26 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
+#editSave,
+#editOpen,
+#editShare,
+#editAsk,
+#editDelete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#editSave .chrome-icon,
+#editOpen .chrome-icon,
+#editShare .chrome-icon,
+#editAsk .chrome-icon,
+#editDelete .chrome-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: 0 0 auto;
+}
+
 #editCancel.edit-ghost {
   border-color: rgba(255, 255, 255, 0.45);
   opacity: 0.9;
