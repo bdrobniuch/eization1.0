@@ -2182,5 +2182,264 @@
                       "Same melody, classical ornaments"
                   ],
         "descEn":  "Start from a plain melody. Add grace notes, turns, and neighbor ornaments step by step without losing the original pitches."
+    },
+    {
+        "slug":  "three-note-contours",
+        "id":  "more0050",
+        "descEs":  "Ocho formas de contorno para cualquier célula de 3 notas: cada patrón arriba/abajo tiene turno. Aquí sobre 1-3-5, 1-2-3 y 1-4-5 para que el cómodo Arriba-Arriba-Arriba no esconda el resto. Mantén ese contorno sobre los cambios.",
+        "nameEn":  "3-note directional contours",
+        "books":  [
+                      {
+                          "href":  "./motivic-development.html",
+                          "es":  "Desarrollo motívico",
+                          "en":  "Motivic Development"
+                      },
+                      {
+                          "href":  "./more.html#pentatonic-three-note",
+                          "es":  "Células pentatónicas de 3 notas",
+                          "en":  "Pentatonic 3-note cells"
+                      },
+                      {
+                          "href":  "./more.html#inverted-interval-motifs",
+                          "es":  "Motivos de intervalo invertidos",
+                          "en":  "Inverted interval motifs"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Contornos direccionales de 3 notas",
+        "lines":  [
+                      "Up Up Up · cell 1 3 5",
+                      "Up Up Down · cell 1 3 5",
+                      "Up Down Up · cell 1 3 5",
+                      "Up Down Down · cell 1 3 5",
+                      "Down Up Up · cell 1 3 5",
+                      "Down Up Down · cell 1 3 5",
+                      "Down Down Up · cell 1 3 5",
+                      "Down Down Down · cell 1 3 5",
+                      "Up Up Up · cell 1 2 3",
+                      "Up Up Down · cell 1 2 3",
+                      "Up Down Up · cell 1 2 3",
+                      "Up Down Down · cell 1 2 3",
+                      "Down Up Up · cell 1 2 3",
+                      "Down Up Down · cell 1 2 3",
+                      "Down Down Up · cell 1 2 3",
+                      "Down Down Down · cell 1 2 3",
+                      "Up Up Up · cell 1 4 5",
+                      "Up Up Down · cell 1 4 5",
+                      "Up Down Up · cell 1 4 5",
+                      "Up Down Down · cell 1 4 5",
+                      "Down Up Up · cell 1 4 5",
+                      "Down Up Down · cell 1 4 5",
+                      "Down Down Up · cell 1 4 5",
+                      "Down Down Down · cell 1 4 5"
+                  ],
+        "descEn":  "Eight contour shapes for any 3-note cell: every up/down pattern gets a turn. Applied here to 1-3-5, 1-2-3, and 1-4-5 so the comfortable Up-Up-Up cannot hide the rest. Keep that contour across the changes."
+    },
+    {
+        "slug":  "whole-step-triad-pairs",
+        "id":  "more0051",
+        "descEs":  "Color hexatónico de dos tríadas a tono de distancia. Cada acorde listado recibe cada par no ordenado de su conjunto, para que Bb/C no ocupe todos los pases.",
+        "nameEn":  "Whole-step triad pairs",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "es":  "Hexatonics",
+                          "en":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "es":  "Triad Pairs for Jazz",
+                          "en":  "Triad Pairs for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#major-2nd-triad-couplings",
+                          "es":  "Acoplamientos de 2a mayor",
+                          "en":  "Major 2nd triad couplings"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Pares de tríadas a tono",
+        "lines":  [
+                      "Bb/C · Bbmaj7",
+                      "Bb/Am · Bbmaj7",
+                      "Bb/Gm · Bbmaj7",
+                      "C/Am · Bbmaj7",
+                      "C/Gm · Bbmaj7",
+                      "Am/Gm · Bbmaj7",
+                      "Bb/C · Gm",
+                      "Bb/Am · Gm",
+                      "Bb/Gm · Gm",
+                      "C/Am · Gm",
+                      "C/Gm · Gm",
+                      "Am/Gm · Gm",
+                      "Bb/C · E-7b5",
+                      "Bb/C · E7alt",
+                      "Bb/Fm · E7alt",
+                      "Bb/Gm · E7alt",
+                      "C/Fm · E7alt",
+                      "C/Gm · E7alt",
+                      "Fm/Gm · E7alt",
+                      "Bb/C · Bb7",
+                      "Ab/Bb · Bb7sus",
+                      "A/B · Em6/9",
+                      "G/A · Dm7"
+                  ],
+        "descEn":  "Hexatonic color from two triads a whole step apart. Every listed chord gets every unordered pair from its triad set, so Bb/C does not take every pass while Am/Gm waits."
+    },
+    {
+        "slug":  "half-step-triad-pairs",
+        "id":  "more0052",
+        "descEs":  "Color hexatónico de dos tríadas a semitono. Cada acorde recibe cada par de su lista, sobre todo las filas largas de Bb7 y C7, para que un par favorito no esconda el resto.",
+        "nameEn":  "Half-step triad pairs",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "es":  "Hexatonics",
+                          "en":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "es":  "Triad Pairs for Jazz",
+                          "en":  "Triad Pairs for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#altered-hexatonic-pairs",
+                          "es":  "Pares hexatónicos alterados",
+                          "en":  "Altered hexatonic triad pairs"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Pares de tríadas a semitono",
+        "lines":  [
+                      "Em/Fm · Fm7",
+                      "Em/Fm · Bb7",
+                      "Em/Gm · Bb7",
+                      "Em/Abm · Bb7",
+                      "Em/Bbm · Bb7",
+                      "Em/Bm · Bb7",
+                      "Em/C#m · Bb7",
+                      "Em/Dm · Bb7",
+                      "Fm/Gm · Bb7",
+                      "Fm/Abm · Bb7",
+                      "Fm/Bbm · Bb7",
+                      "Fm/Bm · Bb7",
+                      "Fm/C#m · Bb7",
+                      "Fm/Dm · Bb7",
+                      "Gm/Abm · Bb7",
+                      "Gm/Bbm · Bb7",
+                      "Gm/Bm · Bb7",
+                      "Gm/C#m · Bb7",
+                      "Gm/Dm · Bb7",
+                      "Abm/Bbm · Bb7",
+                      "Abm/Bm · Bb7",
+                      "Abm/C#m · Bb7",
+                      "Abm/Dm · Bb7",
+                      "Bbm/Bm · Bb7",
+                      "Bbm/C#m · Bb7",
+                      "Bbm/Dm · Bb7",
+                      "Bm/C#m · Bb7",
+                      "Bm/Dm · Bb7",
+                      "C#m/Dm · Bb7",
+                      "F#m/Gm · A7",
+                      "Abm/Am · D7",
+                      "Bbm/Bm · G7",
+                      "Cm/C#m · C7",
+                      "Cm/F#m · C7",
+                      "Cm/Gm · C7",
+                      "Cm/Am · C7",
+                      "Cm/Bbm · C7",
+                      "C#m/F#m · C7",
+                      "C#m/Gm · C7",
+                      "C#m/Am · C7",
+                      "C#m/Bbm · C7",
+                      "F#m/Gm · C7",
+                      "F#m/Am · C7",
+                      "F#m/Bbm · C7",
+                      "Gm/Am · C7",
+                      "Gm/Bbm · C7",
+                      "Am/Bbm · C7",
+                      "F#m/Cm · Gm",
+                      "C/Db · C7b9sus4",
+                      "E/F · Fmaj7b5",
+                      "B/C · F#-7b5",
+                      "Db/D · F7"
+                  ],
+        "descEn":  "Hexatonic (or dense cluster) color from two triads a half step apart. Every chord in the set gets every unordered pair from its listâ€”especially the long Bb7 and C7 rowsâ€”so one favorite pair cannot hide the rest."
+    },
+    {
+        "slug":  "augmented-triad-pairs",
+        "id":  "more0053",
+        "descEs":  "Pares de tríadas aumentadas (y el set de tres en Bbmaj7#5). Cada acorde recibe cada par.",
+        "nameEn":  "Augmented triad pairs",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "es":  "Hexatonics",
+                          "en":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./more.html#whole-step-triad-pairs",
+                          "es":  "Pares de tríadas a tono",
+                          "en":  "Whole-step triad pairs"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "es":  "Acordes",
+                          "en":  "Chords"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Pares de tríadas aumentadas",
+        "lines":  [
+                      "B+/C#+ · B7",
+                      "B+/Bb+ · B7",
+                      "B+/C+ · B7",
+                      "C#+/Bb+ · B7",
+                      "C#+/C+ · B7",
+                      "Bb+/C+ · B7",
+                      "Db+/C+ · C7b9",
+                      "E+/F#+ · F-Maj7",
+                      "E+/Eb+ · F-Maj7",
+                      "F#+/Eb+ · F-Maj7",
+                      "B+/C+ · C",
+                      "Ab+/G+ · G7alt",
+                      "D+/Eb+ · Cm",
+                      "D+/Eb+ · F7",
+                      "Ab+/A+ · Bbmaj7#5",
+                      "Ab+/Bb+ · Bbmaj7#5",
+                      "A+/Bb+ · Bbmaj7#5"
+                  ],
+        "descEn":  "Augmented triad pairs (and the three-augmented set on Bbmaj7#5). Every chord gets every unordered pair so one + shape cannot own the session."
+    },
+    {
+        "slug":  "mixed-triad-pairs",
+        "id":  "more0054",
+        "descEs":  "Los pares restantes de la hoja hexatónica: calidades mixtas y el par de tritono Bb/E sobre Bb7. Cada combinación tiene turno.",
+        "nameEn":  "Mixed triad pairs",
+        "books":  [
+                      {
+                          "href":  "./more.html#whole-step-triad-pairs",
+                          "es":  "Pares de tríadas a tono",
+                          "en":  "Whole-step triad pairs"
+                      },
+                      {
+                          "href":  "./more.html#half-step-triad-pairs",
+                          "es":  "Pares de tríadas a semitono",
+                          "en":  "Half-step triad pairs"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "es":  "Triad Pairs for Jazz",
+                          "en":  "Triad Pairs for Jazz"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Pares de tríadas mixtos",
+        "lines":  [
+                      "G/Em · Fm",
+                      "F#m triad · Bbmaj7",
+                      "Bb/E · Bb7"
+                  ],
+        "descEn":  "The leftover pairs from the hexatonic sheet: mixed qualities and the Bb/E tritone pair on Bb7. Each listed combination gets a turn."
     }
 ]
