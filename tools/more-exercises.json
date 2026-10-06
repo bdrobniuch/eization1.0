@@ -1,729 +1,2186 @@
 [
-  {
-    "id": "more0001",
-    "slug": "sticky-keys",
-    "bars": 1,
-    "nameEn": "Sticky keys",
-    "nameEs": "Tonalidades dif\u00edciles",
-    "descEn": "Students often park in C, F, and Bb. This set puts the awkward keys on the stand: one scale or mode per turn, so the familiar keys cannot take every pass.",
-    "descEs": "Los estudiantes suelen quedarse en C, F y Bb. Este set pone las tonalidades inc\u00f3modas en el atril: una escala o modo por turno, para que las f\u00e1ciles no ocupen todo el pase.",
-    "books": [
-      {"href": "./scales-and-sets.html", "en": "Scales and pitch sets", "es": "Escalas y conjuntos de alturas"},
-      {"href": "./scales-and-sets.html#weiskopf-around-the-horn", "en": "Around the Horn", "es": "Around the Horn"}
-    ],
-    "lines": ["B major", "F# major", "Db major", "Ab major", "E major", "Bb minor", "F# minor", "C# minor", "Eb minor", "A major", "B Mixolydian", "F# Dorian"]
-  },
-  {
-    "id": "more0002",
-    "slug": "two-five-one-clock",
-    "bars": 2,
-    "nameEn": "II-V-I around the clock",
-    "nameEs": "II-V-I alrededor del reloj",
-    "descEn": "The cadence everyone knows in one or two keys. Walk it through twelve keys so each II-V-I gets one turn with the metronome before the next key.",
-    "descEs": "La cadencia que todos conocen en una o dos tonalidades. Rec\u00f3rrela en doce tonalidades para que cada II-V-I tenga un turno con el metr\u00f3nomo antes de la siguiente.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./changes.html#cork-lego", "en": "Harmony with LEGO Bricks", "es": "Harmony with LEGO Bricks"},
-      {"href": "./changes.html#crook-improvise", "en": "How to Improvise", "es": "How to Improvise"}
-    ],
-    "lines": ["Dm7 G7 Cmaj7", "Em7 A7 Dmaj7", "F#m7 B7 Emaj7", "G#m7 C#7 F#maj7", "Bbm7 Eb7 Abmaj7", "Cm7 F7 Bbmaj7", "Am7 D7 Gmaj7", "Bm7 E7 Amaj7", "C#m7 F#7 Bmaj7", "Ebm7 Ab7 Dbmaj7", "Fm7 Bb7 Ebmaj7", "Gm7 C7 Fmaj7"]
-  },
-  {
-    "id": "more0003",
-    "slug": "guide-tones",
-    "bars": 4,
-    "nameEn": "Guide tones",
-    "nameEs": "Notas gu\u00eda",
-    "descEn": "Lines stall when the ear loses the 3rd and 7th. Each example is a short 3-7 path through a cadence. Sing it, then play it in time.",
-    "descEs": "Las l\u00edneas se estancan cuando el o\u00eddo pierde la 3a y la 7a. Cada ejemplo es un camino corto 3-7 por una cadencia. C\u00e1ntalo y luego t\u00f3calo a tempo.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./melodic-lines.html#ligon-linear", "en": "Connecting Chords with Linear Harmony", "es": "Connecting Chords with Linear Harmony"},
-      {"href": "./chord-tones.html", "en": "Chord Tones", "es": "Notas del acorde"}
-    ],
-    "lines": ["F-B-E-E \u00b7 Dm7 G7 Cmaj7", "C-F#-B-B \u00b7 Am7 D7 Gmaj7", "G-C#-F#-F# \u00b7 Em7 A7 Dmaj7", "Bb-E-A-A \u00b7 Gm7 C7 Fmaj7", "Eb-A-D-D \u00b7 Cm7 F7 Bbmaj7", "Ab-D-G-G \u00b7 Fm7 Bb7 Ebmaj7", "Db-G-C-C \u00b7 Bbm7 Eb7 Abmaj7", "F-B-E-D \u00b7 Dm7 G7 C6", "B-E-A-G \u00b7 Am7 D7 G6", "E-A-D-C \u00b7 Em7 A7 D6"]
-  },
-  {
-    "id": "more0004",
-    "slug": "outline-changes",
-    "bars": 4,
-    "nameEn": "Outline the changes",
-    "nameEs": "Dibujar los cambios",
-    "descEn": "Before fancy lines, hear the skeleton. One arpeggio shape per progression: roots and chord tones only, in time, through common cadences.",
-    "descEs": "Antes de l\u00edneas rebuscadas, oye el esqueleto. Una forma de arpegio por progresi\u00f3n: solo fundamentales y notas del acorde, a tempo, en cadencias comunes.",
-    "books": [
-      {"href": "./chord-tones.html", "en": "Chord Tones", "es": "Notas del acorde"},
-      {"href": "./changes.html#levine-changes", "en": "The Jazz Theory Book", "es": "The Jazz Theory Book"},
-      {"href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales"}
-    ],
-    "lines": ["1 3 5 7 \u00b7 Dm7 G7 Cmaj7", "1 3 5 7 \u00b7 Am7 D7 Gmaj7", "1 3 5 7 \u00b7 Em7 A7 Dmaj7", "1 3 5 7 \u00b7 Gm7 C7 Fmaj7", "1 3 5 b9 \u00b7 Dm7b5 G7alt Cmaj7", "7 5 3 1 \u00b7 Dm7 G7 Cmaj7", "3 5 7 9 \u00b7 Dm7 G7 Cmaj7", "1 3 5 7 \u00b7 Cm7 F7 Bbmaj7", "1 3 5 7 \u00b7 Fm7 Bb7 Ebmaj7", "1 3 5 7 \u00b7 Bbm7 Eb7 Abmaj7"]
-  },
-  {
-    "id": "more0005",
-    "slug": "enclosures",
-    "bars": 2,
-    "nameEn": "Enclosures",
-    "nameEs": "Envolventes",
-    "descEn": "Bebop lines need a clear landing. Each example approaches a target tone from above and below, then resolves. Pair with Approach Notes when you want the full catalog.",
-    "descEs": "Las l\u00edneas de bebop necesitan un aterrizaje claro. Cada ejemplo se acerca a una nota objetivo por arriba y por abajo, y resuelve. Comb\u00ednalo con Notas de aproximaci\u00f3n si quieres el cat\u00e1logo completo.",
-    "books": [
-      {"href": "./approach-notes.html", "en": "Approach Notes", "es": "Notas de aproximaci\u00f3n"},
-      {"href": "./melodic-lines.html#riposo-target", "en": "Target and Approach Tones", "es": "Target and Approach Tones"},
-      {"href": "./melodic-lines.html#baker-bebop", "en": "How to Play Bebop", "es": "How to Play Bebop"}
-    ],
-    "lines": ["D C# B C \u00b7 -> C", "B D C# C \u00b7 -> C", "Eb D B C \u00b7 -> C", "A Bb A G \u00b7 -> G", "F# A G# G \u00b7 -> G", "Bb A F# G \u00b7 -> G", "F E Db Eb \u00b7 -> Eb", "C Db C Bb \u00b7 -> Bb", "G Ab G F \u00b7 -> F", "E F E D \u00b7 -> D"]
-  },
-  {
-    "id": "more0006",
-    "slug": "slow-time",
-    "bars": 4,
-    "nameEn": "Slow time",
-    "nameEs": "Tiempo lento",
-    "descEn": "Fast practice hides uneven time. Keep the metronome slow. Each cue asks for one subdivision or placement so you can hear every beat.",
-    "descEs": "Practicar r\u00e1pido esconde el tiempo irregular. Mant\u00e9n el metr\u00f3nomo lento. Cada consigna pide una subdivisi\u00f3n o colocaci\u00f3n para o\u00edr cada pulso.",
-    "books": [
-      {"href": "./time.html", "en": "Time", "es": "Tiempo"},
-      {"href": "./time.html#erskine-time", "en": "Time Awareness for All Musicians", "es": "Time Awareness for All Musicians"},
-      {"href": "./rhythmic-devices.html", "en": "Rhythmic Devices", "es": "Recursos r\u00edtmicos"}
-    ],
-    "lines": ["Whole notes only", "Half notes only", "Quarters only", "Eighths only", "On beats 1 and 3", "On beats 2 and 4", "Off the beat", "One note per bar", "Two notes per bar", "Rest bar 2 and 4"]
-  },
-  {
-    "id": "more0007",
-    "slug": "wide-intervals",
-    "bars": 2,
-    "nameEn": "Wide intervals",
-    "nameEs": "Intervalos amplios",
-    "descEn": "Stepwise comfort leaves leaps weak. One interval family per turn. Stay in one key for a full pass, then move the exercise.",
-    "descEs": "La comodidad por grados conjuntos deja flojos los saltos. Una familia de intervalos por turno. Qu\u00e9date en una tonalidad un pase completo y luego mueve el ejercicio.",
-    "books": [
-      {"href": "./intervals.html", "en": "All Intervals", "es": "Todos los intervalos"},
-      {"href": "./scales-and-sets.html#weiskopf-intervallic", "en": "Intervallic Improvisation", "es": "Intervallic Improvisation"},
-      {"href": "./melodic-lines.html#bergonzi-intervallic-melodies", "en": "Thesaurus of Intervallic Melodies", "es": "Thesaurus of Intervallic Melodies"}
-    ],
-    "lines": ["Perfect 4ths", "Perfect 5ths", "Major 6ths", "Minor 6ths", "Major 7ths", "Minor 7ths", "Octaves", "Minor 9ths", "4ths then 5ths", "6ths then 3rds"]
-  },
-  {
-    "id": "more0008",
-    "slug": "minor-two-five",
-    "bars": 4,
-    "nameEn": "Minor II-V-I",
-    "nameEs": "II-V-I menor",
-    "descEn": "Major cadences get the hours. Minor II-V-I needs the same rotation: one key per example, altered or b9 dominant into minor.",
-    "descEs": "Las cadencias mayores se llevan las horas. El II-V-I menor necesita la misma rotaci\u00f3n: una tonalidad por ejemplo, dominante alterada o b9 hacia menor.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales"},
-      {"href": "./scales-and-sets.html#liebman-chromatic", "en": "A Chromatic Approach", "es": "A Chromatic Approach"}
-    ],
-    "lines": ["Dm7b5 G7b9 Cm", "Em7b5 A7b9 Dm", "F#m7b5 B7b9 Em", "Am7b5 D7b9 Gm", "Bm7b5 E7b9 Am", "C#m7b5 F#7b9 Bm", "Gm7b5 C7b9 Fm", "Cm7b5 F7b9 Bbm", "Fm7b5 Bb7b9 Ebm", "Bbm7b5 Eb7b9 Abm"]
-  },
-  {
-    "id": "more0009",
-    "slug": "turnarounds",
-    "bars": 4,
-    "nameEn": "Turnarounds",
-    "nameEs": "Turnarounds",
-    "descEn": "Endings and turnbacks are where solos lose the form. One short turnaround per line. Set Bars to four and keep the last chord clear.",
-    "descEs": "En los finales y turnbacks es donde el solo pierde la forma. Un turnaround corto por l\u00ednea. Pon Bars en cuatro y deja claro el \u00faltimo acorde.",
-    "books": [
-      {"href": "./changes.html#cork-lego", "en": "Harmony with LEGO Bricks", "es": "Harmony with LEGO Bricks"},
-      {"href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales"},
-      {"href": "./changes.html#elliott-insights", "en": "Insights in Jazz", "es": "Insights in Jazz"}
-    ],
-    "lines": ["Cmaj7 A7 Dm7 G7 \u00b7 POT", "Cmaj7 Eb7 Abmaj7 Db7 \u00b7 Ladybird", "Em7 A7 Dm7 G7 \u00b7 SPOT", "Cmaj7 C7 Fmaj7 F#o \u00b7 To IV", "Cmaj7 A7 Ab7 G7 \u00b7 Nowhere", "Dm7 G7 Em7 A7 \u00b7 Pullback", "Cmaj7 E7 Am7 D7 \u00b7 III VI II V", "Cmaj7 Bb7 Ab7 G7 \u00b7 Chromatic", "Am7 D7 Dm7 G7 \u00b7 Dogleg", "Cmaj7 F#m7b5 B7 Em7 A7 \u00b7 Starlight"]
-  },
-  {
-    "id": "more0010",
-    "slug": "blues-forms",
-    "bars": 12,
-    "nameEn": "Blues forms",
-    "nameEs": "Formas de blues",
-    "descEn": "Students know one blues and avoid the rest. One twelve-bar shape per turn. For every key spelled out, open Basic major blues, Jazz major blues, or Minor blues.",
-    "descEs": "Los estudiantes conocen un blues y evitan el resto. Una forma de doce compases por turno. Para todas las tonalidades escritas, abre Blues mayor b\u00e1sico, Blues mayor jazz o Blues menor.",
-    "books": [
-      {"href": "./more.html#basic-major-blues", "en": "Basic major blues", "es": "Blues mayor b\u00e1sico"},
-      {"href": "./more.html#jazz-major-blues", "en": "Jazz major blues", "es": "Blues mayor jazz"},
-      {"href": "./more.html#minor-blues", "en": "Minor blues", "es": "Blues menor"}
-    ],
-    "lines": ["I7 | IV7 | I7 | I7 | IV7 | IV7 | I7 | I7 | V7 | IV7 | I7 | V7 \u00b7 Basic", "I7 | IV7 | I7 | I7 | IV7 | #IVo | I7 | VI7 | IIm7 | V7 | I7 | V7 \u00b7 Jazz", "Im7 | Im7 | Im7 | Im7 | IVm7 | IVm7 | Im7 | Im7 | bVI7 | V7 | Im7 | V7 \u00b7 Minor", "I7 | IV7 | I7 | I7 | IV7 | IV7 | I7 | I7 | II7 | V7 | I7 | V7 \u00b7 Bird", "Imaj7 | IV7 | Imaj7 | Imaj7 | IV7 | IV7 | Imaj7 | VI7 | IIm7 | V7 | Imaj7 | V7 \u00b7 Major", "I7 | bVII7 | I7 | I7 | IV7 | #IVo | I7 | VI7 | IIm7 | V7 | I7 | V7 \u00b7 Side slip"]
-  },
-  {
-    "id": "more0011",
-    "slug": "rhythm-bridge",
-    "bars": 4,
-    "nameEn": "Rhythm bridge",
-    "nameEs": "Puente de Rhythm Changes",
-    "descEn": "The bridge of Rhythm Changes is a wall of dominants. One key center per example: III7-VI7-II7-V7, then the next start.",
-    "descEs": "El puente de Rhythm Changes es un muro de dominantes. Un centro tonal por ejemplo: III7-VI7-II7-V7, y luego el siguiente comienzo.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales"},
-      {"href": "./melodic-lines.html#baker-bebop", "en": "How to Play Bebop", "es": "How to Play Bebop"}
-    ],
-    "lines": ["E7 A7 D7 G7 \u00b7 from C", "F#7 B7 E7 A7 \u00b7 from D", "Ab7 Db7 Gb7 B7 \u00b7 from E", "G7 C7 F7 Bb7 \u00b7 from F", "A7 D7 G7 C7 \u00b7 from G", "B7 E7 A7 D7 \u00b7 from A", "C7 F7 Bb7 Eb7 \u00b7 from Bb", "D7 G7 C7 F7 \u00b7 from C up", "Bb7 Eb7 Ab7 Db7 \u00b7 from Eb", "C#7 F#7 B7 E7 \u00b7 from F#"]
-  },
-  {
-    "id": "more0012",
-    "slug": "tritone-road",
-    "bars": 2,
-    "nameEn": "Tritone road",
-    "nameEs": "Camino del tritono",
-    "descEn": "Substitutions feel abstract until they are under the fingers. II-bII7-I in several keys, one cadence per turn.",
-    "descEs": "Las sustituciones se sienten abstractas hasta que est\u00e1n bajo los dedos. II-bII7-I en varias tonalidades, una cadencia por turno.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales"},
-      {"href": "./changes.html#levine-changes", "en": "The Jazz Theory Book", "es": "The Jazz Theory Book"}
-    ],
-    "lines": ["Dm7 Db7 Cmaj7", "Em7 Eb7 Dmaj7", "Am7 Ab7 Gmaj7", "Gm7 Gb7 Fmaj7", "Cm7 B7 Bbmaj7", "Fm7 E7 Ebmaj7", "Bm7 Bb7 Amaj7", "F#m7 F7 Emaj7", "Bbm7 A7 Abmaj7", "Ebm7 D7 Dbmaj7"]
-  },
-  {
-    "id": "more0013",
-    "slug": "pentatonic-colors",
-    "bars": 4,
-    "nameEn": "Pentatonic colors",
-    "nameEs": "Colores pentat\u00f3nicos",
-    "descEn": "One pentatonic sound stuck on one chord is common. Here each line pairs a pentatonic color with a short progression so the color has to move.",
-    "descEs": "Un sonido pentat\u00f3nico pegado a un acorde es habitual. Aqu\u00ed cada l\u00ednea empareja un color pentat\u00f3nico con una progresi\u00f3n corta para que el color tenga que moverse.",
-    "books": [
-      {"href": "./scales-and-sets.html#bergonzi-pentatonics", "en": "Pentatonics", "es": "Pentatonics"},
-      {"href": "./scales-and-sets.html#ricker-pentatonic", "en": "Pentatonic Scales for Jazz", "es": "Pentatonic Scales for Jazz"},
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"}
-    ],
-    "lines": ["C major pent \u00b7 Cmaj7", "G major pent \u00b7 Cmaj7", "A minor pent \u00b7 Dm7", "D minor pent \u00b7 G7", "Eb major pent \u00b7 C7alt", "F# minor pent \u00b7 D7", "Bb minor pent \u00b7 Cm7", "E major pent \u00b7 A7", "F major pent \u00b7 Bbmaj7", "C# minor pent \u00b7 F#7"]
-  },
-  {
-    "id": "more0014",
-    "slug": "into-the-bar",
-    "bars": 4,
-    "nameEn": "Into the next bar",
-    "nameEs": "Hacia el siguiente comp\u00e1s",
-    "descEn": "Lines that resolve early sound finished too soon. Each cue aims the phrase at the next chord or the next downbeat.",
-    "descEs": "Las l\u00edneas que resuelven pronto suenan terminadas demasiado pronto. Cada consigna apunta la frase al siguiente acorde o al siguiente tiempo fuerte.",
-    "books": [
-      {"href": "./melodic-lines.html#galper-forward-motion", "en": "Forward Motion", "es": "Forward Motion"},
-      {"href": "./melodic-lines.html#berg-goal-note", "en": "The Goal-Note Method", "es": "The Goal-Note Method"},
-      {"href": "./changes.html#crook-ready", "en": "Ready, Aim, Improvise!", "es": "Ready, Aim, Improvise!"}
-    ],
-    "lines": ["Aim at beat 1 of bar 2", "Aim at the V7", "Aim at the I", "Resolve on beat 1 only", "Anticipate the next chord", "Land on the 3rd of the next chord", "Land on the 7th of the next chord", "Phrase across the barline", "Start on beat 4", "Start on the and of 4"]
-  },
-  {
-    "id": "more0015",
-    "slug": "leave-space",
-    "bars": 4,
-    "nameEn": "Leave space",
-    "nameEs": "Dejar espacio",
-    "descEn": "Overplaying fills every bar. These cues force rests: play, then silence, so the next idea has room.",
-    "descEs": "Tocar de m\u00e1s llena todos los compases. Estas consignas fuerzan silencios: toca y luego silencio, para que la siguiente idea tenga sitio.",
-    "books": [
-      {"href": "./play-rest.html", "en": "Play/Rest", "es": "Tocar/Silencio"},
-      {"href": "./time.html#crook-beyond-time", "en": "Beyond Time and Changes", "es": "Beyond Time and Changes"},
-      {"href": "./sonic-nuances.html", "en": "Sonic Nuances", "es": "Matices sonoros"}
-    ],
-    "lines": ["Play 1 bar, rest 1 bar", "Play 2 bars, rest 2 bars", "Play 1 beat, rest 3 beats", "Play 2 beats, rest 2 beats", "Rest the first bar", "Rest the last bar", "One short phrase only", "Stop before beat 3", "Leave space after every idea", "Trade with silence"]
-  },
-  {
-    "id": "more0016",
-    "slug": "one-octave",
-    "bars": 2,
-    "nameEn": "One octave only",
-    "nameEs": "Solo una octava",
-    "descEn": "Range hopping hides weak spots. Stay inside one octave for each example: scales, arpeggios, or a short cell.",
-    "descEs": "Saltar de registro esconde los puntos flojos. Qu\u00e9date en una octava por ejemplo: escalas, arpegios o una c\u00e9lula corta.",
-    "books": [
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"},
-      {"href": "./finger-patterns.html", "en": "Finger Patterns", "es": "Digitaciones"},
-      {"href": "./melodic-lines.html#okazaki-fundamentals", "en": "Fundamentals of Guitar", "es": "Fundamentals of Guitar"}
-    ],
-    "lines": ["Major scale \u00b7 one octave", "Mixolydian \u00b7 one octave", "Dorian \u00b7 one octave", "Minor pentatonic \u00b7 one octave", "Major arpeggio \u00b7 one octave", "Dominant 7 arpeggio \u00b7 one octave", "Minor 7 arpeggio \u00b7 one octave", "Chromatic \u00b7 one octave", "1235 cell \u00b7 one octave", "1357 cell \u00b7 one octave"]
-  },
-  {
-    "id": "more0017",
-    "slug": "sing-first",
-    "bars": 4,
-    "nameEn": "Sing first",
-    "nameEs": "Cantar primero",
-    "descEn": "Fingers run ahead of the ear. Each cue asks for a clear intention before you play: sing, hum, or hear the line, then match it.",
-    "descEs": "Los dedos van delante del o\u00eddo. Cada consigna pide una intenci\u00f3n clara antes de tocar: canta, tararea u oye la l\u00ednea, y luego igualala.",
-    "books": [
-      {"href": "./sonic-nuances.html", "en": "Sonic Nuances", "es": "Matices sonoros"},
-      {"href": "./free-play.html#werner-effortless", "en": "Effortless Mastery", "es": "Effortless Mastery"},
-      {"href": "./melodic-lines.html#bergonzi-jazz-language", "en": "Developing a Jazz Language", "es": "Developing a Jazz Language"}
-    ],
-    "lines": ["Sing the line, then play", "Hum the rhythm first", "Hear the root motion first", "Sing the guide tones", "Name the chord aloud", "Sing one target note", "Play only what you can sing", "Softer than usual", "One breath phrases", "Stop when you cannot hear it"]
-  },
-  {
-    "id": "more0018",
-    "slug": "odd-bars",
-    "bars": 4,
-    "nameEn": "Odd meters",
-    "nameEs": "Compases irregulares",
-    "descEn": "4/4 comfort collapses in 5 and 7. One meter or grouping per turn. Tap the pulse first, then play a simple cell across it.",
-    "descEs": "La comodidad en 4/4 se cae en 5 y 7. Un metro o agrupaci\u00f3n por turno. Primero marca el pulso; luego toca una c\u00e9lula simple encima.",
-    "books": [
-      {"href": "./time.html", "en": "Time", "es": "Tiempo"},
-      {"href": "./time.html#hoenig-polyrhythms", "en": "Intro to Polyrhythms", "es": "Intro to Polyrhythms"},
-      {"href": "./rhythms.html", "en": "Rhythms", "es": "Ritmos"}
-    ],
-    "lines": ["5/4 group 3+2", "5/4 group 2+3", "7/4 group 2+2+3", "7/8 group 2+2+3", "7/8 group 3+2+2", "9/8 group 2+2+2+3", "3 against 2", "4 against 3", "5/4 rest beat 3", "7/4 accent 1 and 5"]
-  },
-  {
-    "id": "more0019",
-    "slug": "dominant-cycle",
-    "bars": 2,
-    "nameEn": "Dominant cycle",
-    "nameEs": "Ciclo de dominantes",
-    "descEn": "Cycle-of-fifths dominants show up in bridges and turnbacks. One dominant per turn around the circle so each key center gets equal time.",
-    "descEs": "Los dominantes en ciclo de quintas aparecen en puentes y turnbacks. Un dominante por turno alrededor del c\u00edrculo para que cada centro tenga el mismo tiempo.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./chords.html", "en": "All Chords", "es": "Todos los acordes"},
-      {"href": "./changes.html#kingstone-barry-harris", "en": "The Barry Harris Harmonic Method", "es": "The Barry Harris Harmonic Method"}
-    ],
-    "lines": ["C7", "F7", "Bb7", "Eb7", "Ab7", "Db7", "F#7", "B7", "E7", "A7", "D7", "G7"]
-  },
-  {
-    "id": "more0020",
-    "slug": "goal-notes",
-    "bars": 4,
-    "nameEn": "Goal notes",
-    "nameEs": "Notas objetivo",
-    "descEn": "A line without a destination wanders. Each example names a goal chord tone on a strong beat. Build any path that arrives there in time.",
-    "descEs": "Una l\u00ednea sin destino divaga. Cada ejemplo nombra una nota objetivo del acorde en un tiempo fuerte. Construye cualquier camino que llegue a tiempo.",
-    "books": [
-      {"href": "./melodic-lines.html#berg-goal-note", "en": "The Goal-Note Method", "es": "The Goal-Note Method"},
-      {"href": "./melodic-lines.html#riposo-target", "en": "Target and Approach Tones", "es": "Target and Approach Tones"},
-      {"href": "./approach-notes.html", "en": "Approach Notes", "es": "Notas de aproximaci\u00f3n"}
-    ],
-    "lines": ["Goal: 3 of Cmaj7 on beat 1", "Goal: 7 of G7 on beat 1", "Goal: 3 of Dm7 on beat 1", "Goal: 5 of Cmaj7 on beat 3", "Goal: b9 of G7 on beat 1", "Goal: 9 of Dm7 on beat 1", "Goal: 3 of Fmaj7 on beat 1", "Goal: 7 of C7 on beat 1", "Goal: root of Am7 on beat 1", "Goal: 3 of E7 on beat 3"]
-  }  ,
-  {
-    "id": "more0021",
-    "slug": "basic-major-blues",
-    "bars": 12,
-    "nameEn": "Basic major blues",
-    "nameEs": "Blues mayor b\u00e1sico",
-    "descEn": "The plain twelve-bar major blues in every key. One key per turn so C does not take every chorus. Hear I, IV, and V before you add turnarounds.",
-    "descEs": "El blues mayor de doce compases sencillo en todas las tonalidades. Una tonalidad por turno para que C no ocupe todos los choruses. Oye I, IV y V antes de a\u00f1adir turnarounds.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./melodic-lines.html#aebersold-vol-1", "en": "Aebersold Vol. 1", "es": "Aebersold Vol. 1"},
-      {"href": "./more.html#blues-forms", "en": "Blues forms", "es": "Formas de blues"}
-    ],
-    "lines": [
-      "C7 | F7 | C7 | C7 | F7 | F7 | C7 | C7 | G7 | F7 | C7 | G7 · C",
-      "F7 | Bb7 | F7 | F7 | Bb7 | Bb7 | F7 | F7 | C7 | Bb7 | F7 | C7 · F",
-      "Bb7 | Eb7 | Bb7 | Bb7 | Eb7 | Eb7 | Bb7 | Bb7 | F7 | Eb7 | Bb7 | F7 · Bb",
-      "Eb7 | Ab7 | Eb7 | Eb7 | Ab7 | Ab7 | Eb7 | Eb7 | Bb7 | Ab7 | Eb7 | Bb7 · Eb",
-      "Ab7 | Db7 | Ab7 | Ab7 | Db7 | Db7 | Ab7 | Ab7 | Eb7 | Db7 | Ab7 | Eb7 · Ab",
-      "Db7 | Gb7 | Db7 | Db7 | Gb7 | Gb7 | Db7 | Db7 | Ab7 | Gb7 | Db7 | Ab7 · Db",
-      "F#7 | B7 | F#7 | F#7 | B7 | B7 | F#7 | F#7 | C#7 | B7 | F#7 | C#7 · F#",
-      "B7 | E7 | B7 | B7 | E7 | E7 | B7 | B7 | F#7 | E7 | B7 | F#7 · B",
-      "E7 | A7 | E7 | E7 | A7 | A7 | E7 | E7 | B7 | A7 | E7 | B7 · E",
-      "A7 | D7 | A7 | A7 | D7 | D7 | A7 | A7 | E7 | D7 | A7 | E7 · A",
-      "D7 | G7 | D7 | D7 | G7 | G7 | D7 | D7 | A7 | G7 | D7 | A7 · D",
-      "G7 | C7 | G7 | G7 | C7 | C7 | G7 | G7 | D7 | C7 | G7 | D7 · G"
-    ]
-  },
-  {
-    "id": "more0022",
-    "slug": "jazz-major-blues",
-    "bars": 12,
-    "nameEn": "Jazz major blues",
-    "nameEs": "Blues mayor jazz",
-    "descEn": "Major blues with the jazz moves: sharp-IV diminished, VI7, and II-V into the last four. One key per turn through all twelve.",
-    "descEs": "Blues mayor con los movimientos de jazz: disminuido de IV sostenido, VI7 y II-V en los \u00faltimos cuatro. Una tonalidad por turno en las doce.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales"},
-      {"href": "./melodic-lines.html#baker-bebop", "en": "How to Play Bebop", "es": "How to Play Bebop"}
-    ],
-    "lines": [
-      "C7 | F7 | C7 | C7 | F7 | C#o | C7 | A7 | Dm7 | G7 | C7 | G7 · C",
-      "F7 | Bb7 | F7 | F7 | Bb7 | F#o | F7 | D7 | Gm7 | C7 | F7 | C7 · F",
-      "Bb7 | Eb7 | Bb7 | Bb7 | Eb7 | Bo | Bb7 | G7 | Cm7 | F7 | Bb7 | F7 · Bb",
-      "Eb7 | Ab7 | Eb7 | Eb7 | Ab7 | Eo | Eb7 | C7 | Fm7 | Bb7 | Eb7 | Bb7 · Eb",
-      "Ab7 | Db7 | Ab7 | Ab7 | Db7 | Ao | Ab7 | F7 | Bbm7 | Eb7 | Ab7 | Eb7 · Ab",
-      "Db7 | Gb7 | Db7 | Db7 | Gb7 | Do | Db7 | Bb7 | Ebm7 | Ab7 | Db7 | Ab7 · Db",
-      "F#7 | B7 | F#7 | F#7 | B7 | Go | F#7 | D#7 | G#m7 | C#7 | F#7 | C#7 · F#",
-      "B7 | E7 | B7 | B7 | E7 | Co | B7 | G#7 | C#m7 | F#7 | B7 | F#7 · B",
-      "E7 | A7 | E7 | E7 | A7 | Fo | E7 | C#7 | F#m7 | B7 | E7 | B7 · E",
-      "A7 | D7 | A7 | A7 | D7 | A#o | A7 | F#7 | Bm7 | E7 | A7 | E7 · A",
-      "D7 | G7 | D7 | D7 | G7 | D#o | D7 | B7 | Em7 | A7 | D7 | A7 · D",
-      "G7 | C7 | G7 | G7 | C7 | G#o | G7 | E7 | Am7 | D7 | G7 | D7 · G"
-    ]
-  },
-  {
-    "id": "more0023",
-    "slug": "minor-blues",
-    "bars": 12,
-    "nameEn": "Minor blues",
-    "nameEs": "Blues menor",
-    "descEn": "Minor twelve-bar blues in every key: Im7, IVm7, bVI7, and V7. One key per turn so the familiar minor keys do not hide the rest.",
-    "descEs": "Blues menor de doce compases en todas las tonalidades: Im7, IVm7, bVI7 y V7. Una tonalidad por turno para que las menores conocidas no escondan el resto.",
-    "books": [
-      {"href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes"},
-      {"href": "./scales-and-sets.html#ricker-pentatonic", "en": "Pentatonic Scales", "es": "Pentatonic Scales"},
-      {"href": "./more.html#blues-forms", "en": "Blues forms", "es": "Formas de blues"}
-    ],
-    "lines": [
-      "Cm7 | Cm7 | Cm7 | Cm7 | Fm7 | Fm7 | Cm7 | Cm7 | Ab7 | G7 | Cm7 | G7 · Cm",
-      "Fm7 | Fm7 | Fm7 | Fm7 | Bbm7 | Bbm7 | Fm7 | Fm7 | Db7 | C7 | Fm7 | C7 · Fm",
-      "Bbm7 | Bbm7 | Bbm7 | Bbm7 | Ebm7 | Ebm7 | Bbm7 | Bbm7 | Gb7 | F7 | Bbm7 | F7 · Bbm",
-      "Ebm7 | Ebm7 | Ebm7 | Ebm7 | Abm7 | Abm7 | Ebm7 | Ebm7 | Cb7 | Bb7 | Ebm7 | Bb7 · Ebm",
-      "Abm7 | Abm7 | Abm7 | Abm7 | Dbm7 | Dbm7 | Abm7 | Abm7 | Fb7 | Eb7 | Abm7 | Eb7 · Abm",
-      "C#m7 | C#m7 | C#m7 | C#m7 | F#m7 | F#m7 | C#m7 | C#m7 | A7 | G#7 | C#m7 | G#7 · C#m",
-      "F#m7 | F#m7 | F#m7 | F#m7 | Bm7 | Bm7 | F#m7 | F#m7 | D7 | C#7 | F#m7 | C#7 · F#m",
-      "Bm7 | Bm7 | Bm7 | Bm7 | Em7 | Em7 | Bm7 | Bm7 | G7 | F#7 | Bm7 | F#7 · Bm",
-      "Em7 | Em7 | Em7 | Em7 | Am7 | Am7 | Em7 | Em7 | C7 | B7 | Em7 | B7 · Em",
-      "Am7 | Am7 | Am7 | Am7 | Dm7 | Dm7 | Am7 | Am7 | F7 | E7 | Am7 | E7 · Am",
-      "Dm7 | Dm7 | Dm7 | Dm7 | Gm7 | Gm7 | Dm7 | Dm7 | Bb7 | A7 | Dm7 | A7 · Dm",
-      "Gm7 | Gm7 | Gm7 | Gm7 | Cm7 | Cm7 | Gm7 | Gm7 | Eb7 | D7 | Gm7 | D7 · Gm"
-    ]
-  },
-  {
-    "id": "more0024",
-    "slug": "scale-patterns",
-    "bars": 1,
-    "nameEn": "Scale patterns",
-    "nameEs": "Patrones de escala",
-    "descEn": "Four-note scale cells from the tonic triad (1, 3, 5) plus one extra degree: 2, 4, 6, or 7. Practice each pattern on a chord, then use it as a send-off into a phrase. Stay in one key for a full pass.",
-    "descEs": "C\u00e9lulas de cuatro notas desde el tr\u00edade t\u00f3nico (1, 3, 5) m\u00e1s un grado extra: 2, 4, 6 o 7. Practica cada patr\u00f3n sobre un acorde y \u00fasalo como salida hacia una frase. Qu\u00e9date en una tonalidad un pase completo.",
-    "books": [
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"},
-      {"href": "./scales-and-sets.html", "en": "Scales and pitch sets", "es": "Escalas y conjuntos de alturas"},
-      {"href": "./melodic-lines.html#coker-patterns", "en": "Patterns for Jazz", "es": "Patterns for Jazz"},
-      {"href": "./melodic-lines.html#ligon-technique", "en": "Comprehensive Technique", "es": "Comprehensive Technique"}
-    ],
-    "lines": [
-      "1 2 3 5 \u00b7 +2",
-      "1 5 2 3 \u00b7 +2",
-      "1 5 3 2 \u00b7 +2",
-      "2 1 5 3 \u00b7 +2",
-      "2 3 1 5 \u00b7 +2",
-      "2 5 3 1 \u00b7 +2",
-      "3 2 1 5 \u00b7 +2",
-      "3 5 2 1 \u00b7 +2",
-      "3 5 1 2 \u00b7 +2",
-      "5 3 2 1 \u00b7 +2",
-      "5 3 1 2 \u00b7 +2",
-      "5 1 2 3 \u00b7 +2",
-      "1 3 4 5 \u00b7 +4",
-      "1 5 4 3 \u00b7 +4",
-      "1 4 3 5 \u00b7 +4",
-      "3 4 5 1 \u00b7 +4",
-      "3 1 4 5 \u00b7 +4",
-      "3 5 1 4 \u00b7 +4",
-      "4 5 3 1 \u00b7 +4",
-      "4 1 3 5 \u00b7 +4",
-      "4 3 1 5 \u00b7 +4",
-      "5 4 3 1 \u00b7 +4",
-      "5 1 4 3 \u00b7 +4",
-      "5 1 3 4 \u00b7 +4",
-      "1 3 5 6 \u00b7 +6",
-      "1 6 5 3 \u00b7 +6",
-      "1 5 3 6 \u00b7 +6",
-      "3 6 5 1 \u00b7 +6",
-      "3 1 6 5 \u00b7 +6",
-      "3 5 1 6 \u00b7 +6",
-      "5 3 1 6 \u00b7 +6",
-      "5 6 1 3 \u00b7 +6",
-      "5 1 3 6 \u00b7 +6",
-      "6 5 3 1 \u00b7 +6",
-      "6 1 3 5 \u00b7 +6",
-      "6 5 1 3 \u00b7 +6",
-      "1 3 5 7 \u00b7 +7",
-      "1 5 3 7 \u00b7 +7",
-      "1 7 5 3 \u00b7 +7",
-      "3 5 7 1 \u00b7 +7",
-      "3 7 5 1 \u00b7 +7",
-      "3 1 7 5 \u00b7 +7",
-      "5 3 1 7 \u00b7 +7",
-      "5 1 3 7 \u00b7 +7",
-      "5 7 1 3 \u00b7 +7",
-      "7 5 3 1 \u00b7 +7",
-      "7 1 3 5 \u00b7 +7",
-      "7 3 5 1 \u00b7 +7"
-    ]
-  },
-  {
-    "id": "more0025",
-    "slug": "lower-structure-triads",
-    "bars": 2,
-    "nameEn": "Lower structure triads",
-    "nameEs": "Tr\u00edades de estructura inferior",
-    "descEn": "Common chord types with the lower structure triads that sit inside them. One chord type per turn. Hear the UST, then outline the full chord.",
-    "descEs": "Tipos de acorde habituales con las tr\u00edades de estructura inferior que llevan dentro. Un tipo de acorde por turno. Oye la UST y luego dibuja el acorde completo.",
-    "books": [
-      {"href": "./more.html#upper-structure-triads", "en": "Upper structure triads", "es": "Tr\u00edades de estructura superior"},
-      {"href": "./chords.html", "en": "All Chords", "es": "Todos los acordes"},
-      {"href": "./chord-tones.html", "en": "Chord Tones", "es": "Notas del acorde"},
-      {"href": "./scales-and-sets.html#levine-theory", "en": "The Jazz Theory Book", "es": "The Jazz Theory Book"}
-    ],
-    "lines": [
-      "Major 7 \u00b7 I (1 3 5) and III- (3 5 7)",
-      "Major 6 \u00b7 I and VI-",
-      "Dominant 7 \u00b7 I and III\u00b0",
-      "Dominant 7 sus 4 \u00b7 none (use bVII or I)",
-      "Augmented/Dominant 7 \u00b7 I+ (altered scale)",
-      "Minor/Major 7 \u00b7 I- and bIII+",
-      "Minor 6 \u00b7 I- and VI\u00b0",
-      "Minor 7 \u00b7 I- and bIII",
-      "Minor 7b5 \u00b7 I\u00b0 and bIII-",
-      "Diminished 7 \u00b7 I\u00b0 bIII\u00b0 bV\u00b0 VI\u00b0",
-      "Augmented/Major 7 \u00b7 I+ and III"
-    ]
-  },
-  {
-    "id": "more0026",
-    "slug": "upper-structure-triads",
-    "bars": 2,
-    "nameEn": "Upper structure triads",
-    "nameEs": "Tr\u00edades de estructura superior",
-    "descEn": "Chord type, chord scale, and popular upper structure triads. One scale color per turn. Hear the UST against the chord before you stack more.",
-    "descEs": "Tipo de acorde, escala del acorde y tr\u00edades de estructura superior habituales. Un color de escala por turno. Oye la UST contra el acorde antes de a\u00f1adir m\u00e1s.",
-    "books": [
-      {"href": "./more.html#major-pentatonics-on-chords", "en": "Major pentatonics on chords", "es": "Pentat\u00f3nicas mayores sobre acordes"},
-      {"href": "./chords.html", "en": "All Chords", "es": "Todos los acordes"},
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"},
-      {"href": "./more.html#lower-structure-triads", "en": "Lower structure triads", "es": "Tr\u00edades de estructura inferior"}
-    ],
-    "lines": [
-      "Ionian \u00b7 Major 7/6 \u2014 V",
-      "Lydian \u00b7 Major 7/6 \u2014 II, V, VII-",
-      "Mixolydian sus 4 \u00b7 Dominant 7 sus 4 \u2014 I, II-, IV, VI-, bVII",
-      "Mixolydian \u00b7 Dominant 7 \u2014 V-, VI-, (bVII)",
-      "Lydian b7 \u00b7 Dominant 7 \u2014 II, bVII+",
-      "Altered \u00b7 Dominant 7 \u2014 bV, bVI, bII-, bIII-",
-      "Half-whole \u00b7 Dominant 7 \u2014 bIII, bV, VI",
-      "Whole tone \u00b7 Dominant 7 \u2014 II+",
-      "Mixolydian b9 b13 \u00b7 Dominant 7 \u2014 bII-, III+",
-      "Melodic minor \u00b7 Minor 6 / Minor-Major 7 \u2014 II-, bIII+, IV, V",
-      "Harmonic minor \u00b7 Minor-Major 7 \u2014 V",
-      "Dorian \u00b7 Minor 7 \u2014 II-, IV, V-, bVII",
-      "Aeolian \u00b7 Minor 7 \u2014 V-, bVII",
-      "Phrygian \u00b7 Minor 7 \u2014 bVI, (bII)",
-      "Locrian \u00b7 Minor 7b5 \u2014 bVI, (bII), (bV)",
-      "Locrian \u266e9 \u00b7 Minor 7b5 \u2014 bVI, bVII",
-      "Whole-half \u00b7 Diminished 7 \u2014 II, IV, bVI, VII",
-      "Lydian augmented \u00b7 Augmented/Major 7 \u2014 VII-, (II)",
-      "Ionian augmented \u00b7 Augmented/Major 7 \u2014 V"
-    ]
-  },
-  {
-    "id": "more0027",
-    "slug": "major-pentatonics-on-chords",
-    "bars": 2,
-    "nameEn": "Major pentatonics on chords",
-    "nameEs": "Pentat\u00f3nicas mayores sobre acordes",
-    "descEn": "Chord type, chord scale, and popular major pentatonic roots against that sound. One scale color per turn. Play the named major pentatonic over the chord. Lines marked none have no common major-pentatonic fit.",
-    "descEs": "Tipo de acorde, escala del acorde y ra\u00edces de pentat\u00f3nica mayor habituales sobre ese sonido. Un color de escala por turno. Toca la pentat\u00f3nica mayor nombrada sobre el acorde. Las l\u00edneas con none no tienen un encaje habitual.",
-    "books": [
-      {"href": "./scales-and-sets.html#bergonzi-pentatonics", "en": "Pentatonics", "es": "Pentatonics"},
-      {"href": "./scales-and-sets.html#ricker-pentatonic", "en": "Pentatonic Scales for Jazz", "es": "Pentatonic Scales for Jazz"},
-      {"href": "./more.html#upper-structure-triads", "en": "Upper structure triads", "es": "Tr\u00edades de estructura superior"},
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"}
-    ],
-    "lines": [
-      "Ionian \u00b7 Major 7/6 \u2014 maj pent I, V",
-      "Lydian \u00b7 Major 7/6 \u2014 maj pent I, II, V",
-      "Mixolydian sus 4 \u00b7 Dominant 7 sus 4 \u2014 maj pent I, IV, bVII",
-      "Mixolydian \u00b7 Dominant 7 \u2014 maj pent I",
-      "Lydian b7 \u00b7 Dominant 7 \u2014 maj pent I",
-      "Altered \u00b7 Dominant 7 \u2014 maj pent bV",
-      "Half-whole \u00b7 Dominant 7 \u2014 none",
-      "Whole tone \u00b7 Dominant 7 \u2014 none",
-      "Mixolydian b9 b13 \u00b7 Dominant 7 \u2014 none",
-      "Melodic minor \u00b7 Minor 6 / Minor-Major 7 \u2014 maj pent IV",
-      "Harmonic minor \u00b7 Minor-Major 7 \u2014 none",
-      "Dorian \u00b7 Minor 7 \u2014 maj pent bIII, IV, bVII",
-      "Aeolian \u00b7 Minor 7 \u2014 maj pent bIII, bVII",
-      "Phrygian \u00b7 Minor 7 \u2014 maj pent bIII, bVI, (bII)",
-      "Locrian \u00b7 Minor 7b5 \u2014 maj pent bVI, (bV)",
-      "Locrian \u266e9 \u00b7 Minor 7b5 \u2014 maj pent bVI",
-      "Whole-half \u00b7 Diminished 7 \u2014 none",
-      "Lydian augmented \u00b7 Augmented/Major 7 \u2014 maj pent (II)",
-      "Ionian augmented \u00b7 Augmented/Major 7 \u2014 none"
-    ]
-  },
-  {
-    "id": "more0028",
-    "slug": "triad-coupling-relationships",
-    "bars": 4,
-    "nameEn": "Triad coupling relationships",
-    "nameEs": "Relaciones de acoplamiento",
-    "descEn": "Two major triads against one chord make one of five relationships: LST+UST, LST+non-harm, UST+non-harm, UST+UST, or non-harm+non-harm. One example per turn. Stay on the named chord for the bars; use every note of each triad.",
-    "descEs": "Dos tr\u00edades mayores sobre un acorde dan una de cinco relaciones: LST+UST, LST+no arm., UST+no arm., UST+UST o no arm.+no arm. Un ejemplo por turno. Qu\u00e9date en el acorde nombrado; usa todas las notas de cada tr\u00edade.",
-    "books": [
-      {"href": "./more.html#major-2nd-triad-couplings", "en": "Major 2nd triad couplings", "es": "Acoplamientos de 2a mayor"},
-      {"href": "./more.html#lower-structure-triads", "en": "Lower structure triads", "es": "Tr\u00edades de estructura inferior"},
-      {"href": "./more.html#upper-structure-triads", "en": "Upper structure triads", "es": "Tr\u00edades de estructura superior"},
-      {"href": "./scales-and-sets.html#campbell-triad-pairs", "en": "Triad Pairs for Jazz", "es": "Triad Pairs for Jazz"}
-    ],
-    "lines": [
-      "C/D on Cmaj7 \u00b7 LST + UST",
-      "C/Db on C7 \u00b7 LST + non-harm",
-      "C/Gb on Dm7 \u00b7 UST + non-harm",
-      "C/Eb on Edim7 \u00b7 UST + UST",
-      "C/F on Abm7b5 \u00b7 non-harm + non-harm"
-    ]
-  },
-  {
-    "id": "more0029",
-    "slug": "major-2nd-triad-couplings",
-    "bars": 4,
-    "nameEn": "Major 2nd triad couplings",
-    "nameEs": "Acoplamientos de 2a mayor",
-    "descEn": "One interval only: major 2nd. Every major triad pair connected by that interval. Apply each pair to one chord of extended duration. Use all notes of both triads and finish at least one rotation of the pair inside the phrase.",
-    "descEs": "Un solo intervalo: 2a mayor. Cada par de tr\u00edades mayores unidas por ese intervalo. Aplica cada par a un acorde largo. Usa todas las notas de ambas tr\u00edades y completa al menos una rotaci\u00f3n del par en la frase.",
-    "books": [
-      {"href": "./more.html#triad-coupling-relationships", "en": "Triad coupling relationships", "es": "Relaciones de acoplamiento"},
-      {"href": "./scales-and-sets.html#campbell-triad-pairs", "en": "Triad Pairs for Jazz", "es": "Triad Pairs for Jazz"},
-      {"href": "./scales-and-sets.html#murphy-triad-pairs", "en": "Triad Pairs: The First Step", "es": "Triad Pairs: The First Step"},
-      {"href": "./more.html#upper-structure-triads", "en": "Upper structure triads", "es": "Tr\u00edades de estructura superior"}
-    ],
-    "lines": [
-      "C/D \u00b7 maj 2nd",
-      "D/E \u00b7 maj 2nd",
-      "E/F# \u00b7 maj 2nd",
-      "Gb/Ab \u00b7 maj 2nd",
-      "Ab/Bb \u00b7 maj 2nd",
-      "Bb/C \u00b7 maj 2nd",
-      "B/C# \u00b7 maj 2nd",
-      "Db/Eb \u00b7 maj 2nd",
-      "Eb/F \u00b7 maj 2nd",
-      "F/G \u00b7 maj 2nd",
-      "G/A \u00b7 maj 2nd",
-      "A/B \u00b7 maj 2nd"
-    ]
-  },
-  {
-    "id": "more0030",
-    "slug": "tritonic-7sus4-pentatonic",
-    "bars": 2,
-    "nameEn": "Tritonic, 7sus4, pentatonic",
-    "nameEs": "Trit\u00f3nico, 7sus4, pentat\u00f3nica",
-    "descEn": "From Tritonic 7sus4 materials: which scale degrees work as tritonic sus4, 7sus4, or pentatonic color on a chord scale. One color per turn. Play that structure from the named degree; the caption lists the tensions you hear.",
-    "descEs": "De materiales Tritonic 7sus4: qu\u00e9 grados de la escala funcionan como sus4 trit\u00f3nico, 7sus4 o color pentat\u00f3nico sobre una escala de acorde. Un color por turno. Toca esa estructura desde el grado nombrado; el pie lista las tensiones.",
-    "books": [
-      {"href": "./more.html#add2-add4-madd4", "en": "add2, add4, madd4", "es": "add2, add4, madd4"},
-      {"href": "./more.html#major-pentatonics-on-chords", "en": "Major pentatonics on chords", "es": "Pentat\u00f3nicas mayores sobre acordes"},
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"},
-      {"href": "./scales-and-sets.html#bergonzi-pentatonics", "en": "Pentatonics", "es": "Pentatonics"}
-    ],
-    "lines": [
-      "Tritonic I \u00b7 Maj7 Ionian \u2014 11",
-      "Tritonic II \u00b7 Maj7 Ionian \u2014 9,13",
-      "Tritonic III \u00b7 Maj7 Ionian \u2014 13",
-      "Tritonic V \u00b7 Maj7 Ionian \u2014 9",
-      "Tritonic VI \u00b7 Maj7 Ionian \u2014 9,13",
-      "Tritonic VII \u00b7 Maj7 Ionian \u2014 #11",
-      "7sus4 II \u00b7 Maj7 Ionian \u2014 9,13",
-      "7sus4 III \u00b7 Maj7 Ionian \u2014 9,13",
-      "7sus4 V \u00b7 Maj7 Ionian \u2014 9,11",
-      "7sus4 VI \u00b7 Maj7 Ionian \u2014 9,13",
-      "7sus4 VII \u00b7 Maj7 Ionian \u2014 #11,13",
-      "Pent II \u00b7 Maj7 Ionian \u2014 9,11,13",
-      "Pent III \u00b7 Maj7 Ionian \u2014 9,13",
-      "Pent VI \u00b7 Maj7 Ionian \u2014 9,13",
-      "Pent VII \u00b7 Maj7 Ionian \u2014 9,#11,13",
-      "Tritonic I \u00b7 Maj7 Lydian \u2014 11",
-      "Tritonic II \u00b7 Maj7 Lydian \u2014 9,13",
-      "Tritonic IV \u00b7 Maj7 Lydian \u2014 11",
-      "Tritonic V \u00b7 Maj7 Lydian \u2014 9",
-      "Tritonic VII \u00b7 Maj7 Lydian \u2014 11",
-      "7sus4 I \u00b7 Maj7 Lydian \u2014 11",
-      "7sus4 II \u00b7 Maj7 Lydian \u2014 9,13",
-      "7sus4 IV \u00b7 Maj7 Lydian \u2014 11",
-      "7sus4 V \u00b7 Maj7 Lydian \u2014 9,11",
-      "Pent I \u00b7 Maj7 Lydian \u2014 11",
-      "Pent II \u00b7 Maj7 Lydian \u2014 9,11,13",
-      "Pent V \u00b7 Maj7 Lydian \u2014 9,11",
-      "Tritonic I \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 11",
-      "Tritonic II \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,13",
-      "Tritonic IV \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 11",
-      "Tritonic V \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9",
-      "Tritonic VI \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,13",
-      "7sus4 I \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 11",
-      "7sus4 II \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,13",
-      "7sus4 V \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,11",
-      "7sus4 VI \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,13",
-      "Pent II \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,11,13",
-      "Pent V \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,11",
-      "Pent VI \u00b7 Min7 Dorian / Dom7 Mixolydian \u2014 9,13",
-      "Tritonic bII \u00b7 Half-dim Locrian \u2014 b9,b13",
-      "Tritonic bIII \u00b7 Half-dim Locrian \u2014 b13",
-      "Tritonic IV \u00b7 Half-dim Locrian \u2014 11",
-      "Tritonic bVI \u00b7 Half-dim Locrian \u2014 b9",
-      "Tritonic VII \u00b7 Half-dim Locrian \u2014 11",
-      "7sus4 bIII \u00b7 Half-dim Locrian \u2014 b9,b13",
-      "7sus4 IV \u00b7 Half-dim Locrian \u2014 11",
-      "7sus4 bVI \u00b7 Half-dim Locrian \u2014 b9",
-      "7sus4 VII \u00b7 Half-dim Locrian \u2014 11,b13",
-      "Pent bIII \u00b7 Half-dim Locrian \u2014 b9,b13",
-      "Pent IV \u00b7 Half-dim Locrian \u2014 11,b13",
-      "Pent VII \u00b7 Half-dim Locrian \u2014 b9,11,b13",
-      "Tritonic bII \u00b7 Altered \u2014 b9,b5,#5",
-      "Tritonic #II \u00b7 Altered \u2014 #9,#5",
-      "Tritonic #V \u00b7 Altered \u2014 b9,#9,#5",
-      "7sus4 #II \u00b7 Altered \u2014 b9,#9,#5",
-      "7sus4 #V \u00b7 Altered \u2014 b9,#9,b5,#5",
-      "Pent #II \u00b7 Altered \u2014 b9,#9,b5,#5"
-    ]
-  },
-  {
-    "id": "more0031",
-    "slug": "add2-add4-madd4",
-    "bars": 2,
-    "nameEn": "add2, add4, madd4",
-    "nameEs": "add2, add4, madd4",
-    "descEn": "Second half of the Tritonic sheet: add2, add4, and minor-add4 colors on each chord scale. One structure per turn from the named degree. Hear the listed tensions against the chord.",
-    "descEs": "Segunda mitad de la hoja Tritonic: colores add2, add4 y minor-add4 en cada escala de acorde. Una estructura por turno desde el grado nombrado. Oye las tensiones listadas contra el acorde.",
-    "books": [
-      {"href": "./more.html#tritonic-7sus4-pentatonic", "en": "Tritonic, 7sus4, pentatonic", "es": "Trit\u00f3nico, 7sus4, pentat\u00f3nica"},
-      {"href": "./chords.html", "en": "All Chords", "es": "Todos los acordes"},
-      {"href": "./scales.html", "en": "Scales", "es": "Escalas"},
-      {"href": "./more.html#major-pentatonics-on-chords", "en": "Major pentatonics on chords", "es": "Pentat\u00f3nicas mayores sobre acordes"}
-    ],
-    "lines": [
-      "add2 I \u00b7 Maj7 Ionian \u2014 9",
-      "add2 IV \u00b7 Maj7 Ionian \u2014 11,13",
-      "add2 II \u00b7 Maj7 Ionian \u2014 9,#11,13",
-      "add4 I \u00b7 Maj7 Ionian \u2014 11",
-      "add4 II \u00b7 Maj7 Ionian \u2014 9,#11,13",
-      "madd4 II \u00b7 Maj7 Ionian \u2014 9,11,13",
-      "madd4 III \u00b7 Maj7 Ionian \u2014 13",
-      "madd4 VII \u00b7 Maj7 Ionian \u2014 9,#11",
-      "add2 bIII \u00b7 Min7 Dorian \u2014 11",
-      "add2 IV \u00b7 Min7 Dorian \u2014 11,13",
-      "add2 bVII \u00b7 Min7 Dorian \u2014 9,11",
-      "add4 IV \u00b7 Min7 Dorian \u2014 11,13",
-      "add4 bVII \u00b7 Min7 Dorian \u2014 9,11",
-      "madd4 I \u00b7 Min7 Dorian \u2014 11",
-      "madd4 II \u00b7 Min7 Dorian \u2014 9,11,13",
-      "madd4 V \u00b7 Min7 Dorian \u2014 9",
-      "add2 I \u00b7 Dom7 Mixolydian \u2014 9",
-      "add2 IV \u00b7 Dom7 Mixolydian \u2014 11,13",
-      "add2 bVII \u00b7 Dom7 Mixolydian \u2014 9,11",
-      "add4 I \u00b7 Dom7 Mixolydian \u2014 11",
-      "add4 IV \u00b7 Dom7 Mixolydian \u2014 11,13",
-      "madd4 II \u00b7 Dom7 Mixolydian \u2014 9,11,13",
-      "madd4 V \u00b7 Dom7 Mixolydian \u2014 9",
-      "madd4 VI \u00b7 Dom7 Mixolydian \u2014 9,13",
-      "add2 bII \u00b7 Half-dim Locrian \u2014 b9,11,b13",
-      "add2 bV \u00b7 Half-dim Locrian \u2014 b13",
-      "add2 bVI \u00b7 Half-dim Locrian \u2014 b13",
-      "add4 bII \u00b7 Half-dim Locrian \u2014 b9,11,b13",
-      "add4 bVI \u00b7 Half-dim Locrian \u2014 b9,b13",
-      "madd4 bIII \u00b7 Half-dim Locrian \u2014 b13",
-      "madd4 IV \u00b7 Half-dim Locrian \u2014 11,b13",
-      "madd4 VII \u00b7 Half-dim Locrian \u2014 b9,11",
-      "add2 bV \u00b7 Altered \u2014 b9,b5,#5",
-      "add2 #V \u00b7 Altered \u2014 #9,#5",
-      "add4 #V \u00b7 Altered \u2014 b9,#9,#5",
-      "madd4 bII \u00b7 Altered \u2014 b9,b5,#5",
-      "madd4 #II \u00b7 Altered \u2014 #9,b5,#5"
-    ]
-  }
+    {
+        "id":  "more0001",
+        "slug":  "sticky-keys",
+        "bars":  1,
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html",
+                          "en":  "Scales and pitch sets",
+                          "es":  "Escalas y conjuntos de alturas"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#weiskopf-around-the-horn",
+                          "en":  "Around the Horn",
+                          "es":  "Around the Horn"
+                      }
+                  ],
+        "lines":  [
+                      "C major",
+                      "Db major",
+                      "D major",
+                      "Eb major",
+                      "E major",
+                      "F major",
+                      "F# major",
+                      "G major",
+                      "Ab major",
+                      "A major",
+                      "Bb major",
+                      "B major",
+                      "C minor",
+                      "C# minor",
+                      "D minor",
+                      "Eb minor",
+                      "E minor",
+                      "F minor",
+                      "F# minor",
+                      "G minor",
+                      "G# minor",
+                      "A minor",
+                      "Bb minor",
+                      "B minor"
+                  ],
+        "nameEn":  "Sticky keys",
+        "descEn":  "Students park in C, F, and Bb. Every major and every natural minor gets one turn so the easy keys cannot take the whole pass.",
+        "nameEs":  "Tonalidades difíciles",
+        "descEs":  "Los estudiantes se quedan en C, F y Bb. Cada mayor y cada menor natural tiene un turno para que las fáciles no ocupen todo el pase."
+    },
+    {
+        "id":  "more0002",
+        "slug":  "two-five-one-clock",
+        "bars":  2,
+        "nameEn":  "II-V-I around the clock",
+        "nameEs":  "II-V-I alrededor del reloj",
+        "descEn":  "The cadence everyone knows in one or two keys. Walk it through twelve keys so each II-V-I gets one turn with the metronome before the next key.",
+        "descEs":  "La cadencia que todos conocen en una o dos tonalidades. Recórrela en doce tonalidades para que cada II-V-I tenga un turno con el metrónomo antes de la siguiente.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./changes.html#cork-lego",
+                          "en":  "Harmony with LEGO Bricks",
+                          "es":  "Harmony with LEGO Bricks"
+                      },
+                      {
+                          "href":  "./changes.html#crook-improvise",
+                          "en":  "How to Improvise",
+                          "es":  "How to Improvise"
+                      }
+                  ],
+        "lines":  [
+                      "Dm7 G7 Cmaj7",
+                      "Em7 A7 Dmaj7",
+                      "F#m7 B7 Emaj7",
+                      "G#m7 C#7 F#maj7",
+                      "Bbm7 Eb7 Abmaj7",
+                      "Cm7 F7 Bbmaj7",
+                      "Am7 D7 Gmaj7",
+                      "Bm7 E7 Amaj7",
+                      "C#m7 F#7 Bmaj7",
+                      "Ebm7 Ab7 Dbmaj7",
+                      "Fm7 Bb7 Ebmaj7",
+                      "Gm7 C7 Fmaj7"
+                  ]
+    },
+    {
+        "id":  "more0003",
+        "slug":  "guide-tones",
+        "bars":  4,
+        "nameEn":  "Guide tones",
+        "nameEs":  "Notas guía",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#ligon-linear",
+                          "en":  "Connecting Chords with Linear Harmony",
+                          "es":  "Connecting Chords with Linear Harmony"
+                      },
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      }
+                  ],
+        "lines":  [
+                      "F-B-E-E · Dm7 G7 Cmaj7",
+                      "Bb-E-A-A · Gm7 C7 Fmaj7",
+                      "Eb-A-D-D · Cm7 F7 Bbmaj7",
+                      "Ab-D-G-G · Fm7 Bb7 Ebmaj7",
+                      "Db-G-C-C · Bbm7 Eb7 Abmaj7",
+                      "Gb-C-F-F · Ebm7 Ab7 Dbmaj7",
+                      "Cb-F-Bb-Bb · Abm7 Db7 Gbmaj7",
+                      "E-A#-D#-D# · C#m7 F#7 Bmaj7",
+                      "A-D#-G#-G# · F#m7 B7 Emaj7",
+                      "D-G#-C#-C# · Bm7 E7 Amaj7",
+                      "G-C#-F#-F# · Em7 A7 Dmaj7",
+                      "C-F#-B-B · Am7 D7 Gmaj7",
+                      "C-F-B-B · Dm7 G7 Cmaj7",
+                      "F-Bb-E-E · Gm7 C7 Fmaj7",
+                      "Bb-Eb-A-A · Cm7 F7 Bbmaj7",
+                      "Eb-Ab-D-D · Fm7 Bb7 Ebmaj7",
+                      "Ab-Db-G-G · Bbm7 Eb7 Abmaj7",
+                      "Db-Gb-C-C · Ebm7 Ab7 Dbmaj7",
+                      "Gb-Cb-F-F · Abm7 Db7 Gbmaj7",
+                      "B-E-A#-A# · C#m7 F#7 Bmaj7",
+                      "E-A-D#-D# · F#m7 B7 Emaj7",
+                      "A-D-G#-G# · Bm7 E7 Amaj7",
+                      "D-G-C#-C# · Em7 A7 Dmaj7",
+                      "G-C-F#-F# · Am7 D7 Gmaj7"
+                  ],
+        "descEs":  "Las líneas se estancan cuando el oído pierde la 3a y la 7a. Las doce tonalidades de II-V-I: primero camino de 3as, luego de 7as. Cántalo y luego tócalo a tempo.",
+        "descEn":  "Lines stall when the ear loses the 3rd and 7th. All twelve II-V-I keys: first a 3rds path, then a 7ths path. Sing it, then play it in time."
+    },
+    {
+        "id":  "more0004",
+        "slug":  "outline-changes",
+        "bars":  4,
+        "nameEn":  "Outline the changes",
+        "nameEs":  "Dibujar los cambios",
+        "books":  [
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      },
+                      {
+                          "href":  "./changes.html#levine-changes",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      }
+                  ],
+        "lines":  [
+                      "1 3 5 7 · Dm7 G7 Cmaj7",
+                      "1 3 5 7 · Gm7 C7 Fmaj7",
+                      "1 3 5 7 · Cm7 F7 Bbmaj7",
+                      "1 3 5 7 · Fm7 Bb7 Ebmaj7",
+                      "1 3 5 7 · Bbm7 Eb7 Abmaj7",
+                      "1 3 5 7 · Ebm7 Ab7 Dbmaj7",
+                      "1 3 5 7 · Abm7 Db7 Gbmaj7",
+                      "1 3 5 7 · C#m7 F#7 Bmaj7",
+                      "1 3 5 7 · F#m7 B7 Emaj7",
+                      "1 3 5 7 · Bm7 E7 Amaj7",
+                      "1 3 5 7 · Em7 A7 Dmaj7",
+                      "1 3 5 7 · Am7 D7 Gmaj7",
+                      "7 5 3 1 · Dm7 G7 Cmaj7",
+                      "7 5 3 1 · Gm7 C7 Fmaj7",
+                      "7 5 3 1 · Cm7 F7 Bbmaj7",
+                      "7 5 3 1 · Fm7 Bb7 Ebmaj7",
+                      "7 5 3 1 · Bbm7 Eb7 Abmaj7",
+                      "7 5 3 1 · Ebm7 Ab7 Dbmaj7",
+                      "7 5 3 1 · Abm7 Db7 Gbmaj7",
+                      "7 5 3 1 · C#m7 F#7 Bmaj7",
+                      "7 5 3 1 · F#m7 B7 Emaj7",
+                      "7 5 3 1 · Bm7 E7 Amaj7",
+                      "7 5 3 1 · Em7 A7 Dmaj7",
+                      "7 5 3 1 · Am7 D7 Gmaj7",
+                      "3 5 7 9 · Dm7 G7 Cmaj7",
+                      "3 5 7 9 · Gm7 C7 Fmaj7",
+                      "3 5 7 9 · Cm7 F7 Bbmaj7",
+                      "3 5 7 9 · Fm7 Bb7 Ebmaj7",
+                      "3 5 7 9 · Bbm7 Eb7 Abmaj7",
+                      "3 5 7 9 · Ebm7 Ab7 Dbmaj7",
+                      "3 5 7 9 · Abm7 Db7 Gbmaj7",
+                      "3 5 7 9 · C#m7 F#7 Bmaj7",
+                      "3 5 7 9 · F#m7 B7 Emaj7",
+                      "3 5 7 9 · Bm7 E7 Amaj7",
+                      "3 5 7 9 · Em7 A7 Dmaj7",
+                      "3 5 7 9 · Am7 D7 Gmaj7"
+                  ],
+        "descEs":  "Antes de líneas rebuscadas, oye el esqueleto. Las doce tonalidades de II-V-I en tres formas: 1-3-5-7, 7-5-3-1 y 3-5-7-9.",
+        "descEn":  "Before fancy lines, hear the skeleton. All twelve II-V-I keys in three shapes: 1-3-5-7, 7-5-3-1, and 3-5-7-9."
+    },
+    {
+        "id":  "more0005",
+        "slug":  "enclosures",
+        "bars":  2,
+        "nameEn":  "Enclosures",
+        "nameEs":  "Envolventes",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#riposo-target",
+                          "en":  "Target and Approach Tones",
+                          "es":  "Target and Approach Tones"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "lines":  [
+                      "D B C · above below -\u003e C",
+                      "B D C · below above -\u003e C",
+                      "Eb D Db C · double above -\u003e C",
+                      "A Bb B C · double below -\u003e C",
+                      "F D# E · above below -\u003e E",
+                      "D# F E · below above -\u003e E",
+                      "G F# F E · double above -\u003e E",
+                      "C# D D# E · double below -\u003e E",
+                      "A F# G · above below -\u003e G",
+                      "F# A G · below above -\u003e G",
+                      "Bb A Ab G · double above -\u003e G",
+                      "E F F# G · double below -\u003e G",
+                      "C A Bb · above below -\u003e Bb",
+                      "A C Bb · below above -\u003e Bb",
+                      "Db C B Bb · double above -\u003e Bb",
+                      "G Ab A Bb · double below -\u003e Bb",
+                      "E C# D · above below -\u003e D",
+                      "C# E D · below above -\u003e D",
+                      "F E Eb D · double above -\u003e D",
+                      "B C C# D · double below -\u003e D",
+                      "G E F · above below -\u003e F",
+                      "E G F · below above -\u003e F",
+                      "Ab G Gb F · double above -\u003e F",
+                      "D Eb E F · double below -\u003e F"
+                  ],
+        "descEs":  "Cuatro formas de envolvente hacia objetivos en C7 (C E G Bb) y Dm (D F). Arriba-abajo, abajo-arriba, doble arriba, doble abajo. Cada objetivo recibe cada forma.",
+        "descEn":  "Four enclosure shapes into chord-tone targets on C7 (C E G Bb) and Dm (D F). Above-below, below-above, double above, double below. Each target gets every shape."
+    },
+    {
+        "id":  "more0006",
+        "slug":  "slow-time",
+        "bars":  4,
+        "nameEn":  "Slow time",
+        "nameEs":  "Tiempo lento",
+        "descEn":  "Fast practice hides uneven time. Keep the metronome slow. Each cue asks for one subdivision or placement so you can hear every beat.",
+        "descEs":  "Practicar rápido esconde el tiempo irregular. Mantén el metrónomo lento. Cada consigna pide una subdivisión o colocación para oír cada pulso.",
+        "books":  [
+                      {
+                          "href":  "./time.html",
+                          "en":  "Time",
+                          "es":  "Tiempo"
+                      },
+                      {
+                          "href":  "./time.html#erskine-time",
+                          "en":  "Time Awareness for All Musicians",
+                          "es":  "Time Awareness for All Musicians"
+                      },
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "en":  "Rhythmic Devices",
+                          "es":  "Recursos rítmicos"
+                      }
+                  ],
+        "lines":  [
+                      "Whole notes only",
+                      "Half notes only",
+                      "Quarters only",
+                      "Eighths only",
+                      "On beats 1 and 3",
+                      "On beats 2 and 4",
+                      "Off the beat",
+                      "One note per bar",
+                      "Two notes per bar",
+                      "Rest bar 2 and 4"
+                  ]
+    },
+    {
+        "id":  "more0007",
+        "slug":  "wide-intervals",
+        "bars":  2,
+        "books":  [
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#weiskopf-intervallic",
+                          "en":  "Intervallic Improvisation",
+                          "es":  "Intervallic Improvisation"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#bergonzi-intervallic-melodies",
+                          "en":  "Thesaurus of Intervallic Melodies",
+                          "es":  "Thesaurus of Intervallic Melodies"
+                      }
+                  ],
+        "nameEs":  "Familias de intervalos",
+        "lines":  [
+                      "Minor 2nds",
+                      "Major 2nds",
+                      "Minor 3rds",
+                      "Major 3rds",
+                      "Perfect 4ths",
+                      "Tritones",
+                      "Perfect 5ths",
+                      "Minor 6ths",
+                      "Major 6ths",
+                      "Minor 7ths",
+                      "Major 7ths",
+                      "Octaves",
+                      "4ths then 5ths",
+                      "6ths then 3rds",
+                      "2nds then 7ths"
+                  ],
+        "descEs":  "Cada familia de intervalo desde 2a menor hasta octava, más algunos mixtos. Una familia por turno para que el paso a paso no esconda los saltos.",
+        "nameEn":  "Interval families",
+        "descEn":  "Every interval family from minor 2nd through octave, plus a few mixed drills. One family per turn so stepwise comfort cannot hide the leaps."
+    },
+    {
+        "id":  "more0008",
+        "slug":  "minor-two-five",
+        "bars":  4,
+        "nameEn":  "Minor II-V-I",
+        "nameEs":  "II-V-I menor",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#liebman-chromatic",
+                          "en":  "A Chromatic Approach",
+                          "es":  "A Chromatic Approach"
+                      }
+                  ],
+        "lines":  [
+                      "Dm7b5 G7b9 Cm",
+                      "Em7b5 A7b9 Dm",
+                      "F#m7b5 B7b9 Em",
+                      "Gm7b5 C7b9 Fm",
+                      "Am7b5 D7b9 Gm",
+                      "Bm7b5 E7b9 Am",
+                      "C#m7b5 F#7b9 Bm",
+                      "Ebm7b5 Ab7b9 Dbm",
+                      "Fm7b5 Bb7b9 Ebm",
+                      "G#m7b5 C#7b9 F#m",
+                      "Bbm7b5 Eb7b9 Abm",
+                      "Cm7b5 F7b9 Bbm"
+                  ],
+        "descEs":  "Las cadencias mayores se llevan las horas. II-V-I menor en las doce tonalidades: una tonalidad por ejemplo, dominante b9 hacia menor.",
+        "descEn":  "Major cadences get the hours. Minor II-V-I in all twelve keys: one key per example, b9 dominant into minor."
+    },
+    {
+        "id":  "more0009",
+        "slug":  "turnarounds",
+        "bars":  4,
+        "nameEn":  "Turnarounds",
+        "nameEs":  "Turnarounds",
+        "descEn":  "Endings and turnbacks are where solos lose the form. One short turnaround per line. Set Bars to four and keep the last chord clear.",
+        "descEs":  "En los finales y turnbacks es donde el solo pierde la forma. Un turnaround corto por línea. Pon Bars en cuatro y deja claro el último acorde.",
+        "books":  [
+                      {
+                          "href":  "./changes.html#cork-lego",
+                          "en":  "Harmony with LEGO Bricks",
+                          "es":  "Harmony with LEGO Bricks"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./changes.html#elliott-insights",
+                          "en":  "Insights in Jazz",
+                          "es":  "Insights in Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "Cmaj7 A7 Dm7 G7 · POT",
+                      "Cmaj7 Eb7 Abmaj7 Db7 · Ladybird",
+                      "Em7 A7 Dm7 G7 · SPOT",
+                      "Cmaj7 C7 Fmaj7 F#o · To IV",
+                      "Cmaj7 A7 Ab7 G7 · Nowhere",
+                      "Dm7 G7 Em7 A7 · Pullback",
+                      "Cmaj7 E7 Am7 D7 · III VI II V",
+                      "Cmaj7 Bb7 Ab7 G7 · Chromatic",
+                      "Am7 D7 Dm7 G7 · Dogleg",
+                      "Cmaj7 F#m7b5 B7 Em7 A7 · Starlight"
+                  ]
+    },
+    {
+        "id":  "more0010",
+        "slug":  "blues-forms",
+        "bars":  12,
+        "nameEn":  "Blues forms",
+        "nameEs":  "Formas de blues",
+        "descEn":  "Students know one blues and avoid the rest. One twelve-bar shape per turn. For every key spelled out, open Basic major blues, Jazz major blues, or Minor blues.",
+        "descEs":  "Los estudiantes conocen un blues y evitan el resto. Una forma de doce compases por turno. Para todas las tonalidades escritas, abre Blues mayor básico, Blues mayor jazz o Blues menor.",
+        "books":  [
+                      {
+                          "href":  "./more.html#basic-major-blues",
+                          "en":  "Basic major blues",
+                          "es":  "Blues mayor básico"
+                      },
+                      {
+                          "href":  "./more.html#jazz-major-blues",
+                          "en":  "Jazz major blues",
+                          "es":  "Blues mayor jazz"
+                      },
+                      {
+                          "href":  "./more.html#minor-blues",
+                          "en":  "Minor blues",
+                          "es":  "Blues menor"
+                      }
+                  ],
+        "lines":  [
+                      "I7 | IV7 | I7 | I7 | IV7 | IV7 | I7 | I7 | V7 | IV7 | I7 | V7 · Basic",
+                      "I7 | IV7 | I7 | I7 | IV7 | #IVo | I7 | VI7 | IIm7 | V7 | I7 | V7 · Jazz",
+                      "Im7 | Im7 | Im7 | Im7 | IVm7 | IVm7 | Im7 | Im7 | bVI7 | V7 | Im7 | V7 · Minor",
+                      "I7 | IV7 | I7 | I7 | IV7 | IV7 | I7 | I7 | II7 | V7 | I7 | V7 · Bird",
+                      "Imaj7 | IV7 | Imaj7 | Imaj7 | IV7 | IV7 | Imaj7 | VI7 | IIm7 | V7 | Imaj7 | V7 · Major",
+                      "I7 | bVII7 | I7 | I7 | IV7 | #IVo | I7 | VI7 | IIm7 | V7 | I7 | V7 · Side slip"
+                  ]
+    },
+    {
+        "id":  "more0011",
+        "slug":  "rhythm-bridge",
+        "bars":  4,
+        "nameEn":  "Rhythm bridge",
+        "nameEs":  "Puente de Rhythm Changes",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "descEs":  "El puente de Rhythm Changes es un muro de dominantes. Los doce comienzos: III7-VI7-II7-V7 desde cada centro.",
+        "descEn":  "The Rhythm Changes bridge is a wall of dominants. All twelve starts: III7-VI7-II7-V7 from each key center.",
+        "lines":  [
+                      "E7 A7 D7 G7 · from C",
+                      "F7 Bb7 Eb7 Ab7 · from Db",
+                      "F#7 B7 E7 A7 · from D",
+                      "G7 C7 F7 Bb7 · from Eb",
+                      "Ab7 Db7 Gb7 B7 · from E",
+                      "A7 D7 G7 C7 · from F",
+                      "Bb7 Eb7 Ab7 Db7 · from F#",
+                      "B7 E7 A7 D7 · from G",
+                      "C7 F7 Bb7 Eb7 · from Ab",
+                      "C#7 F#7 B7 E7 · from A",
+                      "D7 G7 C7 F7 · from Bb",
+                      "D#7 G#7 C#7 F#7 · from B"
+                  ]
+    },
+    {
+        "id":  "more0012",
+        "slug":  "tritone-road",
+        "bars":  2,
+        "nameEn":  "Tritone road",
+        "nameEs":  "Camino del tritono",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./changes.html#levine-changes",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "Dm7 Db7 Cmaj7",
+                      "Ebm7 D7 Dbmaj7",
+                      "Em7 Eb7 Dmaj7",
+                      "Fm7 E7 Ebmaj7",
+                      "F#m7 F7 Emaj7",
+                      "Gm7 Gb7 Fmaj7",
+                      "Abm7 G7 Gbmaj7",
+                      "Am7 Ab7 Gmaj7",
+                      "Bbm7 A7 Abmaj7",
+                      "Bm7 Bb7 Amaj7",
+                      "Cm7 B7 Bbmaj7",
+                      "C#m7 C7 Bmaj7"
+                  ],
+        "descEs":  "Las sustituciones se sienten abstractas hasta que están bajo los dedos. II-bII7-I en las doce tonalidades, una cadencia por turno.",
+        "descEn":  "Substitutions feel abstract until they are under the fingers. II-bII7-I in all twelve keys, one cadence per turn."
+    },
+    {
+        "id":  "more0013",
+        "slug":  "pentatonic-colors",
+        "bars":  4,
+        "nameEn":  "Pentatonic colors",
+        "nameEs":  "Colores pentatónicos",
+        "descEn":  "One pentatonic sound stuck on one chord is common. Here each line pairs a pentatonic color with a short progression so the color has to move.",
+        "descEs":  "Un sonido pentatónico pegado a un acorde es habitual. Aquí cada línea empareja un color pentatónico con una progresión corta para que el color tenga que moverse.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales for Jazz",
+                          "es":  "Pentatonic Scales for Jazz"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      }
+                  ],
+        "lines":  [
+                      "C major pent · Cmaj7",
+                      "G major pent · Cmaj7",
+                      "A minor pent · Dm7",
+                      "D minor pent · G7",
+                      "Eb major pent · C7alt",
+                      "F# minor pent · D7",
+                      "Bb minor pent · Cm7",
+                      "E major pent · A7",
+                      "F major pent · Bbmaj7",
+                      "C# minor pent · F#7"
+                  ]
+    },
+    {
+        "id":  "more0014",
+        "slug":  "into-the-bar",
+        "bars":  4,
+        "nameEn":  "Into the next bar",
+        "nameEs":  "Hacia el siguiente compás",
+        "descEn":  "Lines that resolve early sound finished too soon. Each cue aims the phrase at the next chord or the next downbeat.",
+        "descEs":  "Las líneas que resuelven pronto suenan terminadas demasiado pronto. Cada consigna apunta la frase al siguiente acorde o al siguiente tiempo fuerte.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#galper-forward-motion",
+                          "en":  "Forward Motion",
+                          "es":  "Forward Motion"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#berg-goal-note",
+                          "en":  "The Goal-Note Method",
+                          "es":  "The Goal-Note Method"
+                      },
+                      {
+                          "href":  "./changes.html#crook-ready",
+                          "en":  "Ready, Aim, Improvise!",
+                          "es":  "Ready, Aim, Improvise!"
+                      }
+                  ],
+        "lines":  [
+                      "Aim at beat 1 of bar 2",
+                      "Aim at the V7",
+                      "Aim at the I",
+                      "Resolve on beat 1 only",
+                      "Anticipate the next chord",
+                      "Land on the 3rd of the next chord",
+                      "Land on the 7th of the next chord",
+                      "Phrase across the barline",
+                      "Start on beat 4",
+                      "Start on the and of 4"
+                  ]
+    },
+    {
+        "id":  "more0015",
+        "slug":  "leave-space",
+        "bars":  4,
+        "nameEn":  "Leave space",
+        "nameEs":  "Dejar espacio",
+        "books":  [
+                      {
+                          "href":  "./play-rest.html",
+                          "en":  "Play/Rest",
+                          "es":  "Tocar/Silencio"
+                      },
+                      {
+                          "href":  "./time.html#crook-beyond-time",
+                          "en":  "Beyond Time and Changes",
+                          "es":  "Beyond Time and Changes"
+                      },
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "en":  "Sonic Nuances",
+                          "es":  "Matices sonoros"
+                      }
+                  ],
+        "lines":  [
+                      "Play 1, rest 1",
+                      "Play 1, rest 2",
+                      "Play 1, rest 3",
+                      "Play 2, rest 1",
+                      "Play 2, rest 2",
+                      "Play 2, rest 3",
+                      "Play 3, rest 1",
+                      "Play 3, rest 2",
+                      "Play 3, rest 3",
+                      "Play 4, rest 1",
+                      "Play 4, rest 2",
+                      "Play 4, rest 4",
+                      "Rest first bar",
+                      "Rest last bar",
+                      "Trade fours with silence"
+                  ],
+        "descEs":  "Tocar de más llena todos los compases. Cada ratio habitual de tocar/silencio tiene turno para que el cómodo 2+2 no esconda el resto.",
+        "descEn":  "Overplaying fills every bar. Every common play/rest ratio gets a turn so the comfortable 2+2 does not hide the rest."
+    },
+    {
+        "id":  "more0016",
+        "slug":  "one-octave",
+        "bars":  2,
+        "nameEn":  "One octave only",
+        "nameEs":  "Solo una octava",
+        "descEn":  "Range hopping hides weak spots. Stay inside one octave for each example: scales, arpeggios, or a short cell.",
+        "descEs":  "Saltar de registro esconde los puntos flojos. Quédate en una octava por ejemplo: escalas, arpegios o una célula corta.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./finger-patterns.html",
+                          "en":  "Finger Patterns",
+                          "es":  "Digitaciones"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#okazaki-fundamentals",
+                          "en":  "Fundamentals of Guitar",
+                          "es":  "Fundamentals of Guitar"
+                      }
+                  ],
+        "lines":  [
+                      "Major scale · one octave",
+                      "Mixolydian · one octave",
+                      "Dorian · one octave",
+                      "Minor pentatonic · one octave",
+                      "Major arpeggio · one octave",
+                      "Dominant 7 arpeggio · one octave",
+                      "Minor 7 arpeggio · one octave",
+                      "Chromatic · one octave",
+                      "1235 cell · one octave",
+                      "1357 cell · one octave"
+                  ]
+    },
+    {
+        "id":  "more0017",
+        "slug":  "sing-first",
+        "bars":  4,
+        "nameEn":  "Sing first",
+        "nameEs":  "Cantar primero",
+        "descEn":  "Fingers run ahead of the ear. Each cue asks for a clear intention before you play: sing, hum, or hear the line, then match it.",
+        "descEs":  "Los dedos van delante del oído. Cada consigna pide una intención clara antes de tocar: canta, tararea u oye la línea, y luego igualala.",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "en":  "Sonic Nuances",
+                          "es":  "Matices sonoros"
+                      },
+                      {
+                          "href":  "./free-play.html#werner-effortless",
+                          "en":  "Effortless Mastery",
+                          "es":  "Effortless Mastery"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#bergonzi-jazz-language",
+                          "en":  "Developing a Jazz Language",
+                          "es":  "Developing a Jazz Language"
+                      }
+                  ],
+        "lines":  [
+                      "Sing the line, then play",
+                      "Hum the rhythm first",
+                      "Hear the root motion first",
+                      "Sing the guide tones",
+                      "Name the chord aloud",
+                      "Sing one target note",
+                      "Play only what you can sing",
+                      "Softer than usual",
+                      "One breath phrases",
+                      "Stop when you cannot hear it"
+                  ]
+    },
+    {
+        "id":  "more0018",
+        "slug":  "odd-bars",
+        "bars":  4,
+        "nameEn":  "Odd meters",
+        "nameEs":  "Compases irregulares",
+        "descEn":  "4/4 comfort collapses in 5 and 7. One meter or grouping per turn. Tap the pulse first, then play a simple cell across it.",
+        "descEs":  "La comodidad en 4/4 se cae en 5 y 7. Un metro o agrupación por turno. Primero marca el pulso; luego toca una célula simple encima.",
+        "books":  [
+                      {
+                          "href":  "./time.html",
+                          "en":  "Time",
+                          "es":  "Tiempo"
+                      },
+                      {
+                          "href":  "./time.html#hoenig-polyrhythms",
+                          "en":  "Intro to Polyrhythms",
+                          "es":  "Intro to Polyrhythms"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      }
+                  ],
+        "lines":  [
+                      "5/4 group 3+2",
+                      "5/4 group 2+3",
+                      "7/4 group 2+2+3",
+                      "7/8 group 2+2+3",
+                      "7/8 group 3+2+2",
+                      "9/8 group 2+2+2+3",
+                      "3 against 2",
+                      "4 against 3",
+                      "5/4 rest beat 3",
+                      "7/4 accent 1 and 5"
+                  ]
+    },
+    {
+        "id":  "more0019",
+        "slug":  "dominant-cycle",
+        "bars":  2,
+        "nameEn":  "Dominant cycle",
+        "nameEs":  "Ciclo de dominantes",
+        "descEn":  "Cycle-of-fifths dominants show up in bridges and turnbacks. One dominant per turn around the circle so each key center gets equal time.",
+        "descEs":  "Los dominantes en ciclo de quintas aparecen en puentes y turnbacks. Un dominante por turno alrededor del círculo para que cada centro tenga el mismo tiempo.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./changes.html#kingstone-barry-harris",
+                          "en":  "The Barry Harris Harmonic Method",
+                          "es":  "The Barry Harris Harmonic Method"
+                      }
+                  ],
+        "lines":  [
+                      "C7",
+                      "F7",
+                      "Bb7",
+                      "Eb7",
+                      "Ab7",
+                      "Db7",
+                      "F#7",
+                      "B7",
+                      "E7",
+                      "A7",
+                      "D7",
+                      "G7"
+                  ]
+    },
+    {
+        "id":  "more0020",
+        "slug":  "goal-notes",
+        "bars":  4,
+        "nameEn":  "Goal notes",
+        "nameEs":  "Notas objetivo",
+        "descEn":  "A line without a destination wanders. Each example names a goal chord tone on a strong beat. Build any path that arrives there in time.",
+        "descEs":  "Una línea sin destino divaga. Cada ejemplo nombra una nota objetivo del acorde en un tiempo fuerte. Construye cualquier camino que llegue a tiempo.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#berg-goal-note",
+                          "en":  "The Goal-Note Method",
+                          "es":  "The Goal-Note Method"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#riposo-target",
+                          "en":  "Target and Approach Tones",
+                          "es":  "Target and Approach Tones"
+                      },
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      }
+                  ],
+        "lines":  [
+                      "Goal: 3 of Cmaj7 on beat 1",
+                      "Goal: 7 of G7 on beat 1",
+                      "Goal: 3 of Dm7 on beat 1",
+                      "Goal: 5 of Cmaj7 on beat 3",
+                      "Goal: b9 of G7 on beat 1",
+                      "Goal: 9 of Dm7 on beat 1",
+                      "Goal: 3 of Fmaj7 on beat 1",
+                      "Goal: 7 of C7 on beat 1",
+                      "Goal: root of Am7 on beat 1",
+                      "Goal: 3 of E7 on beat 3"
+                  ]
+    },
+    {
+        "id":  "more0021",
+        "slug":  "basic-major-blues",
+        "bars":  12,
+        "nameEn":  "Basic major blues",
+        "nameEs":  "Blues mayor básico",
+        "descEn":  "The plain twelve-bar major blues in every key. One key per turn so C does not take every chorus. Hear I, IV, and V before you add turnarounds.",
+        "descEs":  "El blues mayor de doce compases sencillo en todas las tonalidades. Una tonalidad por turno para que C no ocupe todos los choruses. Oye I, IV y V antes de añadir turnarounds.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#aebersold-vol-1",
+                          "en":  "Aebersold Vol. 1",
+                          "es":  "Aebersold Vol. 1"
+                      },
+                      {
+                          "href":  "./more.html#blues-forms",
+                          "en":  "Blues forms",
+                          "es":  "Formas de blues"
+                      }
+                  ],
+        "lines":  [
+                      "C7 | F7 | C7 | C7 | F7 | F7 | C7 | C7 | G7 | F7 | C7 | G7 · C",
+                      "F7 | Bb7 | F7 | F7 | Bb7 | Bb7 | F7 | F7 | C7 | Bb7 | F7 | C7 · F",
+                      "Bb7 | Eb7 | Bb7 | Bb7 | Eb7 | Eb7 | Bb7 | Bb7 | F7 | Eb7 | Bb7 | F7 · Bb",
+                      "Eb7 | Ab7 | Eb7 | Eb7 | Ab7 | Ab7 | Eb7 | Eb7 | Bb7 | Ab7 | Eb7 | Bb7 · Eb",
+                      "Ab7 | Db7 | Ab7 | Ab7 | Db7 | Db7 | Ab7 | Ab7 | Eb7 | Db7 | Ab7 | Eb7 · Ab",
+                      "Db7 | Gb7 | Db7 | Db7 | Gb7 | Gb7 | Db7 | Db7 | Ab7 | Gb7 | Db7 | Ab7 · Db",
+                      "F#7 | B7 | F#7 | F#7 | B7 | B7 | F#7 | F#7 | C#7 | B7 | F#7 | C#7 · F#",
+                      "B7 | E7 | B7 | B7 | E7 | E7 | B7 | B7 | F#7 | E7 | B7 | F#7 · B",
+                      "E7 | A7 | E7 | E7 | A7 | A7 | E7 | E7 | B7 | A7 | E7 | B7 · E",
+                      "A7 | D7 | A7 | A7 | D7 | D7 | A7 | A7 | E7 | D7 | A7 | E7 · A",
+                      "D7 | G7 | D7 | D7 | G7 | G7 | D7 | D7 | A7 | G7 | D7 | A7 · D",
+                      "G7 | C7 | G7 | G7 | C7 | C7 | G7 | G7 | D7 | C7 | G7 | D7 · G"
+                  ]
+    },
+    {
+        "id":  "more0022",
+        "slug":  "jazz-major-blues",
+        "bars":  12,
+        "nameEn":  "Jazz major blues",
+        "nameEs":  "Blues mayor jazz",
+        "descEn":  "Major blues with the jazz moves: sharp-IV diminished, VI7, and II-V into the last four. One key per turn through all twelve.",
+        "descEs":  "Blues mayor con los movimientos de jazz: disminuido de IV sostenido, VI7 y II-V en los últimos cuatro. Una tonalidad por turno en las doce.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "lines":  [
+                      "C7 | F7 | C7 | C7 | F7 | C#o | C7 | A7 | Dm7 | G7 | C7 | G7 · C",
+                      "F7 | Bb7 | F7 | F7 | Bb7 | F#o | F7 | D7 | Gm7 | C7 | F7 | C7 · F",
+                      "Bb7 | Eb7 | Bb7 | Bb7 | Eb7 | Bo | Bb7 | G7 | Cm7 | F7 | Bb7 | F7 · Bb",
+                      "Eb7 | Ab7 | Eb7 | Eb7 | Ab7 | Eo | Eb7 | C7 | Fm7 | Bb7 | Eb7 | Bb7 · Eb",
+                      "Ab7 | Db7 | Ab7 | Ab7 | Db7 | Ao | Ab7 | F7 | Bbm7 | Eb7 | Ab7 | Eb7 · Ab",
+                      "Db7 | Gb7 | Db7 | Db7 | Gb7 | Do | Db7 | Bb7 | Ebm7 | Ab7 | Db7 | Ab7 · Db",
+                      "F#7 | B7 | F#7 | F#7 | B7 | Go | F#7 | D#7 | G#m7 | C#7 | F#7 | C#7 · F#",
+                      "B7 | E7 | B7 | B7 | E7 | Co | B7 | G#7 | C#m7 | F#7 | B7 | F#7 · B",
+                      "E7 | A7 | E7 | E7 | A7 | Fo | E7 | C#7 | F#m7 | B7 | E7 | B7 · E",
+                      "A7 | D7 | A7 | A7 | D7 | A#o | A7 | F#7 | Bm7 | E7 | A7 | E7 · A",
+                      "D7 | G7 | D7 | D7 | G7 | D#o | D7 | B7 | Em7 | A7 | D7 | A7 · D",
+                      "G7 | C7 | G7 | G7 | C7 | G#o | G7 | E7 | Am7 | D7 | G7 | D7 · G"
+                  ]
+    },
+    {
+        "id":  "more0023",
+        "slug":  "minor-blues",
+        "bars":  12,
+        "nameEn":  "Minor blues",
+        "nameEs":  "Blues menor",
+        "descEn":  "Minor twelve-bar blues in every key: Im7, IVm7, bVI7, and V7. One key per turn so the familiar minor keys do not hide the rest.",
+        "descEs":  "Blues menor de doce compases en todas las tonalidades: Im7, IVm7, bVI7 y V7. Una tonalidad por turno para que las menores conocidas no escondan el resto.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales",
+                          "es":  "Pentatonic Scales"
+                      },
+                      {
+                          "href":  "./more.html#blues-forms",
+                          "en":  "Blues forms",
+                          "es":  "Formas de blues"
+                      }
+                  ],
+        "lines":  [
+                      "Cm7 | Cm7 | Cm7 | Cm7 | Fm7 | Fm7 | Cm7 | Cm7 | Ab7 | G7 | Cm7 | G7 · Cm",
+                      "Fm7 | Fm7 | Fm7 | Fm7 | Bbm7 | Bbm7 | Fm7 | Fm7 | Db7 | C7 | Fm7 | C7 · Fm",
+                      "Bbm7 | Bbm7 | Bbm7 | Bbm7 | Ebm7 | Ebm7 | Bbm7 | Bbm7 | Gb7 | F7 | Bbm7 | F7 · Bbm",
+                      "Ebm7 | Ebm7 | Ebm7 | Ebm7 | Abm7 | Abm7 | Ebm7 | Ebm7 | Cb7 | Bb7 | Ebm7 | Bb7 · Ebm",
+                      "Abm7 | Abm7 | Abm7 | Abm7 | Dbm7 | Dbm7 | Abm7 | Abm7 | Fb7 | Eb7 | Abm7 | Eb7 · Abm",
+                      "C#m7 | C#m7 | C#m7 | C#m7 | F#m7 | F#m7 | C#m7 | C#m7 | A7 | G#7 | C#m7 | G#7 · C#m",
+                      "F#m7 | F#m7 | F#m7 | F#m7 | Bm7 | Bm7 | F#m7 | F#m7 | D7 | C#7 | F#m7 | C#7 · F#m",
+                      "Bm7 | Bm7 | Bm7 | Bm7 | Em7 | Em7 | Bm7 | Bm7 | G7 | F#7 | Bm7 | F#7 · Bm",
+                      "Em7 | Em7 | Em7 | Em7 | Am7 | Am7 | Em7 | Em7 | C7 | B7 | Em7 | B7 · Em",
+                      "Am7 | Am7 | Am7 | Am7 | Dm7 | Dm7 | Am7 | Am7 | F7 | E7 | Am7 | E7 · Am",
+                      "Dm7 | Dm7 | Dm7 | Dm7 | Gm7 | Gm7 | Dm7 | Dm7 | Bb7 | A7 | Dm7 | A7 · Dm",
+                      "Gm7 | Gm7 | Gm7 | Gm7 | Cm7 | Cm7 | Gm7 | Gm7 | Eb7 | D7 | Gm7 | D7 · Gm"
+                  ]
+    },
+    {
+        "id":  "more0024",
+        "slug":  "scale-patterns",
+        "bars":  1,
+        "nameEn":  "Scale patterns",
+        "nameEs":  "Patrones de escala",
+        "descEn":  "Four-note scale cells from the tonic triad (1, 3, 5) plus one extra degree: 2, 4, 6, or 7. Practice each pattern on a chord, then use it as a send-off into a phrase. Stay in one key for a full pass.",
+        "descEs":  "Células de cuatro notas desde el tríade tónico (1, 3, 5) más un grado extra: 2, 4, 6 o 7. Practica cada patrón sobre un acorde y úsalo como salida hacia una frase. Quédate en una tonalidad un pase completo.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html",
+                          "en":  "Scales and pitch sets",
+                          "es":  "Escalas y conjuntos de alturas"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "en":  "Patterns for Jazz",
+                          "es":  "Patterns for Jazz"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#ligon-technique",
+                          "en":  "Comprehensive Technique",
+                          "es":  "Comprehensive Technique"
+                      }
+                  ],
+        "lines":  [
+                      "1 2 3 5 · +2",
+                      "1 5 2 3 · +2",
+                      "1 5 3 2 · +2",
+                      "2 1 5 3 · +2",
+                      "2 3 1 5 · +2",
+                      "2 5 3 1 · +2",
+                      "3 2 1 5 · +2",
+                      "3 5 2 1 · +2",
+                      "3 5 1 2 · +2",
+                      "5 3 2 1 · +2",
+                      "5 3 1 2 · +2",
+                      "5 1 2 3 · +2",
+                      "1 3 4 5 · +4",
+                      "1 5 4 3 · +4",
+                      "1 4 3 5 · +4",
+                      "3 4 5 1 · +4",
+                      "3 1 4 5 · +4",
+                      "3 5 1 4 · +4",
+                      "4 5 3 1 · +4",
+                      "4 1 3 5 · +4",
+                      "4 3 1 5 · +4",
+                      "5 4 3 1 · +4",
+                      "5 1 4 3 · +4",
+                      "5 1 3 4 · +4",
+                      "1 3 5 6 · +6",
+                      "1 6 5 3 · +6",
+                      "1 5 3 6 · +6",
+                      "3 6 5 1 · +6",
+                      "3 1 6 5 · +6",
+                      "3 5 1 6 · +6",
+                      "5 3 1 6 · +6",
+                      "5 6 1 3 · +6",
+                      "5 1 3 6 · +6",
+                      "6 5 3 1 · +6",
+                      "6 1 3 5 · +6",
+                      "6 5 1 3 · +6",
+                      "1 3 5 7 · +7",
+                      "1 5 3 7 · +7",
+                      "1 7 5 3 · +7",
+                      "3 5 7 1 · +7",
+                      "3 7 5 1 · +7",
+                      "3 1 7 5 · +7",
+                      "5 3 1 7 · +7",
+                      "5 1 3 7 · +7",
+                      "5 7 1 3 · +7",
+                      "7 5 3 1 · +7",
+                      "7 1 3 5 · +7",
+                      "7 3 5 1 · +7"
+                  ]
+    },
+    {
+        "id":  "more0025",
+        "slug":  "lower-structure-triads",
+        "bars":  2,
+        "nameEn":  "Lower structure triads",
+        "nameEs":  "Tríades de estructura inferior",
+        "descEn":  "Common chord types with the lower structure triads that sit inside them. One chord type per turn. Hear the UST, then outline the full chord.",
+        "descEs":  "Tipos de acorde habituales con las tríades de estructura inferior que llevan dentro. Un tipo de acorde por turno. Oye la UST y luego dibuja el acorde completo.",
+        "books":  [
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#levine-theory",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "Major 7 · I (1 3 5) and III- (3 5 7)",
+                      "Major 6 · I and VI-",
+                      "Dominant 7 · I and III°",
+                      "Dominant 7 sus 4 · none (use bVII or I)",
+                      "Augmented/Dominant 7 · I+ (altered scale)",
+                      "Minor/Major 7 · I- and bIII+",
+                      "Minor 6 · I- and VI°",
+                      "Minor 7 · I- and bIII",
+                      "Minor 7b5 · I° and bIII-",
+                      "Diminished 7 · I° bIII° bV° VI°",
+                      "Augmented/Major 7 · I+ and III"
+                  ]
+    },
+    {
+        "id":  "more0026",
+        "slug":  "upper-structure-triads",
+        "bars":  2,
+        "nameEn":  "Upper structure triads",
+        "nameEs":  "Tríades de estructura superior",
+        "descEn":  "Chord type, chord scale, and popular upper structure triads. One scale color per turn. Hear the UST against the chord before you stack more.",
+        "descEs":  "Tipo de acorde, escala del acorde y tríades de estructura superior habituales. Un color de escala por turno. Oye la UST contra el acorde antes de añadir más.",
+        "books":  [
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#lower-structure-triads",
+                          "en":  "Lower structure triads",
+                          "es":  "Tríades de estructura inferior"
+                      }
+                  ],
+        "lines":  [
+                      "Ionian · Major 7/6 — V",
+                      "Lydian · Major 7/6 — II, V, VII-",
+                      "Mixolydian sus 4 · Dominant 7 sus 4 — I, II-, IV, VI-, bVII",
+                      "Mixolydian · Dominant 7 — V-, VI-, (bVII)",
+                      "Lydian b7 · Dominant 7 — II, bVII+",
+                      "Altered · Dominant 7 — bV, bVI, bII-, bIII-",
+                      "Half-whole · Dominant 7 — bIII, bV, VI",
+                      "Whole tone · Dominant 7 — II+",
+                      "Mixolydian b9 b13 · Dominant 7 — bII-, III+",
+                      "Melodic minor · Minor 6 / Minor-Major 7 — II-, bIII+, IV, V",
+                      "Harmonic minor · Minor-Major 7 — V",
+                      "Dorian · Minor 7 — II-, IV, V-, bVII",
+                      "Aeolian · Minor 7 — V-, bVII",
+                      "Phrygian · Minor 7 — bVI, (bII)",
+                      "Locrian · Minor 7b5 — bVI, (bII), (bV)",
+                      "Locrian ♮9 · Minor 7b5 — bVI, bVII",
+                      "Whole-half · Diminished 7 — II, IV, bVI, VII",
+                      "Lydian augmented · Augmented/Major 7 — VII-, (II)",
+                      "Ionian augmented · Augmented/Major 7 — V"
+                  ]
+    },
+    {
+        "id":  "more0027",
+        "slug":  "major-pentatonics-on-chords",
+        "bars":  2,
+        "nameEn":  "Major pentatonics on chords",
+        "nameEs":  "Pentatónicas mayores sobre acordes",
+        "descEn":  "Chord type, chord scale, and popular major pentatonic roots against that sound. One scale color per turn. Play the named major pentatonic over the chord. Lines marked none have no common major-pentatonic fit.",
+        "descEs":  "Tipo de acorde, escala del acorde y raíces de pentatónica mayor habituales sobre ese sonido. Un color de escala por turno. Toca la pentatónica mayor nombrada sobre el acorde. Las líneas con none no tienen un encaje habitual.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales for Jazz",
+                          "es":  "Pentatonic Scales for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      }
+                  ],
+        "lines":  [
+                      "Ionian · Major 7/6 — maj pent I, V",
+                      "Lydian · Major 7/6 — maj pent I, II, V",
+                      "Mixolydian sus 4 · Dominant 7 sus 4 — maj pent I, IV, bVII",
+                      "Mixolydian · Dominant 7 — maj pent I",
+                      "Lydian b7 · Dominant 7 — maj pent I",
+                      "Altered · Dominant 7 — maj pent bV",
+                      "Half-whole · Dominant 7 — none",
+                      "Whole tone · Dominant 7 — none",
+                      "Mixolydian b9 b13 · Dominant 7 — none",
+                      "Melodic minor · Minor 6 / Minor-Major 7 — maj pent IV",
+                      "Harmonic minor · Minor-Major 7 — none",
+                      "Dorian · Minor 7 — maj pent bIII, IV, bVII",
+                      "Aeolian · Minor 7 — maj pent bIII, bVII",
+                      "Phrygian · Minor 7 — maj pent bIII, bVI, (bII)",
+                      "Locrian · Minor 7b5 — maj pent bVI, (bV)",
+                      "Locrian ♮9 · Minor 7b5 — maj pent bVI",
+                      "Whole-half · Diminished 7 — none",
+                      "Lydian augmented · Augmented/Major 7 — maj pent (II)",
+                      "Ionian augmented · Augmented/Major 7 — none"
+                  ]
+    },
+    {
+        "id":  "more0028",
+        "slug":  "triad-coupling-relationships",
+        "bars":  4,
+        "nameEn":  "Triad coupling relationships",
+        "nameEs":  "Relaciones de acoplamiento",
+        "descEn":  "Two major triads against one chord make one of five relationships: LST+UST, LST+non-harm, UST+non-harm, UST+UST, or non-harm+non-harm. One example per turn. Stay on the named chord for the bars; use every note of each triad.",
+        "descEs":  "Dos tríades mayores sobre un acorde dan una de cinco relaciones: LST+UST, LST+no arm., UST+no arm., UST+UST o no arm.+no arm. Un ejemplo por turno. Quédate en el acorde nombrado; usa todas las notas de cada tríade.",
+        "books":  [
+                      {
+                          "href":  "./more.html#major-2nd-triad-couplings",
+                          "en":  "Major 2nd triad couplings",
+                          "es":  "Acoplamientos de 2a mayor"
+                      },
+                      {
+                          "href":  "./more.html#lower-structure-triads",
+                          "en":  "Lower structure triads",
+                          "es":  "Tríades de estructura inferior"
+                      },
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "en":  "Triad Pairs for Jazz",
+                          "es":  "Triad Pairs for Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "C/D on Cmaj7 · LST + UST",
+                      "C/Db on C7 · LST + non-harm",
+                      "C/Gb on Dm7 · UST + non-harm",
+                      "C/Eb on Edim7 · UST + UST",
+                      "C/F on Abm7b5 · non-harm + non-harm"
+                  ]
+    },
+    {
+        "id":  "more0029",
+        "slug":  "major-2nd-triad-couplings",
+        "bars":  4,
+        "nameEn":  "Major 2nd triad couplings",
+        "nameEs":  "Acoplamientos de 2a mayor",
+        "descEn":  "One interval only: major 2nd. Every major triad pair connected by that interval. Apply each pair to one chord of extended duration. Use all notes of both triads and finish at least one rotation of the pair inside the phrase.",
+        "descEs":  "Un solo intervalo: 2a mayor. Cada par de tríades mayores unidas por ese intervalo. Aplica cada par a un acorde largo. Usa todas las notas de ambas tríades y completa al menos una rotación del par en la frase.",
+        "books":  [
+                      {
+                          "href":  "./more.html#triad-coupling-relationships",
+                          "en":  "Triad coupling relationships",
+                          "es":  "Relaciones de acoplamiento"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "en":  "Triad Pairs for Jazz",
+                          "es":  "Triad Pairs for Jazz"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#murphy-triad-pairs",
+                          "en":  "Triad Pairs: The First Step",
+                          "es":  "Triad Pairs: The First Step"
+                      },
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      }
+                  ],
+        "lines":  [
+                      "C/D · maj 2nd",
+                      "D/E · maj 2nd",
+                      "E/F# · maj 2nd",
+                      "Gb/Ab · maj 2nd",
+                      "Ab/Bb · maj 2nd",
+                      "Bb/C · maj 2nd",
+                      "B/C# · maj 2nd",
+                      "Db/Eb · maj 2nd",
+                      "Eb/F · maj 2nd",
+                      "F/G · maj 2nd",
+                      "G/A · maj 2nd",
+                      "A/B · maj 2nd"
+                  ]
+    },
+    {
+        "id":  "more0030",
+        "slug":  "tritonic-7sus4-pentatonic",
+        "bars":  2,
+        "nameEn":  "Tritonic, 7sus4, pentatonic",
+        "nameEs":  "Tritónico, 7sus4, pentatónica",
+        "descEn":  "From Tritonic 7sus4 materials: which scale degrees work as tritonic sus4, 7sus4, or pentatonic color on a chord scale. One color per turn. Play that structure from the named degree; the caption lists the tensions you hear.",
+        "descEs":  "De materiales Tritonic 7sus4: qué grados de la escala funcionan como sus4 tritónico, 7sus4 o color pentatónico sobre una escala de acorde. Un color por turno. Toca esa estructura desde el grado nombrado; el pie lista las tensiones.",
+        "books":  [
+                      {
+                          "href":  "./more.html#add2-add4-madd4",
+                          "en":  "add2, add4, madd4",
+                          "es":  "add2, add4, madd4"
+                      },
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      }
+                  ],
+        "lines":  [
+                      "Tritonic I · Maj7 Ionian — 11",
+                      "Tritonic II · Maj7 Ionian — 9,13",
+                      "Tritonic III · Maj7 Ionian — 13",
+                      "Tritonic V · Maj7 Ionian — 9",
+                      "Tritonic VI · Maj7 Ionian — 9,13",
+                      "Tritonic VII · Maj7 Ionian — #11",
+                      "7sus4 II · Maj7 Ionian — 9,13",
+                      "7sus4 III · Maj7 Ionian — 9,13",
+                      "7sus4 V · Maj7 Ionian — 9,11",
+                      "7sus4 VI · Maj7 Ionian — 9,13",
+                      "7sus4 VII · Maj7 Ionian — #11,13",
+                      "Pent II · Maj7 Ionian — 9,11,13",
+                      "Pent III · Maj7 Ionian — 9,13",
+                      "Pent VI · Maj7 Ionian — 9,13",
+                      "Pent VII · Maj7 Ionian — 9,#11,13",
+                      "Tritonic I · Maj7 Lydian — 11",
+                      "Tritonic II · Maj7 Lydian — 9,13",
+                      "Tritonic IV · Maj7 Lydian — 11",
+                      "Tritonic V · Maj7 Lydian — 9",
+                      "Tritonic VII · Maj7 Lydian — 11",
+                      "7sus4 I · Maj7 Lydian — 11",
+                      "7sus4 II · Maj7 Lydian — 9,13",
+                      "7sus4 IV · Maj7 Lydian — 11",
+                      "7sus4 V · Maj7 Lydian — 9,11",
+                      "Pent I · Maj7 Lydian — 11",
+                      "Pent II · Maj7 Lydian — 9,11,13",
+                      "Pent V · Maj7 Lydian — 9,11",
+                      "Tritonic I · Min7 Dorian / Dom7 Mixolydian — 11",
+                      "Tritonic II · Min7 Dorian / Dom7 Mixolydian — 9,13",
+                      "Tritonic IV · Min7 Dorian / Dom7 Mixolydian — 11",
+                      "Tritonic V · Min7 Dorian / Dom7 Mixolydian — 9",
+                      "Tritonic VI · Min7 Dorian / Dom7 Mixolydian — 9,13",
+                      "7sus4 I · Min7 Dorian / Dom7 Mixolydian — 11",
+                      "7sus4 II · Min7 Dorian / Dom7 Mixolydian — 9,13",
+                      "7sus4 V · Min7 Dorian / Dom7 Mixolydian — 9,11",
+                      "7sus4 VI · Min7 Dorian / Dom7 Mixolydian — 9,13",
+                      "Pent II · Min7 Dorian / Dom7 Mixolydian — 9,11,13",
+                      "Pent V · Min7 Dorian / Dom7 Mixolydian — 9,11",
+                      "Pent VI · Min7 Dorian / Dom7 Mixolydian — 9,13",
+                      "Tritonic bII · Half-dim Locrian — b9,b13",
+                      "Tritonic bIII · Half-dim Locrian — b13",
+                      "Tritonic IV · Half-dim Locrian — 11",
+                      "Tritonic bVI · Half-dim Locrian — b9",
+                      "Tritonic VII · Half-dim Locrian — 11",
+                      "7sus4 bIII · Half-dim Locrian — b9,b13",
+                      "7sus4 IV · Half-dim Locrian — 11",
+                      "7sus4 bVI · Half-dim Locrian — b9",
+                      "7sus4 VII · Half-dim Locrian — 11,b13",
+                      "Pent bIII · Half-dim Locrian — b9,b13",
+                      "Pent IV · Half-dim Locrian — 11,b13",
+                      "Pent VII · Half-dim Locrian — b9,11,b13",
+                      "Tritonic bII · Altered — b9,b5,#5",
+                      "Tritonic #II · Altered — #9,#5",
+                      "Tritonic #V · Altered — b9,#9,#5",
+                      "7sus4 #II · Altered — b9,#9,#5",
+                      "7sus4 #V · Altered — b9,#9,b5,#5",
+                      "Pent #II · Altered — b9,#9,b5,#5"
+                  ]
+    },
+    {
+        "id":  "more0031",
+        "slug":  "add2-add4-madd4",
+        "bars":  2,
+        "nameEn":  "add2, add4, madd4",
+        "nameEs":  "add2, add4, madd4",
+        "descEn":  "Second half of the Tritonic sheet: add2, add4, and minor-add4 colors on each chord scale. One structure per turn from the named degree. Hear the listed tensions against the chord.",
+        "descEs":  "Segunda mitad de la hoja Tritonic: colores add2, add4 y minor-add4 en cada escala de acorde. Una estructura por turno desde el grado nombrado. Oye las tensiones listadas contra el acorde.",
+        "books":  [
+                      {
+                          "href":  "./more.html#tritonic-7sus4-pentatonic",
+                          "en":  "Tritonic, 7sus4, pentatonic",
+                          "es":  "Tritónico, 7sus4, pentatónica"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      }
+                  ],
+        "lines":  [
+                      "add2 I · Maj7 Ionian — 9",
+                      "add2 IV · Maj7 Ionian — 11,13",
+                      "add2 II · Maj7 Ionian — 9,#11,13",
+                      "add4 I · Maj7 Ionian — 11",
+                      "add4 II · Maj7 Ionian — 9,#11,13",
+                      "madd4 II · Maj7 Ionian — 9,11,13",
+                      "madd4 III · Maj7 Ionian — 13",
+                      "madd4 VII · Maj7 Ionian — 9,#11",
+                      "add2 bIII · Min7 Dorian — 11",
+                      "add2 IV · Min7 Dorian — 11,13",
+                      "add2 bVII · Min7 Dorian — 9,11",
+                      "add4 IV · Min7 Dorian — 11,13",
+                      "add4 bVII · Min7 Dorian — 9,11",
+                      "madd4 I · Min7 Dorian — 11",
+                      "madd4 II · Min7 Dorian — 9,11,13",
+                      "madd4 V · Min7 Dorian — 9",
+                      "add2 I · Dom7 Mixolydian — 9",
+                      "add2 IV · Dom7 Mixolydian — 11,13",
+                      "add2 bVII · Dom7 Mixolydian — 9,11",
+                      "add4 I · Dom7 Mixolydian — 11",
+                      "add4 IV · Dom7 Mixolydian — 11,13",
+                      "madd4 II · Dom7 Mixolydian — 9,11,13",
+                      "madd4 V · Dom7 Mixolydian — 9",
+                      "madd4 VI · Dom7 Mixolydian — 9,13",
+                      "add2 bII · Half-dim Locrian — b9,11,b13",
+                      "add2 bV · Half-dim Locrian — b13",
+                      "add2 bVI · Half-dim Locrian — b13",
+                      "add4 bII · Half-dim Locrian — b9,11,b13",
+                      "add4 bVI · Half-dim Locrian — b9,b13",
+                      "madd4 bIII · Half-dim Locrian — b13",
+                      "madd4 IV · Half-dim Locrian — 11,b13",
+                      "madd4 VII · Half-dim Locrian — b9,11",
+                      "add2 bV · Altered — b9,b5,#5",
+                      "add2 #V · Altered — #9,#5",
+                      "add4 #V · Altered — b9,#9,#5",
+                      "madd4 bII · Altered — b9,b5,#5",
+                      "madd4 #II · Altered — #9,b5,#5"
+                  ]
+    },
+    {
+        "slug":  "one-two-three-five-perms",
+        "id":  "more0032",
+        "descEs":  "Los veinticuatro órdenes de la célula 1-2-3-5. Una forma por turno sobre cada acorde. Une cada compás con el enlace más cercano.",
+        "nameEn":  "1-2-3-5 permutations",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "es":  "Escalas",
+                          "en":  "Scales"
+                      },
+                      {
+                          "href":  "./more.html#scale-patterns",
+                          "es":  "Patrones de escala",
+                          "en":  "Scale patterns"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "es":  "Patterns for Jazz",
+                          "en":  "Patterns for Jazz"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Permutaciones 1-2-3-5",
+        "lines":  [
+                      "1 2 3 5 · 1-2-3-5 cell",
+                      "1 2 5 3 · 1-2-3-5 cell",
+                      "1 3 2 5 · 1-2-3-5 cell",
+                      "1 3 5 2 · 1-2-3-5 cell",
+                      "1 5 2 3 · 1-2-3-5 cell",
+                      "1 5 3 2 · 1-2-3-5 cell",
+                      "2 1 3 5 · 1-2-3-5 cell",
+                      "2 1 5 3 · 1-2-3-5 cell",
+                      "2 3 1 5 · 1-2-3-5 cell",
+                      "2 3 5 1 · 1-2-3-5 cell",
+                      "2 5 1 3 · 1-2-3-5 cell",
+                      "2 5 3 1 · 1-2-3-5 cell",
+                      "3 1 2 5 · 1-2-3-5 cell",
+                      "3 1 5 2 · 1-2-3-5 cell",
+                      "3 2 1 5 · 1-2-3-5 cell",
+                      "3 2 5 1 · 1-2-3-5 cell",
+                      "3 5 1 2 · 1-2-3-5 cell",
+                      "3 5 2 1 · 1-2-3-5 cell",
+                      "5 1 2 3 · 1-2-3-5 cell",
+                      "5 1 3 2 · 1-2-3-5 cell",
+                      "5 2 1 3 · 1-2-3-5 cell",
+                      "5 2 3 1 · 1-2-3-5 cell",
+                      "5 3 1 2 · 1-2-3-5 cell",
+                      "5 3 2 1 · 1-2-3-5 cell"
+                  ],
+        "descEn":  "All twenty-four orders of the 1-2-3-5 cell. One shape per turn over every chord. Connect each bar with the closest voice leading."
+    },
+    {
+        "slug":  "phrase-start-end",
+        "id":  "more0033",
+        "descEs":  "Fuerza dónde empieza la frase y dónde aterriza. Cada inicio y final habitual tiene turno para que el tiempo 1 no sea la única entrada.",
+        "nameEn":  "Phrase starts and ends",
+        "books":  [
+                      {
+                          "href":  "./more.html#into-the-bar",
+                          "es":  "Hacia el siguiente compás",
+                          "en":  "Into the next bar"
+                      },
+                      {
+                          "href":  "./time.html",
+                          "es":  "Tiempo",
+                          "en":  "Time"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#galper-forward-motion",
+                          "es":  "Forward Motion",
+                          "en":  "Forward Motion"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Inicios y finales de frase",
+        "lines":  [
+                      "Start on beat 1 · end on 1",
+                      "Start on beat 1 · end on 3",
+                      "Start on beat 1 · end on and of 4",
+                      "Start on beat 2 · end on 1",
+                      "Start on beat 2 · end on 3",
+                      "Start on beat 2 · end on 4",
+                      "Start on beat 3 · end on 1",
+                      "Start on beat 3 · end on 3",
+                      "Start on beat 4 · end on 1",
+                      "Start on and of 1 · end on 1",
+                      "Start on and of 2 · end on 1",
+                      "Start on and of 4 · end on 1",
+                      "Start on and of 4 · end on 3",
+                      "Start on beat 4 · end on and of 2",
+                      "Start anywhere · end on and of 4"
+                  ],
+        "descEn":  "Force where the phrase begins and where it lands. Every common start and end beat gets a turn so beat 1 does not own every entrance."
+    },
+    {
+        "slug":  "time-feel",
+        "id":  "more0034",
+        "descEs":  "Coloca toda la línea detrás, al centro o delante del clic. Cada colocación tiene un turno completo.",
+        "nameEn":  "Time feel",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "es":  "Matices sonoros",
+                          "en":  "Sonic Nuances"
+                      },
+                      {
+                          "href":  "./time.html",
+                          "es":  "Tiempo",
+                          "en":  "Time"
+                      },
+                      {
+                          "href":  "./time.html#erskine-time",
+                          "es":  "Time Awareness",
+                          "en":  "Time Awareness"
+                      }
+                  ],
+        "bars":  8,
+        "nameEs":  "Colocación del tiempo",
+        "lines":  [
+                      "Behind the beat",
+                      "Dead center on the beat",
+                      "Ahead of the beat",
+                      "Behind on ballads",
+                      "Center at medium swing",
+                      "Ahead at up-tempo",
+                      "Behind for one chorus, center for one",
+                      "Center then push the last two bars",
+                      "Leave the \u0026 late",
+                      "Leave the \u0026 early",
+                      "Quarters center, 8ths behind",
+                      "Quarters center, 8ths ahead"
+                  ],
+        "descEn":  "Place the whole line behind, center, or ahead of the click. Each feel gets a full turn so laid-back does not hide on-top and dead-center."
+    },
+    {
+        "slug":  "alt-four-note-cells",
+        "id":  "more0035",
+        "descEs":  "Sustituye el 1-2-3-5 habitual por otras formas de cuatro notas según el acorde. Una fórmula por turno.",
+        "nameEn":  "Four-note cell formulae",
+        "books":  [
+                      {
+                          "href":  "./more.html#one-two-three-five-perms",
+                          "es":  "Permutaciones 1-2-3-5",
+                          "en":  "1-2-3-5 permutations"
+                      },
+                      {
+                          "href":  "./more.html#scale-patterns",
+                          "es":  "Patrones de escala",
+                          "en":  "Scale patterns"
+                      },
+                      {
+                          "href":  "./chord-tones.html",
+                          "es":  "Notas del acorde",
+                          "en":  "Chord Tones"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Fórmulas de células de cuatro notas",
+        "lines":  [
+                      "1 2 3 5 · major / dominant",
+                      "1 3 4 5 · major add4 color",
+                      "1 2 b3 5 · minor",
+                      "1 b2 3 5 · phrygian / susb9",
+                      "1 2 3 b5 · half-diminished color",
+                      "1 3 5 b7 · dominant outline",
+                      "1 2 4 5 · sus color",
+                      "1 b3 4 5 · dorian cell",
+                      "1 2 b3 4 · minor cluster",
+                      "1 3 #4 5 · lydian",
+                      "1 b2 b3 5 · altered minor",
+                      "1 2 3 7 · major leading"
+                  ],
+        "descEn":  "Replace stock 1-2-3-5 with other four-note shapes by chord quality. One formula per turn so the familiar cell does not take every chorus."
+    },
+    {
+        "slug":  "dom-pentatonic-grid",
+        "id":  "more0036",
+        "descEs":  "Sobre un dominante, cada raíz pentatónica mayor habitual de la escala y sus tensiones. Una raíz por turno.",
+        "nameEn":  "Dominant pentatonic grid",
+        "books":  [
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "es":  "Pentatónicas mayores sobre acordes",
+                          "en":  "Major pentatonics on chords"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "es":  "Pentatonics",
+                          "en":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "es":  "Pentatonic Scales for Jazz",
+                          "en":  "Pentatonic Scales for Jazz"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Rejilla pentatónica dominante",
+        "lines":  [
+                      "Maj pent on 1 · over Dom7",
+                      "Maj pent on 2 · over Dom7",
+                      "Maj pent on b3 · over Dom7",
+                      "Maj pent on 3 · over Dom7",
+                      "Maj pent on 4 · over Dom7",
+                      "Maj pent on b5 · over Dom7",
+                      "Maj pent on 5 · over Dom7",
+                      "Maj pent on b6 · over Dom7",
+                      "Maj pent on 6 · over Dom7",
+                      "Maj pent on b7 · over Dom7",
+                      "Maj pent on 7 · over Dom7",
+                      "Maj pent on b2 · over Dom7"
+                  ],
+        "descEn":  "Over one dominant chord, every common major-pentatonic root from the scale and its tensions. One root per turn so I-pentatonic does not hide b2, b3, and b7 colors."
+    },
+    {
+        "slug":  "pentatonic-three-note",
+        "id":  "more0037",
+        "descEs":  "Parte una pentatónica en células de 3 notas seguidas y cíclalas. Cada rotación tiene turno.",
+        "nameEn":  "Pentatonic 3-note cells",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "es":  "Pentatonics",
+                          "en":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./more.html#dom-pentatonic-grid",
+                          "es":  "Rejilla pentatónica dominante",
+                          "en":  "Dominant pentatonic grid"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "es":  "Escalas",
+                          "en":  "Scales"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Células pentatónicas de 3 notas",
+        "lines":  [
+                      "1 2 3 · pent cell",
+                      "2 3 5 · pent cell",
+                      "3 5 6 · pent cell",
+                      "5 6 1 · pent cell",
+                      "6 1 2 · pent cell",
+                      "1 3 5 · pent triad",
+                      "2 5 6 · pent triad",
+                      "3 6 1 · pent triad",
+                      "5 1 2 · pent triad",
+                      "6 2 3 · pent triad",
+                      "3 2 1 · pent down",
+                      "5 3 2 · pent down",
+                      "6 5 3 · pent down",
+                      "1 6 5 · pent down",
+                      "2 1 6 · pent down"
+                  ],
+        "descEn":  "Split a pentatonic into consecutive 3-note cells and cycle them. Every rotation gets a turn for angular triad-like texture without full five-note runs."
+    },
+    {
+        "slug":  "chromatic-lower-approach",
+        "id":  "more0038",
+        "descEs":  "Aterriza notas del acorde en 1 y 3. El contratiempo antes de cada objetivo es siempre medio tono desde abajo. Rotan 1, 3, 5 y 7.",
+        "nameEn":  "Chromatic lower approach",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "es":  "Notas de aproximación",
+                          "en":  "Approach Notes"
+                      },
+                      {
+                          "href":  "./more.html#enclosures",
+                          "es":  "Envolventes",
+                          "en":  "Enclosures"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "es":  "How to Play Bebop",
+                          "en":  "How to Play Bebop"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Aproximación cromática inferior",
+        "lines":  [
+                      "to 1 from below · Cmaj7",
+                      "to 3 from below · Cmaj7",
+                      "to 5 from below · Cmaj7",
+                      "to 7 from below · Cmaj7",
+                      "to 1 from below · Dm7",
+                      "to 3 from below · Dm7",
+                      "to 5 from below · Dm7",
+                      "to 7 from below · Dm7",
+                      "to 1 from below · G7",
+                      "to 3 from below · G7",
+                      "to 5 from below · G7",
+                      "to b7 from below · G7",
+                      "to 3 on beat 1 · any chord",
+                      "to 7 on beat 1 · any chord",
+                      "to 3 on beat 3 · any chord",
+                      "to 7 on beat 3 · any chord"
+                  ],
+        "descEn":  "Land chord tones on beats 1 and 3. The upbeat before each target is always a half-step from below. Targets rotate so 1, 3, 5, and 7 each get turns."
+    },
+    {
+        "slug":  "double-chromatic-approach",
+        "id":  "more0039",
+        "descEs":  "Dos notas cromáticas seguidas hacia el objetivo desde arriba o desde abajo. Cada dirección y objetivo tiene turno.",
+        "nameEn":  "Double chromatic approach",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "es":  "Notas de aproximación",
+                          "en":  "Approach Notes"
+                      },
+                      {
+                          "href":  "./more.html#chromatic-lower-approach",
+                          "es":  "Aproximación cromática inferior",
+                          "en":  "Chromatic lower approach"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "es":  "How to Play Bebop",
+                          "en":  "How to Play Bebop"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Aproximación cromática doble",
+        "lines":  [
+                      "from below into 1",
+                      "from below into 3",
+                      "from below into 5",
+                      "from below into 7",
+                      "from above into 1",
+                      "from above into 3",
+                      "from above into 5",
+                      "from above into 7",
+                      "below into 3 of Dom7",
+                      "above into 3 of Dom7",
+                      "below into b7 of Dom7",
+                      "above into b7 of Dom7",
+                      "below into 3 of Min7",
+                      "above into 3 of Min7",
+                      "mix above then below into 1",
+                      "mix below then above into 1"
+                  ],
+        "descEn":  "Two consecutive chromatic notes into the target from above or from below. Every direction and chord-tone target gets a turn."
+    },
+    {
+        "slug":  "line-deflection",
+        "id":  "more0040",
+        "descEs":  "Apunta a un objetivo y en el último tiempo salta al otro lado antes de resolver. Rompe las escalas predecibles.",
+        "nameEn":  "Line deflection",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#bergonzi-jazz-line",
+                          "es":  "Jazz Line",
+                          "en":  "Jazz Line"
+                      },
+                      {
+                          "href":  "./more.html#goal-notes",
+                          "es":  "Notas objetivo",
+                          "en":  "Goal notes"
+                      },
+                      {
+                          "href":  "./more.html#into-the-bar",
+                          "es":  "Hacia el siguiente compás",
+                          "en":  "Into the next bar"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Desvío de línea",
+        "lines":  [
+                      "Aim at 1 · deflect then resolve",
+                      "Aim at 3 · deflect then resolve",
+                      "Aim at 5 · deflect then resolve",
+                      "Aim at 7 · deflect then resolve",
+                      "Scale up into 3 · leap down then 3",
+                      "Scale down into 1 · leap up then 1",
+                      "Chromatic into 5 · leap opposite then 5",
+                      "Arpeggio into 7 · leap opposite then 7",
+                      "Deflect by a 3rd",
+                      "Deflect by a 4th",
+                      "Deflect by a 5th",
+                      "Deflect by an octave"
+                  ],
+        "descEn":  "Drive toward a target, then leap the other way on the last beat before you resolve. Breaks predictable scalar runs. Every target degree gets a turn."
+    },
+    {
+        "slug":  "rhythmic-displacement",
+        "id":  "more0041",
+        "descEs":  "Una frase corta, repetida mientras su inicio avanza un corchea cada vez. Cada desplazamiento tiene turno.",
+        "nameEn":  "Rhythmic displacement",
+        "books":  [
+                      {
+                          "href":  "./time.html",
+                          "es":  "Tiempo",
+                          "en":  "Time"
+                      },
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "es":  "Recursos rítmicos",
+                          "en":  "Rhythmic Devices"
+                      },
+                      {
+                          "href":  "./motivic-development.html",
+                          "es":  "Desarrollo motívico",
+                          "en":  "Motivic Development"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Desplazamiento rítmico",
+        "lines":  [
+                      "Start on beat 1",
+                      "Shift +1 eighth",
+                      "Shift +2 eighths",
+                      "Shift +3 eighths",
+                      "Shift +4 eighths · beat 3",
+                      "Shift +5 eighths",
+                      "Shift +6 eighths",
+                      "Shift +7 eighths",
+                      "Displace a 2-note cell",
+                      "Displace a 3-note cell",
+                      "Displace a 4-note cell",
+                      "Displace across the barline",
+                      "Backwards shift one eighth",
+                      "Hold pitch, move only the rhythm"
+                  ],
+        "descEn":  "One short phrase, repeated while its start point shifts forward by an eighth each time. Every shift amount gets a turn so the original downbeat does not own the motif."
+    },
+    {
+        "slug":  "quartal-lines",
+        "id":  "more0042",
+        "descEs":  "Construye la línea con 4as apiladas o 4as mezcladas con 3as. Cada patrón tiene turno.",
+        "nameEn":  "Quartal lines",
+        "books":  [
+                      {
+                          "href":  "./intervals.html",
+                          "es":  "Todos los intervalos",
+                          "en":  "All Intervals"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-fourths",
+                          "es":  "Technique Development in Fourths",
+                          "en":  "Technique Development in Fourths"
+                      },
+                      {
+                          "href":  "./more.html#wide-intervals",
+                          "es":  "Familias de intervalos",
+                          "en":  "Interval families"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Líneas por cuartas",
+        "lines":  [
+                      "Stacked 4ths ascending",
+                      "Stacked 4ths descending",
+                      "4th then 3rd",
+                      "3rd then 4th",
+                      "4ths only on Dom7",
+                      "4ths only on Maj7",
+                      "4ths only on Min7",
+                      "4ths only on Min7b5",
+                      "Alternate 4th up / 4th down",
+                      "Two 4ths then a step",
+                      "Quartal triad shapes",
+                      "Quartal into a chord tone"
+                  ],
+        "descEn":  "Build the line from stacked 4ths or 4ths mixed with 3rds. Every stacking pattern gets a turn so stepwise scales do not take the whole session."
+    },
+    {
+        "slug":  "inverted-interval-motifs",
+        "id":  "more0043",
+        "descEs":  "Fija una forma de intervalo y voltea su dirección cada compás. Sube/baja y baja/sube tienen turno.",
+        "nameEn":  "Inverted interval motifs",
+        "books":  [
+                      {
+                          "href":  "./motivic-development.html",
+                          "es":  "Desarrollo motívico",
+                          "en":  "Motivic Development"
+                      },
+                      {
+                          "href":  "./more.html#wide-intervals",
+                          "es":  "Familias de intervalos",
+                          "en":  "Interval families"
+                      },
+                      {
+                          "href":  "./intervals.html",
+                          "es":  "Todos los intervalos",
+                          "en":  "All Intervals"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Motivos de intervalo invertidos",
+        "lines":  [
+                      "Up 3rd / down 3rd",
+                      "Down 3rd / up 3rd",
+                      "Up 4th / down 4th",
+                      "Down 4th / up 4th",
+                      "Up 5th / down 3rd",
+                      "Down 5th / up 3rd",
+                      "Up 5th / down 5th",
+                      "Down 5th / up 5th",
+                      "Up 6th / down 2nd",
+                      "Down 6th / up 2nd",
+                      "Up octave / down step",
+                      "Down octave / up step"
+                  ],
+        "descEn":  "Fix an interval shape, then flip its direction every bar. Up/down and down/up both get turns for each interval size."
+    },
+    {
+        "slug":  "altered-hexatonic-pairs",
+        "id":  "more0044",
+        "descEs":  "Dos tríadas mayores en grados de tensión de un dominante (color de seis notas). Cada par habitual sobre sonido tipo C7 tiene turno.",
+        "nameEn":  "Altered hexatonic triad pairs",
+        "books":  [
+                      {
+                          "href":  "./more.html#triad-coupling-relationships",
+                          "es":  "Relaciones de acoplamiento",
+                          "en":  "Triad coupling relationships"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "es":  "Hexatonics",
+                          "en":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "es":  "Triad Pairs for Jazz",
+                          "en":  "Triad Pairs for Jazz"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Pares hexatónicos alterados",
+        "lines":  [
+                      "Db/Eb · over C7",
+                      "Db/E · over C7",
+                      "Db/F# · over C7",
+                      "Eb/E · over C7",
+                      "Eb/F# · over C7",
+                      "Eb/Ab · over C7",
+                      "E/F# · over C7",
+                      "E/Ab · over C7",
+                      "F#/Ab · over C7",
+                      "F#/Bb · over C7",
+                      "Ab/Bb · over C7",
+                      "Db/Bb · over C7"
+                  ],
+        "descEn":  "Two major triads on tension degrees of one dominant (six-note color, no full scale). Every common pair over C7-type sound gets a turn."
+    },
+    {
+        "slug":  "vocab-rhythm-or-pitch",
+        "id":  "more0045",
+        "descEs":  "Una frase corta que ya sabes. Alterna: mismas alturas ritmo nuevo, luego mismo ritmo alturas nuevas.",
+        "nameEn":  "Keep rhythm or keep pitches",
+        "books":  [
+                      {
+                          "href":  "./motivic-development.html",
+                          "es":  "Desarrollo motívico",
+                          "en":  "Motivic Development"
+                      },
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "es":  "Recursos rítmicos",
+                          "en":  "Rhythmic Devices"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#riposo-vocabulary",
+                          "es":  "Developing a Jazz Vocabulary",
+                          "en":  "Developing a Jazz Vocabulary"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Conserva el ritmo o las alturas",
+        "lines":  [
+                      "Same pitches · new rhythm",
+                      "Same rhythm · new pitches",
+                      "Same pitches · half-time rhythm",
+                      "Same pitches · double-time rhythm",
+                      "Same rhythm · sequence up a step",
+                      "Same rhythm · sequence down a step",
+                      "Same pitches · start on beat 2",
+                      "Same pitches · start on and of 4",
+                      "Same rhythm · opposite contour",
+                      "Same pitches · only staccato",
+                      "Same rhythm · only through guide tones",
+                      "Trade: pitches chorus / rhythm chorus"
+                  ],
+        "descEn":  "One short phrase you already know. Alternate: same pitches new rhythm, then same rhythm new pitches. Both operations get equal turns."
+    },
+    {
+        "slug":  "twelve-key-transpose",
+        "id":  "more0046",
+        "descEs":  "Una línea corta que puedas cantar. Muévela por las doce tonalidades en ciclo de quintas y luego por tonos enteros y terceras menores. Cada tonalidad tiene turno.",
+        "nameEn":  "Twelve-key transposition",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "es":  "Patterns for Jazz",
+                          "en":  "Patterns for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#sticky-keys",
+                          "es":  "Tonalidades difíciles",
+                          "en":  "Sticky keys"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#weiskopf-around-the-horn",
+                          "es":  "Around the Horn",
+                          "en":  "Around the Horn"
+                      }
+                  ],
+        "bars":  2,
+        "nameEs":  "Transposición en doce tonalidades",
+        "lines":  [
+                      "in C · cycle of fifths",
+                      "in F",
+                      "in Bb",
+                      "in Eb",
+                      "in Ab",
+                      "in Db",
+                      "in Gb",
+                      "in B",
+                      "in E",
+                      "in A",
+                      "in D",
+                      "in G",
+                      "Whole steps up from C",
+                      "Whole steps up from Db",
+                      "Minor 3rds up from C",
+                      "Minor 3rds up from Db"
+                  ],
+        "descEn":  "One short line you can sing. Move it through all twelve keys by the cycle of fifths, then by whole steps and minor thirds. Every key gets a turn."
+    },
+    {
+        "slug":  "rhythmic-density",
+        "id":  "more0047",
+        "descEs":  "Restringe el solo a un valor de nota por turno. Blancas, negras, corcheas y tresillos tienen el mismo tiempo.",
+        "nameEn":  "Rhythmic density",
+        "books":  [
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "es":  "Recursos rítmicos",
+                          "en":  "Rhythmic Devices"
+                      },
+                      {
+                          "href":  "./more.html#leave-space",
+                          "es":  "Deja espacio",
+                          "en":  "Leave space"
+                      },
+                      {
+                          "href":  "./time.html",
+                          "es":  "Tiempo",
+                          "en":  "Time"
+                      }
+                  ],
+        "bars":  4,
+        "nameEs":  "Densidad rítmica",
+        "lines":  [
+                      "Only whole notes",
+                      "Only half notes",
+                      "Only quarter notes",
+                      "Only eighth notes",
+                      "Only triplets",
+                      "Only sixteenth notes",
+                      "Only dotted quarters",
+                      "Quarters then eighths",
+                      "Eighths then triplets",
+                      "Half notes with one pickup",
+                      "One value per phrase",
+                      "Change value every 4 bars"
+                  ],
+        "descEn":  "Restrict the solo to one note value for a full turn. Half notes, quarters, eighths, and triplets each get equal time so the comfortable eighth-note default does not hide the rest."
+    },
+    {
+        "slug":  "dynamics-articulation",
+        "id":  "more0048",
+        "descEs":  "Una dinámica o una articulación por turno. Suave, fuerte, staccato, legato y acentos tienen el mismo tiempo.",
+        "nameEn":  "Dynamics and articulation",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "es":  "Matices sonoros",
+                          "en":  "Sonic Nuances"
+                      },
+                      {
+                          "href":  "./time.html",
+                          "es":  "Tiempo",
+                          "en":  "Time"
+                      },
+                      {
+                          "href":  "./free-play.html",
+                          "es":  "Free Play",
+                          "en":  "Free Play"
+                      }
+                  ],
+        "bars":  8,
+        "nameEs":  "Dinámica y articulación",
+        "lines":  [
+                      "Only pianissimo",
+                      "Only mezzo-forte",
+                      "Only fortissimo",
+                      "Only staccato",
+                      "Only legato",
+                      "Only tenuto",
+                      "Accent every downbeat",
+                      "Accent every off-beat",
+                      "Accent and of 2 and and of 4",
+                      "Crescendo through the phrase",
+                      "Decrescendo through the phrase",
+                      "Soft attack, loud sustain",
+                      "Loud attack, soft release"
+                  ],
+        "descEn":  "One dynamic or one articulation for the whole turn. Soft, loud, staccato, legato, and accent placement each get equal time."
+    },
+    {
+        "slug":  "ornament-the-melody",
+        "id":  "more0049",
+        "descEs":  "Parte de una melodía simple. Añade apoyaturas, grupetos y vecinos paso a paso sin perder las alturas originales.",
+        "nameEn":  "Ornament the melody",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "es":  "Matices sonoros",
+                          "en":  "Sonic Nuances"
+                      },
+                      {
+                          "href":  "./approach-notes.html",
+                          "es":  "Notas de aproximación",
+                          "en":  "Approach Notes"
+                      },
+                      {
+                          "href":  "./motivic-development.html",
+                          "es":  "Desarrollo motívico",
+                          "en":  "Motivic Development"
+                      }
+                  ],
+        "bars":  8,
+        "nameEs":  "Ornamenta la melodía",
+        "lines":  [
+                      "Melody only, no ornaments",
+                      "Add one grace note before each long note",
+                      "Add upper neighbor turns",
+                      "Add lower neighbor turns",
+                      "Add mordents on downbeats",
+                      "Add trills on held notes",
+                      "Ornament phrase starts only",
+                      "Ornament phrase ends only",
+                      "Double the ornaments",
+                      "Strip back to plain melody again",
+                      "Same melody, jazz ornaments",
+                      "Same melody, classical ornaments"
+                  ],
+        "descEn":  "Start from a plain melody. Add grace notes, turns, and neighbor ornaments step by step without losing the original pitches."
+    }
 ]

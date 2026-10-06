@@ -56,6 +56,7 @@ function Book-Links($books, $lang) {
 
 function Build-Page([string]$lang) {
   $isEs = $lang -eq 'es'
+  $n = $exercises.Count
   $css = if ($isEs) { '../resources/css/guide.css' } else { './resources/css/guide.css' }
   $icons = if ($isEs) { '../resources/icons/' } else { './resources/icons/' }
   $js = if ($isEs) { '../resources/js/lang-link.js' } else { './resources/js/lang-link.js' }
@@ -63,10 +64,11 @@ function Build-Page([string]$lang) {
   $chA = [char]0x00E1; $chE = [char]0x00E9; $chI = [char]0x00ED; $chO = [char]0x00F3; $chU = [char]0x00FA; $chN = [char]0x00F1
   if ($isEs) {
     $title = "M${chA}s ejercicios para problemas habituales. eization."
-    $desc = "Treinta y un ejercicios extra para problemas habituales de estudiantes. Abre uno en eization. A${chN}adir o Vista previa lo deja en este dispositivo."
+    $desc = "$n ejercicios extra para problemas habituales de estudiantes. Abre uno en eization. A${chN}adir o Vista previa lo deja en este dispositivo."
     $h1 = "M${chA}s ejercicios"
     $lead1 = "Lo que ya sabes es lo que m${chA}s suena. El resto espera. Estos ejercicios extra no est${chA}n en el men${chU} por defecto. Abre uno: eization pregunta A${chN}adir o Vista previa."
     $lead2 = "Cada ejemplo sale una vez, con el metr${chO}nomo. Luego cambia el orden. Los libros de abajo siguen siendo los libros: practican una l${chI}nea que ya tienes, no la reimprimen."
+    $lead3 = "Si armaste un ejercicio que cubre un hueco, abre eization, ve a Acerca de y m${chA}ndalo. Los fuertes pueden entrar en esta lista."
     $openLabel = 'Abrir en eization'
     $navLabel = "En esta p${chA}gina"
     $related = 'Relacionado'
@@ -79,6 +81,7 @@ function Build-Page([string]$lang) {
     $esHref = './more.html'
     $enOn = ''
     $esOn = ' class="is-on" aria-current="page"'
+    $homeHref = './'
     $foot = @"
         <div class="opens">
             <a class="open" href="./practice.html">C${chO}mo practicar</a>
@@ -88,10 +91,11 @@ function Build-Page([string]$lang) {
 "@
   } else {
     $title = 'More exercises for common practice problems. eization.'
-    $desc = 'Thirty-one extra exercises for common student practice problems. Open one in eization. Add or Preview keeps it on this device.'
+    $desc = "$n extra exercises for common student practice problems. Open one in eization. Add or Preview keeps it on this device."
     $h1 = 'More exercises'
     $lead1 = 'What you already know gets played the most. The rest waits. These extra exercises are not in the default menu. Open one: eization asks Add or Preview.'
     $lead2 = 'Each example comes up once, with the metronome. Then the order changes. The books linked below stay the books: practice a line you already have; they do not reprint it.'
+    $lead3 = 'Built an exercise that fills a gap? Open eization, go to About, and send it. Strong ones can join this list.'
     $openLabel = 'Open in eization'
     $navLabel = 'On this page'
     $related = 'Related'
@@ -104,6 +108,7 @@ function Build-Page([string]$lang) {
     $esHref = './es/more.html'
     $enOn = ' class="is-on" aria-current="page"'
     $esOn = ''
+    $homeHref = './'
     $foot = @'
         <div class="opens">
             <a class="open" href="./practice.html">How to practice</a>
@@ -222,6 +227,7 @@ function Build-Page([string]$lang) {
   [void]$sb.AppendLine('        <h1>' + (Html-Escape $h1) + '</h1>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead1) + '</p>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead2) + '</p>')
+  [void]$sb.AppendLine('        <p>' + (Html-Escape $lead3) + ' <a href="' + $homeHref + '">' + $(if ($isEs) { 'Abrir eization' } else { 'Open eization' }) + '</a>.</p>')
   [void]$sb.Append($navSb.ToString())
   [void]$sb.Append($bodySb.ToString())
   [void]$sb.AppendLine($foot.TrimEnd())
