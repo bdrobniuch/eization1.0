@@ -2441,5 +2441,143 @@
                       "Bb/E · Bb7"
                   ],
         "descEn":  "The leftover pairs from the hexatonic sheet: mixed qualities and the Bb/E tritone pair on Bb7. Each listed combination gets a turn."
+    },
+    {
+        "id":  "more0055",
+        "slug":  "ust-chord-families",
+        "bars":  2,
+        "nameEn":  "Upper structures by chord family",
+        "nameEs":  "Estructuras superiores por familia de acorde",
+        "descEn":  "Upper structure triads for eight chord-scale families. One UST per turnâ€”including every option on Altered and both diminished soundsâ€”so a favorite II or V cannot hide the rest.",
+        "descEs":  "Tríadas de estructura superior en ocho familias acorde-escala. Una UST por turno, incluidas todas las opciones en Altered y en ambos sonidos disminuidos, para que un II o V favorito no esconda el resto.",
+        "books":  [
+                      {
+                          "href":  "./more.html#lst-chord-families",
+                          "es":  "Estructuras inferiores por familia de acorde",
+                          "en":  "Lower structures by chord family"
+                      },
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "es":  "Tríades de estructura superior",
+                          "en":  "Upper structure triads"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "es":  "Acordes",
+                          "en":  "Chords"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#levine-theory",
+                          "es":  "The Jazz Theory Book",
+                          "en":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "IIMaj 9 #11 13 · Maj7 Lydian",
+                      "#IVÂ° #11 13 · Maj7 Lydian",
+                      "V 9 · Maj7 Lydian",
+                      "VI- 13 · Maj7 Lydian",
+                      "VII- 9 #11 · Maj7 Lydian",
+                      "V- 9 · Dom7 Mixolydian",
+                      "VI- 13 · Dom7 Mixolydian",
+                      "II- 9 11 13 · Dom7sus4 Mixolydian",
+                      "IV 11 13 · Dom7sus4 Mixolydian",
+                      "bVII 9 11 · Dom7sus4 Mixolydian",
+                      "II- 9 11 13 · Min7 Dorian",
+                      "IV 11 13 · Min7 Dorian",
+                      "V- 9 · Min7 Dorian",
+                      "VIÂ° 13 · Min7 Dorian",
+                      "bVII 9 11 · Min7 Dorian",
+                      "IIÂ° 9 11 b13 · Min7b5 Locrian nat9",
+                      "II+ 9 · Min7b5 Locrian nat9",
+                      "IV- 11 b13 · Min7b5 Locrian nat9",
+                      "bV+ 9 · Min7b5 Locrian nat9",
+                      "bVI b13 · Min7b5 Locrian nat9",
+                      "bVII 9 11 · Min7b5 Locrian nat9",
+                      "bVII+ 9 · Min7b5 Locrian nat9",
+                      "II 9 · Dim7 WH dim",
+                      "II- 9 11 · Dim7 WH dim",
+                      "IIÂ° 9 11 b13 · Dim7 WH dim",
+                      "IV 11 · Dim7 WH dim",
+                      "IV- 11 b13 · Dim7 WH dim",
+                      "IVÂ° 11 b13 maj7 · Dim7 WH dim",
+                      "bVI b13 · Dim7 WH dim",
+                      "bVI- b13 maj7 · Dim7 WH dim",
+                      "bVIÂ° b13 maj7 9 · Dim7 WH dim",
+                      "VII maj7 · Dim7 WH dim",
+                      "VII- maj7 9 · Dim7 WH dim",
+                      "VIIÂ° maj7 9 11 · Dim7 WH dim",
+                      "I+ b13 · Dom7 Altered",
+                      "IÂ° #9 #11 · Dom7 Altered",
+                      "bII- b9 b13 · Dom7 Altered",
+                      "bIII- #9 #11 · Dom7 Altered",
+                      "III+ b13 · Dom7 Altered",
+                      "bV b9 #11 · Dom7 Altered",
+                      "bVI #9 b13 · Dom7 Altered",
+                      "bVI+ b13 · Dom7 Altered",
+                      "bVIIÂ° b9 · Dom7 Altered",
+                      "I- #9 · Dom7 HW dim",
+                      "IÂ° #9 #11 · Dom7 HW dim",
+                      "bIIÂ° b9 · Dom7 HW dim",
+                      "bIII #9 · Dom7 HW dim",
+                      "bIII- #9 #11 · Dom7 HW dim",
+                      "bIIIÂ° #9 #11 13 · Dom7 HW dim",
+                      "#IV b9 #11 · Dom7 HW dim",
+                      "#IV- b9 #11 13 · Dom7 HW dim",
+                      "#IVÂ° #11 13 · Dom7 HW dim",
+                      "VÂ° b9 · Dom7 HW dim",
+                      "VI b9 13 · Dom7 HW dim",
+                      "VI- 13 · Dom7 HW dim",
+                      "VIÂ° #9 13 · Dom7 HW dim",
+                      "bVIIÂ° b9 · Dom7 HW dim"
+                  ]
+    },
+    {
+        "id":  "more0056",
+        "slug":  "lst-chord-families",
+        "bars":  2,
+        "nameEn":  "Lower structures by chord family",
+        "nameEs":  "Estructuras inferiores por familia de acorde",
+        "descEn":  "Lower structure triads for the chord-scale families that have them. One LST per turn. Altered has noneâ€”use the UST exercise for that sound.",
+        "descEs":  "Tríadas de estructura inferior en las familias acorde-escala que las tienen. Una LST por turno. Altered no tiene ninguna: usa el ejercicio de UST para ese sonido.",
+        "books":  [
+                      {
+                          "href":  "./more.html#ust-chord-families",
+                          "es":  "Estructuras superiores por familia de acorde",
+                          "en":  "Upper structures by chord family"
+                      },
+                      {
+                          "href":  "./more.html#lower-structure-triads",
+                          "es":  "Tríades de estructura inferior",
+                          "en":  "Lower structure triads"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "es":  "Acordes",
+                          "en":  "Chords"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#levine-theory",
+                          "es":  "The Jazz Theory Book",
+                          "en":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "I · Maj7 Lydian",
+                      "III- · Maj7 Lydian",
+                      "I · Dom7 Mixolydian",
+                      "IIIÂ° · Dom7 Mixolydian",
+                      "Isus4 · Dom7sus4 Mixolydian",
+                      "I- · Min7 Dorian",
+                      "bIII · Min7 Dorian",
+                      "IÂ° · Min7b5 Locrian nat9",
+                      "bIII- · Min7b5 Locrian nat9",
+                      "IÂ° · Dim7 WH dim",
+                      "bIIIÂ° · Dim7 WH dim",
+                      "bVÂ° · Dim7 WH dim",
+                      "bbVIIÂ° · Dim7 WH dim",
+                      "I · Dom7 HW dim",
+                      "IIIÂ° · Dom7 HW dim"
+                  ]
     }
 ]
