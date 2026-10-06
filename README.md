@@ -12,7 +12,7 @@ GitHub Pages, branch of your choice, folder `/` (the repo root). Keep `.nojekyll
 
 The public address used for search and link previews is `https://eization.com/`. `CNAME` keeps that host on GitHub Pages. If that address changes, update these together:
 
-- the canonical link, Open Graph URL, and image URLs in `index.html`, `practice.html`, the book pages, and each exercise page
+- the canonical link, Open Graph URL, and image URLs in `index.html`, `practice.html`, the book pages, the teacher pages under `for-teachers/`, and each exercise page
 - `robots.txt`
 - `sitemap.xml`
 - `CNAME`
@@ -38,10 +38,11 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/css/style.css` | Practice screen layout |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
+| `for-teachers.html` | Hub for teacher articles. Pieces live under `for-teachers/` and `es/for-teachers/` |
 | `more.html` | Extra exercises as share links. Open one to Add or Preview in eization. Not in the default menu. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
 | `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html`, `free-play.html` | How to practice that kind of line with the metronome |
-| `resources/css/guide.css` | Layout for `practice.html` and the exercise pages |
+| `resources/css/guide.css` | Layout for `practice.html`, exercise pages, and teacher articles |
 
 ## Adding an exercise
 
