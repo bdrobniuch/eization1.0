@@ -106,11 +106,11 @@ function exerciseMenu(w) {
   check("address opens rhythms", w.exerciseIdFromQuery("?exercise=limbs") === "ex:limbs");
   check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");
   check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
-  check("practice page is linked from About", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
-  check("books page is linked from About", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
-  check("more page is linked from About", !!w.document.querySelector("#aboutNav a[href='./more.html']"));
-  check("restore defaults lives in About", !!w.document.querySelector("#about #restoreDefaults"));
-  check("download all lives in About", !!w.document.querySelector("#about #downloadAllExercises"));
+  check("practice page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
+  check("books page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
+  check("more page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./more.html']"));
+  check("restore defaults lives in Menu", !!w.document.querySelector("#about #restoreDefaults"));
+  check("download all lives in Menu", !!w.document.querySelector("#about #downloadAllExercises"));
   var packed = w.packDeskExercises();
   check("desk backup packs exercises", !!(packed && packed.kind === "exercises" && packed.exercises.length === w.menuOrder.length));
   var round = w.parseDeskExercisesBackup(JSON.stringify(packed));

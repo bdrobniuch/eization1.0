@@ -31,7 +31,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/picker.js` | The current example, the reel, and the face size |
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
 | `resources/js/editor.js` | Edit exercises. `edit.js` does not load |
-| `resources/js/about.js` | About sheet. Payment and profile strings are sealed in this file |
+| `resources/js/about.js` | Menu sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
 | `resources/js/awake.js` | Keeps the practice display on while that page is in front. Screen wake lock, then a muted looping clip with a silent audio track if the device refuses the lock |
@@ -58,7 +58,7 @@ Share in Edit copies a link to the open exercise. The link is a `#s=` hash on th
 
 Ask AI opens the open exercise in ChatGPT, Claude, or Gemini. The chat coaches the exercise. When it is ready, the reply is a block of examples to paste into the box. The site does not call a model.
 
-On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download and Upload copy the open exercise to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. About → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
+On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download and Upload copy the open exercise to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. Menu → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 
 ## Saved on this device
 
@@ -66,11 +66,11 @@ On first visit the catalog is copied into `eization-desk.exercises`. The menu re
 
 The practice screen keeps the display on while that page is in front, so a phone or tablet can sit on the stand while you play. It asks for a screen wake lock as soon as the page is open, again after the first tap, Play, or Next, and again when you come back to it. If the device refuses the lock (older iOS, some Home Screen installs, Low Power Mode), a muted looping video with a silent audio track plays instead. That clip is not the metronome, and the hello tour still must not start the metronome. Switching apps lets the device sleep. Low Power Mode can still turn the screen off.
 
-`eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in About) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
+`eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in Menu) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
 
 ## Analytics
 
-The practice screen already loads the Google tag. A few clicks also send an event: tempo start and stop, the exercise you choose, one Next per exercise each visit, edit, share, the intro, language, and About. A parameter is a seed id (`custom` when the exercise was made on this device), `model`, `lang`, `link`, or `topic`. The example on screen, a custom title, the email, and payment details stay out. `?smoke=1` sends no events. In the Google Analytics property, register `exercise_id`, `model`, `lang`, `link`, and `topic` as event-scoped custom dimensions.
+The practice screen already loads the Google tag. A few clicks also send an event: tempo start and stop, the exercise you choose, one Next per exercise each visit, edit, share, the intro, language, and Menu. A parameter is a seed id (`custom` when the exercise was made on this device), `model`, `lang`, `link`, or `topic`. The example on screen, a custom title, the email, and payment details stay out. `?smoke=1` sends no events. In the Google Analytics property, register `exercise_id`, `model`, `lang`, `link`, and `topic` as event-scoped custom dimensions.
 
 Another open tab keeps its own screen. Update asks before it replaces an exercise whose lines changed in that other tab. A second Update replaces them. If the other tab removes the exercise on screen, this tab switches to the one now stored. Tempo and meter from the other tab stay there until this tab is reloaded.
 
