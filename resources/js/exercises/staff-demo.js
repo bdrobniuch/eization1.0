@@ -24,6 +24,7 @@ registerExercise({
     "^Eb°7 [Eb3 Gb3 A3 Db4]",
     "^A#+7 [A#3 C#4 E#4 G#4]",
     "[C4 D4 E4]_cluster",
+    "[C4h E4h G4h]_C",
     "@treble @key=F Bb3_1 C4_2 D4_3",
     "@key=Db @treble Db4 Eb4 F4 Gb4",
     "@key=Am A4 B4 C5 D5",
@@ -35,6 +36,8 @@ registerExercise({
     "C4e D4e E4e F4e",
     "{C4e D4e E4e F4e} G4",
     "C4e D4",
+    "C4s D4s E4s F4s",
+    "{C4e D4s E4s F4e}",
     "C4 re D4 rs E4"
   ]
 });

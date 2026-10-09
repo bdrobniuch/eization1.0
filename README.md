@@ -65,15 +65,15 @@ An example line that parses as music notation renders as an SVG staff instead of
   | D#m | F# | Abm | Cb |
   | A#m | C# | | |
 
-- Chord symbol above: optional `^…` before the first note (`^Bb7 …`), or `_Name` on a stack (`[F3 A3 C4 E4]_Dm9`)
+- Chord symbol above: only a leading `^…` before the first note (`^Bb7 …`), or `_Name` on a stack (`[F3 A3 C4 E4]_Dm9`). Mid-line `^` is not supported
 - Pitches: `C4`, `C#4`, `Db4`, `Cn4`, doubles `C##4` / `Cx4` / `Ebb4` (letter, optional accidental, octave). Optional duration after the octave: `w` whole, `h` half, `q` quarter (default), `e` eighth, `s` sixteenth — e.g. `C4`, `C4h`, `C4e`, `C4s`. Optional `!` forces the accidental even when the key already implies it (`F#4!`). Degree labels under a note use `_` (`Bb3_1`, `Ab4_b7`)
 - Rests: `r` / `rq` quarter (default), `rh` half, `rw` whole, `re` eighth, `rs` sixteenth — each advances one note slot
-- Beams: consecutive `e`/`s` notes auto-beam within each Setup beat; a lone short note gets a flag. `{C4e D4e E4e F4e}` forces one beam group (e/s pitches only; not re-split by meter). Stacks `[…]` stay chords, not beams
-- Stacked chord: `[C4 E4 G4]` or `[F3 A3 C4 E4]_Dm9`. Prefer the same duration on every pitch in a stack (the column uses the first pitch’s duration). Space-separated events left to right; `|` draws a barline
-- Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat size also drives auto-beaming
+- Beams: consecutive `e`/`s` notes auto-beam within each Setup beat group; a lone short note gets a flag. In **6/8**, **9/8**, and **12/8** the group is a dotted quarter (three eighths), matching the metronome pulse. `{C4e D4e E4e F4e}` forces one beam group (e/s pitches only; not re-split by meter). Stacks `[…]` stay chords, not beams
+- Stacked chord: `[C4 E4 G4]` or `[F3 A3 C4 E4]_Dm9`. Prefer the same duration on every pitch in a stack (the column uses the first pitch’s duration for the stem). Nested `[` is rejected. Space-separated events left to right; `|` draws a barline
+- Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
 - Staff ink (clefs, accidentals, noteheads, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
-`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. Temporary seed: `staffDemo` (Restore defaults to pick it up on an existing desk).
+`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. Seed exercise: `staffDemo` (in the menu; Restore defaults re-seeds an existing desk).
 
 ## Adding an exercise
 

@@ -355,12 +355,48 @@ function staffLooksNotationIsh(tokens) {
       t.charAt(0) === "{" ||
       t === "|" ||
       /^r([whqes]?)$/i.test(t) ||
-      /^[A-Ga-g]/.test(t)
+      /* Pitch-like (letter + octave), not prose like "Major". */
+      /^[A-Ga-g](##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?\d/.test(t)
     ) {
       return true;
     }
   }
   return false;
+}
+
+/*
+ * Horizontal offsets for seconds in a stack. Stem-up: first displacement goes left
+ * (away from the stem on the right); stem-down: first goes right.
+ */
+function staffStackSecondOffsets(pitches, stemUp, secondShift) {
+  var offsets = [];
+  var prevStep = null;
+  var side = stemUp ? -1 : 1;
+  var i;
+  for (i = 0; i < pitches.length; i++) {
+    var st = pitches[i].step;
+    if (prevStep !== null && st - prevStep <= 1) {
+      offsets[i] = side * secondShift;
+      side = -side;
+    } else {
+      offsets[i] = 0;
+      side = stemUp ? -1 : 1;
+    }
+    prevStep = st;
+  }
+  return offsets;
+}
+
+/* Auto-beam group length in quarter-note units (compound 6/8, 9/8, 12/8 → dotted quarter). */
+function staffBeamGroupQuarters(meter) {
+  var unitQ = 4 / meter.bottom;
+  if (!unitQ || unitQ <= 0) {
+    return 1;
+  }
+  if (meter.bottom === 8 && meter.top % 3 === 0) {
+    return 3 * unitQ;
+  }
+  return unitQ;
 }
 
 function staffParseBeamInner(inner) {
@@ -471,7 +507,7 @@ function staffWrittenAccidental(pitch, keyAlts) {
       return "n";
     }
     if (written) {
-      return written === "x" ? "##" : written;
+      return written;
     }
     if (show) {
       return show;
@@ -590,9 +626,15 @@ function parseMusicNotation(source) {
       continue;
     }
     if (tok.charAt(0) === "[") {
+      if (tok.indexOf("[", 1) >= 0) {
+        return fail("nested stack brackets", tok);
+      }
       var buf = tok;
       while (buf.indexOf("]") < 0 && i + 1 < tokens.length) {
         i++;
+        if (tokens[i].indexOf("[") >= 0) {
+          return fail("nested stack brackets", tokens[i]);
+        }
         buf += " " + tokens[i];
       }
       var close = buf.indexOf("]");
@@ -911,6 +953,24 @@ function renderMusicStaff(source, role) {
    * Only the excess beyond the normal slot gap is inserted — not the full width —
    * so spacing tracks the ink actually used.
    */
+  function staffEventStemUpGuess(ev) {
+    if (ev.type === "note") {
+      return staffPitchY(ev.pitch.step, ast.clef, staffTop, lineGap) >= staffTop + 2 * lineGap;
+    }
+    if (ev.type !== "stack" || !ev.pitches.length) {
+      return true;
+    }
+    var sum = 0;
+    var pi;
+    for (pi = 0; pi < ev.pitches.length; pi++) {
+      sum += ev.pitches[pi].step;
+    }
+    return (
+      staffPitchY(sum / ev.pitches.length, ast.clef, staffTop, lineGap) >=
+      staffTop + 2 * lineGap
+    );
+  }
+
   function staffEventAccOverhang(ev) {
     var accGap = lineGap * 0.35;
     if (ev.type === "note") {
@@ -928,22 +988,13 @@ function renderMusicStaff(source, role) {
       return 0;
     }
     var cols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);
-    var prevSt = null;
-    var side = 1;
-    var offs = [];
-    var pi;
-    for (pi = 0; pi < ev.pitches.length; pi++) {
-      var pst = ev.pitches[pi].step;
-      if (prevSt !== null && pst - prevSt <= 1) {
-        offs[pi] = side * secondShift;
-        side = -side;
-      } else {
-        offs[pi] = 0;
-        side = 1;
-      }
-      prevSt = pst;
-    }
+    var offs = staffStackSecondOffsets(
+      ev.pitches,
+      staffEventStemUpGuess(ev),
+      secondShift
+    );
     var need = 0;
+    var pi;
     for (pi = 0; pi < ev.pitches.length; pi++) {
       if (!cols[pi].acc) {
         continue;
@@ -967,12 +1018,11 @@ function renderMusicStaff(source, role) {
     if (!overhang) {
       return 0;
     }
-    /* First note: meter/key padding already clears the signature. */
-    if (isFirst) {
-      return 0;
-    }
-    /* Free room left of this center before the previous head/stem. */
-    var freeLeft = slot - noteHeadRx;
+    /*
+     * First column can use part of the post-meter pad; later columns only the
+     * gap left by the previous note's slot.
+     */
+    var freeLeft = isFirst ? slot / 2 + lineGap * 1.2 : slot - noteHeadRx;
     var clear = lineGap * 0.35;
     return Math.max(0, overhang + clear - freeLeft);
   }
@@ -1114,10 +1164,7 @@ function renderMusicStaff(source, role) {
       }
     }
   }
-  var beatQ = 4 / meter.bottom;
-  if (!beatQ || beatQ <= 0) {
-    beatQ = 1;
-  }
+  var beatQ = staffBeamGroupQuarters(meter);
   var posQ = 0;
   var run = [];
   var runBeat = -1;
@@ -1297,21 +1344,9 @@ function renderMusicStaff(source, role) {
         svg.appendChild(lt);
       }
     } else if (ev.type === "stack") {
-      var offsets = [];
-      var prevStep = null;
-      var side = 1;
       var stackDur = ev.duration || ev.pitches[0].duration || "q";
-      for (p = 0; p < ev.pitches.length; p++) {
-        var st = ev.pitches[p].step;
-        if (prevStep !== null && st - prevStep <= 1) {
-          offsets[p] = side * secondShift;
-          side = -side;
-        } else {
-          offsets[p] = 0;
-          side = 1;
-        }
-        prevStep = st;
-      }
+      var stemUpGuess = staffEventStemUpGuess(ev);
+      var offsets = staffStackSecondOffsets(ev.pitches, stemUpGuess, secondShift);
       var accCols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);
       var stemYs = [];
       for (p = 0; p < ev.pitches.length; p++) {
@@ -1328,6 +1363,7 @@ function renderMusicStaff(source, role) {
         var hiY = Math.min.apply(null, stemYs);
         var loY = Math.max.apply(null, stemYs);
         var stemUp = (hiY + loY) / 2 >= staffMidY;
+        /* Stem through the main column; cover all head centers vertically. */
         if (stemUp) {
           svg.appendChild(
             staffSvgEl("line", {
