@@ -29,7 +29,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/registry.js` | `registerExercise` and `menuOrder` (the seed catalog) |
 | `resources/js/exercises/` | One seed exercise per file |
 | `resources/js/picker.js` | The current example, the reel, and the face size |
-| `resources/js/staff-glyphs.js` | Bravura/SMuFL SVG path outlines (clefs, accidentals, noteheads, rests, time); SIL OFL |
+| `resources/js/staff-glyphs.js` | Bravura/SMuFL SVG path outlines (clefs, accidentals, noteheads, flags, rests, time); SIL OFL |
 | `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, durations, rests, labels). Time signature follows Setup meter |
 
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
@@ -66,11 +66,12 @@ An example line that parses as music notation renders as an SVG staff instead of
   | A#m | C# | | |
 
 - Chord symbol above: optional `^…` before the first note (`^Bb7 …`), or `_Name` on a stack (`[F3 A3 C4 E4]_Dm9`)
-- Pitches: `C4`, `C#4`, `Db4`, `Cn4`, doubles `C##4` / `Cx4` / `Ebb4` (letter, optional accidental, octave). Optional duration after the octave: `w` whole, `h` half, `q` quarter (default `q`) — e.g. `C4`, `C4h`, `C4w`. Optional `!` forces the accidental even when the key already implies it (`F#4!`). Degree labels under a note use `_` (`Bb3_1`, `Ab4_b7`)
-- Rests: `r` / `rq` quarter (default), `rh` half, `rw` whole — each advances one note slot
+- Pitches: `C4`, `C#4`, `Db4`, `Cn4`, doubles `C##4` / `Cx4` / `Ebb4` (letter, optional accidental, octave). Optional duration after the octave: `w` whole, `h` half, `q` quarter (default), `e` eighth, `s` sixteenth — e.g. `C4`, `C4h`, `C4e`, `C4s`. Optional `!` forces the accidental even when the key already implies it (`F#4!`). Degree labels under a note use `_` (`Bb3_1`, `Ab4_b7`)
+- Rests: `r` / `rq` quarter (default), `rh` half, `rw` whole, `re` eighth, `rs` sixteenth — each advances one note slot
+- Beams: consecutive `e`/`s` notes auto-beam within each Setup beat; a lone short note gets a flag. `{C4e D4e E4e F4e}` forces one beam group (e/s pitches only; not re-split by meter). Stacks `[…]` stay chords, not beams
 - Stacked chord: `[C4 E4 G4]` or `[F3 A3 C4 E4]_Dm9`. Prefer the same duration on every pitch in a stack (the column uses the first pitch’s duration). Space-separated events left to right; `|` draws a barline
-- Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits
-- Staff ink (clefs, accidentals, noteheads, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters and halves get a stem; wholes are the whole-notehead glyph only. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
+- Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat size also drives auto-beaming
+- Staff ink (clefs, accidentals, noteheads, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
 `staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. Temporary seed: `staffDemo` (Restore defaults to pick it up on an existing desk).
 

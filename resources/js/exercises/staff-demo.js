@@ -31,6 +31,10 @@ registerExercise({
     "C4 r D4 E4",
     "C4w D4h E4 F4",
     "@key=G F#4! G4 A4",
-    "Cut time: set Setup to 2/2 for ₵"
+    "Cut time: set Setup to 2/2 for ₵",
+    "C4e D4e E4e F4e",
+    "{C4e D4e E4e F4e} G4",
+    "C4e D4",
+    "C4 re D4 rs E4"
   ]
 });
