@@ -25,6 +25,12 @@ registerExercise({
     "^A#+7 [A#3 C#4 E#4 G#4]",
     "[C4 D4 E4]_cluster",
     "@treble @key=F Bb3_1 C4_2 D4_3",
-    "@key=Db @treble Db4 Eb4 F4 Gb4"
+    "@key=Db @treble Db4 Eb4 F4 Gb4",
+    "@key=Am A4 B4 C5 D5",
+    "Fx4 Ebb4",
+    "C4 r D4 E4",
+    "C4w D4h E4 F4",
+    "@key=G F#4! G4 A4",
+    "Cut time: set Setup to 2/2 for ₵"
   ]
 });

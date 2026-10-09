@@ -19,6 +19,25 @@ var STAFF_MAJOR_KEYS = {
   Cb: { kind: "flat", count: 7 }
 };
 
+/* Minor (and similar) names → relative major for the key signature only. */
+var STAFF_KEY_ALIASES = {
+  Am: "C",
+  Em: "G",
+  Bm: "D",
+  "F#m": "A",
+  "C#m": "E",
+  "G#m": "B",
+  "D#m": "F#",
+  "A#m": "C#",
+  Dm: "F",
+  Gm: "Bb",
+  Cm: "Eb",
+  Fm: "Ab",
+  Bbm: "Db",
+  Ebm: "Gb",
+  Abm: "Cb"
+};
+
 /* Treble: sharp/flat staff degrees (letter+octave) for key signature glyphs */
 var STAFF_KEY_POS_TREBLE = {
   sharp: ["F5", "C5", "G5", "D5", "A4", "E5", "B4"],
@@ -42,6 +61,12 @@ function staffAccKind(kind) {
   if (kind === "sharp" || kind === "#") {
     return "#";
   }
+  if (kind === "bb" || kind === "doubleflat") {
+    return "bb";
+  }
+  if (kind === "##" || kind === "x" || kind === "doublesharp") {
+    return "##";
+  }
   if (kind === "n" || kind === "natural") {
     return "n";
   }
@@ -49,6 +74,12 @@ function staffAccKind(kind) {
 }
 
 function staffAccidentalGlyphName(acc) {
+  if (acc === "##") {
+    return "accidentalDoubleSharp";
+  }
+  if (acc === "bb") {
+    return "accidentalDoubleFlat";
+  }
   if (acc === "#") {
     return "accidentalSharp";
   }
@@ -59,6 +90,42 @@ function staffAccidentalGlyphName(acc) {
     return "accidentalNatural";
   }
   return "";
+}
+
+function staffPitchAlteration(written) {
+  if (written === "##") {
+    return 2;
+  }
+  if (written === "bb") {
+    return -2;
+  }
+  if (written === "#") {
+    return 1;
+  }
+  if (written === "b") {
+    return -1;
+  }
+  return 0;
+}
+
+function staffDurationGlyph(dur) {
+  if (dur === "w") {
+    return "noteheadWhole";
+  }
+  if (dur === "h") {
+    return "noteheadHalf";
+  }
+  return "noteheadBlack";
+}
+
+function staffRestGlyph(dur) {
+  if (dur === "w") {
+    return "restWhole";
+  }
+  if (dur === "h") {
+    return "restHalf";
+  }
+  return "restQuarter";
 }
 
 /* Place a SMuFL path glyph; (x,y) is the SMuFL origin. Returns advance width in px. */
@@ -149,6 +216,12 @@ function staffNormAccidental(raw) {
   if (!raw) {
     return "";
   }
+  if (raw === "##" || raw === "x" || raw === "X" || raw === "\uD834\uDD2A") {
+    return "##";
+  }
+  if (raw === "bb" || raw === "\uD834\uDD2B") {
+    return "bb";
+  }
   if (raw === "#" || raw === "\u266F") {
     return "#";
   }
@@ -170,8 +243,17 @@ function staffFormatChordText(raw) {
   s = s.replace(/\u25B37/g, "\u22067");
   s = s.replace(/dim7/gi, "\u00B07");
   s = s.replace(/ø7/gi, "\u00F87");
+  s = s.replace(/##/g, "\uD834\uDD2A");
   s = s.replace(/#/g, "\u266F");
-  s = s.replace(/b(?=[0-9A-Za-z\u2206\u00B0\u00F8+\-]|$)/g, "\u266D");
+  /* ♭ / 𝄫 only as pitch accidentals after A–G (Bb, Ebb, Eb7), not inside words. */
+  s = s.replace(
+    /([A-Ga-g])bb(?=[0-9A-Za-z\u2206\u00B0\u00F8+\-\u266F]|$)/g,
+    "$1\uD834\uDD2B"
+  );
+  s = s.replace(
+    /([A-Ga-g])b(?=[0-9A-Za-z\u2206\u00B0\u00F8+\-\u266F]|$)/g,
+    "$1\u266D"
+  );
   return s;
 }
 
@@ -194,23 +276,56 @@ function staffFormatDegreeLabel(raw) {
 }
 
 function staffParsePitchToken(token) {
-  var m = /^([A-Ga-g])([#bn\u266F\u266D\u266E]?)(\d)(?:_(.+))?$/.exec(token);
+  var m =
+    /^([A-Ga-g])(##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whq]?)(!?)(?:_(.+))?$/.exec(
+      token
+    );
   if (!m) {
     return null;
   }
   var letter = m[1].toUpperCase();
-  var acc = staffNormAccidental(m[2]);
+  var acc = staffNormAccidental(m[2] || "");
   var octave = parseInt(m[3], 10);
   if (isNaN(octave) || octave < 0 || octave > 9) {
     return null;
   }
+  var dur = m[4] || "q";
+  var force = m[5] === "!";
   return {
     letter: letter,
     accidental: acc,
     octave: octave,
-    label: m[4] || "",
+    duration: dur,
+    force: force,
+    label: m[6] || "",
     step: STAFF_LETTER_STEPS[letter] + octave * 7
   };
+}
+
+function staffParseRestToken(token) {
+  var m = /^r([whq]?)$/i.exec(token);
+  if (!m) {
+    return null;
+  }
+  return { type: "rest", duration: m[1] || "q" };
+}
+
+function staffLooksNotationIsh(tokens) {
+  var i;
+  for (i = 0; i < tokens.length; i++) {
+    var t = tokens[i];
+    if (
+      t.charAt(0) === "@" ||
+      t.charAt(0) === "^" ||
+      t.charAt(0) === "[" ||
+      t === "|" ||
+      /^r([whq]?)$/i.test(t) ||
+      /^[A-Ga-g]/.test(t)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function staffParseStackInner(inner) {
@@ -238,15 +353,19 @@ function staffParseKeyName(raw) {
   }
   var s = String(raw).trim();
   s = s.replace(/\u266F/g, "#").replace(/\u266D/g, "b");
-  var m = /^([A-Ga-g])([#b]?)$/.exec(s);
+  var m = /^([A-Ga-g])([#b]?)(m)?$/i.exec(s);
   if (!m) {
     return null;
   }
-  var name = m[1].toUpperCase() + (m[2] || "");
-  if (!STAFF_MAJOR_KEYS[name]) {
+  var name = m[1].toUpperCase() + (m[2] || "") + (m[3] ? "m" : "");
+  if (STAFF_KEY_ALIASES[name]) {
+    return STAFF_KEY_ALIASES[name];
+  }
+  var major = m[1].toUpperCase() + (m[2] || "");
+  if (!STAFF_MAJOR_KEYS[major]) {
     return null;
   }
-  return name;
+  return major;
 }
 
 function staffKeyAlterations(keyName) {
@@ -268,30 +387,38 @@ function staffKeyAlterations(keyName) {
 function staffWrittenAccidental(pitch, keyAlts) {
   var keyAlt = keyAlts[pitch.letter] || 0;
   var written = pitch.accidental;
-  var pitchAlt = 0;
-  if (written === "#") {
-    pitchAlt = 1;
-  } else if (written === "b") {
-    pitchAlt = -1;
-  } else {
-    pitchAlt = 0;
-  }
+  var pitchAlt = staffPitchAlteration(written);
+  var show;
   if (written === "n") {
+    show = "n";
+  } else if (pitchAlt === keyAlt) {
+    show = "";
+  } else if (pitchAlt === 0) {
+    show = "n";
+  } else if (pitchAlt === 2) {
+    show = "##";
+  } else if (pitchAlt === -2) {
+    show = "bb";
+  } else if (pitchAlt === 1) {
+    show = "#";
+  } else if (pitchAlt === -1) {
+    show = "b";
+  } else {
+    show = "";
+  }
+  if (pitch.force) {
+    if (written === "n" || (written === "" && pitchAlt === 0)) {
+      return "n";
+    }
+    if (written) {
+      return written === "x" ? "##" : written;
+    }
+    if (show) {
+      return show;
+    }
     return "n";
   }
-  if (pitchAlt === keyAlt) {
-    return "";
-  }
-  if (pitchAlt === 0) {
-    return "n";
-  }
-  if (pitchAlt === 1) {
-    return "#";
-  }
-  if (pitchAlt === -1) {
-    return "b";
-  }
-  return "";
+  return show;
 }
 
 function parseMusicNotation(source) {
@@ -309,38 +436,67 @@ function parseMusicNotation(source) {
   if (!tokens.length) {
     return null;
   }
+  var notationIsh = staffLooksNotationIsh(tokens);
+  function fail(reason, tok) {
+    if (notationIsh && typeof console !== "undefined" && console.warn) {
+      console.warn(
+        "[staff] parse failed:",
+        reason,
+        tok ? "(" + tok + ")" : "",
+        "—",
+        raw
+      );
+    }
+    return null;
+  }
+
   var i = 0;
   var clef = "treble";
   var keyName = "C";
   var chordSymbol = "";
 
-  if (tokens[i] === "@treble" || tokens[i] === "@bass") {
-    clef = tokens[i] === "@bass" ? "bass" : "treble";
-    i++;
-  }
-  if (i < tokens.length && tokens[i].indexOf("@key=") === 0) {
-    var keyRaw = tokens[i].slice(5);
-    var parsedKey = staffParseKeyName(keyRaw);
-    if (!parsedKey) {
-      return null;
+  while (i < tokens.length) {
+    var dir = tokens[i];
+    if (dir === "@treble" || dir === "@bass") {
+      clef = dir === "@bass" ? "bass" : "treble";
+      i++;
+      continue;
     }
-    keyName = parsedKey;
-    i++;
+    if (dir.indexOf("@key=") === 0) {
+      var parsedKey = staffParseKeyName(dir.slice(5));
+      if (!parsedKey) {
+        return fail("bad @key", dir);
+      }
+      keyName = parsedKey;
+      i++;
+      continue;
+    }
+    if (dir.charAt(0) === "@") {
+      return fail("unknown directive", dir);
+    }
+    break;
   }
   if (i < tokens.length && tokens[i].charAt(0) === "^") {
     chordSymbol = tokens[i].slice(1);
     if (!chordSymbol) {
-      return null;
+      return fail("empty chord symbol", tokens[i]);
     }
     i++;
   }
 
   var events = [];
-  var sawPitch = false;
+  var sawMusic = false;
   while (i < tokens.length) {
     var tok = tokens[i];
     if (tok === "|") {
       events.push({ type: "barline" });
+      i++;
+      continue;
+    }
+    var rest = staffParseRestToken(tok);
+    if (rest) {
+      sawMusic = true;
+      events.push(rest);
       i++;
       continue;
     }
@@ -352,42 +508,48 @@ function parseMusicNotation(source) {
       }
       var close = buf.indexOf("]");
       if (close < 0) {
-        return null;
+        return fail("unclosed stack", tok);
       }
       var after = buf.slice(close + 1);
       var label = "";
       if (after) {
         if (after.charAt(0) !== "_") {
-          return null;
+          return fail("stack label must use _", after);
         }
         label = after.slice(1);
       }
       var inner = buf.slice(1, close);
       var pitches = staffParseStackInner(inner);
       if (!pitches) {
-        return null;
+        return fail("bad stack pitches", inner);
       }
-      sawPitch = true;
-      events.push({ type: "stack", pitches: pitches, label: label });
+      sawMusic = true;
+      events.push({
+        type: "stack",
+        pitches: pitches,
+        label: label,
+        duration: pitches[0].duration || "q"
+      });
       i++;
       continue;
     }
     var pitch = staffParsePitchToken(tok);
     if (!pitch) {
-      return null;
+      return fail("bad token", tok);
     }
-    sawPitch = true;
+    sawMusic = true;
     events.push({
       type: "note",
       pitch: pitch,
-      label: pitch.label || ""
+      label: pitch.label || "",
+      duration: pitch.duration || "q"
     });
     pitch.label = "";
     i++;
   }
 
-  if (!sawPitch || !events.length) {
-    return null;
+  if (!sawMusic || !events.length) {
+    return fail("no notes or rests", null);
   }
 
   var ast = {
@@ -448,8 +610,8 @@ function renderMusicStaff(source, role) {
   role = role || "current";
 
   var lineGap = 12;
-  var noteHeadRx = 6.2;
-  var noteHeadRy = 4.4;
+  var noteHeadRx = staffGlyphAdvance("noteheadBlack", lineGap) / 2;
+  var noteHeadRy = lineGap * 0.45;
   var staffLeft = 10;
   var padR = 14;
   var padTop = 36;
@@ -514,7 +676,11 @@ function renderMusicStaff(source, role) {
   var noteEvents = [];
   var stackCount = 0;
   for (e = 0; e < ast.events.length; e++) {
-    if (ast.events[e].type === "note" || ast.events[e].type === "stack") {
+    if (
+      ast.events[e].type === "note" ||
+      ast.events[e].type === "stack" ||
+      ast.events[e].type === "rest"
+    ) {
       noteEvents.push(ast.events[e]);
       if (ast.events[e].type === "stack") {
         stackCount++;
@@ -593,20 +759,101 @@ function renderMusicStaff(source, role) {
     return w;
   }
   var timeCommon = meter.top === 4 && meter.bottom === 4;
+  var timeCut = meter.top === 2 && meter.bottom === 2;
   var timeTopNames = staffTimeDigitNames(meter.top);
   var timeBotNames = staffTimeDigitNames(meter.bottom);
   var timeSpaceProbe = lineGap;
   var timeW = timeCommon
     ? staffGlyphAdvance("timeSigCommon", timeSpaceProbe)
-    : Math.max(
-        staffTimeRowWidth(timeTopNames, timeSpaceProbe),
-        staffTimeRowWidth(timeBotNames, timeSpaceProbe)
-      );
+    : timeCut
+      ? staffGlyphAdvance("timeSigCutCommon", timeSpaceProbe)
+      : Math.max(
+          staffTimeRowWidth(timeTopNames, timeSpaceProbe),
+          staffTimeRowWidth(timeBotNames, timeSpaceProbe)
+        );
   var timeX = cursorX + timeW / 2;
   /* Extra room after meter so note accidentals / chord symbols clear the signature. */
   cursorX += timeW + lineGap * 2.4;
   var notesStartX = cursorX;
-  var notesWidth = Math.max(1, noteEvents.length) * slot;
+
+  /*
+   * Left overhang of accidentals from the note column center (0 if none).
+   * Only the excess beyond the normal slot gap is inserted — not the full width —
+   * so spacing tracks the ink actually used.
+   */
+  function staffEventAccOverhang(ev) {
+    var accGap = lineGap * 0.35;
+    if (ev.type === "note") {
+      var one = staffWrittenAccidental(ev.pitch, ast.keyAlts);
+      if (!one) {
+        return 0;
+      }
+      var oneAdv = staffGlyphAdvance(
+        staffAccidentalGlyphName(staffAccKind(one)) || "accidentalSharp",
+        lineGap
+      );
+      return noteHeadRx + accGap + oneAdv;
+    }
+    if (ev.type !== "stack") {
+      return 0;
+    }
+    var cols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);
+    var prevSt = null;
+    var side = 1;
+    var offs = [];
+    var pi;
+    for (pi = 0; pi < ev.pitches.length; pi++) {
+      var pst = ev.pitches[pi].step;
+      if (prevSt !== null && pst - prevSt <= 1) {
+        offs[pi] = side * (noteHeadRx * 1.55);
+        side = -side;
+      } else {
+        offs[pi] = 0;
+        side = 1;
+      }
+      prevSt = pst;
+    }
+    var need = 0;
+    for (pi = 0; pi < ev.pitches.length; pi++) {
+      if (!cols[pi].acc) {
+        continue;
+      }
+      var aAdv = staffGlyphAdvance(
+        staffAccidentalGlyphName(staffAccKind(cols[pi].acc)) || "accidentalSharp",
+        lineGap
+      );
+      var colPitch = aAdv + lineGap * 0.2;
+      var leftOfCx =
+        -offs[pi] + noteHeadRx + accGap + aAdv + cols[pi].col * colPitch;
+      if (leftOfCx > need) {
+        need = leftOfCx;
+      }
+    }
+    return need;
+  }
+
+  function staffEventAccInset(ev, isFirst) {
+    var overhang = staffEventAccOverhang(ev);
+    if (!overhang) {
+      return 0;
+    }
+    /* First note: meter/key padding already clears the signature. */
+    if (isFirst) {
+      return 0;
+    }
+    /* Free room left of this center before the previous head/stem. */
+    var freeLeft = slot - noteHeadRx;
+    var clear = lineGap * 0.35;
+    return Math.max(0, overhang + clear - freeLeft);
+  }
+
+  var accInsets = [];
+  var accInsetTotal = 0;
+  for (e = 0; e < noteEvents.length; e++) {
+    accInsets[e] = staffEventAccInset(noteEvents[e], e === 0);
+    accInsetTotal += accInsets[e];
+  }
+  var notesWidth = Math.max(1, noteEvents.length) * slot + accInsetTotal;
   var width = notesStartX + notesWidth + padR;
 
   svg.setAttribute("viewBox", "0 0 " + width + " " + contentH);
@@ -630,17 +877,12 @@ function renderMusicStaff(source, role) {
     );
   }
 
-  /* SMuFL: digits 2 spaces tall per band; common-time C centered on the middle line. */
+  /* SMuFL: digits 2 spaces tall per band; C / ₵ centered on the middle line. */
   var timeSpace = lineGap * 0.9;
-  if (timeCommon) {
-    var cAdv = staffGlyphAdvance("timeSigCommon", timeSpace);
-    staffPlaceGlyph(
-      svg,
-      "timeSigCommon",
-      timeX - cAdv / 2,
-      staffTop + 2 * lineGap,
-      timeSpace
-    );
+  if (timeCommon || timeCut) {
+    var cName = timeCut ? "timeSigCutCommon" : "timeSigCommon";
+    var cAdv = staffGlyphAdvance(cName, timeSpace);
+    staffPlaceGlyph(svg, cName, timeX - cAdv / 2, staffTop + 2 * lineGap, timeSpace);
   } else {
     function staffDrawTimeRow(names, bandMidY) {
       var rowW = staffTimeRowWidth(names, timeSpace);
@@ -678,6 +920,7 @@ function renderMusicStaff(source, role) {
   }
 
   var noteIndex = 0;
+  var noteCursorX = notesStartX;
 
   function drawLedger(x, step) {
     var bottomStep = staffBottomLineStep(ast.clef);
@@ -711,7 +954,41 @@ function renderMusicStaff(source, role) {
     }
   }
 
-  function drawNotehead(x, step, hollow, displayAcc, accCol) {
+  var staffMidY = staffTop + 2 * lineGap;
+  var stemLen = lineGap * 3.5;
+
+  function drawStem(x, ny, dur, forceUp) {
+    if (dur === "w") {
+      return;
+    }
+    var up = forceUp !== undefined ? forceUp : ny >= staffMidY;
+    var hx = noteHeadRx * 0.85;
+    if (up) {
+      svg.appendChild(
+        staffSvgEl("line", {
+          x1: String(x + hx),
+          y1: String(ny),
+          x2: String(x + hx),
+          y2: String(ny - stemLen),
+          stroke: "currentColor",
+          "stroke-width": "1.4"
+        })
+      );
+    } else {
+      svg.appendChild(
+        staffSvgEl("line", {
+          x1: String(x - hx),
+          y1: String(ny),
+          x2: String(x - hx),
+          y2: String(ny + stemLen),
+          stroke: "currentColor",
+          "stroke-width": "1.4"
+        })
+      );
+    }
+  }
+
+  function drawNotehead(x, step, dur, displayAcc, accCol, skipStem) {
     drawLedger(x, step);
     var ny = staffPitchY(step, ast.clef, staffTop, lineGap);
     if (displayAcc) {
@@ -729,23 +1006,19 @@ function renderMusicStaff(source, role) {
         displayAcc
       );
     }
-    var head = staffSvgEl("ellipse", {
-      cx: String(x),
-      cy: String(ny),
-      rx: String(noteHeadRx),
-      ry: String(noteHeadRy),
-      transform: "rotate(-20 " + x + " " + ny + ")",
-      fill: hollow ? "none" : "currentColor",
-      stroke: "currentColor",
-      "stroke-width": hollow ? "1.6" : "1"
-    });
-    svg.appendChild(head);
+    var headName = staffDurationGlyph(dur || "q");
+    var headAdv = staffGlyphAdvance(headName, lineGap);
+    staffPlaceGlyph(svg, headName, x - headAdv / 2, ny, lineGap);
+    if (!skipStem) {
+      drawStem(x, ny, dur || "q");
+    }
+    return ny;
   }
 
   for (e = 0; e < ast.events.length; e++) {
     ev = ast.events[e];
     if (ev.type === "barline") {
-      var bx = notesStartX + noteIndex * slot;
+      var bx = noteCursorX;
       svg.appendChild(staffSvgEl("line", {
         x1: String(bx),
         y1: String(staffTop),
@@ -757,10 +1030,21 @@ function renderMusicStaff(source, role) {
       continue;
     }
 
-    var cx = notesStartX + noteIndex * slot + slot / 2;
-    if (ev.type === "note") {
+    noteCursorX += accInsets[noteIndex] || 0;
+    var cx = noteCursorX + slot / 2;
+    if (ev.type === "rest") {
+      var restName = staffRestGlyph(ev.duration || "q");
+      var restAdv = staffGlyphAdvance(restName, lineGap);
+      var restY = staffMidY;
+      if (ev.duration === "w") {
+        restY = staffTop + lineGap;
+      } else if (ev.duration === "h") {
+        restY = staffTop + 2 * lineGap;
+      }
+      staffPlaceGlyph(svg, restName, cx - restAdv / 2, restY, lineGap);
+    } else if (ev.type === "note") {
       var disp = staffWrittenAccidental(ev.pitch, ast.keyAlts);
-      drawNotehead(cx, ev.pitch.step, false, disp, 0);
+      drawNotehead(cx, ev.pitch.step, ev.duration || "q", disp, 0, false);
       if (ev.label) {
         var lt = staffSvgEl("text", {
           x: String(cx),
@@ -776,6 +1060,7 @@ function renderMusicStaff(source, role) {
       var offsets = [];
       var prevStep = null;
       var side = 1;
+      var stackDur = ev.duration || ev.pitches[0].duration || "q";
       for (p = 0; p < ev.pitches.length; p++) {
         var st = ev.pitches[p].step;
         if (prevStep !== null && st - prevStep <= 1) {
@@ -788,14 +1073,46 @@ function renderMusicStaff(source, role) {
         prevStep = st;
       }
       var accCols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);
+      var stemYs = [];
       for (p = 0; p < ev.pitches.length; p++) {
-        drawNotehead(
+        var nyP = drawNotehead(
           cx + offsets[p],
           ev.pitches[p].step,
-          false,
+          ev.pitches[p].duration || stackDur,
           accCols[p].acc,
-          accCols[p].col
+          accCols[p].col,
+          true
         );
+        stemYs.push(nyP);
+      }
+      if (stackDur !== "w" && stemYs.length) {
+        var hiY = Math.min.apply(null, stemYs);
+        var loY = Math.max.apply(null, stemYs);
+        var stemUp = (hiY + loY) / 2 >= staffMidY;
+        var hx = noteHeadRx * 0.85;
+        if (stemUp) {
+          svg.appendChild(
+            staffSvgEl("line", {
+              x1: String(cx + hx),
+              y1: String(loY),
+              x2: String(cx + hx),
+              y2: String(hiY - stemLen),
+              stroke: "currentColor",
+              "stroke-width": "1.4"
+            })
+          );
+        } else {
+          svg.appendChild(
+            staffSvgEl("line", {
+              x1: String(cx - hx),
+              y1: String(hiY),
+              x2: String(cx - hx),
+              y2: String(loY + stemLen),
+              stroke: "currentColor",
+              "stroke-width": "1.4"
+            })
+          );
+        }
       }
       if (ev.label) {
         var sl = staffSvgEl("text", {
@@ -809,8 +1126,11 @@ function renderMusicStaff(source, role) {
         svg.appendChild(sl);
       }
     }
+    noteCursorX += slot;
     noteIndex++;
   }
 
   return svg;
 }
+
+clearMusicStaffCache();
