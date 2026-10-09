@@ -1276,6 +1276,9 @@ function setBeatUnit(n) {
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
+  if (typeof refreshStaffFaces === "function") {
+    refreshStaffFaces();
+  }
 }
 
 function setBeatsPerBar(n) {
@@ -1304,6 +1307,9 @@ function setBeatsPerBar(n) {
   }
   if (typeof rememberSetup === "function") {
     rememberSetup();
+  }
+  if (typeof refreshStaffFaces === "function") {
+    refreshStaffFaces();
   }
 }
 

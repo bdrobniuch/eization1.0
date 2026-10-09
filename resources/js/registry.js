@@ -14,7 +14,8 @@ var menuOrder = [
   "texture",
   "motive",
   "limbs",
-  "freePlay"
+  "freePlay",
+  "staffDemo"
 ];
 
 function registerExercise(def) {

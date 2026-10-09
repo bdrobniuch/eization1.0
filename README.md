@@ -29,6 +29,8 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/registry.js` | `registerExercise` and `menuOrder` (the seed catalog) |
 | `resources/js/exercises/` | One seed exercise per file |
 | `resources/js/picker.js` | The current example, the reel, and the face size |
+| `resources/js/staff-glyphs.js` | Bravura/SMuFL SVG path outlines (clefs, accidentals, time digits); SIL OFL |
+| `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, labels). Time signature follows Setup meter |
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
 | `resources/js/editor.js` | Edit exercises. `edit.js` does not load |
 | `resources/js/about.js` | Menu sheet. Payment and profile strings are sealed in this file |
@@ -43,6 +45,20 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
 | `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html`, `free-play.html` | How to practice that kind of line with the metronome |
 | `resources/css/guide.css` | Layout for `practice.html`, exercise pages, and teacher articles |
+
+## Staff notation (optional)
+
+An example line that parses as music notation renders as an SVG staff instead of HTML text. Detection rejects anything with `<` or `&`, so the existing catalog stays text.
+
+- Clef: leading `@treble` or `@bass` (default treble)
+- Key: leading `@key=NAME` for a major key (`@key=G`, `@key=Eb`, `@key=F#`). Default C (no accidentals)
+- Chord symbol above: optional `^…` before the first note (`^Bb7 …`), or `_Name` on a stack (`[F3 A3 C4 E4]_Dm9`)
+- Pitches: `C4`, `C#4`, `Db4`, `Cn4` (letter, optional accidental, octave). Degree labels under a note use `_` (`Bb3_1`, `Ab4_b7`)
+- Stacked chord: `[C4 E4 G4]` or `[F3 A3 C4 E4]_Dm9`. Space-separated events left to right; `|` draws a barline
+- Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** shows common-time **C**; other meters use digits
+- Staff ink (clefs, accidentals, time digits / common C) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
+
+`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. Temporary seed: `staffDemo` (Restore defaults to pick it up on an existing desk).
 
 ## Adding an exercise
 

@@ -7,7 +7,10 @@ var exerciseFontPx = 48;
 var lookAhead = true;
 var nextCycle = null;
 var previousNote = "";
+var currentNoteSource = "";
 var cycleGap = false;
+var STAFF_FACE_VH = 0.28;
+var STAFF_REEL_VH = 0.12;
 var reelColumnHalf = 0;
 var reelMaxWidth = 0;
 var reelMaxHeight = 0;
@@ -68,6 +71,54 @@ function reelOuterReach(sizePx) {
   return sizePx * 1.05 * Math.cos(REEL_TILT) + sizePx * 0.2;
 }
 
+function staffFaceHeight(role) {
+  var vh = role === "reel" ? STAFF_REEL_VH : STAFF_FACE_VH;
+  return Math.max(48, Math.round(window.innerHeight * vh));
+}
+
+function fillExampleFace(el, source, role) {
+  if (!el) {
+    return;
+  }
+  el.innerHTML = "";
+  el.style.fontSize = "";
+  if (!source) {
+    el.classList.remove("is-staff");
+    return;
+  }
+  if (typeof isMusicNotation === "function" && isMusicNotation(source)) {
+    el.classList.add("is-staff");
+    var svg = typeof renderMusicStaff === "function" ? renderMusicStaff(source, role === "reel" ? "reel" : "current") : null;
+    if (svg) {
+      el.appendChild(svg);
+    }
+    return;
+  }
+  el.classList.remove("is-staff");
+  el.innerHTML = source;
+  var size = exerciseFontPx;
+  if (role === "reel") {
+    var cap = Math.round(window.innerHeight * STAFF_REEL_VH);
+    if (size > cap) {
+      size = cap;
+    }
+    if (size < 14) {
+      size = 14;
+    }
+  }
+  el.style.fontSize = size + "px";
+}
+
+function refreshStaffFaces() {
+  var note = document.getElementById("note");
+  if (note && note.classList.contains("is-staff") && currentNoteSource) {
+    fillExampleFace(note, currentNoteSource, "current");
+  }
+  if (typeof renderPreview === "function") {
+    renderPreview();
+  }
+}
+
 function renderPreview() {
   var nextEl = document.getElementById("noteNext");
   var prevEl = document.getElementById("notePrev");
@@ -85,6 +136,10 @@ function renderPreview() {
   if (!showReel) {
     nextEl.hidden = true;
     prevEl.hidden = true;
+    nextEl.innerHTML = "";
+    prevEl.innerHTML = "";
+    nextEl.classList.remove("is-staff");
+    prevEl.classList.remove("is-staff");
     if (mark) {
       mark.hidden = true;
     }
@@ -92,19 +147,23 @@ function renderPreview() {
   }
   var nextText = peekNextItem();
   nextEl.hidden = !nextText;
-  nextEl.innerHTML = nextText || "";
+  fillExampleFace(nextEl, nextText || "", "reel");
   prevEl.hidden = !previousNote;
-  prevEl.innerHTML = previousNote || "";
+  fillExampleFace(prevEl, previousNote || "", "reel");
   var size = exerciseFontPx;
-  var cap = Math.round(window.innerHeight * 0.12);
+  var cap = Math.round(window.innerHeight * STAFF_REEL_VH);
   if (size > cap) {
     size = cap;
   }
   if (size < 14) {
     size = 14;
   }
-  nextEl.style.fontSize = size + "px";
-  prevEl.style.fontSize = size + "px";
+  if (!nextEl.classList.contains("is-staff")) {
+    nextEl.style.fontSize = size + "px";
+  }
+  if (!prevEl.classList.contains("is-staff")) {
+    prevEl.style.fontSize = size + "px";
+  }
   var resumeTurn = false;
   if (stack && reelTurning && stack.classList.contains("is-turning")) {
     stack.classList.remove("is-turning");
@@ -119,17 +178,23 @@ function renderPreview() {
   var footer = document.querySelector("footer");
   var footerTop = footer ? footer.getBoundingClientRect().top - 6 : window.innerHeight - 6;
   var note = document.getElementById("note");
+  var staffReach = staffFaceHeight("reel");
   var guard = 0;
   while (guard < 6 && size > 14 && note) {
     var nr = note.getBoundingClientRect();
     var mid = nr.top + nr.height / 2;
-    var reach = reelOuterReach(size) + exerciseFontPx * 0.65;
+    var textReach = reelOuterReach(size) + exerciseFontPx * 0.65;
+    var reach = Math.max(textReach, reelOuterReach(staffReach));
     if (mid - reach >= headerBottom && mid + reach <= footerTop) {
       break;
     }
     size = Math.max(14, Math.floor(size * 0.9));
-    nextEl.style.fontSize = size + "px";
-    prevEl.style.fontSize = size + "px";
+    if (!nextEl.classList.contains("is-staff")) {
+      nextEl.style.fontSize = size + "px";
+    }
+    if (!prevEl.classList.contains("is-staff")) {
+      prevEl.style.fontSize = size + "px";
+    }
     guard++;
   }
   placeReelMark();
@@ -240,8 +305,8 @@ function showCurrentNote(text) {
   if (!note) {
     return;
   }
-  note.innerHTML = text;
-  note.style.fontSize = exerciseFontPx + "px";
+  currentNoteSource = text || "";
+  fillExampleFace(note, currentNoteSource, "current");
   updateRemaining();
   renderPreview();
   turnReel();
@@ -269,7 +334,6 @@ function turnReel() {
 }
 
 function advanceNote() {
-  var note = document.getElementById("note");
   if (cycleGap) {
     cycleGap = false;
     previousNote = "";
@@ -280,16 +344,14 @@ function advanceNote() {
   }
   var openingCycle = notePool.length === 0;
   if (openingCycle && countnotes > 0) {
-    if (note) {
-      previousNote = note.innerHTML;
-    }
+    previousNote = currentNoteSource || "";
     prepareNextCycle();
     cycleGap = true;
     showCurrentNote("");
     return;
   }
-  if (countnotes > 0 && note) {
-    previousNote = note.innerHTML;
+  if (countnotes > 0) {
+    previousNote = currentNoteSource || "";
   } else {
     previousNote = "";
   }
@@ -327,13 +389,28 @@ function chooseExerciseFont() {
     return;
   }
   var ranked = [];
+  var textItems = [];
   for (var i = 0; i < items.length; i++) {
+    if (typeof isMusicNotation === "function" && isMusicNotation(items[i])) {
+      continue;
+    }
+    textItems.push(items[i]);
     var plain = items[i].replace(/<[^>]+>/g, "").replace(/&[^;]+;/g, "x");
     ranked.push({ html: items[i], n: plain.length });
   }
   ranked.sort(function (a, b) { return b.n - a.n; });
   var sample = ranked.slice(0, 16);
   var box = noteBox();
+  if (!sample.length) {
+    exerciseFontPx = Math.min(48, Math.floor(box.height * 0.2));
+    note.style.fontSize = "";
+    reelMaxWidth = Math.round(window.innerWidth * 0.7);
+    reelMaxHeight = staffFaceHeight("current");
+    reelMaxHtml = "";
+    reelColumnHalf = reelMaxWidth / 2;
+    renderPreview();
+    return;
+  }
   var probe = 100;
   measure.style.fontSize = probe + "px";
   var maxW = 1;
@@ -370,21 +447,31 @@ function chooseExerciseFont() {
     guard++;
   }
   exerciseFontPx = Math.floor(size);
-  note.style.fontSize = exerciseFontPx + "px";
+  if (!note.classList.contains("is-staff")) {
+    note.style.fontSize = exerciseFontPx + "px";
+  }
   measure.style.fontSize = exerciseFontPx + "px";
   reelMaxWidth = 0;
   reelMaxHeight = 0;
-  reelMaxHtml = items[0] || "";
+  reelMaxHtml = textItems[0] || "";
   measure.style.minHeight = "1.25em";
-  for (var w = 0; w < items.length; w++) {
-    measure.innerHTML = items[w];
+  for (var w = 0; w < textItems.length; w++) {
+    measure.innerHTML = textItems[w];
     if (measure.scrollWidth > reelMaxWidth) {
       reelMaxWidth = measure.scrollWidth;
     }
     if (measure.offsetHeight > reelMaxHeight) {
       reelMaxHeight = measure.offsetHeight;
-      reelMaxHtml = items[w];
+      reelMaxHtml = textItems[w];
     }
+  }
+  var staffH = staffFaceHeight("current");
+  if (staffH > reelMaxHeight) {
+    reelMaxHeight = staffH;
+  }
+  var staffW = Math.round(window.innerWidth * 0.72);
+  if (staffW > reelMaxWidth) {
+    reelMaxWidth = staffW;
   }
   measure.style.minHeight = "";
   reelColumnHalf = reelMaxWidth / 2;
@@ -398,6 +485,7 @@ function newExercise(items, bars) {
   notePool = [];
   nextCycle = null;
   previousNote = "";
+  currentNoteSource = "";
   cycleGap = false;
   if (bars) {
     exerciseBars = parseInt(bars, 10) || 1;

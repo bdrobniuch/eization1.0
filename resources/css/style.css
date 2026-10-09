@@ -21,7 +21,8 @@
     font-weight: 400;
     font-style: normal;
     font-display: swap;
-    unicode-range: U+1D100, U+1D10E, U+1D13B-1D13F, U+1D157-1D158, U+1D15D-1D161, U+1D165, U+1D16E-1D16F;
+    /* Clefs U+1D11E/U+1D122 must be included or staff falls back to a different glyph. */
+    unicode-range: U+266D-266F, U+1D100, U+1D10E, U+1D11E, U+1D122, U+1D13B-1D13F, U+1D157-1D158, U+1D15D-1D161, U+1D165, U+1D16E-1D16F;
 }
 
 :root {
@@ -280,6 +281,43 @@ body.is-count-in {
   -o-user-select: none;
   user-select: none;
 
+}
+
+#note.is-staff,
+.reel-face.is-staff {
+  width: min(92vw, 52rem);
+  max-width: 92vw;
+  height: 28vh;
+  min-height: 7rem;
+  white-space: normal;
+  line-height: 0;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 0.55em 0.7em;
+  background: #fff;
+  color: #111;
+  border-radius: 2px;
+}
+
+.reel-face.is-staff {
+  height: 12vh;
+  min-height: 3.5rem;
+  width: min(72vw, 28rem);
+  padding: 0.35em 0.45em;
+}
+
+.music-staff {
+  font-family: var(--face-font);
+  color: inherit;
+}
+
+#note.is-staff .music-staff,
+.reel-face.is-staff .music-staff {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  color: #111;
 } 
 
 

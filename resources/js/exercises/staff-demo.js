@@ -1,0 +1,30 @@
+registerExercise({
+  id: "staffDemo",
+  label: "Staff demo",
+  inMenu: true,
+  items: [
+    "^Bb7 Bb3_1 D4_3 F4_5 Ab4_b7 C5_9 E5_#11 G5_13",
+    "@bass [F3 A3 C4 E4]_Dm9 [F3 B3 E4 G4]_G13 | [E3 B3 C4 G4]_CMaj7",
+    "Major",
+    "C<sup><small>&#9839</small></sup>",
+    "@key=G C4 D4 E4 F#4",
+    "@key=D A3 B3 C#4 D4",
+    "@key=A E4 F#4 G#4 A4",
+    "@key=E C#4 D#4 E4 F#4",
+    "@key=F Bb3 C4 D4 E4",
+    "@key=Bb F4 G4 A4 Bb4",
+    "@key=Eb Bb3 C4 D4 Eb4",
+    "@key=Ab Eb4 F4 G4 Ab4",
+    "@bass @key=G G2 A2 B2 C3",
+    "@bass @key=Bb Bb2 C3 D3 Eb3",
+    "^G#-7 [G3 Bb3 D4 F4]",
+    "^F#∆7 [F#3 A#3 C#4 E#4]",
+    "^D#ø7 [D#3 F#3 A3 C#4]",
+    "^Ebalt7 [Eb3 Gb3 A3 Db4]",
+    "^Eb°7 [Eb3 Gb3 A3 Db4]",
+    "^A#+7 [A#3 C#4 E#4 G#4]",
+    "[C4 D4 E4]_cluster",
+    "@treble @key=F Bb3_1 C4_2 D4_3",
+    "@key=Db @treble Db4 Eb4 F4 Gb4"
+  ]
+});
