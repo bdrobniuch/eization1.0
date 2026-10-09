@@ -296,6 +296,12 @@ function staffFormatDegreeLabel(raw) {
     return "";
   }
   var s = String(raw);
+  if (s.indexOf("bb") === 0 || s.indexOf("\u266D\u266D") === 0) {
+    return "\u266D\u266D" + s.replace(/^(bb|\u266D\u266D)/, "");
+  }
+  if (s.indexOf("##") === 0 || s.indexOf("\u266F\u266F") === 0) {
+    return "\u266F\u266F" + s.replace(/^(##|\u266F\u266F)/, "");
+  }
   if (/^[b#\u266D\u266F]/.test(s)) {
     var first = s.charAt(0);
     var rest = s.slice(1);
@@ -365,26 +371,126 @@ function staffLooksNotationIsh(tokens) {
 }
 
 /*
- * Horizontal offsets for seconds in a stack. Stem-up: first displacement goes left
- * (away from the stem on the right); stem-down: first goes right.
+ * Seconds/unisons in a stack (Gould): lower of each pair on the opposite side of
+ * the stem, upper on the normal side; zig-zag through a run. Stem-up: opposite is
+ * right; stem-down: opposite is left.
  */
 function staffStackSecondOffsets(pitches, stemUp, secondShift) {
   var offsets = [];
-  var prevStep = null;
-  var side = stemUp ? -1 : 1;
-  var i;
+  var opposite = stemUp ? 1 : -1;
+  var i = 0;
+  var j;
+  var k;
   for (i = 0; i < pitches.length; i++) {
-    var st = pitches[i].step;
-    if (prevStep !== null && st - prevStep <= 1) {
-      offsets[i] = side * secondShift;
-      side = -side;
-    } else {
-      offsets[i] = 0;
-      side = stemUp ? -1 : 1;
+    offsets[i] = 0;
+  }
+  i = 0;
+  while (i < pitches.length) {
+    j = i + 1;
+    while (
+      j < pitches.length &&
+      pitches[j].step - pitches[j - 1].step <= 1
+    ) {
+      j++;
     }
-    prevStep = st;
+    if (j - i >= 2) {
+      for (k = i; k < j; k++) {
+        offsets[k] = (k - i) % 2 === 0 ? opposite * secondShift : 0;
+      }
+    }
+    i = Math.max(j, i + 1);
   }
   return offsets;
+}
+
+/*
+ * Accidental centers for a stack: start left of each notehead (incl. second
+ * offsets), then push left until clear of foreign noteheads and other accidentals.
+ * Returns an array parallel to pitches; null where there is no written accidental.
+ */
+function staffStackAccidentalCenters(
+  pitches,
+  offsets,
+  cols,
+  cx,
+  noteHeadRx,
+  lineGap,
+  accGap
+) {
+  var centers = [];
+  var advs = [];
+  var i;
+  var j;
+  var pass;
+  for (i = 0; i < pitches.length; i++) {
+    centers[i] = null;
+    advs[i] = 0;
+    if (!cols[i].acc) {
+      continue;
+    }
+    var name = staffAccidentalGlyphName(staffAccKind(cols[i].acc));
+    var adv = staffGlyphAdvance(name || "accidentalSharp", lineGap);
+    var colPitch = adv + lineGap * 0.2;
+    var headX = cx + offsets[i];
+    advs[i] = adv;
+    centers[i] =
+      headX - noteHeadRx - accGap - adv / 2 - (cols[i].col || 0) * colPitch;
+  }
+  /* Vertical reach: accidental ink vs a neighboring head (~±2 staff steps). */
+  var nearSteps = 3;
+  for (pass = 0; pass < pitches.length + 2; pass++) {
+    var moved = false;
+    for (i = 0; i < pitches.length; i++) {
+      if (centers[i] === null) {
+        continue;
+      }
+      var accLeft = centers[i] - advs[i] / 2;
+      var accRight = centers[i] + advs[i] / 2;
+      for (j = 0; j < pitches.length; j++) {
+        if (j === i) {
+          continue;
+        }
+        if (Math.abs(pitches[i].step - pitches[j].step) > nearSteps) {
+          continue;
+        }
+        var headLeft = cx + offsets[j] - noteHeadRx;
+        if (accRight > headLeft - accGap && accLeft < cx + offsets[j] + noteHeadRx) {
+          var newCenter = headLeft - accGap - advs[i] / 2;
+          if (newCenter < centers[i] - 0.01) {
+            centers[i] = newCenter;
+            moved = true;
+          }
+        }
+      }
+      /* Keep accidentals from overlapping each other when vertically near. */
+      for (j = 0; j < pitches.length; j++) {
+        if (j === i || centers[j] === null) {
+          continue;
+        }
+        if (Math.abs(pitches[i].step - pitches[j].step) > nearSteps) {
+          continue;
+        }
+        var otherLeft = centers[j] - advs[j] / 2;
+        var otherRight = centers[j] + advs[j] / 2;
+        accLeft = centers[i] - advs[i] / 2;
+        accRight = centers[i] + advs[i] / 2;
+        if (accRight > otherLeft - accGap && accLeft < otherRight + accGap) {
+          /* Prefer leaving the rightmost (higher col / closer to chord) and push i left. */
+          if (centers[i] <= centers[j]) {
+            newCenter = otherLeft - accGap - advs[i] / 2;
+            if (newCenter < centers[i] - 0.01) {
+              centers[i] = newCenter;
+              moved = true;
+            }
+          }
+        }
+      }
+    }
+    if (!moved) {
+      break;
+    }
+  }
+  return centers;
 }
 
 /* Auto-beam group length in quarter-note units (compound 6/8, 9/8, 12/8 → dotted quarter). */
@@ -742,8 +848,8 @@ function renderMusicStaff(source, role) {
 
   var lineGap = 12;
   var noteHeadRx = staffGlyphAdvance("noteheadBlack", lineGap) / 2;
-  /* Seconds in a stack: keep displaced heads snug against neighbors (not stem). */
-  var secondShift = noteHeadRx * 1.15;
+  /* One full head width: opposite-side head clears the main column. */
+  var secondShift = 2 * noteHeadRx;
   var noteHeadRy = lineGap * 0.45;
   var staffLeft = 10;
   var padR = 14;
@@ -801,7 +907,12 @@ function renderMusicStaff(source, role) {
   var chordSize = role === "reel" ? 14 : 18;
   var labelSize = role === "reel" ? 11 : 13;
   var chordBand = ast.chordSymbol || hasStackChordLabels ? chordSize + 14 : 0;
-  var labelBand = hasBelowLabels ? labelSize + 16 : 10;
+  /*
+   * Degree labels sit under down-stems/beams. Reserve stem length + beam so
+   * labels clear angled beams on ascending runs.
+   */
+  var stemBeamClear = hasBelowLabels ? lineGap * 5.5 : 0;
+  var labelBand = hasBelowLabels ? labelSize + 20 + stemBeamClear : 10;
   /* Clefs overhang the staff (~1.5–2 spaces each side for treble). */
   var clefOverhang = lineGap * 2.2;
   padTop = Math.max(padTop, clefOverhang, riseAbove + chordBand + 8);
@@ -993,19 +1104,26 @@ function renderMusicStaff(source, role) {
       staffEventStemUpGuess(ev),
       secondShift
     );
+    var accXs = staffStackAccidentalCenters(
+      ev.pitches,
+      offs,
+      cols,
+      0,
+      noteHeadRx,
+      lineGap,
+      accGap
+    );
     var need = 0;
     var pi;
-    for (pi = 0; pi < ev.pitches.length; pi++) {
-      if (!cols[pi].acc) {
+    for (pi = 0; pi < accXs.length; pi++) {
+      if (accXs[pi] === null) {
         continue;
       }
       var aAdv = staffGlyphAdvance(
         staffAccidentalGlyphName(staffAccKind(cols[pi].acc)) || "accidentalSharp",
         lineGap
       );
-      var colPitch = aAdv + lineGap * 0.2;
-      var leftOfCx =
-        -offs[pi] + noteHeadRx + accGap + aAdv + cols[pi].col * colPitch;
+      var leftOfCx = -(accXs[pi] - aAdv / 2);
       if (leftOfCx > need) {
         need = leftOfCx;
       }
@@ -1085,6 +1203,18 @@ function renderMusicStaff(source, role) {
   var chordClearY = Math.min(staffTop, highestNoteY - noteHeadRy);
   var chordY = chordClearY - 10;
   var labelClearY = Math.max(staffTop + staffHeight, lowestNoteY + noteHeadRy);
+  if (hasBelowLabels) {
+    /*
+     * Furthest down-stem tip is lowestNoteY + stemLen; also clear high notes
+     * whose down-beams sit lower on the page than the staff bottom.
+     */
+    var stemLenLabel = lineGap * 3.5;
+    labelClearY = Math.max(
+      labelClearY,
+      lowestNoteY + stemLenLabel + lineGap,
+      highestNoteY + stemLenLabel + lineGap
+    );
+  }
   var labelY = labelClearY + 14 + labelSize * 0.35;
 
   if (ast.chordSymbol) {
@@ -1345,25 +1475,48 @@ function renderMusicStaff(source, role) {
       }
     } else if (ev.type === "stack") {
       var stackDur = ev.duration || ev.pitches[0].duration || "q";
-      var stemUpGuess = staffEventStemUpGuess(ev);
-      var offsets = staffStackSecondOffsets(ev.pitches, stemUpGuess, secondShift);
+      var stemUp = staffEventStemUpGuess(ev);
+      var offsets = staffStackSecondOffsets(ev.pitches, stemUp, secondShift);
       var accCols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);
+      var stackAccGap = lineGap * 0.35;
+      var accCenters = staffStackAccidentalCenters(
+        ev.pitches,
+        offsets,
+        accCols,
+        cx,
+        noteHeadRx,
+        lineGap,
+        stackAccGap
+      );
       var stemYs = [];
       for (p = 0; p < ev.pitches.length; p++) {
         var nyP = drawNotehead(
           cx + offsets[p],
           ev.pitches[p].step,
           ev.pitches[p].duration || stackDur,
-          accCols[p].acc,
-          accCols[p].col
+          null,
+          0
         );
         stemYs.push(nyP);
+      }
+      for (p = 0; p < ev.pitches.length; p++) {
+        if (accCenters[p] === null) {
+          continue;
+        }
+        staffDrawAccidental(
+          svg,
+          accCenters[p],
+          ev.pitches[p].step,
+          ast.clef,
+          staffTop,
+          lineGap,
+          accCols[p].acc
+        );
       }
       if (stackDur !== "w" && stemYs.length) {
         var hiY = Math.min.apply(null, stemYs);
         var loY = Math.max.apply(null, stemYs);
-        var stemUp = (hiY + loY) / 2 >= staffMidY;
-        /* Stem through the main column; cover all head centers vertically. */
+        /* Stem on the main column; cover all head centers vertically. */
         if (stemUp) {
           svg.appendChild(
             staffSvgEl("line", {

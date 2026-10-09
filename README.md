@@ -73,7 +73,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 - Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
 - Staff ink (clefs, accidentals, noteheads, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
-`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. Seed exercise: `staffDemo` (in the menu; Restore defaults re-seeds an existing desk).
+`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`.
 
 ## Adding an exercise
 

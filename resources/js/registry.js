@@ -5,6 +5,7 @@ var menuOrder = [
   "scales",
   "allChords",
   "chordTones",
+  "leftHandRootless",
   "essentialProgressions",
   "intervals",
   "approachNotes",
@@ -14,8 +15,7 @@ var menuOrder = [
   "texture",
   "motive",
   "limbs",
-  "freePlay",
-  "staffDemo"
+  "freePlay"
 ];
 
 function registerExercise(def) {

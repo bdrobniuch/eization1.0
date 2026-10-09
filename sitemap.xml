@@ -145,6 +145,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/chord-tones.html"/>
   </url>
   <url>
+    <loc>https://eization.com/left-hand-rootless.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/left-hand-rootless.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/left-hand-rootless.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/left-hand-rootless.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/left-hand-rootless.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/left-hand-rootless.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/left-hand-rootless.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/left-hand-rootless.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/progressions.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/progressions.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/progressions.html"/>
