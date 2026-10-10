@@ -1185,6 +1185,28 @@ function renderMusicStaff(source, role) {
   } else if (hasStackChordLabels) {
     slot = Math.max(slot, role === "reel" ? 36 : 44);
   }
+  /*
+   * Slash heads are wider than oval noteheads; keep the same edge-to-edge
+   * padding as regular notes by growing the column by the advance difference.
+   */
+  var slashNoteCount = 0;
+  var dottedNoteCount = 0;
+  for (e = 0; e < noteEvents.length; e++) {
+    if (noteEvents[e].head === "slash") {
+      slashNoteCount++;
+    }
+    if (staffDurationDotted(noteEvents[e].duration)) {
+      dottedNoteCount++;
+    }
+  }
+  if (slashNoteCount > 0) {
+    slot +=
+      staffGlyphAdvance("noteheadSlash", lineGap) -
+      staffGlyphAdvance("noteheadBlack", lineGap);
+  }
+  if (dottedNoteCount > 0) {
+    slot += lineGap * 0.3;
+  }
 
   var clefName = ast.clef === "bass" ? "fClef" : "gClef";
   var clefX = staffLeft + 4;
