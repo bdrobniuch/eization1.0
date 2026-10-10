@@ -89,7 +89,7 @@ function bindExercisePanel() {
     face.setAttribute("aria-expanded", willOpen ? "true" : "false");
     layoutFrame();
     if (willOpen) {
-      var first = menu.querySelector("button.menu-new, button[data-value]");
+      var first = menu.querySelector("button.menu-special, button[data-value]");
       if (first) {
         first.focus();
       }
@@ -104,6 +104,13 @@ function bindExercisePanel() {
         editorOpenNew();
       }
       layoutFrame();
+      return;
+    }
+    if (event.target.closest("[data-more-exercises]")) {
+      panel.hidden = true;
+      face.setAttribute("aria-expanded", "false");
+      exerciseFaceFocus = null;
+      window.location.href = "./more.html";
       return;
     }
     var item = event.target.closest("[data-value]");
@@ -160,7 +167,7 @@ function buildExerciseMenu() {
   }
   var fresh = document.createElement("button");
   fresh.type = "button";
-  fresh.className = "menu-new";
+  fresh.className = "menu-special";
   fresh.setAttribute("data-new-exercise", "true");
   fresh.textContent = t("menu.new");
   fresh.title = t("menu.newTitle");
@@ -170,6 +177,13 @@ function buildExerciseMenu() {
     var row = list[i];
     addComboItem(menu, row.id, exerciseDisplayName(row), row.id === currentExerciseId);
   }
+  var more = document.createElement("button");
+  more.type = "button";
+  more.className = "menu-special";
+  more.setAttribute("data-more-exercises", "true");
+  more.textContent = t("menu.more");
+  more.title = t("menu.moreTitle");
+  menu.appendChild(more);
   var current = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
   setComboLabel(face, current ? exerciseDisplayName(current) : "");
 }

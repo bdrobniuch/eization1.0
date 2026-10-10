@@ -102,6 +102,10 @@ function exerciseMenu(w) {
   check("desk seeds the visible catalog", deskList.length === w.menuOrder.length);
   var buttons = w.document.querySelectorAll("#exerciseMenu [data-value]");
   check("menu buttons match the desk list", buttons.length === deskList.length);
+  check("menu has New exercise", !!w.document.querySelector("#exerciseMenu [data-new-exercise]"));
+  check("menu has More exercises", !!w.document.querySelector("#exerciseMenu [data-more-exercises]"));
+  var special = w.document.querySelectorAll("#exerciseMenu button.menu-special");
+  check("special menu buttons stay distinguished", special.length === 2);
   check("address opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address opens rhythms", w.exerciseIdFromQuery("?exercise=limbs") === "ex:limbs");
   check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");

@@ -477,15 +477,18 @@ footer {
     color: #0C8A50;
 }
 
-#exerciseMenu button.menu-new {
+#exerciseMenu button.menu-special {
     border-style: dashed;
-    opacity: 0.95;
+    width: 100%;
+    opacity: 0.9;
 }
 
-#exerciseMenu button.menu-new {
-    width: 100%;
+#exerciseMenu button.menu-special[data-new-exercise] {
     margin-bottom: 0.4vmin;
-    opacity: 0.9;
+}
+
+#exerciseMenu button.menu-special[data-more-exercises] {
+    margin-top: 0.4vmin;
 }
 
 #deskNote {
