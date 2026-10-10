@@ -57,6 +57,7 @@ function run() {
   }
   try {
     exerciseMenu(w);
+    staffNotation(w);
     clock(w);
     swing(w);
     neo(w);
@@ -80,7 +81,7 @@ function run() {
 function exerciseMenu(w) {
   var i;
   var seen = {};
-  check("menu has 14 exercises", w.menuOrder.length === 14);
+  check("menu has 15 exercises", w.menuOrder.length === 15);
   check("free play is last", w.menuOrder[w.menuOrder.length - 1] === "freePlay");
   check("free play captions use the middle dot", w.itemToLine(w.exercises.freePlay.items[0]).indexOf(" \u00B7 ") > 0);
   for (i = 0; i < w.menuOrder.length; i++) {
@@ -90,6 +91,15 @@ function exerciseMenu(w) {
     check("listed " + id, !!(ex && ex.inMenu));
   }
   check("rhythms id stays limbs", w.exercises.limbs && w.exercises.limbs.label === "Rhythms");
+  check(
+    "rhythms examples are slash staff",
+    !!(
+      w.exercises.limbs &&
+      w.exercises.limbs.items[0] &&
+      typeof w.isMusicNotation === "function" &&
+      w.isMusicNotation(w.exercises.limbs.items[0])
+    )
+  );
   var hidden = 0;
   for (id in w.exercises) {
     if (!w.exercises[id].inMenu) {
@@ -119,6 +129,50 @@ function exerciseMenu(w) {
   check("desk backup packs exercises", !!(packed && packed.kind === "exercises" && packed.exercises.length === w.menuOrder.length));
   var round = w.parseDeskExercisesBackup(JSON.stringify(packed));
   check("desk backup parses back", !!(round && round.exercises && round.exercises.length === packed.exercises.length));
+}
+
+function staffNotation(w) {
+  check("staff parser is loaded", typeof w.parseMusicNotation === "function" && typeof w.isMusicNotation === "function");
+  var dotted = w.parseMusicNotation("C4q. D4e");
+  check(
+    "dotted quarter parses",
+    !!(
+      dotted &&
+      dotted.events.length === 2 &&
+      dotted.events[0].duration === "q." &&
+      typeof w.staffDurationQuarters === "function" &&
+      w.staffDurationQuarters("q.") === 1.5
+    )
+  );
+  check("dotted whole is rejected", !w.parseMusicNotation("C4w."));
+  var slash = w.parseMusicNotation("/q. /e rh");
+  check(
+    "slash charleston parses",
+    !!(
+      slash &&
+      slash.events.length === 3 &&
+      slash.events[0].head === "slash" &&
+      slash.events[0].duration === "q." &&
+      slash.events[2].type === "rest"
+    )
+  );
+  var beamed = w.parseMusicNotation("{/e_R /e_L /e_R /e_L}");
+  check(
+    "slash beam with sticking labels",
+    !!(
+      beamed &&
+      beamed.events.length === 1 &&
+      beamed.events[0].type === "beam" &&
+      beamed.events[0].notes.length === 4 &&
+      beamed.events[0].notes[0].label === "R"
+    )
+  );
+  check(
+    "captioned slash is music notation",
+    w.isMusicNotation("rq /q rq /q \u00B7 Backbeat")
+  );
+  var svg = typeof w.renderMusicStaff === "function" ? w.renderMusicStaff("/q /q /q /q", "current") : null;
+  check("slash staff renders svg", !!(svg && svg.tagName && svg.tagName.toLowerCase() === "svg"));
 }
 
 function clock(w) {

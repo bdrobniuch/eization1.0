@@ -297,6 +297,10 @@ body.is-count-in {
   background: #fff;
   color: #111;
   border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
 }
 
 .reel-face.is-staff {
@@ -309,6 +313,24 @@ body.is-count-in {
 .music-staff {
   font-family: var(--face-font);
   color: inherit;
+}
+
+#note.is-staff .prog-changes,
+.reel-face.is-staff .prog-changes {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  line-height: 0;
+}
+
+#note.is-staff .prog-name,
+.reel-face.is-staff .prog-name {
+  flex: 0 0 auto;
+  line-height: 1.15;
+  font-size: max(11px, 0.85rem);
+  margin-top: 0.15em;
+  text-align: center;
+  white-space: nowrap;
 }
 
 #note.is-staff .music-staff,

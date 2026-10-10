@@ -49,7 +49,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 
 ## Staff notation (optional)
 
-An example line that parses as music notation renders as an SVG staff instead of HTML text. Detection rejects anything with `<` or `&`, so the existing catalog stays text. Notation-ish lines that fail to parse fall back to HTML text and log a `console.warn`.
+An example line that parses as music notation renders as an SVG staff instead of HTML text. A trailing ` · ` caption (or HTML `prog-changes` / `prog-name`) is stripped before parse and shown under the staff. The music side still rejects `<` or `&`. Notation-ish lines that fail to parse fall back to HTML text and log a `console.warn`.
 
 - Clef / key: leading `@treble` or `@bass` and `@key=NAME` in any order (default treble, key C). Unknown `@…` tokens are rejected
 - Key names: major (`@key=G`, `@key=Eb`, `@key=F#`) or minor aliases that map to the relative major for the signature only:
@@ -66,12 +66,13 @@ An example line that parses as music notation renders as an SVG staff instead of
   | A#m | C# | | |
 
 - Chord symbol above: only a leading `^…` before the first note (`^Bb7 …`), or `_Name` on a stack (`[F3 A3 C4 E4]_Dm9`). Mid-line `^` is not supported
-- Pitches: `C4`, `C#4`, `Db4`, `Cn4`, doubles `C##4` / `Cx4` / `Ebb4` (letter, optional accidental, octave). Optional duration after the octave: `w` whole, `h` half, `q` quarter (default), `e` eighth, `s` sixteenth — e.g. `C4`, `C4h`, `C4e`, `C4s`. Optional `!` forces the accidental even when the key already implies it (`F#4!`). Degree labels under a note use `_` (`Bb3_1`, `Ab4_b7`)
-- Rests: `r` / `rq` quarter (default), `rh` half, `rw` whole, `re` eighth, `rs` sixteenth — each advances one note slot
-- Beams: consecutive `e`/`s` notes auto-beam within each Setup beat group; a lone short note gets a flag. In **6/8**, **9/8**, and **12/8** the group is a dotted quarter (three eighths), matching the metronome pulse. `{C4e D4e E4e F4e}` forces one beam group (e/s pitches only; not re-split by meter). Stacks `[…]` stay chords, not beams
+- Pitches: `C4`, `C#4`, `Db4`, `Cn4`, doubles `C##4` / `Cx4` / `Ebb4` (letter, optional accidental, octave). Optional duration after the octave: `w` whole, `h` half, `q` quarter (default), `e` eighth, `s` sixteenth — e.g. `C4`, `C4h`, `C4e`, `C4s`. Optional trailing `.` dots the duration (`C4q.`, `C4e.`; not `w.`). Optional `!` forces the accidental even when the key already implies it (`F#4!`). Degree labels under a note use `_` (`Bb3_1`, `Ab4_b7`)
+- Rhythmic slash (pitchless): `/q`, `/e`, `/h`, `/e.`, `/e_R` — slash notehead on the middle line with stem/beam/dot like a normal note. Labels use `_` the same way
+- Rests: `r` / `rq` quarter (default), `rh` half, `rw` whole, `re` eighth, `rs` sixteenth; optional `.` (`re.`, `rq.`) — each advances one note slot
+- Beams: consecutive `e`/`s` (including dotted `e.`) notes auto-beam within each Setup beat group; a lone short note gets a flag. In **6/8**, **9/8**, and **12/8** the group is a dotted quarter (three eighths), matching the metronome pulse. `{C4e D4e E4e F4e}` or `{/e /e}` forces one beam group (e/s only; not re-split by meter). Stacks `[…]` stay chords, not beams
 - Stacked chord: `[C4 E4 G4]` or `[F3 A3 C4 E4]_Dm9`. Prefer the same duration on every pitch in a stack (the column uses the first pitch’s duration for the stem). Nested `[` is rejected. Space-separated events left to right; `|` draws a barline
 - Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
-- Staff ink (clefs, accidentals, noteheads, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
+- Staff ink (clefs, accidentals, noteheads, slash heads, augmentation dots, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
 `staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`.
 

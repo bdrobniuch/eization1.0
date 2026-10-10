@@ -1,33 +1,9 @@
-function limbGrid(cells) {
-  var hit = "&#9746;";
-  var rest = "&#9744;";
-  var right = "&#127361;";
-  var left = "&#127291;";
-  var bar = "&#119040;";
-  var face = bar;
-  for (var i = 0; i < cells.length; i++) {
-    var c = cells.charAt(i);
-    if (c === "|") {
-      face += bar;
-    } else if (c === "x") {
-      face += hit;
-    } else if (c === ".") {
-      face += rest;
-    } else if (c === "R") {
-      face += right;
-    } else if (c === "L") {
-      face += left;
-    }
-  }
-  return face + bar;
-}
-
-function limbItem(cells, name) {
-  return '<span class="prog-changes">' + limbGrid(cells) + '</span><span class="prog-name">' + name + "</span>";
+function limbItem(notation, name) {
+  return notation + " \u00B7 " + name;
 }
 
 function limbTwice(bar, name) {
-  return limbItem(bar + "|" + bar, name);
+  return limbItem(bar + " | " + bar, name);
 }
 
 registerExercise({
@@ -36,27 +12,27 @@ registerExercise({
   bars: 2,
   inMenu: true,
   items: [
-    limbTwice("..x...x.", "Backbeat"),
-    limbTwice("x...x...", "Downbeats"),
-    limbTwice(".x.x.x.x", "Upbeats"),
-    limbTwice("...x...x", "Offbeat 2 &amp; 4"),
-    limbTwice("x..x....", "Charleston"),
-    limbItem("x..x..x.|..x.x...", "Son clave"),
-    limbItem("..x.x...|x..x..x.", "Son clave (2-3)"),
-    limbItem("x..x...x|..x.x...", "Rumba clave"),
-    limbItem("..x.x...|x..x...x", "Rumba clave (2-3)"),
-    limbTwice("x.x.x.x.", "Four on the floor"),
-    limbTwice("x..x..x.", "Tresillo"),
-    limbTwice("x..xx.x.", "Habanera"),
-    limbTwice("xx.xx.x.", "Cinquillo"),
-    limbTwice("....x...", "One drop"),
-    limbItem("x..x..x.|..x..x..", "Bossa nova"),
-    limbItem("..x..x..|x..x..x.", "Bossa nova (2-3)"),
-    limbItem("x.xxx.x.|x.x.....", "Shave and a haircut"),
-    limbTwice("RLRLRLRL", "Singles"),
-    limbTwice("RRLLRRLL", "Doubles"),
-    limbTwice("RLRRLRLL", "Paradiddle"),
-    limbTwice("LRLLRLRR", "Paradiddle (left)"),
-    limbTwice("RLLRLRRL", "Inverted paradiddle")
+    limbTwice("rq /q rq /q", "Backbeat"),
+    limbTwice("/q rq /q rq", "Downbeats"),
+    limbTwice("re /e re /e re /e re /e", "Upbeats"),
+    limbTwice("rq re /e rq re /e", "Offbeat 2 & 4"),
+    limbTwice("/q. /e rh", "Charleston"),
+    limbItem("/q. /q. /q | rq /q /q rq", "Son clave"),
+    limbItem("rq /q /q rq | /q. /q. /q", "Son clave (2-3)"),
+    limbItem("/q. /e rq re /e | rq /q /q rq", "Rumba clave"),
+    limbItem("rq /q /q rq | /q. /e rq re /e", "Rumba clave (2-3)"),
+    limbTwice("/q /q /q /q", "Four on the floor"),
+    limbTwice("/q. /q. /q", "Tresillo"),
+    limbTwice("/q. /e /e re /q", "Habanera"),
+    limbTwice("/e /e re /e /e re /e re", "Cinquillo"),
+    limbTwice("rh /q rq", "One drop"),
+    limbItem("/q. /q. /q | rq /q. /e /q", "Bossa nova"),
+    limbItem("rq /q. /e /q | /q. /q. /q", "Bossa nova (2-3)"),
+    limbItem("/q {/e /e /e} re /q | /q /q rh", "Shave and a haircut"),
+    limbTwice("{/e_R /e_L /e_R /e_L /e_R /e_L /e_R /e_L}", "Singles"),
+    limbTwice("{/e_R /e_R /e_L /e_L /e_R /e_R /e_L /e_L}", "Doubles"),
+    limbTwice("{/e_R /e_L /e_R /e_R /e_L /e_R /e_L /e_L}", "Paradiddle"),
+    limbTwice("{/e_L /e_R /e_L /e_L /e_R /e_L /e_R /e_R}", "Paradiddle (left)"),
+    limbTwice("{/e_R /e_L /e_L /e_R /e_L /e_R /e_R /e_L}", "Inverted paradiddle")
   ]
 });

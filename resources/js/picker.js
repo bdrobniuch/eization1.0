@@ -86,11 +86,28 @@ function fillExampleFace(el, source, role) {
     el.classList.remove("is-staff");
     return;
   }
+  var parts =
+    typeof staffExampleParts === "function"
+      ? staffExampleParts(source)
+      : { music: source, caption: "" };
+  var music = parts.music || source;
   if (typeof isMusicNotation === "function" && isMusicNotation(source)) {
     el.classList.add("is-staff");
-    var svg = typeof renderMusicStaff === "function" ? renderMusicStaff(source, role === "reel" ? "reel" : "current") : null;
+    var svg =
+      typeof renderMusicStaff === "function"
+        ? renderMusicStaff(music, role === "reel" ? "reel" : "current")
+        : null;
     if (svg) {
-      el.appendChild(svg);
+      var wrap = document.createElement("span");
+      wrap.className = "prog-changes";
+      wrap.appendChild(svg);
+      el.appendChild(wrap);
+    }
+    if (parts.caption) {
+      var capEl = document.createElement("span");
+      capEl.className = "prog-name";
+      capEl.textContent = parts.caption;
+      el.appendChild(capEl);
     }
     return;
   }
