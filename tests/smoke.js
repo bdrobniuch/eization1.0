@@ -175,6 +175,122 @@ function staffNotation(w) {
   );
   var svg = typeof w.renderMusicStaff === "function" ? w.renderMusicStaff("/q /q /q /q", "current") : null;
   check("slash staff renders svg", !!(svg && svg.tagName && svg.tagName.toLowerCase() === "svg"));
+  check("beam tip helper is loaded", typeof w.staffBeamTipYs === "function");
+  if (typeof w.staffBeamTipYs === "function") {
+    var flat = w.staffBeamTipYs([0, 30, 60, 90], [0, 24, 12, 0], true, 42);
+    check(
+      "a low inner note reaches a flat beam",
+      flat.length === 4 && flat[0] === -42 && flat[1] === -42 && flat[2] === -42 && flat[3] === -42
+    );
+    var peak = w.staffBeamTipYs([0, 30, 60, 90], [24, 0, 12, 24], true, 42);
+    check(
+      "a high inner note pulls the beam out",
+      peak.length === 4 && peak[0] === -42 && peak[1] === -42 && peak[2] === -42 && peak[3] === -42
+    );
+    var scale = w.staffBeamTipYs([0, 30, 60, 90], [18, 12, 6, 0], true, 42);
+    check(
+      "a scale keeps one stem length",
+      scale[0] === -24 && scale[1] === -30 && scale[2] === -36 && scale[3] === -42
+    );
+    var down = w.staffBeamTipYs([0, 30, 60, 90], [0, 24, 12, 0], false, 42);
+    check(
+      "down-stems drop the beam to the lowest note",
+      down[0] === 66 && down[1] === 66 && down[2] === 66 && down[3] === 66
+    );
+    var jag = w.staffBeamTipYs([0, 34, 68, 102], [18, 6, 12, 0], true, 42);
+    check(
+      "an off-line note sits on the sloped beam",
+      Math.abs(jag[1] - (6 - 42)) < 0.001 && Math.abs((jag[1] - jag[0]) - (jag[2] - jag[1])) < 0.001
+    );
+  }
+  check("jagged up-stems meet the beam", staffBeamStemsMeet(w, "{G4e C4e E4e G4e}"));
+  check("peaked up-stems meet the beam", staffBeamStemsMeet(w, "{C4e G4e E4e C4e}"));
+  check("jagged down-stems meet the beam", staffBeamStemsMeet(w, "{G5e C5e E5e G5e}"));
+  check("peaked down-stems meet the beam", staffBeamStemsMeet(w, "{C5e G5e E5e C5e}"));
+  check("mixed durations meet the beam", staffBeamStemsMeet(w, "{C4s E4e D4s G4s}"));
+  check("accidental spacing still meets the beam", staffBeamStemsMeet(w, "{C4e F#4e D4e G4e}"));
+  var scaleSvg = w.renderMusicStaff("{C4e D4e E4e F4e}", "current");
+  var scaleLens = staffStemLengths(scaleSvg);
+  check(
+    "a written scale keeps equal stems",
+    scaleLens.length === 4 && Math.max.apply(null, scaleLens) - Math.min.apply(null, scaleLens) < 0.05
+  );
+}
+
+function staffStemLengths(svg) {
+  var lines = svg ? svg.querySelectorAll("line") : [];
+  var lens = [];
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    var x1 = parseFloat(lines[i].getAttribute("x1"));
+    var x2 = parseFloat(lines[i].getAttribute("x2"));
+    var sw = parseFloat(lines[i].getAttribute("stroke-width"));
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2) {
+      lens.push(Math.abs(parseFloat(lines[i].getAttribute("y2")) - parseFloat(lines[i].getAttribute("y1"))));
+    }
+  }
+  return lens;
+}
+
+function staffPointSegmentDistance(px, py, seg) {
+  var dx = seg.x2 - seg.x1;
+  var dy = seg.y2 - seg.y1;
+  var len2 = dx * dx + dy * dy || 1;
+  var t = ((px - seg.x1) * dx + (py - seg.y1) * dy) / len2;
+  if (t < 0) {
+    t = 0;
+  }
+  if (t > 1) {
+    t = 1;
+  }
+  var ex = px - (seg.x1 + t * dx);
+  var ey = py - (seg.y1 + t * dy);
+  return Math.sqrt(ex * ex + ey * ey);
+}
+
+function staffBeamStemsMeet(w, source) {
+  if (typeof w.renderMusicStaff !== "function") {
+    return false;
+  }
+  var svg = w.renderMusicStaff(source, "current");
+  if (!svg) {
+    return false;
+  }
+  var lines = svg.querySelectorAll("line");
+  var stems = [];
+  var beams = [];
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    var x1 = parseFloat(lines[i].getAttribute("x1"));
+    var y1 = parseFloat(lines[i].getAttribute("y1"));
+    var x2 = parseFloat(lines[i].getAttribute("x2"));
+    var y2 = parseFloat(lines[i].getAttribute("y2"));
+    var sw = parseFloat(lines[i].getAttribute("stroke-width"));
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2) {
+      stems.push({ x: x1, y1: y1, y2: y2 });
+    } else if (sw >= 4 && Math.abs(x1 - x2) > 1) {
+      beams.push({ x1: x1, y1: y1, x2: x2, y2: y2 });
+    }
+  }
+  if (stems.length < 2 || !beams.length) {
+    return false;
+  }
+  var s;
+  for (s = 0; s < stems.length; s++) {
+    var best = Infinity;
+    var b;
+    for (b = 0; b < beams.length; b++) {
+      best = Math.min(best, staffPointSegmentDistance(stems[s].x, stems[s].y1, beams[b]));
+      best = Math.min(best, staffPointSegmentDistance(stems[s].x, stems[s].y2, beams[b]));
+    }
+    if (best > 0.6) {
+      return false;
+    }
+    if (Math.abs(stems[s].y2 - stems[s].y1) < 41) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function clock(w) {

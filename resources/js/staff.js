@@ -939,6 +939,41 @@ function staffSvgEl(name, attrs) {
   return el;
 }
 
+/*
+ * Tips for one beam group. Slope follows the first and last note.
+ * The line then shifts outward until every stem is at least minStem,
+ * so a note that sits off that slope still meets the beam.
+ * stemUp is in SVG coordinates (up is a smaller y).
+ */
+function staffBeamTipYs(xs, ys, stemUp, minStem) {
+  var n = xs.length;
+  var x0 = xs[0];
+  var span = xs[n - 1] - x0;
+  var dir = stemUp ? -1 : 1;
+  var yStart = ys[0] + dir * minStem;
+  var slope = span ? (ys[n - 1] - ys[0]) / span : 0;
+  var shift = stemUp ? Infinity : -Infinity;
+  var i;
+  for (i = 0; i < n; i++) {
+    var room = ys[i] + dir * minStem - (yStart + slope * (xs[i] - x0));
+    if (stemUp) {
+      if (room < shift) {
+        shift = room;
+      }
+    } else if (room > shift) {
+      shift = room;
+    }
+  }
+  if (shift === Infinity || shift === -Infinity) {
+    shift = 0;
+  }
+  var tips = [];
+  for (i = 0; i < n; i++) {
+    tips.push(yStart + slope * (xs[i] - x0) + shift);
+  }
+  return tips;
+}
+
 function staffReadMeter() {
   var top = typeof beatsPerBar === "number" ? beatsPerBar : 4;
   var bottom = typeof beatUnit === "number" ? beatUnit : 4;
@@ -1377,9 +1412,6 @@ function renderMusicStaff(source, role) {
     10 +
     labelSize * 0.35;
 
-  var noteIndex = 0;
-  var noteCursorX = notesStartX;
-
   function drawLedger(x, step) {
     var bottomStep = staffBottomLineStep(ast.clef);
     var topStep = bottomStep + 8;
@@ -1503,6 +1535,21 @@ function renderMusicStaff(source, role) {
   }
   flushAutoRun();
 
+  /* Column centers, shared by label clearance and note drawing. */
+  var colX = [];
+  var layoutX = notesStartX;
+  var layoutIndex = 0;
+  for (e = 0; e < columns.length; e++) {
+    if (columns[e].type === "barline") {
+      colX[e] = layoutX;
+      continue;
+    }
+    layoutX += accInsets[layoutIndex] || 0;
+    colX[e] = layoutX + slot / 2;
+    layoutX += slot;
+    layoutIndex++;
+  }
+
   /*
    * Place ^names / degree labels snug to the staff, then push only past real
    * stem/beam ink (up-beams raise the name; down-beams lower the degrees).
@@ -1543,10 +1590,16 @@ function renderMusicStaff(source, role) {
     }
     var inkUp = inkSlash ? false : inkSum / inkGrp.indices.length >= staffMidY;
     var inkStemLen = inkSlash ? slashStemLen : stemLen;
+    var inkXs = [];
+    var inkYs = [];
     for (inkGi = 0; inkGi < inkGrp.indices.length; inkGi++) {
-      var inkTip = inkUp
-        ? predNy[inkGrp.indices[inkGi]] - inkStemLen
-        : predNy[inkGrp.indices[inkGi]] + inkStemLen;
+      var inkCol = inkGrp.indices[inkGi];
+      inkXs.push(staffStemX(colX[inkCol], inkUp, columns[inkCol].head === "slash"));
+      inkYs.push(predNy[inkCol]);
+    }
+    var inkTips = staffBeamTipYs(inkXs, inkYs, inkUp, inkStemLen);
+    for (inkGi = 0; inkGi < inkTips.length; inkGi++) {
+      var inkTip = inkTips[inkGi];
       if (inkUp) {
         if (inkTip - beamThick < inkTop) {
           inkTop = inkTip - beamThick;
@@ -1596,17 +1649,22 @@ function renderMusicStaff(source, role) {
     svg.appendChild(sym);
   }
 
-  /* Slash stems attach at the glyph’s bottom-left tip. */
-  function drawStemTo(x, ny, tipY, up, slash) {
-    var sx;
-    var y0 = ny;
+  /* Stem x at the notehead. Same point the beam line is fitted through. */
+  function staffStemX(x, up, slash) {
     if (slash) {
       var slashRx = staffGlyphAdvance("noteheadSlash", lineGap) / 2;
       /* Flush with the left tip; nudge by half the stem stroke. */
-      sx = x - slashRx + 1;
+      return x - slashRx + 1;
+    }
+    return up ? x + hxStem : x - hxStem;
+  }
+
+  /* Slash stems attach at the glyph’s bottom-left tip. */
+  function drawStemTo(x, ny, tipY, up, slash) {
+    var sx = staffStemX(x, up, slash);
+    var y0 = ny;
+    if (slash) {
       y0 = up ? ny - slashStemFrom : ny + slashStemFrom;
-    } else {
-      sx = up ? x + hxStem : x - hxStem;
     }
     svg.appendChild(
       staffSvgEl("line", {
@@ -1673,15 +1731,14 @@ function renderMusicStaff(source, role) {
     );
   }
 
-  /* Per-column layout positions and stem stubs filled while drawing. */
-  var colX = [];
+  /* Per-column stem stubs filled while drawing. colX is already set. */
   var colNy = [];
   var colStem = [];
 
   for (e = 0; e < columns.length; e++) {
     ev = columns[e];
     if (ev.type === "barline") {
-      var bx = noteCursorX;
+      var bx = colX[e];
       svg.appendChild(staffSvgEl("line", {
         x1: String(bx),
         y1: String(staffTop),
@@ -1693,9 +1750,7 @@ function renderMusicStaff(source, role) {
       continue;
     }
 
-    noteCursorX += accInsets[noteIndex] || 0;
-    var cx = noteCursorX + slot / 2;
-    colX[e] = cx;
+    var cx = colX[e];
 
     if (ev.type === "rest") {
       var restName = staffRestGlyph(ev.duration || "q");
@@ -1834,8 +1889,6 @@ function renderMusicStaff(source, role) {
         svg.appendChild(sl);
       }
     }
-    noteCursorX += slot;
-    noteIndex++;
   }
 
   /* Draw multi-note beams and their stems. */
@@ -1856,15 +1909,22 @@ function renderMusicStaff(source, role) {
     }
     var groupUp = slashBeam ? false : sumY / grp.indices.length >= staffMidY;
     var beamStemLen = slashBeam ? slashStemLen : stemLen;
+    var beamXs = [];
+    var beamYs = [];
+    for (gi = 0; gi < grp.indices.length; gi++) {
+      var beamCol = grp.indices[gi];
+      beamXs.push(staffStemX(colX[beamCol], groupUp, columns[beamCol].head === "slash"));
+      beamYs.push(colNy[beamCol]);
+    }
+    var tipYs = staffBeamTipYs(beamXs, beamYs, groupUp, beamStemLen);
     var tips = [];
     for (gi = 0; gi < grp.indices.length; gi++) {
       var ci = grp.indices[gi];
-      var tipY = groupUp ? colNy[ci] - beamStemLen : colNy[ci] + beamStemLen;
       tips.push(
         drawStemTo(
           colX[ci],
           colNy[ci],
-          tipY,
+          tipYs[gi],
           groupUp,
           columns[ci].head === "slash"
         )
@@ -1919,6 +1979,32 @@ function renderMusicStaff(source, role) {
       }
       flushSec(segStart, grp.indices.length - 1);
     }
+  }
+
+  /*
+   * A shifted beam can sit past the first pad guess. Grow the viewBox
+   * so the beam and its labels stay inside the svg.
+   */
+  var viewY = 0;
+  var viewH = contentH;
+  var needTop = inkTop;
+  if (hasChordText) {
+    needTop = Math.min(needTop, chordY - chordSize);
+  }
+  var needBot = inkBot;
+  if (hasBelowLabels) {
+    needBot = Math.max(needBot, labelY + labelSize * 0.35);
+  }
+  if (needTop < 0) {
+    viewY = needTop - 4;
+  }
+  if (needBot > contentH) {
+    viewH = needBot + 4 - viewY;
+  } else if (viewY < 0) {
+    viewH = contentH - viewY;
+  }
+  if (viewY < 0 || viewH > contentH) {
+    svg.setAttribute("viewBox", "0 " + viewY + " " + width + " " + viewH);
   }
 
   return svg;
