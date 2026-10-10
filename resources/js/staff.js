@@ -906,17 +906,71 @@ function renderMusicStaff(source, role) {
   var dropBelow = Math.max(0, bottomStep - minStep) * half + noteHeadRy;
   var chordSize = role === "reel" ? 14 : 18;
   var labelSize = role === "reel" ? 11 : 13;
-  var chordBand = ast.chordSymbol || hasStackChordLabels ? chordSize + 14 : 0;
+  var hasChordText = !!(ast.chordSymbol || hasStackChordLabels);
+  var chordBand = hasChordText ? chordSize + 14 : 0;
+  var labelBand = hasBelowLabels ? labelSize + 14 : 10;
   /*
-   * Degree labels sit under down-stems/beams. Reserve stem length + beam so
-   * labels clear angled beams on ascending runs.
+   * Estimate how far up-/down-stems stick past the staff so pad can grow only
+   * when beams would collide with ^names or degree labels.
    */
-  var stemBeamClear = hasBelowLabels ? lineGap * 5.5 : 0;
-  var labelBand = hasBelowLabels ? labelSize + 20 + stemBeamClear : 10;
+  var midStep = bottomStep + 4;
+  var stemLenEst = lineGap * 3.5;
+  var upStemExtra = 0;
+  var downStemExtra = 0;
+  function staffTipExtra(step, stemUp) {
+    if (stemUp) {
+      var tipAbove = stemLenEst - (topStep - step) * half;
+      if (tipAbove > upStemExtra) {
+        upStemExtra = tipAbove;
+      }
+    } else {
+      var tipBelow = stemLenEst - (step - bottomStep) * half;
+      if (tipBelow > downStemExtra) {
+        downStemExtra = tipBelow;
+      }
+    }
+  }
+  for (e = 0; e < ast.events.length; e++) {
+    ev = ast.events[e];
+    if (ev.type === "beam" && ev.notes.length) {
+      var beamSum = 0;
+      for (bn = 0; bn < ev.notes.length; bn++) {
+        beamSum += ev.notes[bn].pitch.step;
+      }
+      var beamUp = beamSum / ev.notes.length <= midStep;
+      for (bn = 0; bn < ev.notes.length; bn++) {
+        staffTipExtra(ev.notes[bn].pitch.step, beamUp);
+      }
+    } else if (ev.type === "note" && ev.duration !== "w") {
+      staffTipExtra(ev.pitch.step, ev.pitch.step <= midStep);
+    } else if (ev.type === "stack" && ev.pitches.length && ev.duration !== "w") {
+      var stSum = 0;
+      for (p = 0; p < ev.pitches.length; p++) {
+        stSum += ev.pitches[p].step;
+      }
+      staffTipExtra(stSum / ev.pitches.length, stSum / ev.pitches.length <= midStep);
+    }
+  }
+  if (upStemExtra < 0) {
+    upStemExtra = 0;
+  }
+  if (downStemExtra < 0) {
+    downStemExtra = 0;
+  }
   /* Clefs overhang the staff (~1.5–2 spaces each side for treble). */
   var clefOverhang = lineGap * 2.2;
-  padTop = Math.max(padTop, clefOverhang, riseAbove + chordBand + 8);
-  padBottom = Math.max(padBottom, clefOverhang, dropBelow + labelBand + 8);
+  padTop = Math.max(
+    padTop,
+    clefOverhang,
+    riseAbove + chordBand + 8,
+    upStemExtra + (hasChordText ? chordBand : 0) + 8
+  );
+  padBottom = Math.max(
+    padBottom,
+    clefOverhang,
+    dropBelow + labelBand + 8,
+    (hasBelowLabels ? downStemExtra : 0) + labelBand + 8
+  );
 
   var staffTop = padTop;
   var staffHeight = 4 * lineGap;
@@ -1195,39 +1249,16 @@ function renderMusicStaff(source, role) {
   }
 
   /*
-   * Chord symbols (^… and stack _Dm9) always above the staff / high ledgers.
-   * Degree labels on single notes (Bb3_1) stay below.
+   * Chord symbols (^… and stack _Dm9) above; degree labels below.
+   * Final Y is set after beam groups so text only moves when stems/beams collide.
    */
   var highestNoteY = staffPitchY(maxStep, ast.clef, staffTop, lineGap);
   var lowestNoteY = staffPitchY(minStep, ast.clef, staffTop, lineGap);
-  var chordClearY = Math.min(staffTop, highestNoteY - noteHeadRy);
-  var chordY = chordClearY - 10;
-  var labelClearY = Math.max(staffTop + staffHeight, lowestNoteY + noteHeadRy);
-  if (hasBelowLabels) {
-    /*
-     * Furthest down-stem tip is lowestNoteY + stemLen; also clear high notes
-     * whose down-beams sit lower on the page than the staff bottom.
-     */
-    var stemLenLabel = lineGap * 3.5;
-    labelClearY = Math.max(
-      labelClearY,
-      lowestNoteY + stemLenLabel + lineGap,
-      highestNoteY + stemLenLabel + lineGap
-    );
-  }
-  var labelY = labelClearY + 14 + labelSize * 0.35;
-
-  if (ast.chordSymbol) {
-    var sym = staffSvgEl("text", {
-      x: String(notesStartX + 4),
-      y: String(chordY),
-      "font-size": String(chordSize),
-      fill: "currentColor",
-      "text-anchor": "start"
-    });
-    sym.textContent = staffFormatChordText(ast.chordSymbol);
-    svg.appendChild(sym);
-  }
+  var chordY = Math.min(staffTop, highestNoteY - noteHeadRy) - 10;
+  var labelY =
+    Math.max(staffTop + staffHeight, lowestNoteY + noteHeadRy) +
+    10 +
+    labelSize * 0.35;
 
   var noteIndex = 0;
   var noteCursorX = notesStartX;
@@ -1348,6 +1379,93 @@ function renderMusicStaff(source, role) {
     posQ += colDur;
   }
   flushAutoRun();
+
+  /*
+   * Place ^names / degree labels snug to the staff, then push only past real
+   * stem/beam ink (up-beams raise the name; down-beams lower the degrees).
+   */
+  var inkTop = Math.min(staffTop, highestNoteY - noteHeadRy);
+  var inkBot = Math.max(staffTop + staffHeight, lowestNoteY + noteHeadRy);
+  var predNy = [];
+  for (e = 0; e < columns.length; e++) {
+    if (columns[e].type === "note") {
+      predNy[e] = staffPitchY(columns[e].pitch.step, ast.clef, staffTop, lineGap);
+    } else if (columns[e].type === "stack" && columns[e].pitches.length) {
+      var ps = 0;
+      for (p = 0; p < columns[e].pitches.length; p++) {
+        ps += columns[e].pitches[p].step;
+      }
+      predNy[e] = staffPitchY(
+        ps / columns[e].pitches.length,
+        ast.clef,
+        staffTop,
+        lineGap
+      );
+    }
+  }
+  var inkGi;
+  var inkGIdx;
+  for (inkGIdx = 0; inkGIdx < beamGroups.length; inkGIdx++) {
+    var inkGrp = beamGroups[inkGIdx];
+    if (inkGrp.indices.length < 2) {
+      continue;
+    }
+    var inkSum = 0;
+    for (inkGi = 0; inkGi < inkGrp.indices.length; inkGi++) {
+      inkSum += predNy[inkGrp.indices[inkGi]];
+    }
+    var inkUp = inkSum / inkGrp.indices.length >= staffMidY;
+    for (inkGi = 0; inkGi < inkGrp.indices.length; inkGi++) {
+      var inkTip = inkUp
+        ? predNy[inkGrp.indices[inkGi]] - stemLen
+        : predNy[inkGrp.indices[inkGi]] + stemLen;
+      if (inkUp) {
+        if (inkTip - beamThick < inkTop) {
+          inkTop = inkTip - beamThick;
+        }
+      } else if (inkTip + beamThick > inkBot) {
+        inkBot = inkTip + beamThick;
+      }
+    }
+  }
+  for (e = 0; e < columns.length; e++) {
+    if (columns[e].type !== "note" || columns[e].duration === "w") {
+      continue;
+    }
+    var inkG = colGroup[e];
+    var inkBeamed =
+      inkG >= 0 && beamGroups[inkG] && beamGroups[inkG].indices.length >= 2;
+    if (inkBeamed) {
+      continue;
+    }
+    var inkNy = predNy[e];
+    var inkStemUp = inkNy >= staffMidY;
+    var soloTip = inkStemUp ? inkNy - stemLen : inkNy + stemLen;
+    if (inkStemUp) {
+      if (soloTip < inkTop) {
+        inkTop = soloTip;
+      }
+    } else if (soloTip > inkBot) {
+      inkBot = soloTip;
+    }
+  }
+  if (hasChordText) {
+    chordY = inkTop - 8;
+  }
+  if (hasBelowLabels) {
+    labelY = inkBot + 10 + labelSize * 0.35;
+  }
+  if (ast.chordSymbol) {
+    var sym = staffSvgEl("text", {
+      x: String(notesStartX + 4),
+      y: String(chordY),
+      "font-size": String(chordSize),
+      fill: "currentColor",
+      "text-anchor": "start"
+    });
+    sym.textContent = staffFormatChordText(ast.chordSymbol);
+    svg.appendChild(sym);
+  }
 
   function drawStemTo(x, ny, tipY, up) {
     var sx = up ? x + hxStem : x - hxStem;
