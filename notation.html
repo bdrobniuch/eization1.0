@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to write on the staff. eization.</title>
+    <meta name="description" content="Write an eization example as music notation. The line in Edit is the staff on screen: pitches, chords, slashes, rests, and beams.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0C8A50">
+    <link rel="canonical" href="https://eization.com/notation.html">
+    <link rel="alternate" hreflang="en" href="https://eization.com/notation.html">
+    <link rel="alternate" hreflang="es" href="https://eization.com/es/notation.html">
+    <link rel="alternate" hreflang="x-default" href="https://eization.com/notation.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="eization">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="es_419">
+    <meta property="og:title" content="How to write on the staff. eization.">
+    <meta property="og:description" content="Write an eization example as music notation. The line in Edit is the staff on screen: pitches, chords, slashes, rests, and beams.">
+    <meta property="og:url" content="https://eization.com/notation.html">
+    <meta property="og:image" content="https://eization.com/resources/icons/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="eization mark: a white quarter note cut out of a green and blue hexagon">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="How to write on the staff. eization.">
+    <meta name="twitter:description" content="Write an eization example as music notation. The line in Edit is the staff on screen: pitches, chords, slashes, rests, and beams.">
+    <meta name="twitter:image" content="https://eization.com/resources/icons/og.png">
+    <link rel="icon" href="./resources/icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="./resources/icons/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="./resources/icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="./resources/css/guide.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3PBLPVWLKW"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-3PBLPVWLKW');
+    </script>
+</head>
+
+<body>
+    <main class="sheet sheet-wide">
+        <a class="home" href="./"><svg viewBox="0 0 64 64" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M29.9 3.21A4.2 4.2 0 0 1 34.1 3.21L55.88 15.79A4.2 4.2 0 0 1 57.98 19.42L57.98 44.58A4.2 4.2 0 0 1 55.88 48.21L34.1 60.79A4.2 4.2 0 0 1 29.9 60.79L8.12 48.21A4.2 4.2 0 0 1 6.02 44.58L6.02 19.42A4.2 4.2 0 0 1 8.12 15.79Z M37.6 11H43.5V40A14.5 14.5 0 1 1 37.6 28.33Z M37.6 40A8.6 8.6 0 1 1 20.4 40A8.6 8.6 0 1 1 37.6 40Z"/></svg><span>eization</span></a>
+        <div class="lang-switch" role="group" aria-label="Language">
+            <a href="./notation.html" data-set-lang="en" class="is-on" aria-current="page">English</a>
+            <a href="./es/notation.html" data-set-lang="es">Español</a>
+        </div>
+        <h1>How to write on the staff</h1>
+        <p>Some exercises are large text. A line that parses as music is a staff instead. One example per line in Edit. The text below is the line. The staff under it is what you see.</p>
+        <p>The time signature is not in the line. It follows Setup. These figures use 4/4 unless the figure says otherwise. A line that does not parse stays text.</p>
+
+        <h2>One pitch, then the durations</h2>
+        <p>Letter, octave. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth. A dot follows the duration: <code>q.</code></p>
+        <figure class="notation-sample">
+            <pre>C4</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>C4w D4h E4q. F4e G4s</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>Clef and key</h2>
+        <p><code>@treble</code> or <code>@bass</code>, and <code>@key=</code>, in either order. The default is treble, key of C. <code>@key=Eb</code> is E-flat major. <code>@key=Am</code> prints the signature of the relative major (C). A <code>!</code> after the octave prints the accidental even when the key already has it (<code>F#4!</code>).</p>
+        <figure class="notation-sample">
+            <pre>@treble @key=Eb Eb4 F4 G4 Ab4 Bb4</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>@bass @key=F C3 E3 F3 A3</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>A scale</h2>
+        <p><code>^Major</code> is the name above the staff, one token, before the notes. <code>_1</code> is the degree under that note. <code>_b3</code> prints as ♭3. Braces beam eighths and sixteenths into one group.</p>
+        <figure class="notation-sample">
+            <pre>@treble @key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>A chord</h2>
+        <p>Brackets stack a chord. The same duration on every pitch is the clear way to write it. <code>_</code> after the closing bracket is the chord symbol. The symbol can use ∆.</p>
+        <figure class="notation-sample">
+            <pre>@bass @key=C [E3h G3h B3h D4h]_C∆7</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>Rhythm</h2>
+        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> and <code>_L</code> label a slash.</p>
+        <figure class="notation-sample">
+            <pre>/q. /e rh | rq /q · Charleston</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>{/e_R /e_L /e_R /e_L} · Singles</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>Beams</h2>
+        <p>Braces force one beam. In 6/8, eighths without braces still group in threes, because the beat is a dotted quarter. Set that meter in Setup. This last figure is drawn in 6/8.</p>
+        <figure class="notation-sample">
+            <pre>{C4e D4e E4e F4e}</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-meter="6/8">
+            <pre>C4e D4e E4e F4e G4e A4e</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>In an exercise</h2>
+        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, and Rhythms are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8.</p>
+        <p><a class="open" href="./?exercise=scales">Open Scales</a></p>
+        <p><a class="open" href="./?exercise=leftHandRootless">Open Left Hand Rootless Voicings</a></p>
+        <p><a class="open" href="./?exercise=limbs">Open Rhythms</a></p>
+        <p><a href="./for-teachers/scales-on-the-staff.html">One scale on the staff, then the next</a></p>
+        <p><a href="./for-teachers/voicings-and-grooves.html">A voicing and a groove, one line each</a></p>
+        <p><a href="./practice.html">How to practice</a></p>
+    </main>
+    <script src="./resources/js/staff-glyphs.js"></script>
+    <script src="./resources/js/staff.js"></script>
+    <script src="./resources/js/notation-page.js"></script>
+    <script src="./resources/js/lang-link.js"></script>
+</body>
+
+</html>

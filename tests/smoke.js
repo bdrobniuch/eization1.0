@@ -66,6 +66,8 @@ function run() {
     deskRoundTrip(w);
     moreCatalog(w);
     shareCase(w);
+    helloStaffTour(w);
+    notationGuide(w);
     chatCase(w);
     foreignDesk(w);
     check("practice screen can stay awake", typeof w.keepPracticeAwake === "function" && typeof w.practiceScreenAwake === "function");
@@ -307,6 +309,77 @@ function moreCatalog(w) {
   var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
   check("spanish more catalog has 56 share links", esHashes.length === 56);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
+}
+
+function notationSampleCount(path) {
+  var req = new XMLHttpRequest();
+  req.open("GET", path, false);
+  req.send(null);
+  var chunks = (req.responseText || "").match(/<pre>[\s\S]*?<\/pre>/g) || [];
+  return { text: req.responseText || "", chunks: chunks };
+}
+
+function notationSamplesParse(w, chunks) {
+  var i;
+  var parsed = 0;
+  for (i = 0; i < chunks.length; i++) {
+    var text = chunks[i].replace(/<\/?pre>/g, "").replace(/^\s+|\s+$/g, "");
+    var parts = w.staffExampleParts(text);
+    if (parts.music && w.parseMusicNotation(parts.music)) {
+      parsed++;
+    }
+  }
+  return parsed;
+}
+
+function notationGuide(w) {
+  var page = notationSampleCount("../notation.html");
+  var parsed = notationSamplesParse(w, page.chunks);
+  check("notation guide samples parse", page.chunks.length >= 8 && parsed === page.chunks.length);
+  var esPage = notationSampleCount("../es/notation.html");
+  check(
+    "spanish notation guide matches",
+    esPage.chunks.length === page.chunks.length && notationSamplesParse(w, esPage.chunks) === esPage.chunks.length
+  );
+  var scales = notationSampleCount("../for-teachers/scales-on-the-staff.html");
+  var grooves = notationSampleCount("../for-teachers/voicings-and-grooves.html");
+  check(
+    "teacher staff examples parse",
+    scales.chunks.length >= 3 &&
+      notationSamplesParse(w, scales.chunks) === scales.chunks.length &&
+      grooves.chunks.length >= 6 &&
+      notationSamplesParse(w, grooves.chunks) === grooves.chunks.length
+  );
+}
+
+function helloStaffTour(w) {
+  var tour = w.HELLO_TOUR;
+  var end = w.HELLO_LAUNCH_END;
+  var show = tour[end];
+  check(
+    "launch tour shows staff exercises",
+    !!(
+      tour &&
+      end === 8 &&
+      tour[0].selectSeed === "allNotes" &&
+      tour[0].key === "hello.exercise" &&
+      tour[1].selectSeed === "scales" &&
+      tour[1].key === "hello.staffScale" &&
+      tour[2].selectSeed === "leftHandRootless" &&
+      tour[2].key === "hello.staffChord" &&
+      tour[3].key === "hello.example" &&
+      show &&
+      show.key === "hello.exercise" &&
+      !show.selectSeed
+    )
+  );
+  check(
+    "staff intro lines",
+    w.I18N.en["hello.staffScale"] === "Scales are written on a staff." &&
+      w.I18N.es["hello.staffScale"] === "Las escalas se escriben en el pentagrama." &&
+      w.I18N.en["hello.staffChord"] === "Chords can be written on a staff too." &&
+      w.I18N.es["hello.staffChord"] === "Los acordes también se escriben en el pentagrama."
+  );
 }
 
 function shareCase(w) {

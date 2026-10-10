@@ -17,7 +17,22 @@ var HELLO_TOUR = [
     id: "exerciseFace",
     side: "up",
     key: "hello.exercise",
-    hold: 3200
+    hold: 2400,
+    selectSeed: "allNotes"
+  },
+  {
+    id: "exerciseFace",
+    side: "up",
+    key: "hello.staffScale",
+    hold: 2800,
+    selectSeed: "scales"
+  },
+  {
+    id: "exerciseFace",
+    side: "up",
+    key: "hello.staffChord",
+    hold: 2800,
+    selectSeed: "leftHandRootless"
   },
   {
     id: "note",
@@ -366,6 +381,30 @@ function helloAfterStep(step) {
   }, HELLO_GAP_MS));
 }
 
+function helloSelectSeed(seedId) {
+  if (typeof listDeskExercises !== "function" || typeof SelectExercise !== "function") {
+    return false;
+  }
+  var list = listDeskExercises();
+  var i;
+  var id = "";
+  for (i = 0; i < list.length; i++) {
+    if (list[i].seedId === seedId) {
+      id = list[i].id;
+      break;
+    }
+  }
+  if (!id) {
+    return false;
+  }
+  currentExerciseId = id;
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  SelectExercise();
+  return currentExerciseId === id;
+}
+
 function runHelloStep() {
   if (!document.body.classList.contains("is-hello")) {
     return;
@@ -375,7 +414,27 @@ function runHelloStep() {
     settleHello();
     return;
   }
+  if (step.selectSeed && !helloSelectSeed(step.selectSeed)) {
+    helloStepIndex++;
+    if (helloStepIndex >= helloSliceEnd || helloStepIndex >= HELLO_TOUR.length) {
+      settleHello();
+      return;
+    }
+    runHelloStep();
+    return;
+  }
   placeHello(step.id, step.side);
+  if (step.selectSeed) {
+    helloTimers.push(setTimeout(function () {
+      if (!document.body.classList.contains("is-hello")) {
+        return;
+      }
+      if (HELLO_TOUR[helloStepIndex] !== step) {
+        return;
+      }
+      placeHello(step.id, step.side);
+    }, 40));
+  }
   if (step.advanceOnShow) {
     helloTimers.push(setTimeout(function () {
       if (!document.body.classList.contains("is-hello")) {

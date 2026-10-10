@@ -277,6 +277,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/free-play.html"/>
   </url>
   <url>
+    <loc>https://eization.com/notation.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/notation.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/notation.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/notation.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/notation.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/notation.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/notation.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/notation.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/for-teachers.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers.html"/>
@@ -371,5 +383,29 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/practice-on-the-road.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/practice-on-the-road.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/practice-on-the-road.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/for-teachers/scales-on-the-staff.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/scales-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/scales-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/scales-on-the-staff.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/for-teachers/scales-on-the-staff.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/scales-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/scales-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/scales-on-the-staff.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/for-teachers/voicings-and-grooves.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/voicings-and-grooves.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/voicings-and-grooves.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/voicings-and-grooves.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/for-teachers/voicings-and-grooves.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/voicings-and-grooves.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/voicings-and-grooves.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/voicings-and-grooves.html"/>
   </url>
 </urlset>
