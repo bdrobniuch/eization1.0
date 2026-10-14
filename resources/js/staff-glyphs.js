@@ -40,6 +40,8 @@ var STAFF_GLYPHS = {
   noteheadSlash: { advance: 2.12, d: "M430-250l-430 500h100l430-500z" },
   noteheadSlashWhiteHalf: { advance: 3.12, d: "M430-250h350l-430 500h-350zM645-220h-150l-370 440h150z" },
   noteheadSlashWhiteWhole: { advance: 3.92, d: "M430-250h550l-430 500h-550zM845-220h-350l-370 440h350z" },
+  /* Measure repeat. Origin on the middle line; ink runs from the second line to the fourth. */
+  repeat1Bar: { advance: 2.128, d: "M527-236C530-240 532-242 532-245C532-248 530-250 526-250L420-250C414-250 409-244 402-236L3 237C1 239 0 241 0 243C0 247 3 250 8 250L107 250C116 250 123 242 128 237zM62-175C28-175 0-149 0-116C0-84 28-57 62-57C97-57 125-84 125-116C125-149 97-175 62-175zM469 60C435 60 407 86 407 120C407 152 435 178 469 178C504 178 532 152 532 120C532 86 504 60 469 60z" },
   augmentationDot: { advance: 0.4, d: "M100 0c0-28-22-50-50-50s-50 22-50 50 22 50 50 50 50-22 50-50z" },
   restWhole: { advance: 1.132, d: "M282 109v-92c0-15-12-26-26-26h-230c-15 0-26 11-26 26v92c0 14 11 26 26 26h230c14 0 26-12 26-26z" },
   restHalf: { advance: 1.132, d: "M282-24v-92c0-15-12-26-26-26h-230c-15 0-26 11-26 26v92c0 14 11 26 26 26h230c14 0 26-12 26-26z" },

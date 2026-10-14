@@ -83,7 +83,7 @@ function run() {
 function exerciseMenu(w) {
   var i;
   var seen = {};
-  check("menu has 16 exercises", w.menuOrder.length === 16);
+  check("menu has 11 exercises", w.menuOrder.length === 11);
   check("free play is last", w.menuOrder[w.menuOrder.length - 1] === "freePlay");
   check("free play captions use the middle dot", w.itemToLine(w.exercises.freePlay.items[0]).indexOf(" \u00B7 ") > 0);
   for (i = 0; i < w.menuOrder.length; i++) {
@@ -109,8 +109,9 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 10);
-  check("address ignores ties", w.exerciseIdFromQuery("?exercise=ties") === "");
+  check("hidden exercises still registered", hidden === 16);
+  check("address finds a seeded exercise", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
+  check("address waits to add a library exercise", w.exerciseIdFromQuery("?exercise=intervals") === "");
   var deskList = w.listDeskExercises();
   check("desk seeds the visible catalog", deskList.length === w.menuOrder.length);
   var buttons = w.document.querySelectorAll("#exerciseMenu [data-value]");
@@ -121,7 +122,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("address opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address opens rhythms", w.exerciseIdFromQuery("?exercise=limbs") === "ex:limbs");
-  check("address opens tuplets", w.exerciseIdFromQuery("?exercise=tuplets") === "ex:tuplets");
+  check("address opens play/rest", w.exerciseIdFromQuery("?exercise=playRest") === "ex:playRest");
   check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");
   check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
   check("practice page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
@@ -133,6 +134,11 @@ function exerciseMenu(w) {
   check("desk backup packs exercises", !!(packed && packed.kind === "exercises" && packed.exercises.length === w.menuOrder.length));
   var round = w.parseDeskExercisesBackup(JSON.stringify(packed));
   check("desk backup parses back", !!(round && round.exercises && round.exercises.length === packed.exercises.length));
+  var addedIntervals = w.addCatalogExercise("intervals");
+  check(
+    "a library page can add its exercise",
+    !!(addedIntervals && addedIntervals.seedId === "intervals" && w.exerciseIdFromQuery("?exercise=intervals") === addedIntervals.id)
+  );
 }
 
 function staffNotation(w) {
@@ -224,6 +230,116 @@ function staffNotation(w) {
     "captioned slash is music notation",
     w.isMusicNotation("rq /q rq /q \u00B7 Backbeat")
   );
+  var dyn = w.parseMusicNotation("mf C4q cresc D4q f E4q");
+  check(
+    "a dynamic and a hairpin attach to notes",
+    !!(
+      dyn &&
+      dyn.events.length === 3 &&
+      dyn.events[0].dynamic === "mf" &&
+      dyn.events[1].hairpin === "cresc" &&
+      dyn.events[2].dynamic === "f" &&
+      dyn.events[2].hairpinEnd
+    )
+  );
+  check("a dangling dynamic is rejected", !w.parseMusicNotation("mf"));
+  check("a hairpin with no note is rejected", !w.parseMusicNotation("cresc"));
+  var chords = w.parseMusicNotation("^G /q /q ^D /q /q");
+  check(
+    "a chord symbol can change above slashes",
+    !!(chords && chords.events[0].chord === "G" && chords.events[2].chord === "D")
+  );
+  var play = w.parseMusicNotation("^G / / / / | ^D / / ^A / /");
+  var playNotes = [];
+  var playI;
+  if (play) {
+    for (playI = 0; playI < play.events.length; playI++) {
+      if (play.events[playI].type === "note") {
+        playNotes.push(play.events[playI]);
+      }
+    }
+  }
+  var playBeat = playNotes.length === 8 && playNotes[0].chord === "G" && playNotes[4].chord === "D" && playNotes[6].chord === "A";
+  if (playBeat) {
+    for (playI = 0; playI < playNotes.length; playI++) {
+      if (playNotes[playI].head !== "beat") {
+        playBeat = false;
+      }
+    }
+  }
+  check("a bare slash is play anything", playBeat);
+  var playSvg = w.renderMusicStaff("^G / / / /", "current");
+  var rhythmSvg = w.renderMusicStaff("/q /q /q /q", "current");
+  check(
+    "play anything has no stem",
+    !!(playSvg && rhythmSvg && playSvg.querySelectorAll("line").length < rhythmSvg.querySelectorAll("line").length)
+  );
+  var prog = w.exercises && w.exercises.essentialProgressions;
+  var progRhythm = false;
+  var progI;
+  if (prog && prog.items) {
+    for (progI = 0; progI < prog.items.length; progI++) {
+      if (String(prog.items[progI]).indexOf("/q") >= 0) {
+        progRhythm = true;
+      }
+    }
+  }
+  check("essential progressions use play anything", !!(prog && prog.items && prog.items.length && !progRhythm));
+  check("a dangling chord symbol is rejected", !w.parseMusicNotation("^G"));
+  var simile = w.parseMusicNotation("^II- /q /q %");
+  check(
+    "a simile fills the rest of the bar",
+    !!(simile && simile.events.length === 3 && simile.events[2].type === "simile" && simile.events[0].chord === "II-")
+  );
+  var artic = w.parseMusicNotation("C4e'> /q>");
+  check(
+    "articulations stay on the note",
+    !!(
+      artic &&
+      artic.events[0].articulations &&
+      artic.events[0].articulations[0] === "staccato" &&
+      artic.events[0].articulations[1] === "accent" &&
+      artic.events[1].articulations[0] === "accent"
+    )
+  );
+  var marked = w.renderMusicStaff("mf /q /q cresc f /q>", "current");
+  check(
+    "dynamics, a hairpin, and an accent draw",
+    !!(
+      marked &&
+      marked.querySelector("text.staff-dynamic") &&
+      marked.querySelector("line.staff-hairpin") &&
+      marked.querySelector(".staff-artic")
+    )
+  );
+  var simileSvg = w.renderMusicStaff("%", "current");
+  check(
+    "a simile bar draws the repeat sign",
+    !!(simileSvg && simileSvg.querySelector(".staff-simile"))
+  );
+  var staffIds = ["essentialProgressions", "playRest", "dynamics", "tuplets", "ties", "limbs"];
+  var badLine = "";
+  var si;
+  var li;
+  for (si = 0; si < staffIds.length; si++) {
+    var seed = w.exercises[staffIds[si]];
+    var seedLines = seed && (seed.items || seed.lines);
+    if (!seedLines) {
+      badLine = staffIds[si];
+      break;
+    }
+    for (li = 0; li < seedLines.length; li++) {
+      var music = typeof w.staffExampleParts === "function" ? w.staffExampleParts(seedLines[li]).music : seedLines[li];
+      if (music.length > 240 || !w.parseMusicNotation(music)) {
+        badLine = staffIds[si] + " " + music;
+        break;
+      }
+    }
+    if (badLine) {
+      break;
+    }
+  }
+  check("staff exercises parse", !badLine);
   var svg = typeof w.renderMusicStaff === "function" ? w.renderMusicStaff("/q /q /q /q", "current") : null;
   check("slash staff renders svg", !!(svg && svg.tagName && svg.tagName.toLowerCase() === "svg"));
   check("beam tip helper is loaded", typeof w.staffBeamTipYs === "function");
@@ -367,7 +483,7 @@ function staffTuplets(w) {
   check("every tuplets example fills two bars of 4/4", allFit);
 
   var tieItems = w.exercises.ties ? w.exercises.ties.items : [];
-  var tiesFit = tieItems.length === 22;
+  var tiesFit = tieItems.length === 27;
   for (k = 0; k < tieItems.length; k++) {
     var tieParts = w.staffExampleParts(tieItems[k]);
     var tieAst = w.parseMusicNotation(tieParts.music);
@@ -386,8 +502,8 @@ function staffTuplets(w) {
     var tieSvg = w.renderMusicStaff(tieParts.music, "current");
     if (
       tieParts.music.indexOf("~") < 0 ||
-      tieBars !== 1 ||
-      Math.abs(tieTotal - 4) > 1e-9 ||
+      tieBars !== 2 ||
+      Math.abs(tieTotal - 8) > 1e-9 ||
       !tieSvg ||
       !tieSvg.querySelector("path.staff-tie")
     ) {
@@ -395,7 +511,7 @@ function staffTuplets(w) {
       break;
     }
   }
-  check("every ties example fills one bar of 4/4", tiesFit);
+  check("every ties example fills two bars of 4/4", tiesFit);
 }
 
 function staffBracketClearsStems(w, source, above) {
@@ -621,7 +737,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 58 share links", keys.length === 58);
+  check("more catalog has 69 share links", keys.length === 69);
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -644,7 +760,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 58 share links", esHashes.length === 58);
+  check("spanish more catalog has 69 share links", esHashes.length === 69);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -1006,7 +1122,7 @@ function chatCase(w) {
   );
   check(
     "staff help can add an example",
-    w.document.querySelectorAll("#editStaffSamples button").length === 6 &&
+    w.document.querySelectorAll("#editStaffSamples button").length === 8 &&
       w.I18N.en["edit.staffHelpSamples"] === "Tap an example to add it." &&
       w.I18N.es["edit.staffHelpSamples"].indexOf("ejemplo") >= 0
   );

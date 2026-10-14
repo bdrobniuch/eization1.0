@@ -1,7 +1,7 @@
 registerExercise({
   id: "intervals",
   label: "All Intervals",
-  inMenu: true,
+  inMenu: false,
   items: [
     "m2 &#8593;",
     "M2 &#8593;",

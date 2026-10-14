@@ -46,7 +46,9 @@ var EDITOR_STAFF_SAMPLES = [
   "[E3h G3h B3h D4h]_C\u22067",
   "/q /e rq",
   "C4q~ | C4q",
-  "(3 C4e D4e E4e)"
+  "(3 C4e D4e E4e)",
+  "^G / / / / | ^D / / ^A / /",
+  "mf C4q cresc C4q f C4q"
 ];
 
 function editorIsOpen() {
@@ -1051,6 +1053,8 @@ function editorPaintNotePad() {
       label = t(button.getAttribute("data-event") === "slash" ? "edit.noteSlash" : "edit.noteRest") + " " + shown;
     } else if (button.getAttribute("data-event")) {
       label = t(button.getAttribute("data-label") || "edit.noteBar");
+    } else if (button.getAttribute("data-label")) {
+      label = t(button.getAttribute("data-label"));
     }
     if (label) {
       button.setAttribute("aria-label", label);
@@ -2037,11 +2041,21 @@ function buildEditorNotePad(host) {
   editorAddNoteButton(mods, "\u2669", { "data-dur": "", "data-label": "edit.noteQuarter" });
   editorAddNoteButton(mods, "\u266A", { "data-dur": "e", "data-label": "edit.noteEighth" });
   editorAddNoteButton(mods, "\u266A.", { "data-dur": "e.", "data-label": "edit.noteDotted" });
+  editorAddNoteButton(events, "/", { "data-symbol": "/ ", "data-label": "edit.notePlay" });
   editorAddNoteButton(events, "/q", { "data-event": "slash" });
   editorAddNoteButton(events, "rq", { "data-event": "rest" });
   editorAddNoteButton(events, "|", { "data-event": "bar", "data-label": "edit.noteBar" });
   editorAddNoteButton(events, "~", { "data-event": "tie", "data-label": "edit.noteTie" });
   editorAddNoteButton(events, "{ }", { "data-event": "beam", "data-label": "edit.noteBeam" });
+  var marks = editorNoteRow(pad);
+  editorAddNoteButton(marks, "mf", { "data-symbol": "mf ", "data-label": "edit.noteDynamic" });
+  editorAddNoteButton(marks, "cresc", { "data-symbol": "cresc ", "data-label": "edit.noteCresc" });
+  editorAddNoteButton(marks, "dim", { "data-symbol": "dim ", "data-label": "edit.noteDim" });
+  editorAddNoteButton(marks, "'", { "data-symbol": "'", "data-label": "edit.noteStaccato" });
+  editorAddNoteButton(marks, ">", { "data-symbol": ">", "data-label": "edit.noteAccent" });
+  editorAddNoteButton(marks, "-", { "data-symbol": "-", "data-label": "edit.noteTenuto" });
+  editorAddNoteButton(marks, "^", { "data-symbol": "^", "data-label": "edit.noteChord" });
+  editorAddNoteButton(marks, "%", { "data-symbol": "% ", "data-label": "edit.noteSimile" });
   host.appendChild(pad);
   editorPaintNotePad();
 }
@@ -2224,9 +2238,9 @@ function editorLinesUseStaff(lines) {
 
 function chatStaffSpelling(lang) {
   if (lang === "es") {
-    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s y un puntillo opcional. C4 es una negra. C#4, Db4, Cn4. @treble o @bass y @key=Eb van primero. ^Name es una palabra sobre el pentagrama. _1 es el grado bajo la nota. {C4e D4e} barrado. [E3h G3h B3h D4h]_C∆7 es un acorde. /q slash, rq silencio, | barra, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
+    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s y un puntillo opcional. C4 es una negra. C#4, Db4, Cn4. @treble o @bass y @key=Eb van primero. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. _1 es el grado bajo la nota. {C4e D4e} barrado. [E3h G3h B3h D4h]_C∆7 es un acorde. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
   }
-  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s and an optional dot. C4 is a quarter. C#4, Db4, Cn4. @treble or @bass and @key=Eb come first. ^Name is one word above the staff. _1 is the degree under the note. {C4e D4e} beams. [E3h G3h B3h D4h]_C∆7 is a chord. /q is a slash, rq a rest, | a bar, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
+  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s and an optional dot. C4 is a quarter. C#4, Db4, Cn4. @treble or @bass and @key=Eb come first. ^Name sits on the next note or slash and can change: ^G / ^D /. _1 is the degree under the note. {C4e D4e} beams. [E3h G3h B3h D4h]_C∆7 is a chord. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
 }
 
 function chatPromptRules(lang, staff) {

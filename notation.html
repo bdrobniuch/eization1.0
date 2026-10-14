@@ -166,16 +166,45 @@
             <div class="notation-staff"></div>
         </figure>
 
+        <h2>Chord symbols on slashes</h2>
+        <p><code>^</code> before a slash, note, rest, or chord puts that name above it. A later <code>^</code> moves the name. <code>/</code> means play anything: a slash with no stem, one beat. One name over a bar is <code>^G / / / /</code>. Two names in a bar split the slashes. <code>/q</code> is a rhythm slash, with a stem. <code>%</code> fills the rest of the bar with the repeat sign.</p>
+        <figure class="notation-sample">
+            <pre>^G / / / / | ^D / / ^A / /</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>^II- / / ^V7 / / | %</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>Dynamics and articulation</h2>
+        <p><code>pp</code> <code>p</code> <code>mp</code> <code>mf</code> <code>f</code> <code>ff</code> <code>sfz</code> sit under the next note. <code>cresc</code> and <code>dim</code> draw a hairpin from that note through the note that carries the next dynamic, or through the last note. On the note itself: <code>'</code> staccato, <code>&gt;</code> accent, <code>-</code> tenuto, and a final <code>^</code> for marcato (<code>C4e'&gt;</code>, <code>/q&gt;</code>).</p>
+        <figure class="notation-sample">
+            <pre>mf C4q C4q f C4q C4q</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>p /q cresc /q /q f /q</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>/q> /q' /q- /q^</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
         <h2>In an exercise</h2>
-        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Rhythms, and Tuplets are written this way. Held rhythm, in More exercises, is another rhythm exercise that uses ties. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a tuplet of one note, a barline inside a tuplet, a nested tuplet, a tie from a rest, a tie onto a different pitch, or a tie with no note after it.</p>
+        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Essential Progressions, Play/Rest, and Rhythms are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a tuplet of one note, a barline inside a tuplet, a nested tuplet, a tie from a rest, a tie onto a different pitch, a tie with no note after it, a dangling dynamic, or a hairpin with nothing after it.</p>
         <p><a class="open" href="./?exercise=scales">Open Scales</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Open Left Hand Rootless Voicings</a></p>
         <p><a class="open" href="./?exercise=limbs">Open Rhythms</a></p>
         <p><a class="open" href="./?exercise=tuplets">Open Tuplets</a></p>
-        <p><a class="open" href="./more.html#held-rhythm">Open Held rhythm</a></p>
+        <p><a class="open" href="./?exercise=ties">Open Held rhythm</a></p>
+        <p><a class="open" href="./?exercise=dynamics">Open Dynamics</a></p>
+        <p><a class="open" href="./?exercise=essentialProgressions">Open Essential Progressions</a></p>
         <p><a href="./for-teachers/scales-on-the-staff.html">One scale on the staff, then the next</a></p>
         <p><a href="./for-teachers/voicings-and-grooves.html">A voicing and a groove, one line each</a></p>
         <p><a href="./for-teachers/ties-on-the-staff.html">Hold the first note</a></p>
+        <p><a href="./for-teachers/dynamics-on-the-staff.html">One dynamic, then the next</a></p>
         <p><a href="./practice.html">How to practice</a></p>
     </main>
     <script src="./resources/js/staff-glyphs.js"></script>

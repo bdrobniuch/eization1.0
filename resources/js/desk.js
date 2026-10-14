@@ -321,12 +321,12 @@ function deskShareOffer(part) {
   };
 }
 
-function seedFromCatalog(seedId) {
+function catalogExerciseRecord(seedId) {
   if (typeof exercises === "undefined") {
     return null;
   }
   var ex = exercises[seedId];
-  if (!ex || !ex.inMenu) {
+  if (!ex) {
     return null;
   }
   var lines = catalogLines(ex);
@@ -340,6 +340,40 @@ function seedFromCatalog(seedId) {
     bars: clampDeskInt(ex.bars, 1, 16, 1),
     lines: lines
   };
+}
+
+function seedFromCatalog(seedId) {
+  if (typeof exercises === "undefined" || !exercises[seedId] || !exercises[seedId].inMenu) {
+    return null;
+  }
+  return catalogExerciseRecord(seedId);
+}
+
+function addCatalogExercise(seedId) {
+  var list = ensureDeskExercises();
+  var i;
+  var row;
+  var data;
+  for (i = 0; i < list.length; i++) {
+    if (list[i].seedId === seedId) {
+      return list[i];
+    }
+  }
+  if (list.length >= DESK_EXERCISE_CAP) {
+    return null;
+  }
+  row = catalogExerciseRecord(seedId);
+  if (!row) {
+    return null;
+  }
+  list.push(row);
+  data = deskState();
+  data.exercises = list;
+  data.exercise = row.id;
+  if (!writeDesk(data)) {
+    return null;
+  }
+  return row;
 }
 
 function listDeletedSeeds(data) {
@@ -450,6 +484,8 @@ function ensureDeskExercises() {
     list = buildSeededList([]);
     deleted = [];
   }
+  refreshFactoryPlayAnything(list);
+  refreshFactoryScaleRoots(list);
   data.exercises = list;
   data.deletedSeeds = deleted;
   delete data.custom;
@@ -460,6 +496,64 @@ function ensureDeskExercises() {
   }
   writeDesk(data);
   return list;
+}
+
+/* An unedited Scales copy named only the type. The catalog now puts the root first. */
+function refreshFactoryScaleRoots(list) {
+  var fresh = catalogExerciseRecord("scales");
+  var i;
+  var j;
+  var row;
+  var match;
+  if (!fresh) {
+    return;
+  }
+  for (i = 0; i < list.length; i++) {
+    row = list[i];
+    if (!row || row.seedId !== "scales" || row.lines.length !== fresh.lines.length) {
+      continue;
+    }
+    match = true;
+    for (j = 0; j < row.lines.length; j++) {
+      if (String(row.lines[j]) !== String(fresh.lines[j]).replace(/\^([A-G](?:\u266F|\u266D|#|b)?)_/, "^")) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      row.lines = fresh.lines.slice();
+      row.bars = fresh.bars;
+    }
+  }
+}
+
+/* An unedited Essential Progressions copy was stored with rhythm slashes. /q there is play anything. */
+function refreshFactoryPlayAnything(list) {
+  var fresh = catalogExerciseRecord("essentialProgressions");
+  var i;
+  var j;
+  var row;
+  var match;
+  if (!fresh) {
+    return;
+  }
+  for (i = 0; i < list.length; i++) {
+    row = list[i];
+    if (!row || row.seedId !== "essentialProgressions" || row.lines.length !== fresh.lines.length) {
+      continue;
+    }
+    match = true;
+    for (j = 0; j < row.lines.length; j++) {
+      if (String(row.lines[j]).replace(/\/q/g, "/") !== fresh.lines[j]) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      row.lines = fresh.lines.slice();
+      row.bars = fresh.bars;
+    }
+  }
 }
 
 function listDeskExercises() {

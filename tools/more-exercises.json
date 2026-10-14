@@ -49,7 +49,8 @@
     {
         "id":  "more0002",
         "slug":  "two-five-one-clock",
-        "bars":  2,
+        "bars":  4,
+        "staff":  true,
         "nameEn":  "II-V-I around the clock",
         "nameEs":  "II-V-I alrededor del reloj",
         "descEn":  "The cadence everyone knows in one or two keys. Walk it through twelve keys so each II-V-I gets one turn with the metronome before the next key.",
@@ -72,18 +73,18 @@
                       }
                   ],
         "lines":  [
-                      "Dm7 G7 Cmaj7",
-                      "Em7 A7 Dmaj7",
-                      "F#m7 B7 Emaj7",
-                      "G#m7 C#7 F#maj7",
-                      "Bbm7 Eb7 Abmaj7",
-                      "Cm7 F7 Bbmaj7",
-                      "Am7 D7 Gmaj7",
-                      "Bm7 E7 Amaj7",
-                      "C#m7 F#7 Bmaj7",
-                      "Ebm7 Ab7 Dbmaj7",
-                      "Fm7 Bb7 Ebmaj7",
-                      "Gm7 C7 Fmaj7"
+                      "^Dm7 / / / / | ^G7 / / / / | ^Cmaj7 / / / / | ^Cmaj7 / / / /",
+                      "^Em7 / / / / | ^A7 / / / / | ^Dmaj7 / / / / | ^Dmaj7 / / / /",
+                      "^F#m7 / / / / | ^B7 / / / / | ^Emaj7 / / / / | ^Emaj7 / / / /",
+                      "^G#m7 / / / / | ^C#7 / / / / | ^F#maj7 / / / / | ^F#maj7 / / / /",
+                      "^Bbm7 / / / / | ^Eb7 / / / / | ^Abmaj7 / / / / | ^Abmaj7 / / / /",
+                      "^Cm7 / / / / | ^F7 / / / / | ^Bbmaj7 / / / / | ^Bbmaj7 / / / /",
+                      "^Am7 / / / / | ^D7 / / / / | ^Gmaj7 / / / / | ^Gmaj7 / / / /",
+                      "^Bm7 / / / / | ^E7 / / / / | ^Amaj7 / / / / | ^Amaj7 / / / /",
+                      "^C#m7 / / / / | ^F#7 / / / / | ^Bmaj7 / / / / | ^Bmaj7 / / / /",
+                      "^Ebm7 / / / / | ^Ab7 / / / / | ^Dbmaj7 / / / / | ^Dbmaj7 / / / /",
+                      "^Fm7 / / / / | ^Bb7 / / / / | ^Ebmaj7 / / / / | ^Ebmaj7 / / / /",
+                      "^Gm7 / / / / | ^C7 / / / / | ^Fmaj7 / / / / | ^Fmaj7 / / / /"
                   ]
     },
     {
@@ -339,6 +340,7 @@
         "id":  "more0008",
         "slug":  "minor-two-five",
         "bars":  4,
+        "staff":  true,
         "nameEn":  "Minor II-V-I",
         "nameEs":  "II-V-I menor",
         "books":  [
@@ -359,18 +361,18 @@
                       }
                   ],
         "lines":  [
-                      "Dm7b5 G7b9 Cm",
-                      "Em7b5 A7b9 Dm",
-                      "F#m7b5 B7b9 Em",
-                      "Gm7b5 C7b9 Fm",
-                      "Am7b5 D7b9 Gm",
-                      "Bm7b5 E7b9 Am",
-                      "C#m7b5 F#7b9 Bm",
-                      "Ebm7b5 Ab7b9 Dbm",
-                      "Fm7b5 Bb7b9 Ebm",
-                      "G#m7b5 C#7b9 F#m",
-                      "Bbm7b5 Eb7b9 Abm",
-                      "Cm7b5 F7b9 Bbm"
+                      "^Dm7b5 / / / / | ^G7b9 / / / / | ^Cm / / / / | ^Cm / / / /",
+                      "^Em7b5 / / / / | ^A7b9 / / / / | ^Dm / / / / | ^Dm / / / /",
+                      "^F#m7b5 / / / / | ^B7b9 / / / / | ^Em / / / / | ^Em / / / /",
+                      "^Gm7b5 / / / / | ^C7b9 / / / / | ^Fm / / / / | ^Fm / / / /",
+                      "^Am7b5 / / / / | ^D7b9 / / / / | ^Gm / / / / | ^Gm / / / /",
+                      "^Bm7b5 / / / / | ^E7b9 / / / / | ^Am / / / / | ^Am / / / /",
+                      "^C#m7b5 / / / / | ^F#7b9 / / / / | ^Bm / / / / | ^Bm / / / /",
+                      "^Ebm7b5 / / / / | ^Ab7b9 / / / / | ^Dbm / / / / | ^Dbm / / / /",
+                      "^Fm7b5 / / / / | ^Bb7b9 / / / / | ^Ebm / / / / | ^Ebm / / / /",
+                      "^G#m7b5 / / / / | ^C#7b9 / / / / | ^F#m / / / / | ^F#m / / / /",
+                      "^Bbm7b5 / / / / | ^Eb7b9 / / / / | ^Abm / / / / | ^Abm / / / /",
+                      "^Cm7b5 / / / / | ^F7b9 / / / / | ^Bbm / / / / | ^Bbm / / / /"
                   ],
         "descEs":  "Las cadencias mayores se llevan las horas. II-V-I menor en las doce tonalidades: una tonalidad por ejemplo, dominante b9 hacia menor.",
         "descEn":  "Major cadences get the hours. Minor II-V-I in all twelve keys: one key per example, b9 dominant into minor."
@@ -764,6 +766,7 @@
         "id":  "more0019",
         "slug":  "dominant-cycle",
         "bars":  2,
+        "staff":  true,
         "nameEn":  "Dominant cycle",
         "nameEs":  "Ciclo de dominantes",
         "descEn":  "Cycle-of-fifths dominants show up in bridges and turnbacks. One dominant per turn around the circle so each key center gets equal time.",
@@ -786,18 +789,18 @@
                       }
                   ],
         "lines":  [
-                      "C7",
-                      "F7",
-                      "Bb7",
-                      "Eb7",
-                      "Ab7",
-                      "Db7",
-                      "F#7",
-                      "B7",
-                      "E7",
-                      "A7",
-                      "D7",
-                      "G7"
+                      "^C7 / / / / | ^C7 / / / /",
+                      "^F7 / / / / | ^F7 / / / /",
+                      "^Bb7 / / / / | ^Bb7 / / / /",
+                      "^Eb7 / / / / | ^Eb7 / / / /",
+                      "^Ab7 / / / / | ^Ab7 / / / /",
+                      "^Db7 / / / / | ^Db7 / / / /",
+                      "^F#7 / / / / | ^F#7 / / / /",
+                      "^B7 / / / / | ^B7 / / / /",
+                      "^E7 / / / / | ^E7 / / / /",
+                      "^A7 / / / / | ^A7 / / / /",
+                      "^D7 / / / / | ^D7 / / / /",
+                      "^G7 / / / / | ^G7 / / / /"
                   ]
     },
     {
@@ -2698,6 +2701,408 @@
                       "13 - 7",
                       "13 - 9",
                       "13 - 11"
+                  ]
+    },
+    {
+        "id": "more0059",
+        "slug": "intervals-from-c",
+        "group": "pitch",
+        "staff": true,
+        "bars": 1,
+        "nameEn": "Intervals from C",
+        "nameEs": "Intervalos desde C",
+        "descEn": "Two notes up from C4, then the same interval down. Each size gets one turn so the wide ones are not skipped.",
+        "descEs": "Dos notas hacia arriba desde C4, luego el mismo intervalo hacia abajo. Cada tamaño tiene un turno para que los anchos no se salten.",
+        "books": [
+            { "href": "./intervals.html", "en": "All Intervals", "es": "Todos los intervalos" },
+            { "href": "./scales-and-sets.html", "en": "Scales and pitch sets", "es": "Escalas y conjuntos de alturas" },
+            { "href": "./melodic-lines.html", "en": "Melodic lines", "es": "Líneas melódicas" }
+        ],
+        "lines": [
+            "C4q Db4q C4q B3q · minor second",
+            "C4q D4q C4q Bb3q · major second",
+            "C4q Eb4q C4q A3q · minor third",
+            "C4q E4q C4q Ab3q · major third",
+            "C4q F4q C4q G3q · perfect fourth",
+            "C4q F#4q C4q Gb3q · tritone",
+            "C4q G4q C4q F3q · perfect fifth",
+            "C4q Ab4q C4q E3q · minor sixth",
+            "C4q A4q C4q Eb3q · major sixth",
+            "C4q Bb4q C4q D3q · minor seventh",
+            "C4q B4q C4q Db3q · major seventh",
+            "C4q C5q C4q C3q · octave"
+        ]
+    },
+    {
+        "id": "more0060",
+        "slug": "seventh-arpeggios",
+        "group": "pitch",
+        "staff": true,
+        "bars": 1,
+        "nameEn": "Seventh arpeggios",
+        "nameEs": "Arpegios de séptima",
+        "descEn": "Root, third, fifth, and seventh, labeled under the notes. A few seventh chords, one bar each.",
+        "descEs": "Fundamental, tercera, quinta y séptima, con el grado bajo la nota. Unos pocos acordes de séptima, un compás cada uno.",
+        "books": [
+            { "href": "./chord-tones.html", "en": "Chord Tones", "es": "Notas del acorde" },
+            { "href": "./scales-and-sets.html", "en": "Scales and pitch sets", "es": "Escalas y conjuntos de alturas" }
+        ],
+        "lines": [
+            "C4q_1 E4q_3 G4q_5 B4q_7 · Cmaj7",
+            "D4q_1 F4q_3 A4q_5 C5q_7 · Dm7",
+            "E4q_1 G4q_3 Bb4q_5 D5q_7 · Em7b5",
+            "F4q_1 A4q_3 C5q_5 E5q_7 · Fmaj7",
+            "G4q_1 B4q_3 D5q_5 F5q_7 · G7",
+            "A4q_1 C5q_3 E5q_5 G5q_7 · Am7"
+        ]
+    },
+    {
+        "id": "more0061",
+        "slug": "four-enclosures",
+        "group": "changes",
+        "staff": true,
+        "bars": 1,
+        "nameEn": "Four enclosures",
+        "nameEs": "Cuatro cercamientos",
+        "descEn": "A note below, a note above, then the target. Four chord tones, written out. The arrow list stays in Approach Notes.",
+        "descEs": "Una nota por debajo, una por encima, luego el objetivo. Cuatro notas del acorde, escritas. La lista de flechas sigue en Notas de aproximación.",
+        "books": [
+            { "href": "./approach-notes.html", "en": "Approach Notes", "es": "Notas de aproximación" },
+            { "href": "./melodic-lines.html", "en": "Melodic lines", "es": "Líneas melódicas" }
+        ],
+        "lines": [
+            "B3e C#4e C4q rq rq rq · enclose C",
+            "D#4e F4e E4q rq rq rq · enclose E",
+            "F#4e A4e G4q rq rq rq · enclose G",
+            "A#4e C5e B4q rq rq rq · enclose B"
+        ]
+    },
+    {
+        "id": "more0062",
+        "slug": "guide-tone-ties",
+        "group": "changes",
+        "staff": true,
+        "bars": 2,
+        "nameEn": "Guide-tone ties",
+        "nameEs": "Ligaduras de guía",
+        "descEn": "The seventh of II moves to the third of V and holds into I. Four keys. The chord name sits above the note where the harmony changes, and the tie crosses the bar.",
+        "descEs": "La séptima del II va a la tercera del V y se sostiene en el I. Cuatro tonalidades. El cifrado va sobre el cambio, y la ligadura cruza la barra.",
+        "books": [
+            { "href": "./changes.html", "en": "Chord changes", "es": "Cambios de acordes" },
+            { "href": "./progressions.html", "en": "Essential Progressions", "es": "Progresiones esenciales" },
+            { "href": "./notation.html", "en": "How to write on the staff", "es": "Cómo escribir en el pentagrama" }
+        ],
+        "lines": [
+            "^II- C4h ^V7 B4h~ | ^I∆ B4h E4h · C",
+            "^II- F4h ^V7 E4h~ | ^I∆ E4h A4h · F",
+            "^II- Bb4h ^V7 A4h~ | ^I∆ A4h D5h · Bb",
+            "^II- Eb4h ^V7 D4h~ | ^I∆ D4h G4h · Eb"
+        ]
+    },
+    {
+        "id": "more0063",
+        "slug": "triplet-major",
+        "group": "pitch",
+        "staff": true,
+        "bars": 2,
+        "nameEn": "Major scale in triplets",
+        "nameEs": "Escala mayor en tresillos",
+        "descEn": "One major scale in eighth-note triplets, up and back, against the click. Four keys.",
+        "descEs": "Una escala mayor en tresillos de corchea, de ida y vuelta, contra el clic. Cuatro tonalidades.",
+        "books": [
+            { "href": "./scales-and-sets.html", "en": "Scales and pitch sets", "es": "Escalas y conjuntos de alturas" },
+            { "href": "./tuplets.html", "en": "Tuplets", "es": "Grupos irregulares" }
+        ],
+        "lines": [
+            "(3 C4e D4e E4e) (3 F4e G4e A4e) (3 B4e C5e D5e) (3 E5e F5e G5e) | (3 F5e E5e D5e) (3 C5e B4e A4e) (3 G4e F4e E4e) (3 D4e C4e C4e) · C major",
+            "@key=F (3 F4e G4e A4e) (3 Bb4e C5e D5e) (3 E5e F5e G5e) (3 A5e Bb5e C6e) | (3 Bb5e A5e G5e) (3 F5e E5e D5e) (3 C5e Bb4e A4e) (3 G4e F4e F4e) · F major",
+            "@key=Bb (3 Bb3e C4e D4e) (3 Eb4e F4e G4e) (3 A4e Bb4e C5e) (3 D5e Eb5e F5e) | (3 Eb5e D5e C5e) (3 Bb4e A4e G4e) (3 F4e Eb4e D4e) (3 C4e Bb3e Bb3e) · Bb major",
+            "@key=G (3 G3e A3e B3e) (3 C4e D4e E4e) (3 F#4e G4e A4e) (3 B4e C5e D5e) | (3 C5e B4e A4e) (3 G4e F#4e E4e) (3 D4e C4e B3e) (3 A3e G3e G3e) · G major"
+        ]
+    },
+    {
+        "id":  "more0064",
+        "slug":  "tuplets",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Tuplets",
+        "nameEs":  "Grupos irregulares",
+        "descEn":  "Irregular groups on the staff: triplets through septuplets, with rests and one pitched line. Two bars of 4/4.",
+        "descEs":  "Grupos irregulares en el pentagrama: de tresillos a septillos, con silencios y una línea con alturas. Dos compases de 4/4.",
+        "books":  [
+                      {
+                          "href":  "./tuplets.html",
+                          "en":  "Tuplets",
+                          "es":  "Grupos irregulares"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      }
+                  ],
+        "lines":  [
+                      "(3 /e /e /e) (3 /e /e /e) /q /q | (3 /e /e /e) (3 /e /e /e) /q /q · Eighth-note triplets",
+                      "/q /q (3 /q /q /q) | /q /q (3 /q /q /q) · Quarter-note triplets",
+                      "(3 /h /h /h) | (3 /h /h /h) · Half-note triplet",
+                      "(3 /q /q /q) (3 /q /q /q) | /q /q /q /q · Three in two beats, then four",
+                      "(5 /s /s /s /s /s) /q /h | (5 /s /s /s /s /s) /q /h · Sixteenth quintuplet",
+                      "(6 /s /s /s /s /s /s) /q /h | (6 /s /s /s /s /s /s) /q /h · Sixteenth sextuplet",
+                      "(7 /s /s /s /s /s /s /s) /q /h | (7 /s /s /s /s /s /s /s) /q /h · Sixteenth septuplet",
+                      "(5 /e /e /e /e /e) /h | (5 /e /e /e /e /e) /h · Eighth-note quintuplet",
+                      "(7 /e /e /e /e /e /e /e) /h | (7 /e /e /e /e /e /e /e) /h · Eighth-note septuplet",
+                      "(3 /q /e) (3 /q /e) (3 /q /e) (3 /q /e) | (3 /q /e) (3 /q /e) (3 /q /e) (3 /q /e) · Shuffle",
+                      "(3 /e /q) (3 /e /q) /q /q | (3 /e /q) (3 /e /q) /q /q · Reverse shuffle",
+                      "(3 /e. /s /e) (3 /e. /s /e) /h | (3 /e. /s /e) (3 /e. /s /e) /h · Dotted triplet",
+                      "(5 /q /e /e /e) /h | (5 /q /e /e /e) /h · Quintuplet, long first",
+                      "(7 /e /s /s /s /e) /q /h | (7 /e /s /s /s /e) /q /h · Septuplet, mixed",
+                      "(3 re /e /e) (3 re /e /e) /h | (3 re /e /e) (3 re /e /e) /h · Triplet, rest first",
+                      "(3 /e re /e) (3 /e re /e) /h | (3 /e re /e) (3 /e re /e) /h · Triplet, skip the middle",
+                      "(3 /q rq /q) /h | (3 /q rq /q) /h · Quarter-note triplet with a rest",
+                      "(5:4 /e /e /e /e /e) /q /q | (5:4 /e /e /e /e /e) /q /q · Five in the time of four",
+                      "(3 C4e D4e E4e) (3 F4e G4e A4e) (3 G4e A4e B4e) (3 C5e D5e E5e) | (3 C4e D4e E4e) (3 F4e G4e A4e) (3 G4e A4e B4e) (3 C5e D5e E5e) · Pitched eighth-note triplets"
+                  ]
+    },
+    {
+        "id":  "more0065",
+        "slug":  "dynamics",
+        "group":  "sound",
+        "staff":  true,
+        "bars":  1,
+        "nameEn":  "Dynamics",
+        "nameEs":  "Matices",
+        "descEn":  "One bar of 4/4 on the staff. Dynamics, hairpins, and articulations sit on rhythm slashes.",
+        "descEs":  "Un compás de 4/4 en el pentagrama. Matices, reguladores y articulaciones van sobre slashes de ritmo.",
+        "books":  [
+                      {
+                          "href":  "./dynamics.html",
+                          "en":  "Dynamics",
+                          "es":  "Matices"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      },
+                      {
+                          "href":  "./for-teachers/dynamics-on-the-staff.html",
+                          "en":  "One Dynamic. Then the Next.",
+                          "es":  "Un matiz. Luego el siguiente."
+                      }
+                  ],
+        "lines":  [
+                      "pp /q /q /q /q · pianissimo",
+                      "p /q /q /q /q · piano",
+                      "mp /q /q /q /q · mezzo-piano",
+                      "mf /q /q /q /q · mezzo-forte",
+                      "f /q /q /q /q · forte",
+                      "ff /q /q /q /q · fortissimo",
+                      "sfz /q /q /q /q · sforzando",
+                      "pp /q cresc /q /q f /q · crescendo",
+                      "f /q dim /q /q pp /q · diminuendo",
+                      "/q\u0027 /q\u0027 /q\u0027 /q\u0027 · staccato",
+                      "/q\u003e /q /q\u003e /q · accent on 1 and 3",
+                      "/q /q\u003e /q /q\u003e · accent on 2 and 4",
+                      "/q- /q- /q- /q- · tenuto"
+                  ]
+    },
+    {
+        "id":  "more0066",
+        "slug":  "sonic-nuances",
+        "group":  "sound",
+        "bars":  2,
+        "nameEn":  "Sonic Nuances",
+        "nameEs":  "Matices sonoros",
+        "descEn":  "Marks for color and touch: dynamics, accents, articulation, and time feel. Each line names the mark and what to do with it.",
+        "descEs":  "Marcas de color y toque: matices, acentos, articulación y feel. Cada línea nombra la marca y qué hacer con ella.",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "en":  "Sonic Nuances",
+                          "es":  "Matices sonoros"
+                      },
+                      {
+                          "href":  "./dynamics.html",
+                          "en":  "Dynamics",
+                          "es":  "Matices"
+                      }
+                  ],
+        "lines":  [
+                      "pp · pianissimo",
+                      "mf · mezzo-forte",
+                      "f · forte",
+                      "Accent 1 · some notes, on the beat",
+                      "Accent \u0026 · some notes, on the and",
+                      "Accent peaks · the high and the low notes",
+                      "Staccato · short",
+                      "Legato · connected",
+                      "Ghost · soft, pitch still there",
+                      "Trill · two adjacent notes",
+                      "Tremolo · a note or an octave",
+                      "Laid back · behind the beat",
+                      "On top · ahead of the beat",
+                      "Roll · arpeggiated chord",
+                      "Finger Pedal · sustain top note"
+                  ]
+    },
+    {
+        "id":  "more0067",
+        "slug":  "all-intervals",
+        "group":  "pitch",
+        "bars":  1,
+        "nameEn":  "All Intervals",
+        "nameEs":  "Todos los intervalos",
+        "descEn":  "Every interval from the minor second through the major seventh, up and then down.",
+        "descEs":  "Cada intervalo desde la segunda menor hasta la séptima mayor, primero hacia arriba y luego hacia abajo.",
+        "books":  [
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html",
+                          "en":  "Scales and pitch sets",
+                          "es":  "Escalas y conjuntos de alturas"
+                      }
+                  ],
+        "lines":  [
+                      "m2 ↑",
+                      "M2 ↑",
+                      "m3 ↑",
+                      "M3 ↑",
+                      "P4 ↑",
+                      "d5 ↑",
+                      "P5 ↑",
+                      "m6 ↑",
+                      "M6 ↑",
+                      "m7 ↑",
+                      "M7 ↑",
+                      "m2 ↓",
+                      "M2 ↓",
+                      "m3 ↓",
+                      "M3 ↓",
+                      "P4 ↓",
+                      "d5 ↓",
+                      "P5 ↓",
+                      "m6 ↓",
+                      "M6 ↓",
+                      "m7 ↓",
+                      "M7 ↓"
+                  ]
+    },
+    {
+        "id":  "more0068",
+        "slug":  "approach-notes",
+        "group":  "changes",
+        "bars":  2,
+        "nameEn":  "Approach Notes",
+        "nameEs":  "Notas de aproximación",
+        "descEn":  "Paths into a target note. An arrow says the direction, the number says how far, and T is the target.",
+        "descEs":  "Caminos hacia una nota objetivo. Una flecha dice la dirección, el número dice la distancia, y T es el objetivo.",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      },
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      }
+                  ],
+        "lines":  [
+                      "↓1C → T",
+                      "↑1D → T",
+                      "↑1C → T",
+                      "↑1D ↓1C → T",
+                      "↓1C ↑1D → T",
+                      "↓2C ↓1C → T",
+                      "↑2C ↑1C → T",
+                      "↑1C ↓1C → T",
+                      "↓2C ↓1C ↑1D → T",
+                      "↑2C ↑1C ↓1C → T",
+                      "↑1D ↓2C ↓1C → T",
+                      "↓1C ↑2C ↑1C → T",
+                      "↓1C ↑1D ↓1C → T",
+                      "↑1D ↑1C ↓1C → T",
+                      "↓2C ↓1C ↑2C ↑1C → T",
+                      "↑2C ↑1C ↓2C ↓1C → T",
+                      "↓2C ↓1C ↑1D ↓1C → T",
+                      "↑1D ↓2C ↓1C ↑1D → T",
+                      "↓1C ↑2C ↑1C ↓1C → T",
+                      "↑2C ↓2C ↑1C ↓1C → T",
+                      "↑2C ↓2C ↓1C ↑1C → T",
+                      "↓2C ↑2C ↓1C ↑1C → T",
+                      "↓2C ↑2C ↑1C ↓1C → T",
+                      "↑1D ↑1C ↓2C ↓1C → T",
+                      "↑1D ↓1D ↓2C ↓1C → T",
+                      "↓4C ↓3C ↓2C ↓1C → T",
+                      "↑4C ↑3C ↑2C ↑1C → T",
+                      "↓2C ↓1C ↑2C ↑1C ↓1C → T",
+                      "↑2C ↑1C ↓2C ↓1C ↑1C → T"
+                  ]
+    },
+    {
+        "id":  "more0069",
+        "slug":  "finger-patterns",
+        "group":  "pitch",
+        "bars":  1,
+        "nameEn":  "Finger Patterns",
+        "nameEs":  "Digitaciones",
+        "descEn":  "Five fingers, one box each. A crossed box plays. An empty box rests.",
+        "descEs":  "Cinco dedos, una casilla cada uno. Una casilla cruzada toca. Una casilla vacía descansa.",
+        "books":  [
+                      {
+                          "href":  "./finger-patterns.html",
+                          "en":  "Finger Patterns",
+                          "es":  "Digitaciones"
+                      },
+                      {
+                          "href":  "./practice.html",
+                          "en":  "How to practice",
+                          "es":  "Cómo practicar"
+                      }
+                  ],
+        "lines":  [
+                      "☒☒☒☒☒",
+                      "☒☒☒☒☐",
+                      "☒☒☒☐☒",
+                      "☒☒☒☐☐",
+                      "☒☒☐☒☒",
+                      "☒☒☐☒☐",
+                      "☒☒☐☐☒",
+                      "☒☒☐☐☐",
+                      "☒☐☒☒☒",
+                      "☒☐☒☒☐",
+                      "☒☐☒☐☒",
+                      "☒☐☒☐☐",
+                      "☒☐☐☒☒",
+                      "☒☐☐☒☐",
+                      "☒☐☐☐☒",
+                      "☒☐☐☐☐",
+                      "☐☒☒☒☒",
+                      "☐☒☒☒☐",
+                      "☐☒☒☐☒",
+                      "☐☒☒☐☐",
+                      "☐☒☐☒☒",
+                      "☐☒☐☒☐",
+                      "☐☒☐☐☒",
+                      "☐☒☐☐☐",
+                      "☐☐☒☒☒",
+                      "☐☐☒☒☐",
+                      "☐☐☒☐☒",
+                      "☐☐☒☐☐",
+                      "☐☐☐☒☒",
+                      "☐☐☐☒☐",
+                      "☐☐☐☐☒"
                   ]
     }
 ]

@@ -7,7 +7,7 @@ registerExercise({
   id: "sonicDevices",
   label: "Sonic Nuances",
   bars: 2,
-  inMenu: true,
+  inMenu: false,
   items: [
     sonicItem("pp", "pianissimo", true),
     sonicItem("mf", "mezzo-forte", true),

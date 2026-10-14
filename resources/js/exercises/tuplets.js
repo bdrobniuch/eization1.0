@@ -10,7 +10,7 @@ registerExercise({
   id: "tuplets",
   label: "Tuplets",
   bars: 2,
-  inMenu: true,
+  inMenu: false,
   items: [
     tupletTwice("(3 /e /e /e) (3 /e /e /e) /q /q", "Eighth-note triplets"),
     tupletTwice("/q /q (3 /q /q /q)", "Quarter-note triplets"),
@@ -28,6 +28,8 @@ registerExercise({
     tupletTwice("(7 /e /s /s /s /e) /q /h", "Septuplet, mixed"),
     tupletTwice("(3 re /e /e) (3 re /e /e) /h", "Triplet, rest first"),
     tupletTwice("(3 /e re /e) (3 /e re /e) /h", "Triplet, skip the middle"),
-    tupletTwice("(3 /q rq /q) /h", "Quarter-note triplet with a rest")
+    tupletTwice("(3 /q rq /q) /h", "Quarter-note triplet with a rest"),
+    tupletTwice("(5:4 /e /e /e /e /e) /q /q", "Five in the time of four"),
+    tupletTwice("(3 C4e D4e E4e) (3 F4e G4e A4e) (3 G4e A4e B4e) (3 C5e D5e E5e)", "Pitched eighth-note triplets")
   ]
 });

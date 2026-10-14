@@ -465,7 +465,7 @@ function exerciseSeedFromQuery(search) {
 
 function exerciseIdFromQuery(search) {
   var seed = exerciseSeedFromQuery(search);
-  if (!seed || typeof menuOrder === "undefined" || menuOrder.indexOf(seed) < 0) {
+  if (!seed || typeof exercises === "undefined" || !exercises[seed]) {
     return "";
   }
   var wanted = typeof deskIdForSeed === "function" ? deskIdForSeed(seed) : "";
@@ -737,10 +737,15 @@ function offerSharedExercise() {
 
 function openExerciseFromAddress() {
   var seed = exerciseSeedFromQuery(window.location.search);
-  if (!seed || typeof menuOrder === "undefined" || menuOrder.indexOf(seed) < 0) {
+  var added;
+  if (!seed || typeof exercises === "undefined" || !exercises[seed]) {
     return;
   }
   var id = exerciseIdFromQuery(window.location.search);
+  if (!id && typeof addCatalogExercise === "function") {
+    added = addCatalogExercise(seed);
+    id = added ? added.id : "";
+  }
   clearExerciseQuery();
   if (id) {
     currentExerciseId = id;

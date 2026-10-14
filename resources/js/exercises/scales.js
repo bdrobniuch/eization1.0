@@ -25,7 +25,7 @@
    * semis: pitch classes from tonic including the octave.
    * degrees: labels under each note (same length as semis).
    * parent: @key= name from the scale root.
-   * ^ names are one token (hyphens; no spaces).
+   * ^ names are one token. Root and scale name join with _, which prints as a space.
    */
   var SCALES = [
     {
@@ -336,6 +336,12 @@
     return chunks.join(" ");
   }
 
+  /* Bb prints as B♭. The underscore is the space in "B♭ Dorian". */
+  function scaleTitle(root, scale) {
+    var pitch = root.name.replace(/b/g, FLAT).replace(/#/g, "\u266F");
+    return pitch + "_" + scale.name;
+  }
+
   function scaleLine(root, scale) {
     var rootMidi = 60 + root.pc;
     var useFlat = spellingUsesFlat(scale.parent(root));
@@ -348,7 +354,7 @@
       "@treble " +
       keyDirective(scale.parent(root)) +
       " ^" +
-      scale.name +
+      scaleTitle(root, scale) +
       " " +
       beamGroups(parts)
     );

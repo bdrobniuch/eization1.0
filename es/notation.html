@@ -166,16 +166,45 @@
             <div class="notation-staff"></div>
         </figure>
 
+        <h2>Cifrado sobre slashes</h2>
+        <p><code>^</code> delante de un slash, una nota, un silencio o un acorde pone ese nombre encima. Otro <code>^</code> mueve el nombre. <code>/</code> significa tocar cualquier cosa: un slash sin plica, un tiempo. Un nombre sobre un compás es <code>^G / / / /</code>. Dos nombres parten los slashes. <code>/q</code> es un slash de ritmo, con plica. <code>%</code> llena lo que queda del compás con el signo de repetición.</p>
+        <figure class="notation-sample">
+            <pre>^G / / / / | ^D / / ^A / /</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>^II- / / ^V7 / / | %</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
+        <h2>Matices y articulación</h2>
+        <p><code>pp</code> <code>p</code> <code>mp</code> <code>mf</code> <code>f</code> <code>ff</code> <code>sfz</code> van bajo la nota siguiente. <code>cresc</code> y <code>dim</code> dibujan un regulador desde esa nota hasta la que lleva el matiz siguiente, o hasta la última. En la propia nota: <code>'</code> staccato, <code>&gt;</code> acento, <code>-</code> tenuto, y un <code>^</code> final para el marcato (<code>C4e'&gt;</code>, <code>/q&gt;</code>).</p>
+        <figure class="notation-sample">
+            <pre>mf C4q C4q f C4q C4q</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>p /q cresc /q /q f /q</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>/q> /q' /q- /q^</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
         <h2>En un ejercicio</h2>
-        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Ritmos y Grupos irregulares se escriben así. Ritmo sostenido, en Más ejercicios, es otro ejercicio de ritmo que usa ligaduras. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, un grupo irregular de una sola nota, una barra de compás dentro de un grupo irregular, un grupo irregular anidado, una ligadura desde un silencio, una ligadura hacia otra altura, o una ligadura sin nota después.</p>
+        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Progresiones esenciales, Tocar/Silencio y Ritmos se escriben así. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, un grupo irregular de una sola nota, una barra de compás dentro de un grupo irregular, un grupo irregular anidado, una ligadura desde un silencio, una ligadura hacia otra altura, una ligadura sin nota después, un matiz suelto, o un regulador sin nada después.</p>
         <p><a class="open" href="./?exercise=scales">Abrir Escalas</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Abrir Voicings rootless de mano izquierda</a></p>
         <p><a class="open" href="./?exercise=limbs">Abrir Ritmos</a></p>
         <p><a class="open" href="./?exercise=tuplets">Abrir Grupos irregulares</a></p>
-        <p><a class="open" href="./more.html#held-rhythm">Abrir Ritmo sostenido</a></p>
+        <p><a class="open" href="./?exercise=ties">Abrir Ritmo sostenido</a></p>
+        <p><a class="open" href="./?exercise=dynamics">Abrir Matices</a></p>
+        <p><a class="open" href="./?exercise=essentialProgressions">Abrir Progresiones esenciales</a></p>
         <p><a href="./for-teachers/scales-on-the-staff.html">Una escala en el pentagrama, luego la siguiente</a></p>
         <p><a href="./for-teachers/voicings-and-grooves.html">Un voicing y un groove, una línea cada uno</a></p>
         <p><a href="./for-teachers/ties-on-the-staff.html">Sostén la primera nota</a></p>
+        <p><a href="./for-teachers/dynamics-on-the-staff.html">Un matiz, luego el siguiente</a></p>
         <p><a href="./practice.html">Cómo practicar</a></p>
     </main>
     <script src="../resources/js/staff-glyphs.js"></script>

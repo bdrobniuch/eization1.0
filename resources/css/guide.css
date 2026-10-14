@@ -66,6 +66,26 @@ h2 {
     line-height: 1.25;
 }
 
+h3 {
+    margin: 18px 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.kind {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.72;
+}
+
+h2 .kind {
+    margin-left: 8px;
+}
+
 p {
     margin: 0 0 12px;
     font-size: 17px;

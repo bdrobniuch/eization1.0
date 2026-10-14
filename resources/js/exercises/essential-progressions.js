@@ -1,11 +1,62 @@
-var simileMark = "<span class='simile'>&#119054;</span>";
+function progressionPlain(cell) {
+  return String(cell)
+    .replace(/&#916;/g, "\u0394")
+    .replace(/&#9837;/g, "\u266D")
+    .replace(/&#9839;/g, "\u266F")
+    .replace(/&#248;/g, "\u00F8");
+}
+
+function isChordWord(word) {
+  var core = word.replace(/^\(+/, "").replace(/\)+$/, "");
+  if (!core || core === "%") {
+    return false;
+  }
+  return /^(?:[#b\u266D\u266F\u266E]*)(?:I|V|i|v|X|[A-G])/.test(core);
+}
+
+function chordToken(text) {
+  return "^" + text.replace(/ /g, "_");
+}
+
+/* One cell of a 4/4 bar: chord names above play-anything slashes, % as a simile. */
+function barToStaff(cell) {
+  var parts = progressionPlain(cell).replace(/^\s+|\s+$/g, "").split(/\s+/).filter(Boolean);
+  var simile = false;
+  var chords = true;
+  var i;
+  if (parts.length && parts[parts.length - 1] === "%") {
+    simile = true;
+    parts.pop();
+  }
+  if (!parts.length) {
+    return "%";
+  }
+  for (i = 0; i < parts.length; i++) {
+    if (!isChordWord(parts[i])) {
+      chords = false;
+    }
+  }
+  if (!chords || parts.length === 1) {
+    if (simile) {
+      return chordToken(parts.join(" ")) + " / / %";
+    }
+    return chordToken(parts.join(" ")) + " / / / /";
+  }
+  if (parts.length === 2 && !simile) {
+    return chordToken(parts[0]) + " / / " + chordToken(parts[1]) + " / /";
+  }
+  if (simile) {
+    return chordToken(parts.join(" ")) + " / / %";
+  }
+  return chordToken(parts.join(" ")) + " / / / /";
+}
 
 function progressionItem(changes, name) {
-  return '<span class="prog-changes">' + changes.split("%").join(simileMark) + '</span><span class="prog-name">' + name + "</span>";
+  return changes + " \u00B7 " + name;
 }
 
 function progressionBars(a, b, c, d) {
-  return "| " + a + " | " + b + " | " + c + " | " + d + " |";
+  return barToStaff(a) + " | " + barToStaff(b) + " | " + barToStaff(c) + " | " + barToStaff(d);
 }
 
 registerExercise({

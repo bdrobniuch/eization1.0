@@ -33,6 +33,7 @@ registerExercise({
     limbTwice("{/e_R /e_R /e_L /e_L /e_R /e_R /e_L /e_L}", "Doubles"),
     limbTwice("{/e_R /e_L /e_R /e_R /e_L /e_R /e_L /e_L}", "Paradiddle"),
     limbTwice("{/e_L /e_R /e_L /e_L /e_R /e_L /e_R /e_R}", "Paradiddle (left)"),
-    limbTwice("{/e_R /e_L /e_L /e_R /e_L /e_R /e_R /e_L}", "Inverted paradiddle")
+    limbTwice("{/e_R /e_L /e_L /e_R /e_L /e_R /e_R /e_L}", "Inverted paradiddle"),
+    limbTwice("/q /q> /q /q>", "Accent the backbeat")
   ]
 });

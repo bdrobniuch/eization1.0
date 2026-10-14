@@ -44,6 +44,81 @@ foreach ($ex in $exercises) {
   Write-Host ("{0} {1} chars" -f $ex.id, $len)
 }
 
+$groupOf = @{
+  'sticky-keys' = 'pitch'
+  'wide-intervals' = 'pitch'
+  'pentatonic-colors' = 'pitch'
+  'one-octave' = 'pitch'
+  'scale-patterns' = 'pitch'
+  'lower-structure-triads' = 'pitch'
+  'upper-structure-triads' = 'pitch'
+  'major-pentatonics-on-chords' = 'pitch'
+  'triad-coupling-relationships' = 'pitch'
+  'major-2nd-triad-couplings' = 'pitch'
+  'tritonic-7sus4-pentatonic' = 'pitch'
+  'add2-add4-madd4' = 'pitch'
+  'one-two-three-five-perms' = 'pitch'
+  'alt-four-note-cells' = 'pitch'
+  'dom-pentatonic-grid' = 'pitch'
+  'pentatonic-three-note' = 'pitch'
+  'quartal-lines' = 'pitch'
+  'inverted-interval-motifs' = 'pitch'
+  'altered-hexatonic-pairs' = 'pitch'
+  'twelve-key-transpose' = 'pitch'
+  'three-note-contours' = 'pitch'
+  'whole-step-triad-pairs' = 'pitch'
+  'half-step-triad-pairs' = 'pitch'
+  'augmented-triad-pairs' = 'pitch'
+  'mixed-triad-pairs' = 'pitch'
+  'ust-chord-families' = 'pitch'
+  'lst-chord-families' = 'pitch'
+  'two-chord-tones-combinations' = 'pitch'
+  'two-five-one-clock' = 'changes'
+  'guide-tones' = 'changes'
+  'outline-changes' = 'changes'
+  'enclosures' = 'changes'
+  'minor-two-five' = 'changes'
+  'turnarounds' = 'changes'
+  'blues-forms' = 'changes'
+  'rhythm-bridge' = 'changes'
+  'tritone-road' = 'changes'
+  'dominant-cycle' = 'changes'
+  'goal-notes' = 'changes'
+  'basic-major-blues' = 'changes'
+  'jazz-major-blues' = 'changes'
+  'minor-blues' = 'changes'
+  'chromatic-lower-approach' = 'changes'
+  'double-chromatic-approach' = 'changes'
+  'line-deflection' = 'changes'
+  'slow-time' = 'rhythm'
+  'into-the-bar' = 'rhythm'
+  'leave-space' = 'rhythm'
+  'odd-bars' = 'rhythm'
+  'phrase-start-end' = 'rhythm'
+  'time-feel' = 'rhythm'
+  'rhythmic-displacement' = 'rhythm'
+  'rhythmic-density' = 'rhythm'
+  'held-rhythm' = 'rhythm'
+  'sing-first' = 'sound'
+  'dynamics-articulation' = 'sound'
+  'ornament-the-melody' = 'sound'
+  'vocab-rhythm-or-pitch' = 'language'
+}
+$groupOrder = @('pitch', 'changes', 'rhythm', 'sound', 'language')
+
+function Group-Of($ex) {
+  $names = @($ex.PSObject.Properties.Name)
+  if ($names -contains 'group' -and $ex.group) { return [string]$ex.group }
+  if ($groupOf.ContainsKey([string]$ex.slug)) { return $groupOf[[string]$ex.slug] }
+  return 'language'
+}
+
+function Is-Staff($ex) {
+  $names = @($ex.PSObject.Properties.Name)
+  if ($names -contains 'staff') { return [bool]$ex.staff }
+  return ([string]$ex.slug) -eq 'held-rhythm'
+}
+
 function Book-Links($books, $lang) {
   $dot = ' ' + [string][char]0x00B7 + ' '
   $parts = @()
@@ -71,6 +146,9 @@ function Build-Page([string]$lang) {
     $lead3 = "Si armaste un ejercicio que cubre un hueco, abre eization, ve a Acerca de y m${chA}ndalo. Los fuertes pueden entrar en esta lista."
     $openLabel = 'Abrir en eization'
     $navLabel = "En esta p${chA}gina"
+    $groupLabels = @{ pitch = 'Alturas'; changes = 'Cambios'; rhythm = 'Ritmo'; sound = 'Sonido'; language = 'Lenguaje' }
+    $staffLabel = 'Pentagrama'
+    $textLabel = 'Texto'
     $related = 'Relacionado'
     $barsLabel = 'Compases'
     $langAria = 'Idioma'
@@ -98,6 +176,9 @@ function Build-Page([string]$lang) {
     $lead3 = 'Built an exercise that fills a gap? Open eization, go to About, and send it. Strong ones can join this list.'
     $openLabel = 'Open in eization'
     $navLabel = 'On this page'
+    $groupLabels = @{ pitch = 'Pitch'; changes = 'Changes'; rhythm = 'Rhythm'; sound = 'Sound'; language = 'Language' }
+    $staffLabel = 'Staff'
+    $textLabel = 'Text'
     $related = 'Related'
     $barsLabel = 'Bars'
     $langAria = 'Language'
@@ -121,12 +202,18 @@ function Build-Page([string]$lang) {
   $navSb = New-Object System.Text.StringBuilder
   [void]$navSb.AppendLine('        <nav aria-labelledby="more-toc">')
   [void]$navSb.AppendLine('            <h2 id="more-toc">' + (Html-Escape $navLabel) + '</h2>')
-  [void]$navSb.AppendLine('            <ul class="exercises">')
-  foreach ($ex in $exercises) {
-    $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
-    [void]$navSb.AppendLine('                <li><a href="#' + (Html-Escape $ex.slug) + '">' + (Html-Escape $name) + '</a></li>')
+  foreach ($g in $groupOrder) {
+    $inGroup = @($exercises | Where-Object { (Group-Of $_) -eq $g })
+    if ($inGroup.Count -eq 0) { continue }
+    [void]$navSb.AppendLine('            <h3 class="toc-group">' + (Html-Escape $groupLabels[$g]) + '</h3>')
+    [void]$navSb.AppendLine('            <ul class="exercises">')
+    foreach ($ex in $inGroup) {
+      $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
+      $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
+      [void]$navSb.AppendLine('                <li><a href="#' + (Html-Escape $ex.slug) + '">' + (Html-Escape $name) + ' <span class="kind">' + (Html-Escape $kind) + '</span></a></li>')
+    }
+    [void]$navSb.AppendLine('            </ul>')
   }
-  [void]$navSb.AppendLine('            </ul>')
   [void]$navSb.AppendLine('        </nav>')
 
   $bodySb = New-Object System.Text.StringBuilder
@@ -137,8 +224,9 @@ function Build-Page([string]$lang) {
     $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
     $d = if ($isEs) { $ex.descEs } else { $ex.descEn }
     $href = './' + $ex.hash
+    $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
     [void]$bodySb.AppendLine('        <article id="' + (Html-Escape $ex.slug) + '">')
-    [void]$bodySb.AppendLine('            <h2>' + (Html-Escape $name) + '</h2>')
+    [void]$bodySb.AppendLine('            <h2>' + (Html-Escape $name) + ' <span class="kind">' + (Html-Escape $kind) + '</span></h2>')
     [void]$bodySb.AppendLine('            <p>' + (Html-Escape $d) + '</p>')
     [void]$bodySb.AppendLine('            <p>' + (Html-Escape $barsLabel) + ': ' + $ex.bars + '. ' + (Html-Escape $related) + ': ' + (Book-Links $ex.books $lang) + '.</p>')
     [void]$bodySb.AppendLine('            <p><a class="open" href="' + (Html-Escape $href) + '">' + (Html-Escape $openLabel) + '</a></p>')

@@ -7,15 +7,10 @@ var menuOrder = [
   "chordTones",
   "leftHandRootless",
   "essentialProgressions",
-  "intervals",
-  "approachNotes",
   "playRest",
-  "fingers",
-  "sonicDevices",
   "texture",
   "motive",
   "limbs",
-  "tuplets",
   "freePlay"
 ];
 

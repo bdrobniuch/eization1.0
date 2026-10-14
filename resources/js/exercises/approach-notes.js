@@ -2,7 +2,7 @@ registerExercise({
   id: "approachNotes",
   label: "Approach Notes",
   bars: 2,
-  inMenu: true,
+  inMenu: false,
   items: [
     "&#8595;1C &#8594; T",
     "&#8593;1D &#8594; T",
