@@ -1830,6 +1830,20 @@ body.is-editing #counter {
   display: none !important;
 }
 
+#editNotePad {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+#editNotePad .edit-note-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 #editSymbols button {
   flex: 0 0 auto;
   min-width: 44px;
@@ -1842,6 +1856,11 @@ body.is-editing #counter {
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
+}
+
+#editSymbols button[aria-pressed="true"] {
+  background: #ffffff;
+  color: #111111;
 }
 
 #editFocusChrome {
@@ -2106,6 +2125,29 @@ body.is-editing #counter {
   color: #ffffff;
   text-decoration: underline;
   text-underline-offset: 0.15em;
+}
+
+#editStaffSamples {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 1em;
+}
+
+#editStaffSamples button {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--face-font);
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
 #editError {

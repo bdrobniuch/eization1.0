@@ -205,7 +205,7 @@
         <div id="editPreview" class="is-empty" data-i18n-empty="edit.preview" data-empty="One example per line. A staff line draws here."></div>
         <p id="editStaffNote" hidden role="status" aria-live="polite"></p>
         <div id="editSymbolsRow">
-            <button type="button" id="editSymbolsToggle" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert music symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert music symbols">
+                <button type="button" id="editSymbolsToggle" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert notes and music symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert notes and music symbols">
                 <span class="btn-mark" aria-hidden="true">♯</span>
                 <span class="btn-label" data-i18n="edit.symbols">Symbols</span>
             </button>
@@ -217,7 +217,7 @@
                 <button type="button" id="editStaffHelpClose" data-i18n="edit.staffHelpClose">Close</button>
             </div>
             <div id="editStaffPanelBody">
-                <p data-i18n="edit.staffHelpLead">One example per line. The preview under the box draws the line at the caret. Opening this does not change your examples. The time signature follows Setup. Use the full guide to try lines without saving.</p>
+                <p data-i18n="edit.staffHelpLead">One example per line. The preview under the box draws the line at the caret. Opening this does not change your examples. Symbols inserts a pitch, a slash, a rest, a bar, a tie, or a beam. The time signature follows Setup. Use the full guide to try lines without saving.</p>
                 <ul>
                     <li data-i18n="edit.staffHelpPitch">Pitch: letter, accidental, octave — C4, C#4, Db4, Cn4. Each note is its own word.</li>
                     <li data-i18n="edit.staffHelpDuration">Duration after the octave: w h q e s, then an optional dot — C4, C4h, C4e, C4q.</li>
@@ -229,6 +229,8 @@
                     <li data-i18n="edit.staffHelpTuplet">Tuplet: (3 C4e D4e E4e). (5:4 …) sets the ratio. No barline inside; at least two notes.</li>
                     <li data-i18n="edit.staffHelpCaption">Caption: space, middle dot, space — /q · Charleston.</li>
                 </ul>
+                <p data-i18n="edit.staffHelpSamples">Tap an example to add it.</p>
+                <div id="editStaffSamples"></div>
                 <p><a class="open" href="./notation.html" target="_blank" rel="noopener" data-i18n="edit.staffHelpOpen">Full guide with samples</a></p>
             </div>
         </div>

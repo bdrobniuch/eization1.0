@@ -34,6 +34,21 @@ var EDITOR_SYMBOLS = [
   { char: "\uD834\uDD00", key: "sym.staff" }
 ];
 
+var editorNote = {
+  acc: "",
+  oct: 4,
+  dur: ""
+};
+
+var EDITOR_STAFF_SAMPLES = [
+  "C4 E4 G4",
+  "@treble @key=Eb Eb4 F4 G4 Ab4 Bb4",
+  "[E3h G3h B3h D4h]_C\u22067",
+  "/q /e rq",
+  "C4q~ | C4q",
+  "(3 C4e D4e E4e)"
+];
+
 function editorIsOpen() {
   var sheet = document.getElementById("textdiv");
   return !!(sheet && sheet.classList.contains("is-open"));
@@ -914,7 +929,7 @@ function refreshEditor() {
   refreshEditorHint();
 }
 
-function insertEditorText(text) {
+function insertEditorText(text, caretBack) {
   if (editorIsFocusMode()) {
     var field = document.getElementById("editFocusLine");
     if (!field) {
@@ -956,7 +971,11 @@ function insertEditorText(text) {
     } else {
       var value = field.value || "";
       field.value = value.slice(0, start) + single + value.slice(end);
-      var pos = start + single.length;
+      var back = caretBack > 0 ? caretBack : 0;
+      var pos = start + single.length - back;
+      if (pos < start) {
+        pos = start;
+      }
       field.focus();
       try {
         field.setSelectionRange(pos, pos);
@@ -973,16 +992,211 @@ function insertEditorText(text) {
     areaStart = area.value.length;
     areaEnd = areaStart;
   }
+  var back = caretBack > 0 ? caretBack : 0;
   area.focus();
   if (typeof area.setRangeText === "function") {
     area.setRangeText(text, areaStart, areaEnd, "end");
   } else {
     area.value = area.value.slice(0, areaStart) + text + area.value.slice(areaEnd);
-    var caret = areaStart + text.length;
+  }
+  var caret = areaStart + String(text || "").length - back;
+  if (caret < areaStart) {
+    caret = areaStart;
+  }
+  try {
     area.setSelectionRange(caret, caret);
+  } catch (errCaret) {}
+  clearEditorNotice();
+  refreshEditor();
+}
+
+function editorNotePitch(letter) {
+  return String(letter || "C") + (editorNote.acc || "") + String(editorNote.oct || 4) + (editorNote.dur || "");
+}
+
+function editorSlashToken() {
+  return "/" + (editorNote.dur || "q");
+}
+
+function editorRestToken() {
+  return "r" + (editorNote.dur || "q");
+}
+
+function editorPaintNotePad() {
+  var pad = document.getElementById("editNotePad");
+  var buttons;
+  var i;
+  if (!pad) {
+    return;
+  }
+  buttons = pad.querySelectorAll("button");
+  for (i = 0; i < buttons.length; i++) {
+    var button = buttons[i];
+    var letter = button.getAttribute("data-note");
+    var label = "";
+    if (letter) {
+      label = tr("edit.noteInsert", { token: editorNotePitch(letter) });
+    } else if (button.hasAttribute("data-acc")) {
+      button.setAttribute("aria-pressed", editorNote.acc === button.getAttribute("data-acc") ? "true" : "false");
+      label = t(button.getAttribute("data-label") || "sym.sharp");
+    } else if (button.hasAttribute("data-oct")) {
+      button.setAttribute("aria-pressed", String(editorNote.oct) === button.getAttribute("data-oct") ? "true" : "false");
+      label = tr("edit.noteOctave", { n: button.getAttribute("data-oct") });
+    } else if (button.hasAttribute("data-dur")) {
+      button.setAttribute("aria-pressed", (editorNote.dur || "") === (button.getAttribute("data-dur") || "") ? "true" : "false");
+      label = t(button.getAttribute("data-label") || "edit.noteQuarter");
+    } else if (button.getAttribute("data-event") === "slash" || button.getAttribute("data-event") === "rest") {
+      var shown = button.getAttribute("data-event") === "slash" ? editorSlashToken() : editorRestToken();
+      button.textContent = shown;
+      label = t(button.getAttribute("data-event") === "slash" ? "edit.noteSlash" : "edit.noteRest") + " " + shown;
+    } else if (button.getAttribute("data-event")) {
+      label = t(button.getAttribute("data-label") || "edit.noteBar");
+    }
+    if (label) {
+      button.setAttribute("aria-label", label);
+      button.title = label;
+    }
+  }
+}
+
+function editorActivateSymbol(button) {
+  var acc;
+  var oct;
+  var dur;
+  if (!button) {
+    return;
+  }
+  if (button.hasAttribute("data-acc")) {
+    acc = button.getAttribute("data-acc") || "";
+    editorNote.acc = editorNote.acc === acc ? "" : acc;
+    editorPaintNotePad();
+    return;
+  }
+  if (button.hasAttribute("data-oct")) {
+    oct = parseInt(button.getAttribute("data-oct"), 10);
+    editorNote.oct = oct === 3 || oct === 5 ? oct : 4;
+    editorPaintNotePad();
+    return;
+  }
+  if (button.hasAttribute("data-dur")) {
+    dur = button.getAttribute("data-dur") || "";
+    editorNote.dur = dur === "e" || dur === "e." ? dur : "";
+    editorPaintNotePad();
+    return;
+  }
+  if (button.getAttribute("data-note")) {
+    insertEditorText(editorNotePitch(button.getAttribute("data-note")) + " ");
+    return;
+  }
+  if (button.getAttribute("data-event") === "slash") {
+    insertEditorText(editorSlashToken() + " ");
+    return;
+  }
+  if (button.getAttribute("data-event") === "rest") {
+    insertEditorText(editorRestToken() + " ");
+    return;
+  }
+  if (button.getAttribute("data-event") === "bar") {
+    insertEditorText("| ");
+    return;
+  }
+  if (button.getAttribute("data-event") === "tie") {
+    insertEditorText("~");
+    return;
+  }
+  if (button.getAttribute("data-event") === "beam") {
+    /* Braces only beam eighths and sixteenths. A quarter would stay text. */
+    if (!editorNote.dur) {
+      editorNote.dur = "e";
+      editorPaintNotePad();
+    }
+    insertEditorText("{ }", 2);
+    return;
+  }
+  insertEditorText(button.getAttribute("data-symbol") || "");
+}
+
+function editorAreaCaret() {
+  var area = document.getElementById("allEdit");
+  var start;
+  if (!area) {
+    return 0;
+  }
+  start = editorStaffHelpIsOpen() ? editorStaffHelpSelection.start || 0 : area.selectionStart || 0;
+  if (start < 0) {
+    start = 0;
+  }
+  if (start > area.value.length) {
+    start = area.value.length;
+  }
+  return start;
+}
+
+function editorPutSample(line) {
+  var sample = String(line || "").replace(/^\s+|\s+$/g, "");
+  var lines;
+  var area;
+  var value;
+  var start;
+  var lineStart;
+  var lineEnd;
+  var next;
+  var caret;
+  if (!sample || !editorIsOpen()) {
+    return;
+  }
+  disarmEditorDelete();
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+    lines = editorRawLines();
+    editorClampFocusIndex(lines.length);
+    if (!collapseEditorSpaces(lines[editorFocusIndex] || "")) {
+      lines[editorFocusIndex] = sample;
+    } else if (lines.length >= 500) {
+      editorNotice(t("edit.tooMany"));
+      return;
+    } else {
+      lines.splice(editorFocusIndex + 1, 0, sample);
+      editorFocusIndex += 1;
+    }
+    editorSetRawLines(lines);
+    editorSyncFocusFromArea();
+    editorStaffHelpSelection.start = sample.length;
+    editorStaffHelpSelection.end = sample.length;
+  } else {
+    area = document.getElementById("allEdit");
+    if (!area) {
+      return;
+    }
+    value = String(area.value || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    start = editorAreaCaret();
+    lineStart = value.lastIndexOf("\n", start - 1) + 1;
+    lineEnd = value.indexOf("\n", start);
+    if (lineEnd < 0) {
+      lineEnd = value.length;
+    }
+    if (!collapseEditorSpaces(value.slice(lineStart, lineEnd))) {
+      next = value.slice(0, lineStart) + sample + value.slice(lineEnd);
+      caret = lineStart + sample.length;
+    } else if (value.split("\n").length >= 500) {
+      editorNotice(t("edit.tooMany"));
+      return;
+    } else {
+      next = value.slice(0, lineEnd) + "\n" + sample + value.slice(lineEnd);
+      caret = lineEnd + 1 + sample.length;
+    }
+    area.value = next;
+    editorStaffHelpSelection.start = caret;
+    editorStaffHelpSelection.end = caret;
+    try {
+      area.setSelectionRange(caret, caret);
+    } catch (errSample) {}
   }
   clearEditorNotice();
   refreshEditor();
+  if (editorStaffHelpIsOpen()) {
+    editorCloseStaffHelp();
+  }
 }
 
 function convertEditorCodes() {
@@ -1561,7 +1775,7 @@ function resolveEditorName(raw) {
 }
 
 function editorApplyLanguage() {
-  var buttons = document.querySelectorAll("#editSymbols button");
+  var buttons = document.querySelectorAll("#editSymbols > button");
   var i;
   var del = document.getElementById("editDelete");
   var field = document.getElementById("editName");
@@ -1579,6 +1793,8 @@ function editorApplyLanguage() {
     buttons[i].setAttribute("aria-label", t(EDITOR_SYMBOLS[i].key));
     buttons[i].title = t(EDITOR_SYMBOLS[i].key);
   }
+  editorPaintNotePad();
+  editorPaintStaffSamples();
   if (del && del.classList.contains("is-armed")) {
     setButtonLabel(del, t("edit.deleteAsk"));
   }
@@ -1778,12 +1994,98 @@ function ToggleEdit() {
   }
 }
 
+function editorAddNoteButton(row, text, attrs) {
+  var button = document.createElement("button");
+  var key;
+  button.type = "button";
+  button.textContent = text;
+  for (key in attrs) {
+    if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+      button.setAttribute(key, attrs[key]);
+    }
+  }
+  row.appendChild(button);
+}
+
+function editorNoteRow(pad) {
+  var row = document.createElement("div");
+  row.className = "edit-note-row";
+  pad.appendChild(row);
+  return row;
+}
+
+function buildEditorNotePad(host) {
+  var pad = document.createElement("div");
+  var letters;
+  var mods;
+  var events;
+  var alphabet = ["C", "D", "E", "F", "G", "A", "B"];
+  var i;
+  pad.id = "editNotePad";
+  letters = editorNoteRow(pad);
+  mods = editorNoteRow(pad);
+  events = editorNoteRow(pad);
+  for (i = 0; i < alphabet.length; i++) {
+    editorAddNoteButton(letters, alphabet[i], { "data-note": alphabet[i] });
+  }
+  editorAddNoteButton(mods, "\u266D", { "data-acc": "b", "data-label": "sym.flat" });
+  editorAddNoteButton(mods, "\u266F", { "data-acc": "#", "data-label": "sym.sharp" });
+  editorAddNoteButton(mods, "\u266E", { "data-acc": "n", "data-label": "sym.natural" });
+  editorAddNoteButton(mods, "3", { "data-oct": "3" });
+  editorAddNoteButton(mods, "4", { "data-oct": "4" });
+  editorAddNoteButton(mods, "5", { "data-oct": "5" });
+  editorAddNoteButton(mods, "\u2669", { "data-dur": "", "data-label": "edit.noteQuarter" });
+  editorAddNoteButton(mods, "\u266A", { "data-dur": "e", "data-label": "edit.noteEighth" });
+  editorAddNoteButton(mods, "\u266A.", { "data-dur": "e.", "data-label": "edit.noteDotted" });
+  editorAddNoteButton(events, "/q", { "data-event": "slash" });
+  editorAddNoteButton(events, "rq", { "data-event": "rest" });
+  editorAddNoteButton(events, "|", { "data-event": "bar", "data-label": "edit.noteBar" });
+  editorAddNoteButton(events, "~", { "data-event": "tie", "data-label": "edit.noteTie" });
+  editorAddNoteButton(events, "{ }", { "data-event": "beam", "data-label": "edit.noteBeam" });
+  host.appendChild(pad);
+  editorPaintNotePad();
+}
+
+function editorPaintStaffSamples() {
+  var buttons = document.querySelectorAll("#editStaffSamples button");
+  var i;
+  for (i = 0; i < buttons.length; i++) {
+    var sample = buttons[i].getAttribute("data-sample") || "";
+    buttons[i].setAttribute("aria-label", t("edit.staffSampleAdd") + ": " + sample);
+    buttons[i].title = t("edit.staffSampleAdd");
+  }
+}
+
+function buildEditorStaffSamples() {
+  var host = document.getElementById("editStaffSamples");
+  var i;
+  if (!host || host.childNodes.length) {
+    return;
+  }
+  for (i = 0; i < EDITOR_STAFF_SAMPLES.length; i++) {
+    var button = document.createElement("button");
+    button.type = "button";
+    button.textContent = EDITOR_STAFF_SAMPLES[i];
+    button.setAttribute("data-sample", EDITOR_STAFF_SAMPLES[i]);
+    host.appendChild(button);
+  }
+  editorPaintStaffSamples();
+  host.addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button || !host.contains(button)) {
+      return;
+    }
+    editorPutSample(button.getAttribute("data-sample") || "");
+  });
+}
+
 function buildEditorSymbols() {
   var row = document.getElementById("editSymbols");
   if (!row || row.childNodes.length) {
     return;
   }
   row.hidden = true;
+  buildEditorNotePad(row);
   for (var i = 0; i < EDITOR_SYMBOLS.length; i++) {
     var spec = EDITOR_SYMBOLS[i];
     var button = document.createElement("button");
@@ -1906,12 +2208,35 @@ var CHAT_TARGETS = {
   gemini: { bare: "https://gemini.google.com/app", query: "https://gemini.google.com/app?q=" }
 };
 
-function chatPromptRules(lang) {
+function editorLinesUseStaff(lines) {
+  var i;
+  if (typeof staffNotationStatus !== "function") {
+    return false;
+  }
+  for (i = 0; i < lines.length; i++) {
+    var status = staffNotationStatus(lines[i]);
+    if (status && status.ok) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function chatStaffSpelling(lang) {
+  if (lang === "es") {
+    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s y un puntillo opcional. C4 es una negra. C#4, Db4, Cn4. @treble o @bass y @key=Eb van primero. ^Name es una palabra sobre el pentagrama. _1 es el grado bajo la nota. {C4e D4e} barrado. [E3h G3h B3h D4h]_C∆7 es un acorde. /q slash, rq silencio, | barra, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
+  }
+  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s and an optional dot. C4 is a quarter. C#4, Db4, Cn4. @treble or @bass and @key=Eb come first. ^Name is one word above the staff. _1 is the degree under the note. {C4e D4e} beams. [E3h G3h B3h D4h]_C∆7 is a chord. /q is a slash, rq a rest, | a bar, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
+}
+
+function chatPromptRules(lang, staff) {
   if (lang === "es") {
     return [
       "Ayúdame con un ejercicio de eization. Un ejemplo a la vez, con el metrónomo. Cada uno sale una vez y luego cambia el orden.",
       "Un ejemplo por línea. Sin título, sin # eization, sin #s=. Signos, no palabras ni HTML. \" · \" separa lo que se toca de un texto.",
-      "Añade notas: una línea por escritura. Naturales una vez (C D E F G A B). El resto en sostenido y bemol. Ejemplo: B♭ · ♭7 de C y A♯ · ♭7 de C. Cada grado del recuadro, sobre la fundamental. Si no hay, pregunta una vez y sugiere C.",
+      staff
+        ? chatStaffSpelling("es")
+        : "Añade notas: una línea por escritura. Naturales una vez (C D E F G A B). El resto en sostenido y bemol. Ejemplo: B♭ · ♭7 de C y A♯ · ♭7 de C. Cada grado del recuadro, sobre la fundamental. Si no hay, pregunta una vez y sugiere C.",
       "Si hay líneas, di qué ejercicio es, qué necesita una buena línea, ofrece un paso y pregunta. No reescribas hasta que lo pidan. Si el recuadro está vacío, ofrece tres comienzos (notas, escalas o acordes) y pregunta cuál.",
       "Al terminar, un bloque, un ejemplo por línea. Diles que lo copien, lo peguen en Editar y pulsen Actualizar. Guardar como nuevo conserva el anterior."
     ].join("\n\n");
@@ -1919,7 +2244,9 @@ function chatPromptRules(lang) {
   return [
     "Help me write an eization exercise. One example shows at a time, with the metronome. Each comes up once, then the order changes.",
     "Write one example per line. No title, no # eization header, no #s= link. Signs, not words or HTML. \" · \" splits play from a caption.",
-    "Add notes: one line per spelling. Naturals once (C D E F G A B). Other pitches sharp and flat. Example: B♭ · ♭7 of C and A♯ · ♭7 of C. Every degree in the box, on the named root. No root: ask once, suggest C.",
+    staff
+      ? chatStaffSpelling("en")
+      : "Add notes: one line per spelling. Naturals once (C D E F G A B). Other pitches sharp and flat. Example: B♭ · ♭7 of C and A♯ · ♭7 of C. Every degree in the box, on the named root. No root: ask once, suggest C.",
     "If there are lines, say what the exercise is, name what a good line needs, offer a next step, and ask. Do not rewrite until they ask. If the box is empty, offer three starters (notes, scales, or changes with a caption) and ask which to write.",
     "When they finish, one block, one per line. Tell them to copy it, paste it into the eization Edit box, and press Update. Save as new keeps the old exercise."
   ].join("\n\n");
@@ -1932,7 +2259,7 @@ function buildChatPrompt(spec) {
   var lines = spec && spec.lines ? spec.lines : [];
   var body = [];
   var i;
-  body.push(chatPromptRules(lang));
+  body.push(chatPromptRules(lang, editorLinesUseStaff(lines)));
   body.push("");
   if (lang === "es") {
     body.push("Nombre: " + name);
@@ -2085,6 +2412,7 @@ function editorShare() {
 
 function initEditor() {
   buildEditorSymbols();
+  buildEditorStaffSamples();
   var edit = document.getElementById("edit");
   var area = document.getElementById("allEdit");
   var symbols = document.getElementById("editSymbols");
@@ -2148,11 +2476,11 @@ function initEditor() {
   }
   symbols.addEventListener("pointerdown", function (event) {
     var button = event.target.closest("button");
-    if (!button) {
+    if (!button || !symbols.contains(button)) {
       return;
     }
     event.preventDefault();
-    insertEditorText(button.getAttribute("data-symbol") || "");
+    editorActivateSymbol(button);
   });
   var viewToggle = document.getElementById("editViewToggle");
   if (viewToggle) {

@@ -948,6 +948,10 @@ function chatCase(w) {
   check("empty list still asks", empty.indexOf("one example per line") >= 0 && empty.indexOf("The box is empty.") >= 0 && empty.indexOf("three starters") >= 0);
   var emptyEs = w.buildChatPrompt({ name: "Nuevo", bars: 1, lines: [], lang: "es" });
   check("spanish prompt coaches", emptyEs.indexOf("Un ejemplo por l\u00EDnea") >= 0 && emptyEs.indexOf("El recuadro est\u00E1 vac\u00EDo.") >= 0 && emptyEs.indexOf("pulsen Actualizar") >= 0);
+  var staffAsk = w.buildChatPrompt({ name: "Triad", bars: 1, lines: ["C4 E4 G4"], lang: "en" });
+  check("staff prompt teaches the spelling", staffAsk.indexOf("@key=") >= 0 && staffAsk.indexOf("one line per spelling") < 0 && staffAsk.indexOf("C4 E4 G4") >= 0 && staffAsk.indexOf("one example per line") >= 0);
+  var staffAskEs = w.buildChatPrompt({ name: "Triada", bars: 1, lines: ["C4 E4 G4"], lang: "es" });
+  check("spanish staff prompt teaches the spelling", staffAskEs.indexOf("@key=") >= 0 && staffAskEs.indexOf("Una nota es una palabra") >= 0 && staffAskEs.indexOf("una l\u00EDnea por escritura") < 0);
   var toneLines = ["1", "\u266D3", "3", "\u266D5", "5", "\u266F5", "\u266D\u266D7", "\u266D7", "7", "\u266D9", "9", "\u266F9", "11", "\u266F11", "\u266D13", "13"];
   check("chord tones prompt fits", w.chatAskUrl(w.buildChatPrompt({ name: "Chord Tones", bars: 1, lines: toneLines, lang: "en" }), "gemini").copy === false);
   check("spanish chord tones prompt fits", w.chatAskUrl(w.buildChatPrompt({ name: "Notas del acorde", bars: 1, lines: toneLines, lang: "es" }), "gemini").copy === false);
@@ -990,6 +994,22 @@ function chatCase(w) {
   );
   symbolsToggle.click();
   check("symbols open", symbolsPanel.hidden === false && symbolsToggle.getAttribute("aria-expanded") === "true" && symbolsPanel.querySelectorAll("button").length > 0);
+  check(
+    "symbols include a pitch row",
+    !!(
+      symbolsPanel.querySelector("[data-note='C']") &&
+      symbolsPanel.querySelector("[data-oct='4'][aria-pressed='true']") &&
+      symbolsPanel.querySelector("[data-dur=''][aria-pressed='true']") &&
+      symbolsPanel.querySelector("[data-event='slash']") &&
+      symbolsPanel.querySelector("[data-event='beam']")
+    )
+  );
+  check(
+    "staff help can add an example",
+    w.document.querySelectorAll("#editStaffSamples button").length === 6 &&
+      w.I18N.en["edit.staffHelpSamples"] === "Tap an example to add it." &&
+      w.I18N.es["edit.staffHelpSamples"].indexOf("ejemplo") >= 0
+  );
   symbolsToggle.click();
   check("symbols close", symbolsPanel.hidden === true && symbolsToggle.getAttribute("aria-expanded") === "false");
   check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
@@ -1055,6 +1075,38 @@ function chatCase(w) {
       viewToggle.click();
     }
     check("list still keeps the textarea", !!(sheet.classList.contains("is-edit-list") && area && w.getComputedStyle(area).position !== "absolute" && area.value.indexOf("Bravo edited") >= 0));
+    if (!sheet.classList.contains("is-edit-focus")) {
+      viewToggle.click();
+    }
+    w.document.getElementById("editFocusAdd").click();
+    if (symbolsPanel.hidden) {
+      symbolsToggle.click();
+    }
+    function poke(el) {
+      el.dispatchEvent(new w.PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse" }));
+    }
+    poke(symbolsPanel.querySelector("[data-note='C']"));
+    check("pitch button writes a quarter", focusLine.value.indexOf("C4 ") === 0);
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    poke(symbolsPanel.querySelector("[data-note='D']"));
+    check("eighth sticks to the next note", focusLine.value.indexOf("D4e ") >= 0);
+    poke(symbolsPanel.querySelector("[data-acc='b']"));
+    poke(symbolsPanel.querySelector("[data-note='E']"));
+    check("flat sticks to the next note", focusLine.value.indexOf("Eb4e ") >= 0);
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check("beam writes braces", focusLine.value.indexOf("{ }") >= 0);
+    w.document.getElementById("editStaffHelp").click();
+    var sampleButton = w.document.querySelector("#editStaffSamples button");
+    sampleButton.click();
+    check(
+      "staff sample adds an example and draws",
+      !!(
+        sampleButton &&
+        focusLine.value === sampleButton.getAttribute("data-sample") &&
+        !w.editorStaffHelpIsOpen() &&
+        w.document.getElementById("editPreview").classList.contains("is-staff")
+      )
+    );
     w.editorCancel();
   }
 }

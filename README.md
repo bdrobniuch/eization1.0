@@ -33,7 +33,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, durations, rests, tuplets, labels). Time signature follows Setup meter |
 
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
-| `resources/js/editor.js` | Edit exercises, staff preview of the line at the caret, Staff help beside Bars, Symbols behind a toggle, Share on the Exercise row (More holds occasional actions on a phone). `edit.js` does not load |
+| `resources/js/editor.js` | Edit exercises, staff preview of the line at the caret, Staff help beside Bars (tap an example to add it), Symbols behind a toggle (a pitch, slash, rest, bar, tie, or beam, then the music characters), Share on the Exercise row (More holds occasional actions on a phone). `edit.js` does not load |
 | `resources/js/about.js` | Menu sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → Scales on a staff → Left Hand Rootless Voicings → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
@@ -77,7 +77,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 - Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
 - Staff ink (clefs, accidentals, noteheads, slash heads, augmentation dots, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
-`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. `notation.html` (and `es/notation.html`) shows the same parser: the line, then the staff. In Edit, the line at the caret previews as a staff when it parses; a notation-ish line that fails stays text with an amber note. An empty preview coaches one example per line. Staff (beside Bars) opens a short writing guide without closing the draft. Symbols stays closed until opened.
+`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. `notation.html` (and `es/notation.html`) shows the same parser: the line, then the staff. In Edit, the line at the caret previews as a staff when it parses; a notation-ish line that fails stays text with an amber note. An empty preview coaches one example per line. Staff (beside Bars) opens a short writing guide without closing the draft. Tap an example there to add that line, then the guide closes and the preview draws it. Symbols stays closed until opened. Opened, the pitch row writes a note at the caret (`Eb4`, `C4e`, `C4e.`) from the letter, accidental, octave (3–5), and duration (quarter, eighth, dotted eighth). Slash and rest follow that duration. Bar, tie, and a beam brace (`{ }`, caret inside; a quarter switches to an eighth) insert the same way.
 
 ## Adding an exercise
 
@@ -91,7 +91,7 @@ Share sits on the Exercise row in Edit (always visible). It copies a link to the
 
 `more.html` (and `es/more.html`) is a catalog of extra exercises that use those share links. They are not seeded into the menu. Each Open in eization link lands on the practice screen with Add / Preview (or Update when the same share id is already on the device).
 
-Ask AI opens the open exercise in ChatGPT, Claude, or Gemini. The chat coaches the exercise. When it is ready, the reply is a block of examples to paste into the box. The site does not call a model.
+Ask AI opens the open exercise in ChatGPT, Claude, or Gemini. The chat coaches the exercise. When the open lines are staff notation, the question includes that spelling. When it is ready, the reply is a block of examples to paste into the box. The site does not call a model.
 
 On first visit the catalog is copied into `eization-desk.exercises`. The menu reads that list. Edit can Update, Save as new, or Delete. Download and Upload copy the open exercise to an `.eiz` file and back. The file begins with `# eization 1` and `# bars N`, optional `# name …`, then one example per line. A file without a version still opens. A higher version does not. Menu → This device can Download backup / Upload backup every exercise as JSON. About the author can open a mail draft for feedback, or download that backup and open a draft that asks you to attach it.
 
