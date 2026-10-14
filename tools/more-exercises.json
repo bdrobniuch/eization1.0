@@ -2629,5 +2629,75 @@
                       "re {/e~/e} re /e~/q.",
                       "re {/e /e~/e} re /q."
                   ]
+    },
+    {
+        "id":  "more0058",
+        "slug":  "two-chord-tones-combinations",
+        "bars":  2,
+        "nameEn":  "Two-Chord Tones Combinations",
+        "nameEs":  "Combinaciones de dos notas del acorde",
+        "descEn":  "Play two chord tones on each chord and hear the color of each one. Every ordered pair of 1, 3, 5, 7, 9, 11, and 13 gets a turn, so the ones you hesitate on cannot hide. After a while you know the 11th the way you know the root of C major.",
+        "descEs":  "Toca dos notas del acorde y oye el color de cada una. Cada par ordenado de 1, 3, 5, 7, 9, 11 y 13 tiene un turno, para que las que te hacen dudar no se escondan. Después de un tiempo sabes el 11 como sabes la fundamental de C mayor.",
+        "books":  [
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      },
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-elements",
+                          "en":  "Elements of the Jazz Language",
+                          "es":  "Elements of the Jazz Language"
+                      }
+                  ],
+        "lines":  [
+                      "1 - 3",
+                      "1 - 5",
+                      "1 - 7",
+                      "1 - 9",
+                      "1 - 11",
+                      "1 - 13",
+                      "3 - 1",
+                      "3 - 5",
+                      "3 - 7",
+                      "3 - 9",
+                      "3 - 11",
+                      "3 - 13",
+                      "5 - 1",
+                      "5 - 3",
+                      "5 - 7",
+                      "5 - 9",
+                      "5 - 11",
+                      "5 - 13",
+                      "7 - 1",
+                      "7 - 3",
+                      "7 - 5",
+                      "7 - 9",
+                      "7 - 11",
+                      "7 - 13",
+                      "9 - 1",
+                      "9 - 3",
+                      "9 - 5",
+                      "9 - 7",
+                      "9 - 11",
+                      "9 - 13",
+                      "11 - 1",
+                      "11 - 3",
+                      "11 - 5",
+                      "11 - 7",
+                      "11 - 9",
+                      "11 - 13",
+                      "13 - 1",
+                      "13 - 3",
+                      "13 - 5",
+                      "13 - 7",
+                      "13 - 9",
+                      "13 - 11"
+                  ]
     }
 ]
