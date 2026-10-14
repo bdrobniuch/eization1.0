@@ -602,7 +602,13 @@ function initAbout() {
           track("backup_upload");
         }
         if (typeof showDeskNote === "function") {
-          showDeskNote(t("mail.replaced"));
+          if (parsed.truncated) {
+            showDeskNote(tr("desk.backupTrim", { n: parsed.exercises.length }));
+          } else if (parsed.skipped) {
+            showDeskNote(t("desk.backupSkip"));
+          } else {
+            showDeskNote(t("mail.replaced"));
+          }
         }
         if (typeof layoutFrame === "function") {
           layoutFrame();

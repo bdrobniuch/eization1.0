@@ -9,20 +9,41 @@ var deskNoteTimer = null;
 var deskSeenStamp = "";
 var deskForeignPending = false;
 var deskWatching = false;
+var deskUnreadableRaw = "";
 
 function readDesk() {
+  var raw = "";
   try {
-    var raw = localStorage.getItem(DESK_KEY);
+    raw = localStorage.getItem(DESK_KEY);
     if (!raw) {
       return null;
     }
     var data = JSON.parse(raw);
-    if (!data || typeof data !== "object") {
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      deskUnreadableRaw = raw;
       return null;
     }
+    deskUnreadableRaw = "";
     return data;
   } catch (err) {
+    deskUnreadableRaw = raw || "\u0000";
     return null;
+  }
+}
+
+function rememberUnreadableDesk() {
+  var raw = deskUnreadableRaw;
+  if (!raw) {
+    return;
+  }
+  deskUnreadableRaw = "";
+  if (raw !== "\u0000") {
+    try {
+      localStorage.setItem(DESK_KEY + "-bak", raw);
+    } catch (err) {}
+  }
+  if (typeof showDeskNote === "function" && typeof t === "function") {
+    showDeskNote(t("desk.unreadable"));
   }
 }
 
@@ -460,6 +481,9 @@ function mergeMissingSeeds(list, deleted) {
     return list;
   }
   for (i = 0; i < menuOrder.length; i++) {
+    if (list.length >= DESK_EXERCISE_CAP) {
+      break;
+    }
     var seedId = menuOrder[i];
     if (have[seedId] || deleted.indexOf(seedId) >= 0) {
       continue;
@@ -472,22 +496,49 @@ function mergeMissingSeeds(list, deleted) {
   return list;
 }
 
+function dedupeDeskIds(list) {
+  var seenId = {};
+  var seenSeed = {};
+  var i;
+  for (i = 0; i < list.length; i++) {
+    var row = list[i];
+    if (seenId[row.id]) {
+      var nextId = newDeskExerciseId();
+      var guard = 0;
+      while (seenId[nextId] && guard < 8) {
+        nextId = newDeskExerciseId();
+        guard++;
+      }
+      row.id = nextId;
+    }
+    seenId[row.id] = true;
+    if (row.seedId && seenSeed[row.seedId]) {
+      delete row.seedId;
+      delete row.seedRev;
+      delete row.touched;
+    } else if (row.seedId) {
+      seenSeed[row.seedId] = true;
+    }
+  }
+  return list;
+}
+
 function ensureDeskExercises() {
   var data = deskState();
+  rememberUnreadableDesk();
   var schema = parseInt(data.schema, 10);
   if (isNaN(schema) || schema < 0) {
     schema = 0;
   }
   var ahead = schema > DESK_SCHEMA;
+  var resetHello = false;
   if (!ahead && schema < 2 && readDesk()) {
     delete data.exercises;
     delete data.deletedSeeds;
     delete data.custom;
     delete data.exercise;
     schema = 2;
-    if (typeof forgetHello === "function") {
-      forgetHello();
-    }
+    resetHello = true;
   }
   var deleted = listDeletedSeeds(data);
   var list = [];
@@ -512,6 +563,9 @@ function ensureDeskExercises() {
     if (!hasLegacy) {
       list.unshift(legacy);
     }
+  }
+  if (list.length) {
+    list = dedupeDeskIds(list);
   }
   if (!list.length) {
     list = buildSeededList(deleted);
@@ -538,7 +592,12 @@ function ensureDeskExercises() {
     mirroredId = mirrorUntouchedSeeds(list, data.exercise || "");
     data.schema = DESK_SCHEMA;
   }
-  writeDesk(data);
+  if (writeDesk(data)) {
+    deskUnreadableRaw = "";
+    if (resetHello && typeof forgetHello === "function") {
+      forgetHello();
+    }
+  }
   if (mirroredId) {
     noteMirroredExercise(list, mirroredId);
   }
@@ -627,7 +686,13 @@ function mirrorUntouchedSeeds(list, openId) {
   var changed;
   for (i = 0; i < list.length; i++) {
     row = list[i];
-    if (!row || !row.seedId || row.touched !== false) {
+    if (!row || !row.seedId) {
+      continue;
+    }
+    if (row.touched !== true && row.touched !== false) {
+      row.touched = !stockRowIsPristine(row);
+    }
+    if (row.touched !== false) {
       continue;
     }
     fresh = catalogExerciseRecord(row.seedId);
@@ -866,13 +931,16 @@ function parseDeskExercisesBackup(text) {
   }
   var list = [];
   var seenSeed = {};
+  var skipped = 0;
   for (var i = 0; i < data.exercises.length && list.length < DESK_EXERCISE_CAP; i++) {
     var raw = data.exercises[i];
     if (!raw || typeof raw !== "object") {
+      skipped++;
       continue;
     }
     var lines = cleanDeskLines(raw.lines);
     if (!lines.length) {
+      skipped++;
       continue;
     }
     var row = {
@@ -906,7 +974,11 @@ function parseDeskExercisesBackup(text) {
   if (!list.length) {
     return { error: t("desk.noExercises") };
   }
-  return { exercises: list };
+  return {
+    exercises: list,
+    skipped: skipped,
+    truncated: data.exercises.length > list.length + skipped
+  };
 }
 
 function replaceDeskExercises(list) {

@@ -803,9 +803,11 @@ function stopScheduler() {
     clearInterval(schedulerTimer);
     schedulerTimer = null;
   }
+  var now = currentTimeSec();
   for (var i = 0; i < pendingVisuals.length; i++) {
-    if (pendingVisuals[i].gen === generation && pendingVisuals[i].advance) {
-      pendingVisuals[i].advance = false;
+    var pending = pendingVisuals[i];
+    if (pending.gen === generation && pending.advance && pending.time <= now) {
+      pending.advance = false;
       advanceNote();
       break;
     }

@@ -16,6 +16,7 @@ var helloStepIndex = 0;
 var helloSliceEnd = 0;
 var helloMoved = false;
 var helloLaunch = false;
+var helloReturnId = "";
 
 var HELLO_TOUR = [
   {
@@ -128,8 +129,14 @@ HELLO_TOUR.push(
   }
 );
 
-document.addEventListener("pointerdown", function () {
-  helloTouched = true;
+document.addEventListener("pointerdown", function (event) {
+  var target = event.target;
+  if (!target || typeof target.closest !== "function") {
+    return;
+  }
+  if (target.closest("button, a, input, select, textarea, label, [role='button']")) {
+    helloTouched = true;
+  }
 }, true);
 
 function helloGen() {
@@ -289,17 +296,33 @@ function helloPlayPhrase(done) {
   helloPhraseRaf = requestAnimationFrame(frame);
 }
 
+function helloRestoreExercise() {
+  var id = helloReturnId;
+  helloReturnId = "";
+  if (!id || id === currentExerciseId) {
+    return;
+  }
+  if (typeof getDeskExercise === "function" && !getDeskExercise(id)) {
+    return;
+  }
+  currentExerciseId = id;
+  if (typeof buildExerciseMenu === "function") {
+    buildExerciseMenu();
+  }
+  if (typeof SelectExercise === "function") {
+    SelectExercise();
+  }
+}
+
 function helloBackToStart() {
   if (helloReset) {
     return;
   }
   helloReset = true;
-  if (!helloMoved) {
-    return;
-  }
-  if (typeof resetExercise === "function") {
+  if (helloMoved && typeof resetExercise === "function") {
     resetExercise();
   }
+  helloRestoreExercise();
 }
 
 function helloAdvance() {
@@ -496,6 +519,7 @@ function beginHello(from, to) {
   if (typeof closeGroovePanel === "function") {
     closeGroovePanel();
   }
+  helloReturnId = typeof currentExerciseId === "string" ? currentExerciseId : "";
   helloReset = false;
   helloMoved = false;
   helloStepIndex = from;

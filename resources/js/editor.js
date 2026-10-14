@@ -87,12 +87,16 @@ function htmlToEditorLine(html) {
   return collapseEditorSpaces(box.textContent);
 }
 
+function lineLooksLikeHtml(raw) {
+  return /<[a-zA-Z/!]|&(?:#\d+|#x[\da-fA-F]+|[a-zA-Z]+);/.test(raw);
+}
+
 function itemToLine(html) {
   var raw = decodeJsEscapes(String(html || ""));
   if (!raw) {
     return "";
   }
-  if (/[&<>]|\\u/.test(raw)) {
+  if (lineLooksLikeHtml(raw)) {
     return htmlToEditorLine(raw);
   }
   return collapseEditorSpaces(raw);
@@ -184,6 +188,19 @@ function editorLeaveIfClean(message) {
   }
   editorCancel();
   return true;
+}
+
+function editorDismissEscape() {
+  if (editorCloseStaffHelp()) {
+    return;
+  }
+  if (editorCloseSymbols()) {
+    return;
+  }
+  if (editorCloseMore()) {
+    return;
+  }
+  editorLeaveIfClean();
 }
 
 function editorNotice(message) {
@@ -1505,26 +1522,33 @@ function readEditorFile(text) {
   var version = null;
   var name = null;
   var body = [];
+  var started = false;
   var i;
   for (i = 0; i < parts.length; i++) {
     var line = parts[i];
-    var barsMatch = line.match(/^\s*#\s*bars\s+(\d+)\s*$/i);
-    if (barsMatch) {
-      bars = clampEditorBars(barsMatch[1]);
-      continue;
-    }
-    var nameMatch = line.match(/^\s*#\s*name\s+(.+?)\s*$/i);
-    if (nameMatch) {
-      name = nameMatch[1].slice(0, 60);
-      continue;
-    }
-    var header = line.match(/^\s*#\s*eization(?:\s+(\d+))?\s*$/i);
-    if (header) {
-      version = header[1] ? parseInt(header[1], 10) : 1;
-      continue;
-    }
-    if (/^\s*#/.test(line)) {
-      continue;
+    if (!started) {
+      if (/^\s*$/.test(line)) {
+        continue;
+      }
+      var barsMatch = line.match(/^\s*#\s*bars\s+(\d+)\s*$/i);
+      if (barsMatch) {
+        bars = clampEditorBars(barsMatch[1]);
+        continue;
+      }
+      var nameMatch = line.match(/^\s*#\s*name\s+(.+?)\s*$/i);
+      if (nameMatch) {
+        name = nameMatch[1].slice(0, 60);
+        continue;
+      }
+      var header = line.match(/^\s*#\s*eization(?:\s+(\d+))?\s*$/i);
+      if (header) {
+        version = header[1] ? parseInt(header[1], 10) : 1;
+        continue;
+      }
+      if (/^\s*#/.test(line)) {
+        continue;
+      }
+      started = true;
     }
     body.push(line);
   }
@@ -1925,6 +1949,7 @@ function editorSaveAsNew() {
     ? createDeskExercise(part)
     : null;
   if (!created) {
+    editorNotice(t("desk.keepFail"));
     return;
   }
   currentExerciseId = created.id;
@@ -2628,16 +2653,7 @@ function initEditor() {
   area.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
       event.preventDefault();
-      if (editorCloseStaffHelp()) {
-        return;
-      }
-      if (editorCloseSymbols()) {
-        return;
-      }
-      if (editorCloseMore()) {
-        return;
-      }
-      editorCancel();
+      editorDismissEscape();
       return;
     }
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
@@ -2654,21 +2670,11 @@ function initEditor() {
     if (event.key !== "Escape" || !editorIsOpen()) {
       return;
     }
-    if (editorCloseStaffHelp()) {
-      event.preventDefault();
+    if (event.target === area || event.target === focusField) {
       return;
     }
-    if (editorCloseSymbols()) {
-      event.preventDefault();
-      return;
-    }
-    if (editorCloseMore()) {
-      event.preventDefault();
-      return;
-    }
-    if (event.target !== area && event.target !== focusField) {
-      editorCancel();
-    }
+    event.preventDefault();
+    editorDismissEscape();
   });
   window.addEventListener("resize", function () {
     if (!editorIsOpen() || editorViewOverride) {

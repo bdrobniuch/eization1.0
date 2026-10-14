@@ -635,6 +635,13 @@ function clock(w) {
   check("4/4 is eight clicks", w.beatsPerBar === 4 && w.stepsPerBar() === 8);
   w.currentBpm = 100;
   check("eighth at 100 BPM is 0.3s", near(w.eighthDuration(), 0.3));
+  var notesBefore = w.countnotes;
+  w.pendingVisuals = [{ gen: w.generation, advance: true, time: w.currentTimeSec() + 5, step: 0 }];
+  w.stopScheduler();
+  check("pause keeps the current example", w.countnotes === notesBefore);
+  w.pendingVisuals = [{ gen: w.generation, advance: true, time: w.currentTimeSec() - 0.05, step: 0 }];
+  w.stopScheduler();
+  check("a click already heard still moves ahead", w.countnotes === notesBefore + 1);
 }
 
 function swing(w) {
@@ -701,6 +708,8 @@ function editorFile(w) {
   check("a plain list opens without a header", plain.lines.length === 2 && plain.bars === null && plain.version === null);
   var newer = w.readEditorFile("# eization 2\nA\n");
   check("a newer file is recognized", newer.version === 2 && newer.version > w.EDITOR_FILE_VERSION);
+  var mid = w.readEditorFile("# eization 1\n# bars 1\nC4\n# bars 4\nD4\n");
+  check("a hash line in the list stays an example", mid.lines.length === 3 && mid.lines[1] === "# bars 4" && mid.bars === 1);
 }
 
 function editorLines(w) {
@@ -711,6 +720,9 @@ function editorLines(w) {
   check("blank line is dropped", w.lineToItem("   ") === "");
   var longLine = new Array(300).join("a");
   check("a line stops at 240 characters", w.lineToItem(longLine).length === 240);
+  check("an accent stays on the line", w.itemToLine("C4q>") === "C4q>");
+  check("a plain ampersand stays", w.itemToLine("C&G") === "C&G");
+  check("a comparison stays", w.itemToLine("ii < V") === "ii < V");
 }
 
 function shareRows(w, shareId) {
@@ -738,7 +750,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 69 share links", keys.length === 69);
+  check("more catalog has 118 share links", keys.length === 118);
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -761,7 +773,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 69 share links", esHashes.length === 69);
+  check("spanish more catalog has 118 share links", esHashes.length === 118);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -833,6 +845,18 @@ function helloStaffTour(w) {
       !show.selectSeed
     )
   );
+  var savedHello = localStorage.getItem("eization-hello");
+  w.currentExerciseId = "ex:allNotes";
+  w.beginHello(0, w.HELLO_LAUNCH_END);
+  w.helloSelectSeed("leftHandRootless");
+  check("tour can leave the open exercise", w.currentExerciseId !== "ex:allNotes");
+  w.endHello();
+  check("tour returns to the exercise you had", w.currentExerciseId === "ex:allNotes" && !w.document.body.classList.contains("is-hello"));
+  if (savedHello == null) {
+    localStorage.removeItem("eization-hello");
+  } else {
+    localStorage.setItem("eization-hello", savedHello);
+  }
   check(
     "staff intro lines",
     w.I18N.en["hello.staffScale"] === "Scales are written on a staff." &&
@@ -851,22 +875,23 @@ function shareCase(w) {
   check("share lives in edit", !!w.document.getElementById("editShare"));
   check("share prompt is in the page", !!w.document.getElementById("shareAsk"));
   check("intro edit line stays", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
-  var scales = w.getDeskExercise("ex:scales");
+  var notes = w.getDeskExercise("ex:allNotes");
   var factoryCount = w.listDeskExercises().length;
-  var factoryLines = scales.lines.slice();
-  var factoryUrl = w.shareExerciseUrl({ v: 1, id: "fact0001", name: "Escalas", bars: scales.bars, lines: factoryLines }, base);
+  var factoryLines = notes.lines.slice();
+  check("scales do not fit in a share link", w.shareExerciseUrl({ v: 1, id: "fact0001", name: "Escalas", bars: w.getDeskExercise("ex:scales").bars, lines: w.getDeskExercise("ex:scales").lines.slice() }, base) === "");
+  var factoryUrl = w.shareExerciseUrl({ v: 1, id: "fact0001", name: "Todas las notas", bars: notes.bars, lines: factoryLines }, base);
   w.location.hash = factoryUrl.slice(factoryUrl.indexOf("#"));
   w.offerSharedExercise();
-  check("factory exercise opens quietly", w.currentExerciseId === "ex:scales" && w.listDeskExercises().length === factoryCount && w.document.getElementById("shareAsk").hidden === true && w.location.hash.indexOf("#s=") < 0 && !w.getDeskExercise("ex:scales").shareId);
+  check("factory exercise opens quietly", w.currentExerciseId === "ex:allNotes" && w.listDeskExercises().length === factoryCount && w.document.getElementById("shareAsk").hidden === true && w.location.hash.indexOf("#s=") < 0 && !w.getDeskExercise("ex:allNotes").shareId);
   var editedLines = factoryLines.slice();
   editedLines[0] = editedLines[0] + " x";
-  w.updateDeskExercise("ex:scales", { lines: editedLines });
-  var editedUrl = w.shareExerciseUrl({ v: 1, id: "fact0002", name: "Scales", bars: scales.bars, lines: factoryLines }, base);
+  w.updateDeskExercise("ex:allNotes", { lines: editedLines });
+  var editedUrl = w.shareExerciseUrl({ v: 1, id: "fact0002", name: "All Notes", bars: notes.bars, lines: factoryLines }, base);
   w.location.hash = editedUrl.slice(editedUrl.indexOf("#"));
   w.offerSharedExercise();
   check("edited factory exercise stays a new link", w.document.getElementById("shareAsk").hidden === false && w.document.getElementById("shareAdd").hidden === false && w.listDeskExercises().length === factoryCount);
   w.dismissShareAsk();
-  w.updateDeskExercise("ex:scales", { lines: factoryLines });
+  w.updateDeskExercise("ex:allNotes", { lines: factoryLines });
   var before = w.listDeskExercises().length;
   w.location.hash = url.slice(url.indexOf("#"));
   w.offerSharedExercise();
@@ -962,6 +987,7 @@ function shareCase(w) {
   w.location.hash = "#s=not-valid";
   w.offerSharedExercise();
   check("a bad hash is dropped", w.location.hash.indexOf("#s=") < 0);
+  check("a bad hash says so", w.document.getElementById("deskNote").hidden === false && w.document.getElementById("deskNote").textContent === w.t("share.bad"));
   check("address still opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
 }
 
@@ -1075,7 +1101,7 @@ function chatCase(w) {
   var noteLines = w.exercises.allNotes.items.map(w.itemToLine);
   var scaleLines = w.exercises.scales.items.map(w.itemToLine);
   check("all notes gemini fits", w.chatAskUrl(w.buildChatPrompt({ name: "All Notes", bars: 1, lines: noteLines, lang: "en" }), "gemini").copy === false && w.chatAskUrl(w.buildChatPrompt({ name: "Todas las notas", bars: 1, lines: noteLines, lang: "es" }), "gemini").copy === false);
-  check("scales gemini fits", w.chatAskUrl(w.buildChatPrompt({ name: "Scales", bars: 1, lines: scaleLines, lang: "en" }), "gemini").copy === false && w.chatAskUrl(w.buildChatPrompt({ name: "Escalas", bars: 1, lines: scaleLines, lang: "es" }), "gemini").copy === false);
+  check("scales are copied for gemini", w.chatAskUrl(w.buildChatPrompt({ name: "Scales", bars: 1, lines: scaleLines, lang: "en" }), "gemini").copy === true && w.chatAskUrl(w.buildChatPrompt({ name: "Escalas", bars: 1, lines: scaleLines, lang: "es" }), "gemini").copy === true);
   desk = JSON.stringify(w.listDeskExercises());
   if (desktopActions) {
     check("desktop shows exercise actions without more", moreMenu.hidden === true && w.getComputedStyle(moreMenu).display !== "none");
@@ -1329,6 +1355,43 @@ function deskRoundTrip(w) {
   check("deleted seed is remembered", !!(stored && stored.deletedSeeds && stored.deletedSeeds.indexOf(deletedSeed) >= 0));
   check("address skips a removed exercise", w.exerciseIdFromQuery("?exercise=" + deletedSeed) === "");
   check("address still opens a kept exercise", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
+  var pads = [];
+  var pad;
+  for (pad = 0; pad < w.DESK_EXERCISE_CAP; pad++) {
+    pads.push({ id: "ex:pad" + pad, name: "Pad", bars: 1, lines: ["C4"] });
+  }
+  localStorage.setItem("eization-desk", JSON.stringify({ schema: 2, exercises: pads }));
+  w.ensureDeskExercises();
+  check("a full list does not grow past the cap", w.listDeskExercises().length === w.DESK_EXERCISE_CAP);
+  localStorage.setItem("eization-desk", JSON.stringify({
+    schema: 2,
+    exercises: [
+      { id: "ex:same", name: "One", bars: 1, lines: ["C4"] },
+      { id: "ex:same", name: "Two", bars: 1, lines: ["D4"] }
+    ]
+  }));
+  w.ensureDeskExercises();
+  var split = w.listDeskExercises();
+  check("duplicate ids are split", split.length === w.menuOrder.length + 2 && split[0].id !== split[1].id && split[0].lines[0] === "C4" && split[1].lines[0] === "D4");
+  var many = [];
+  for (pad = 0; pad < 45; pad++) {
+    many.push({ name: "N", bars: 1, lines: ["C4"] });
+  }
+  var trimmed = w.parseDeskExercisesBackup(JSON.stringify({ eization: 1, kind: "exercises", exercises: many }));
+  check("backup reports what did not fit", !!(trimmed && trimmed.truncated && trimmed.exercises.length === w.DESK_EXERCISE_CAP));
+  var mixed = w.parseDeskExercisesBackup(JSON.stringify({
+    eization: 1,
+    exercises: [
+      { name: "Ok", bars: 1, lines: ["C4"] },
+      { name: "No", bars: 1, lines: ["  "] }
+    ]
+  }));
+  check("backup reports an empty exercise", !!(mixed && mixed.skipped === 1 && mixed.exercises.length === 1 && mixed.truncated === false));
+  localStorage.setItem("eization-desk", "{not json");
+  w.ensureDeskExercises();
+  check("unreadable desk is kept aside", localStorage.getItem("eization-desk-bak") === "{not json");
+  var recovered = JSON.parse(localStorage.getItem("eization-desk"));
+  check("unreadable desk comes back as the stock list", !!(recovered && recovered.exercises && recovered.exercises.length === w.menuOrder.length));
   w.restoreDefaults();
   var after = JSON.parse(localStorage.getItem("eization-desk") || "null");
   var helloGone = localStorage.getItem("eization-hello") === null;

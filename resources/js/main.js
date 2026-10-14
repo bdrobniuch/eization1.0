@@ -721,11 +721,17 @@ function offerSharedExercise() {
   var snap = typeof readShareHash === "function" ? readShareHash(hash) : null;
   if (!snap || typeof deskShareOffer !== "function") {
     clearShareHash();
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("share.bad"));
+    }
     return;
   }
   var offer = deskShareOffer(snap);
   if (offer.kind === "bad") {
     clearShareHash();
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("share.bad"));
+    }
     return;
   }
   if (offer.kind === "exact" && offer.exact) {
@@ -738,7 +744,14 @@ function offerSharedExercise() {
 function openExerciseFromAddress() {
   var seed = exerciseSeedFromQuery(window.location.search);
   var added;
-  if (!seed || typeof exercises === "undefined" || !exercises[seed]) {
+  if (!seed) {
+    return;
+  }
+  if (typeof exercises === "undefined" || !exercises[seed]) {
+    clearExerciseQuery();
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("desk.notHere"));
+    }
     return;
   }
   var id = exerciseIdFromQuery(window.location.search);
@@ -770,7 +783,13 @@ function init() {
   if (typeof applyDesk === "function") {
     applyDesk();
   }
-  openExerciseFromAddress();
+  if ((window.location.hash || "").indexOf("#s=") === 0) {
+    if (exerciseSeedFromQuery(window.location.search)) {
+      clearExerciseQuery();
+    }
+  } else {
+    openExerciseFromAddress();
+  }
   buildExerciseMenu();
   bindExercisePanel();
   document.getElementById("meterTop").addEventListener("input", function () {
@@ -945,6 +964,11 @@ function init() {
     if (typeof aboutIsOpen === "function" && aboutIsOpen()) {
       return;
     }
+    if (shareBlocksHello()) {
+      event.preventDefault();
+      dismissShareAsk();
+      return;
+    }
     var exercise = document.getElementById("exercisePanel");
     if (exercise && !exercise.hidden) {
       event.preventDefault();
@@ -1001,6 +1025,7 @@ function init() {
     });
   }
   offerSharedExercise();
+  window.addEventListener("hashchange", offerSharedExercise);
   startMetronome();
   layoutFrame();
   deskReady = true;
