@@ -1324,10 +1324,7 @@ function setSoundOn(on) {
 }
 
 function next() {
-  if (typeof editorIsOpen === "function" && editorIsOpen()) {
-    if (typeof editorNotice === "function") {
-      editorNotice(t("edit.finish"));
-    }
+  if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
     return;
   }
   if (typeof keepPracticeAwake === "function") {

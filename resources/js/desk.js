@@ -810,16 +810,8 @@ function disarmRestoreDefaults() {
 }
 
 function restoreDefaults() {
-  if (typeof editorIsOpen === "function" && editorIsOpen()) {
-    if (typeof editorIsDirty === "function" && editorIsDirty()) {
-      if (typeof editorNotice === "function") {
-        editorNotice(t("edit.finish"));
-      }
-      return;
-    }
-    if (typeof editorCloseQuiet === "function") {
-      editorCloseQuiet();
-    }
+  if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
+    return;
   }
   if (typeof track === "function") {
     track("restore_defaults");

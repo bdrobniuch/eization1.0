@@ -474,10 +474,7 @@ function writeFeedback() {
 function initAbout() {
   var brand = document.getElementById("brand");
   brand.addEventListener("click", function () {
-    if (typeof editorIsOpen === "function" && editorIsOpen()) {
-      if (typeof editorNotice === "function") {
-        editorNotice(t("edit.finish"));
-      }
+    if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
       return;
     }
     if (aboutIsOpen()) {

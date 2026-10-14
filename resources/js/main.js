@@ -69,10 +69,7 @@ function bindExercisePanel() {
   var menu = document.getElementById("exerciseMenu");
   face.addEventListener("click", function (event) {
     event.stopPropagation();
-    if (typeof editorIsOpen === "function" && editorIsOpen()) {
-      if (typeof editorNotice === "function") {
-        editorNotice(t("edit.finish"));
-      }
+    if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
       return;
     }
     var willOpen = panel.hidden;
@@ -199,8 +196,8 @@ function SelectExercise() {
       }
       return;
     }
-    if (typeof editorCloseQuiet === "function") {
-      editorCloseQuiet();
+    if (typeof editorCancel === "function") {
+      editorCancel();
     }
   }
   var loaded = typeof deskExerciseItems === "function" ? deskExerciseItems(currentExerciseId) : null;
@@ -802,10 +799,7 @@ function init() {
   });
   document.getElementById("bpm").addEventListener("input", updateInterval);
   document.getElementById("grooveButton").addEventListener("click", function () {
-    if (typeof editorIsOpen === "function" && editorIsOpen()) {
-      if (typeof editorNotice === "function") {
-        editorNotice(t("edit.finish"));
-      }
+    if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
       return;
     }
     var panel = document.getElementById("groovePanel");
@@ -880,10 +874,7 @@ function init() {
   });
   document.getElementById("restoreDefaults").addEventListener("click", function () {
     if (!this.classList.contains("is-armed")) {
-      if (typeof editorIsOpen === "function" && editorIsOpen() && typeof editorIsDirty === "function" && editorIsDirty()) {
-        if (typeof editorNotice === "function") {
-          editorNotice(t("edit.finish"));
-        }
+      if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
         return;
       }
       this.classList.add("is-armed");

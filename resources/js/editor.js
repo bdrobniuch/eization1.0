@@ -142,6 +142,18 @@ function editorIsDirty() {
   return text !== editorDraft.text || bars !== editorDraft.bars || name !== draftName;
 }
 
+function editorLeaveIfClean(message) {
+  if (!editorIsOpen()) {
+    return true;
+  }
+  if (editorIsDirty()) {
+    editorNotice(message || t("edit.finish"));
+    return false;
+  }
+  editorCancel();
+  return true;
+}
+
 function editorNotice(message) {
   editorMessage(message, false);
 }
@@ -555,12 +567,8 @@ function editorOpen() {
 }
 
 function editorOpenNew() {
-  if (typeof editorIsOpen === "function" && editorIsOpen()) {
-    if (typeof editorIsDirty === "function" && editorIsDirty()) {
-      editorNotice(t("edit.finish"));
-      return;
-    }
-    editorCloseQuiet();
+  if (!editorLeaveIfClean()) {
+    return;
   }
   var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
   if (typeof DESK_EXERCISE_CAP === "number" && list.length >= DESK_EXERCISE_CAP) {

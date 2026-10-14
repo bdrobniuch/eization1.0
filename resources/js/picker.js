@@ -518,10 +518,7 @@ function newExercise(items, bars) {
 }
 
 function resetExercise() {
-  if (typeof editorIsOpen === "function" && editorIsOpen()) {
-    if (typeof editorNotice === "function") {
-      editorNotice(t("edit.finish"));
-    }
+  if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
     return;
   }
   newExercise(chromaticScale.slice(), exerciseBars);
