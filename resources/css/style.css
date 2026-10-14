@@ -2352,6 +2352,15 @@ body.is-about #counter {
   line-height: 1.45;
 }
 
+#aboutBody p a:link,
+#aboutBody p a:visited,
+#aboutBody p a:hover,
+#aboutBody p a:active {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 #aboutLockup {
   display: flex;
   align-items: center;
