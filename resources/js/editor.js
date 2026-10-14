@@ -242,10 +242,93 @@ function syncEditorCommitLabels() {
     update.setAttribute("aria-label", t("edit.updateAria"));
   }
   if (saveAs) {
-    saveAs.hidden = false;
+    if (typeof sharePreview !== "undefined" && sharePreview) {
+      saveAs.hidden = false;
+    } else {
+      saveAs.hidden = !editorIsDirty();
+    }
   }
   if (del) {
     del.hidden = typeof sharePreview !== "undefined" && !!sharePreview;
+  }
+}
+
+function editorMoreIsOpen() {
+  var menu = document.getElementById("editMoreMenu");
+  return !!(menu && !menu.hidden);
+}
+
+function editorCloseMore() {
+  var menu = document.getElementById("editMoreMenu");
+  var button = document.getElementById("editMore");
+  if (!menu || menu.hidden) {
+    return false;
+  }
+  editorAskMenu(false);
+  menu.hidden = true;
+  if (button) {
+    button.setAttribute("aria-expanded", "false");
+  }
+  refreshEditorHint();
+  return true;
+}
+
+function editorOpenMore() {
+  var menu = document.getElementById("editMoreMenu");
+  var button = document.getElementById("editMore");
+  if (!menu) {
+    return;
+  }
+  menu.hidden = false;
+  if (button) {
+    button.setAttribute("aria-expanded", "true");
+  }
+  refreshEditorHint();
+}
+
+function editorToggleMore() {
+  if (editorMoreIsOpen()) {
+    editorCloseMore();
+  } else {
+    editorOpenMore();
+  }
+}
+
+function editorSymbolsIsOpen() {
+  var panel = document.getElementById("editSymbols");
+  return !!(panel && !panel.hidden);
+}
+
+function editorCloseSymbols() {
+  var panel = document.getElementById("editSymbols");
+  var button = document.getElementById("editSymbolsToggle");
+  if (!panel || panel.hidden) {
+    return false;
+  }
+  panel.hidden = true;
+  if (button) {
+    button.setAttribute("aria-expanded", "false");
+  }
+  return true;
+}
+
+function editorOpenSymbols() {
+  var panel = document.getElementById("editSymbols");
+  var button = document.getElementById("editSymbolsToggle");
+  if (!panel) {
+    return;
+  }
+  panel.hidden = false;
+  if (button) {
+    button.setAttribute("aria-expanded", "true");
+  }
+}
+
+function editorToggleSymbols() {
+  if (editorSymbolsIsOpen()) {
+    editorCloseSymbols();
+  } else {
+    editorOpenSymbols();
   }
 }
 
@@ -253,6 +336,14 @@ function refreshEditorHint() {
   var hint = document.getElementById("editHint");
   if (!hint) {
     return;
+  }
+  var saveAs = document.getElementById("editSaveAs");
+  if (saveAs && !editorIsCreateMode()) {
+    if (typeof sharePreview !== "undefined" && sharePreview) {
+      saveAs.hidden = false;
+    } else {
+      saveAs.hidden = !editorIsDirty();
+    }
   }
   var del = document.getElementById("editDelete");
   var update = document.getElementById("editUpdate");
@@ -347,6 +438,8 @@ function editorOpenStaffHelp() {
   if (!panel || !editorIsOpen()) {
     return;
   }
+  editorCloseMore();
+  editorCloseSymbols();
   if (area) {
     editorStaffHelpSelection.start = area.selectionStart || 0;
     editorStaffHelpSelection.end = area.selectionEnd || 0;
@@ -414,6 +507,8 @@ function editorCloseQuiet() {
     return;
   }
   editorCloseStaffHelp({ focus: false });
+  editorCloseMore();
+  editorCloseSymbols();
   clearEditStaffNote();
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open");
@@ -586,30 +681,6 @@ function convertEditorCodes() {
   area.value = next;
   var pos = prefix.length;
   area.setSelectionRange(pos, pos);
-}
-
-function duplicateEditorLine() {
-  var area = document.getElementById("allEdit");
-  var value = area.value;
-  var start = area.selectionStart || 0;
-  var lineStart = value.lastIndexOf("\n", start - 1) + 1;
-  var lineEnd = value.indexOf("\n", start);
-  if (lineEnd < 0) {
-    lineEnd = value.length;
-  }
-  var line = value.slice(lineStart, lineEnd);
-  var insertAt = lineEnd;
-  var insert = "\n" + line;
-  area.focus();
-  if (typeof area.setRangeText === "function") {
-    area.setRangeText(insert, insertAt, insertAt, "end");
-  } else {
-    area.value = value.slice(0, insertAt) + insert + value.slice(insertAt);
-  }
-  var caret = insertAt + insert.length;
-  area.setSelectionRange(caret, caret);
-  clearEditorNotice();
-  refreshEditor();
 }
 
 function clearEditorList() {
@@ -1340,6 +1411,7 @@ function buildEditorSymbols() {
   if (!row || row.childNodes.length) {
     return;
   }
+  row.hidden = true;
   for (var i = 0; i < EDITOR_SYMBOLS.length; i++) {
     var spec = EDITOR_SYMBOLS[i];
     var button = document.createElement("button");
@@ -1605,6 +1677,7 @@ function editorShare() {
   if (saved && !saved.shareId && typeof updateDeskExercise === "function") {
     updateDeskExercise(saved.id, { shareId: shareId });
   }
+  clearEditorNotice();
   var copyOk = false;
   var sheet = false;
   if (navigator.share) {
@@ -1617,24 +1690,22 @@ function editorShare() {
       if (error && error.name === "AbortError") {
         return;
       }
-      if (!copyOk && typeof showDeskNote === "function") {
-        showDeskNote(t("share.fail"));
+      if (!copyOk) {
+        editorNotice(t("share.fail"));
       }
     });
   }
   if (typeof copySupportText === "function") {
     copySupportText(url).then(function () {
       copyOk = true;
-      if (typeof showDeskNote === "function") {
-        showDeskNote(t("share.copied"));
-      }
+      editorStatus(t("share.copied"));
     }, function () {
-      if (!sheet && typeof showDeskNote === "function") {
-        showDeskNote(t("share.fail"));
+      if (!sheet) {
+        editorNotice(t("share.fail"));
       }
     });
-  } else if (!sheet && typeof showDeskNote === "function") {
-    showDeskNote(t("share.fail"));
+  } else if (!sheet) {
+    editorNotice(t("share.fail"));
   }
 }
 
@@ -1660,6 +1731,14 @@ function initEditor() {
     staffHelpClose.addEventListener("click", function () {
       editorCloseStaffHelp();
     });
+  }
+  var more = document.getElementById("editMore");
+  if (more) {
+    more.addEventListener("click", editorToggleMore);
+  }
+  var symbolsToggle = document.getElementById("editSymbolsToggle");
+  if (symbolsToggle) {
+    symbolsToggle.addEventListener("click", editorToggleSymbols);
   }
   document.getElementById("editAsk").addEventListener("click", function () {
     var menu = document.getElementById("editAskMenu");
@@ -1693,11 +1772,6 @@ function initEditor() {
       refreshEditorHint();
     });
   }
-  var duplicate = document.getElementById("editDuplicate");
-  duplicate.addEventListener("pointerdown", function (event) {
-    event.preventDefault();
-  });
-  duplicate.addEventListener("click", duplicateEditorLine);
   symbols.addEventListener("pointerdown", function (event) {
     var button = event.target.closest("button");
     if (!button) {
@@ -1744,6 +1818,12 @@ function initEditor() {
       if (editorCloseStaffHelp()) {
         return;
       }
+      if (editorCloseSymbols()) {
+        return;
+      }
+      if (editorCloseMore()) {
+        return;
+      }
       editorCancel();
       return;
     }
@@ -1762,6 +1842,14 @@ function initEditor() {
       return;
     }
     if (editorCloseStaffHelp()) {
+      event.preventDefault();
+      return;
+    }
+    if (editorCloseSymbols()) {
+      event.preventDefault();
+      return;
+    }
+    if (editorCloseMore()) {
       event.preventDefault();
       return;
     }

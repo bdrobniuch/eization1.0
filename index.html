@@ -135,35 +135,38 @@
         <div id="editExercise">
             <div id="editSend">
                 <p id="editExerciseLabel" class="combo-kicker" data-i18n="edit.exercise">Exercise</p>
-                <button type="button" id="editStaffHelp" data-i18n-title="edit.staffHelp" title="How to write on the staff" data-i18n-aria="edit.staffHelp" aria-label="How to write on the staff" aria-expanded="false" aria-controls="editStaffPanel">
-                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
-                    <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
-                </button>
-                <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this exercise as an .eiz file">
-                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v10.5M8 11l4 4 4-4M5 20h14"/></svg>
-                    <span class="btn-label" data-i18n="edit.download">Download</span>
-                </button>
-                <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box">
-                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V6M8 9.5 12 5.5l4 4M5 20h14"/></svg>
-                    <span class="btn-label" data-i18n="edit.upload">Upload</span>
-                </button>
-                <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
                 <button type="button" id="editShare" data-i18n-title="edit.shareTitle" title="Copy a link to this exercise">
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg>
                     <span class="btn-label" data-i18n="edit.share">Share</span>
                 </button>
-                <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in ChatGPT, Claude, or Gemini">
-                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5 13.6 9.4 19.5 12 13.6 14.6 12 20.5 10.4 14.6 4.5 12 10.4 9.4Z"/></svg>
-                    <span class="btn-label" data-i18n="edit.ask">Ask AI</span>
+                <button type="button" id="editMore" aria-expanded="false" aria-controls="editMoreMenu" data-i18n-title="edit.moreTitle" title="More exercise actions" data-i18n-aria="edit.moreTitle" aria-label="More exercise actions">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="18" cy="12" r="1.6" fill="currentColor"/></svg>
+                    <span class="btn-label" data-i18n="edit.more">More</span>
                 </button>
-                <button type="button" id="editDelete" data-i18n-title="edit.deleteTitle" title="Delete this exercise from this device">
-                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4.5h6V7M7 7l.8 13h8.4L17 7"/></svg>
-                    <span class="btn-label" data-i18n="edit.delete">Delete</span>
-                </button>
-                <div id="editAskMenu" hidden>
-                    <button type="button" id="editAskChatgpt" data-i18n="edit.askChatgpt">ChatGPT</button>
-                    <button type="button" id="editAskClaude" data-i18n="edit.askClaude">Claude</button>
-                    <button type="button" id="editAskGemini" data-i18n="edit.askGemini">Gemini</button>
+                <div id="editMoreMenu" hidden>
+                    <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this exercise as an .eiz file">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v10.5M8 11l4 4 4-4M5 20h14"/></svg>
+                        <span class="btn-label" data-i18n="edit.download">Download</span>
+                    </button>
+                    <button type="button" id="editOpen" data-i18n-title="edit.uploadTitle" title="Upload an .eiz file into the box">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V6M8 9.5 12 5.5l4 4M5 20h14"/></svg>
+                        <span class="btn-label" data-i18n="edit.upload">Upload</span>
+                    </button>
+                    <input id="editFile" type="file" accept=".eiz,.txt,text/plain" tabindex="-1" aria-hidden="true">
+                    <button type="button" id="editAsk" aria-expanded="false" aria-controls="editAskMenu" data-i18n-title="edit.askTitle" title="Open this exercise in ChatGPT, Claude, or Gemini">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5 13.6 9.4 19.5 12 13.6 14.6 12 20.5 10.4 14.6 4.5 12 10.4 9.4Z"/></svg>
+                        <span class="btn-label" data-i18n="edit.ask">Ask AI</span>
+                    </button>
+                    <button type="button" id="editClearList" data-i18n-title="edit.clearTitle" title="Clear all examples in this exercise" data-i18n="edit.clear">Clear</button>
+                    <button type="button" id="editDelete" data-i18n-title="edit.deleteTitle" title="Delete this exercise from this device">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4.5h6V7M7 7l.8 13h8.4L17 7"/></svg>
+                        <span class="btn-label" data-i18n="edit.delete">Delete</span>
+                    </button>
+                    <div id="editAskMenu" hidden>
+                        <button type="button" id="editAskChatgpt" data-i18n="edit.askChatgpt">ChatGPT</button>
+                        <button type="button" id="editAskClaude" data-i18n="edit.askClaude">Claude</button>
+                        <button type="button" id="editAskGemini" data-i18n="edit.askGemini">Gemini</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -181,21 +184,29 @@
                     <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
                     <button type="button" class="step-up" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
                 </div>
-                <button type="button" id="editDuplicate" data-i18n-title="edit.duplicateTitle" title="Copy the line at the cursor onto the next line" data-i18n="edit.duplicate">Duplicate line</button>
-                <button type="button" id="editClearList" data-i18n-title="edit.clearTitle" title="Clear all examples in this exercise" data-i18n="edit.clear">Clear</button>
+                <button type="button" id="editStaffHelp" data-i18n-title="edit.staffHelp" title="How to write on the staff" data-i18n-aria="edit.staffHelp" aria-label="How to write on the staff" aria-expanded="false" aria-controls="editStaffPanel">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
+                    <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
+                </button>
             </div>
         </div>
         <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.areaAria" aria-label="Examples, one per line" data-i18n-placeholder="edit.placeholder" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
-        <div id="editPreview" class="is-empty" data-i18n-empty="edit.preview" data-empty="Preview"></div>
+        <div id="editPreview" class="is-empty" data-i18n-empty="edit.preview" data-empty="One example per line. A staff line draws here."></div>
         <p id="editStaffNote" hidden role="status" aria-live="polite"></p>
-        <div id="editSymbols"></div>
+        <div id="editSymbolsRow">
+            <button type="button" id="editSymbolsToggle" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert music symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert music symbols">
+                <span class="btn-mark" aria-hidden="true">♯</span>
+                <span class="btn-label" data-i18n="edit.symbols">Symbols</span>
+            </button>
+            <div id="editSymbols" hidden></div>
+        </div>
         <div id="editStaffPanel" hidden>
             <div id="editStaffPanelHead">
                 <h2 id="editStaffPanelTitle" data-i18n="edit.staffHelpTitle">How to write on the staff</h2>
                 <button type="button" id="editStaffHelpClose" data-i18n="edit.staffHelpClose">Close</button>
             </div>
             <div id="editStaffPanelBody">
-                <p data-i18n="edit.staffHelpLead">One example per line. The preview under the box draws the line at the caret. The time signature follows Setup. Use the full guide to try lines without saving.</p>
+                <p data-i18n="edit.staffHelpLead">One example per line. The preview under the box draws the line at the caret. Opening this does not change your examples. The time signature follows Setup. Use the full guide to try lines without saving.</p>
                 <ul>
                     <li data-i18n="edit.staffHelpPitch">Pitch: letter, accidental, octave — C4, C#4, Db4, Cn4. Each note is its own word.</li>
                     <li data-i18n="edit.staffHelpDuration">Duration after the octave: w h q e s, then an optional dot — C4, C4h, C4e, C4q.</li>

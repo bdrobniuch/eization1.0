@@ -809,11 +809,51 @@ function chatCase(w) {
   check("exercise label sits on the action row", !!(label && send && label.parentNode === send && label.classList.contains("combo-kicker")));
   var exerciseRow = w.document.getElementById("editExercise");
   var nameRow = w.document.getElementById("editNameRow");
+  var writeRow = w.document.getElementById("editWrite");
   var deleteButton = w.document.getElementById("editDelete");
+  var moreButton = w.document.getElementById("editMore");
+  var moreMenu = w.document.getElementById("editMoreMenu");
+  var staffHelp = w.document.getElementById("editStaffHelp");
+  var desktopActions = w.matchMedia("(min-width: 841px)").matches;
   check("exercise actions sit above the name", !!(exerciseRow && nameRow && (exerciseRow.compareDocumentPosition(nameRow) & 4)));
-  check("delete sits with the exercise actions", !!(deleteButton && deleteButton.parentNode && deleteButton.parentNode.id === "editSend"));
+  check("share sits on the exercise row", !!(share && send && share.parentNode === send));
+  check("staff sits beside bars", !!(staffHelp && writeRow && staffHelp.parentNode === writeRow));
+  check(
+    "empty preview coaches one example",
+    w.I18N.en["edit.preview"].indexOf("One example per line") === 0 &&
+      w.I18N.es["edit.preview"].indexOf("Un ejemplo por l\u00EDnea") === 0 &&
+      w.document.getElementById("editPreview").getAttribute("data-empty") === w.t("edit.preview")
+  );
+  check(
+    "staff help keeps the draft",
+    w.I18N.en["edit.staffHelpLead"].indexOf("does not change your examples") >= 0 &&
+      w.I18N.es["edit.staffHelpLead"].indexOf("no cambia tus ejemplos") >= 0
+  );
+  check(
+    "more holds the occasional exercise actions",
+    !!(
+      moreButton &&
+      moreMenu &&
+      moreMenu.parentNode === send &&
+      moreMenu.hidden === true &&
+      deleteButton &&
+      deleteButton.parentNode === moreMenu &&
+      w.document.getElementById("editClearList") &&
+      w.document.getElementById("editClearList").parentNode === moreMenu &&
+      w.document.getElementById("editSave") &&
+      w.document.getElementById("editSave").parentNode === moreMenu &&
+      w.document.getElementById("editAsk") &&
+      w.document.getElementById("editAsk").parentNode === moreMenu
+    )
+  );
+  check(
+    "more is a mobile drawer",
+    desktopActions
+      ? w.getComputedStyle(moreButton).display === "none" && w.getComputedStyle(moreMenu).display !== "none"
+      : w.getComputedStyle(moreButton).display !== "none" && moreMenu.hidden === true
+  );
   check("download and clear drop the extra word", w.document.querySelector("#editSave .btn-label").textContent === w.t("edit.download") && w.document.getElementById("editClearList").textContent === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Vista previa");
-  check("exercise actions keep a mark", ["editSave", "editOpen", "editShare", "editAsk", "editDelete"].every(function (id) {
+  check("exercise actions keep a mark", ["editMore", "editSave", "editOpen", "editShare", "editAsk", "editDelete"].every(function (id) {
     var button = w.document.getElementById(id);
     return !!(button && button.querySelector("svg.chrome-icon") && button.querySelector(".btn-label"));
   }));
@@ -845,6 +885,12 @@ function chatCase(w) {
   check("all notes gemini fits", w.chatAskUrl(w.buildChatPrompt({ name: "All Notes", bars: 1, lines: noteLines, lang: "en" }), "gemini").copy === false && w.chatAskUrl(w.buildChatPrompt({ name: "Todas las notas", bars: 1, lines: noteLines, lang: "es" }), "gemini").copy === false);
   check("scales gemini fits", w.chatAskUrl(w.buildChatPrompt({ name: "Scales", bars: 1, lines: scaleLines, lang: "en" }), "gemini").copy === false && w.chatAskUrl(w.buildChatPrompt({ name: "Escalas", bars: 1, lines: scaleLines, lang: "es" }), "gemini").copy === false);
   desk = JSON.stringify(w.listDeskExercises());
+  if (desktopActions) {
+    check("desktop shows exercise actions without more", moreMenu.hidden === true && w.getComputedStyle(moreMenu).display !== "none");
+  } else {
+    moreButton.click();
+    check("more menu opens", moreMenu.hidden === false);
+  }
   w.document.getElementById("editAsk").click();
   check("opening the menu does not write the desk", JSON.stringify(w.listDeskExercises()) === desk);
   menu = w.document.getElementById("editAskMenu");
@@ -854,6 +900,27 @@ function chatCase(w) {
   w.document.getElementById("editAsk").click();
   check("chat menu closes", menu.hidden === true);
   check("paste line leaves with the chats", w.document.getElementById("editHint").textContent !== w.t("edit.askHint"));
+  if (!desktopActions) {
+    moreButton.click();
+    check("more menu closes", moreMenu.hidden === true);
+  }
+  var symbolsToggle = w.document.getElementById("editSymbolsToggle");
+  var symbolsPanel = w.document.getElementById("editSymbols");
+  check(
+    "symbols stay closed until asked",
+    !!(
+      symbolsToggle &&
+      symbolsPanel &&
+      symbolsPanel.hidden === true &&
+      symbolsToggle.getAttribute("aria-expanded") === "false" &&
+      w.I18N.en["edit.symbols"] === "Symbols" &&
+      w.I18N.es["edit.symbols"] === "S\u00EDmbolos"
+    )
+  );
+  symbolsToggle.click();
+  check("symbols open", symbolsPanel.hidden === false && symbolsToggle.getAttribute("aria-expanded") === "true" && symbolsPanel.querySelectorAll("button").length > 0);
+  symbolsToggle.click();
+  check("symbols close", symbolsPanel.hidden === true && symbolsToggle.getAttribute("aria-expanded") === "false");
   check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
 }
 

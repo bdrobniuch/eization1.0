@@ -1638,6 +1638,31 @@ body.is-editing #counter {
   opacity: 0.9;
 }
 
+#editMoreMenu {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+#editMoreMenu[hidden] {
+  display: none !important;
+}
+
+@media (min-width: 841px) {
+  #editMore {
+    display: none !important;
+  }
+
+  #editMoreMenu,
+  #editMoreMenu[hidden] {
+    display: flex !important;
+    flex: 1 1 auto;
+  }
+}
+
 #editAskMenu {
   flex: 1 0 100%;
   display: flex;
@@ -1677,9 +1702,10 @@ body.is-editing #counter {
 #editCancel,
 #editSaveAs,
 #editUpdate,
-#editDuplicate,
 #editClearList,
 #editStaffHelp,
+#editMore,
+#editSymbolsToggle,
 #editSave,
 #editShare,
 #editAsk,
@@ -1700,12 +1726,16 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
-#editStaffHelp[aria-expanded="true"] {
+#editStaffHelp[aria-expanded="true"],
+#editMore[aria-expanded="true"],
+#editSymbolsToggle[aria-expanded="true"] {
   background: #ffffff;
   color: #0C8A50;
 }
 
 #editStaffHelp,
+#editMore,
+#editSymbolsToggle,
 #editSave,
 #editOpen,
 #editShare,
@@ -1717,6 +1747,7 @@ body.is-editing #counter {
 }
 
 #editStaffHelp .chrome-icon,
+#editMore .chrome-icon,
 #editSave .chrome-icon,
 #editOpen .chrome-icon,
 #editShare .chrome-icon,
@@ -1755,17 +1786,45 @@ body.is-editing #counter {
   border: 0;
 }
 
+#editClearList,
 #editDelete {
-  opacity: 0.85;
+  border-color: rgba(255, 255, 255, 0.45);
+  opacity: 0.72;
+}
+
+#editDelete.is-armed {
+  border-color: rgba(255, 255, 255, 0.85);
+  opacity: 1;
+}
+
+#editSymbolsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+#editSymbolsToggle .btn-mark {
+  font-family: var(--face-font);
+  font-size: 1.05em;
+  line-height: 1;
 }
 
 #editSymbols {
+  flex: 1 0 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+}
+
+#editSymbols[hidden] {
+  display: none !important;
 }
 
 #editSymbols button {
@@ -1815,8 +1874,14 @@ body.is-editing #counter {
 
 #editPreview.is-empty::before {
   content: attr(data-empty);
-  opacity: 0.45;
+  display: block;
+  max-width: 28em;
+  margin: 0 auto;
+  opacity: 0.55;
+  font-family: inherit;
   font-size: 14px;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 #editPreview .prog-changes,
