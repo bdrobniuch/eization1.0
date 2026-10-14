@@ -29,8 +29,8 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/registry.js` | `registerExercise` and `menuOrder` (the seed catalog) |
 | `resources/js/exercises/` | One seed exercise per file |
 | `resources/js/picker.js` | The current example, the reel, and the face size |
-| `resources/js/staff-glyphs.js` | Bravura/SMuFL SVG path outlines (clefs, accidentals, noteheads, flags, rests, time); SIL OFL |
-| `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, durations, rests, labels). Time signature follows Setup meter |
+| `resources/js/staff-glyphs.js` | Bravura/SMuFL SVG path outlines (clefs, accidentals, noteheads, flags, rests, time, tuplet digits); SIL OFL |
+| `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, durations, rests, tuplets, labels). Time signature follows Setup meter |
 
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
 | `resources/js/editor.js` | Edit exercises. `edit.js` does not load |
@@ -71,6 +71,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 - Rhythmic slash (pitchless): `/q`, `/e`, `/h`, `/e.`, `/e_R` — slash notehead on the middle line with stem/beam/dot like a normal note. Labels use `_` the same way
 - Rests: `r` / `rq` quarter (default), `rh` half, `rw` whole, `re` eighth, `rs` sixteenth; optional `.` (`re.`, `rq.`) — each advances one note slot
 - Beams: consecutive `e`/`s` (including dotted `e.`) notes auto-beam within each Setup beat group; a lone short note gets a flag. In **6/8**, **9/8**, and **12/8** the group is a dotted quarter (three eighths), matching the metronome pulse. `{C4e D4e E4e F4e}` or `{/e /e}` forces one beam group (e/s only; not re-split by meter). Stacks `[…]` stay chords, not beams
+- Tuplets: `(3 C4e D4e E4e)`, `(5 /s /s /s /s /s)`, `(3 /q /e)`, `(5:4 …)`. `(N` opens and `)` closes (on the last token or alone). Without `:M`, 3 is in the time of 2; 5–8 of 4; 9–16 of 8; 2 and 4 of 3. The colon form prints the ratio. Inside: notes, slashes, rests, stacks, `{…}` beams; no nested `(`, no `|`, at least two notes. Short notes inside beam only with each other (with braces inside, only the braces beam). The tuplet spans its scaled duration, so auto-beaming after it stays on the beat. A group that is exactly one unbroken beam shows the number only, on the beam side; anything else (quarters and longer, rests, split beams, flags, stacks) gets a bracket, below when every stem points down, otherwise above. Brackets and numbers stay at least ¾ space outside the staff and push chord names and labels out. Digits are SMuFL `tuplet0`–`tuplet9` / `tupletColon`
 - Stacked chord: `[C4 E4 G4]` or `[F3 A3 C4 E4]_Dm9`. Prefer the same duration on every pitch in a stack (the column uses the first pitch’s duration for the stem). Nested `[` is rejected. Space-separated events left to right; `|` draws a barline
 - Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
 - Staff ink (clefs, accidentals, noteheads, slash heads, augmentation dots, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
@@ -81,7 +82,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 
 Add a script tag after `registry.js` and before `picker.js`. Call `registerExercise` with a new `id`. Put that id in `menuOrder` only when it should seed into the exercise menu. An exercise with `inMenu: false` stays in the code and stays out of the seed list. Do not delete those files to tidy the list.
 
-The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhythms.html`.
+The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhythms.html`. The tuplets exercise id is `tuplets` (Tuplets / Grupos irregulares, `tuplets.html`): slash lines, two bars of 4/4 each.
 
 When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. Add the Spanish page under `es/`, link it from `es/practice.html`, and list that URL too. `hreflang` on each page points at the other language. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
 

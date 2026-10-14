@@ -15,6 +15,7 @@ var menuOrder = [
   "texture",
   "motive",
   "limbs",
+  "tuplets",
   "freePlay"
 ];
 

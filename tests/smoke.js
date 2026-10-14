@@ -83,7 +83,7 @@ function run() {
 function exerciseMenu(w) {
   var i;
   var seen = {};
-  check("menu has 15 exercises", w.menuOrder.length === 15);
+  check("menu has 16 exercises", w.menuOrder.length === 16);
   check("free play is last", w.menuOrder[w.menuOrder.length - 1] === "freePlay");
   check("free play captions use the middle dot", w.itemToLine(w.exercises.freePlay.items[0]).indexOf(" \u00B7 ") > 0);
   for (i = 0; i < w.menuOrder.length; i++) {
@@ -120,6 +120,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("address opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address opens rhythms", w.exerciseIdFromQuery("?exercise=limbs") === "ex:limbs");
+  check("address opens tuplets", w.exerciseIdFromQuery("?exercise=tuplets") === "ex:tuplets");
   check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");
   check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
   check("practice page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
@@ -215,6 +216,145 @@ function staffNotation(w) {
     "a written scale keeps equal stems",
     scaleLens.length === 4 && Math.max.apply(null, scaleLens) - Math.min.apply(null, scaleLens) < 0.05
   );
+  staffTuplets(w);
+}
+
+function staffTuplets(w) {
+  var trip = w.parseMusicNotation("(3 C4e D4e E4e)");
+  check(
+    "triplet parses as one tuplet",
+    !!(
+      trip &&
+      trip.events.length === 1 &&
+      trip.events[0].type === "tuplet" &&
+      trip.events[0].n === 3 &&
+      trip.events[0].m === 2 &&
+      trip.events[0].showRatio === false &&
+      trip.events[0].events.length === 3
+    )
+  );
+  var ratio = w.parseMusicNotation("(5:4 C4s D4s E4s F4s G4s)");
+  check("written ratio is kept", !!(ratio && ratio.events[0].m === 4 && ratio.events[0].showRatio === true));
+  var septDefault = w.parseMusicNotation("(7 /s /s /s /s /s /s /s)");
+  check("septuplet defaults to 7:4", !!(septDefault && septDefault.events[0].m === 4));
+  check("standalone close parses", !!w.parseMusicNotation("(3 C4e D4e E4e )"));
+  check("braces and stacks parse inside", !!w.parseMusicNotation("(3 {C4e D4e} [E4e G4e])"));
+  check("a stack label keeps its parentheses", !!w.parseMusicNotation("(3 C4q D4q [E4q G4q]_C7(b9))"));
+  check("nested tuplet is rejected", !w.parseMusicNotation("(3 C4e (3 D4e E4e) F4e)"));
+  check("unclosed tuplet is rejected", !w.parseMusicNotation("(3 C4e D4e E4e"));
+  check("barline inside a tuplet is rejected", !w.parseMusicNotation("(3 C4q | D4q E4q)"));
+  check("one-note tuplet is rejected", !w.parseMusicNotation("(3 C4q)"));
+  var mixed = w.parseMusicNotation("(3 /q /e)");
+  check(
+    "mixed triplet lasts one beat",
+    !!(mixed && typeof w.staffEventQuarters === "function" && Math.abs(w.staffEventQuarters(mixed.events[0]) - 1) < 1e-9)
+  );
+
+  function tupletGroups(source) {
+    var svg = w.renderMusicStaff(source, "current");
+    return svg ? svg.querySelectorAll(".staff-tuplet") : [];
+  }
+  function bracketCount(source) {
+    var svg = w.renderMusicStaff(source, "current");
+    return svg ? svg.querySelectorAll(".tuplet-bracket").length : -1;
+  }
+  var beamedGroups = tupletGroups("(3 C4e D4e E4e)");
+  check(
+    "a beamed triplet shows the number only",
+    beamedGroups.length === 1 &&
+      !beamedGroups[0].classList.contains("has-bracket") &&
+      beamedGroups[0].querySelectorAll("path").length === 1
+  );
+  check("a beamed mixed triplet shows the number only", bracketCount("(3 C4e. D4s E4e)") === 0);
+  check("a sixteenth septuplet shows the number only", bracketCount("(7 C4s D4s E4s F4s G4s A4s B4s)") === 0);
+  check("a quarter-note triplet gets a bracket", bracketCount("(3 C4q D4q E4q)") === 1);
+  check("a rest inside gets a bracket", bracketCount("(3 /e re /e)") === 1);
+  check("a split beam gets a bracket", bracketCount("(3 {/e /e} /e)") === 1);
+  check("an unbeamed mixed triplet gets a bracket", bracketCount("(3 /q /e)") === 1);
+  check("a whole-note triplet gets a bracket", bracketCount("(3 C4w E4w G4w)") === 1);
+  var ratioGroups = tupletGroups("(5:4 C4s D4s E4s F4s G4s)");
+  check(
+    "a written ratio prints three glyphs",
+    ratioGroups.length === 1 && ratioGroups[0].querySelectorAll("g").length === 3
+  );
+  check("triplet stems meet the beam", staffBeamStemsMeet(w, "(3 C4e D4e E4e)"));
+  check("septuplet stems meet the beam", staffBeamStemsMeet(w, "(7 C4s D4s E4s F4s G4s A4s B4s)"));
+  check("bracket clears up-stems", staffBracketClearsStems(w, "(3 C4q D4q G4q)", true));
+  check("bracket clears down-stems", staffBracketClearsStems(w, "(3 C5q D5q A5q)", false));
+
+  var eighthStack = w.renderMusicStaff("[C4e E4e G4e]", "current");
+  var quarterStack = w.renderMusicStaff("[C4q E4q G4q]", "current");
+  check(
+    "a short stack gets a flag",
+    !!(eighthStack && quarterStack) &&
+      eighthStack.querySelectorAll("g[transform]").length === quarterStack.querySelectorAll("g[transform]").length + 1
+  );
+
+  var items = w.exercises.tuplets ? w.exercises.tuplets.items : [];
+  var allFit = items.length > 0;
+  var k;
+  for (k = 0; k < items.length; k++) {
+    var parts = w.staffExampleParts(items[k]);
+    var ast = w.parseMusicNotation(parts.music);
+    var total = 0;
+    var bars = 1;
+    var e;
+    if (!ast || !parts.caption) {
+      allFit = false;
+      break;
+    }
+    for (e = 0; e < ast.events.length; e++) {
+      if (ast.events[e].type === "barline") {
+        bars++;
+      }
+      total += w.staffEventQuarters(ast.events[e]);
+    }
+    if (bars !== 2 || Math.abs(total - 8) > 1e-9 || !w.renderMusicStaff(parts.music, "current")) {
+      allFit = false;
+      break;
+    }
+  }
+  check("every tuplets example fills two bars of 4/4", allFit);
+}
+
+function staffBracketClearsStems(w, source, above) {
+  var svg = w.renderMusicStaff(source, "current");
+  var bracket = svg ? svg.querySelector(".tuplet-bracket") : null;
+  if (!bracket) {
+    return false;
+  }
+  var nums = (bracket.getAttribute("d").match(/-?\d*\.?\d+/g) || []).map(parseFloat);
+  if (nums.length < 12) {
+    return false;
+  }
+  /* Corners of the bracket line: second and fifth points of the path. */
+  var bx0 = nums[2];
+  var by0 = nums[3];
+  var bx1 = nums[8];
+  var by1 = nums[9];
+  var stems = svg.querySelectorAll("line");
+  var checked = 0;
+  var i;
+  for (i = 0; i < stems.length; i++) {
+    var sw = parseFloat(stems[i].getAttribute("stroke-width"));
+    var x1 = parseFloat(stems[i].getAttribute("x1"));
+    var x2 = parseFloat(stems[i].getAttribute("x2"));
+    if (Math.abs(x1 - x2) >= 0.01 || sw <= 1.3 || sw >= 2.2) {
+      continue;
+    }
+    var ya = parseFloat(stems[i].getAttribute("y1"));
+    var yb = parseFloat(stems[i].getAttribute("y2"));
+    var lineY = by0 + ((by1 - by0) * (x1 - bx0)) / (bx1 - bx0 || 1);
+    var hookEnds = above ? Math.max(nums[1], nums[11]) : Math.min(nums[1], nums[11]);
+    if (above ? lineY > Math.min(ya, yb) - 4 : lineY < Math.max(ya, yb) + 4) {
+      return false;
+    }
+    if (above ? hookEnds > Math.max(ya, yb) : hookEnds < Math.min(ya, yb)) {
+      return false;
+    }
+    checked++;
+  }
+  return checked === 3;
 }
 
 function staffStemLengths(svg) {
