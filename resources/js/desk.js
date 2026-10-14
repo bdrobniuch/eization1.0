@@ -866,6 +866,7 @@ function writeSetupNow() {
   }
   data.repeat = clampDeskInt(repeatCount, 1, 16, 1);
   data.look = !!lookAhead;
+  data.sheet = !!scoreSheet;
   data.countIn = !!countInOn;
   data.swing = swingNeo ? "neo" : (swingOn && swingTriplet ? "triplet" : (swingOn ? "feel" : "off"));
   data.swingAuto = !!swingAuto;
@@ -971,6 +972,9 @@ function restoreDefaults() {
   if (typeof setLookAhead === "function") {
     setLookAhead(true);
   }
+  if (typeof setScoreSheet === "function") {
+    setScoreSheet(false);
+  }
   if (typeof setCountIn === "function") {
     setCountIn(false);
   }
@@ -1067,6 +1071,9 @@ function applyDesk() {
   }
   if (typeof data.look === "boolean" && typeof setLookAhead === "function") {
     setLookAhead(data.look);
+  }
+  if (typeof data.sheet === "boolean" && typeof setScoreSheet === "function") {
+    setScoreSheet(data.sheet);
   }
   if (typeof data.countIn === "boolean" && typeof setCountIn === "function") {
     setCountIn(data.countIn);

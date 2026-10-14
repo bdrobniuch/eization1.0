@@ -162,6 +162,107 @@ body.is-count-in {
     to { transform: none; opacity: 1; }
 }
 
+#scoreWindow[hidden] {
+    display: none !important;
+}
+
+#scoreWindow {
+    overflow: hidden;
+    background: #fbf8f2;
+    color: #1a1a1a;
+    border-radius: 2px;
+    box-sizing: border-box;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 14px 36px rgba(0, 0, 0, 0.32);
+}
+
+#scoreSheet {
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+}
+
+#noteStack.sheet-on {
+    position: fixed;
+    z-index: 4;
+    left: 50%;
+    transform: translateX(-50%);
+    perspective: none;
+    pointer-events: none;
+    max-width: 92vw;
+}
+
+#noteStack.sheet-on #scoreWindow {
+    width: min(92vw, 46rem);
+}
+
+#noteStack.sheet-on #reelMark {
+    display: none !important;
+}
+
+#noteStack.sheet-on #scoreSheet > .score-row,
+#noteStack.sheet-on #scoreSheet > #note {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    transform: none;
+    opacity: 1;
+    margin: 0;
+    z-index: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    padding: 0.28em 0.85em;
+    box-sizing: border-box;
+    background: transparent;
+    color: #1a1a1a;
+    white-space: nowrap;
+    line-height: 1.05;
+    text-align: center;
+    font-family: var(--face-font);
+    pointer-events: none;
+    backface-visibility: visible;
+    overflow: hidden;
+}
+
+#noteStack.sheet-on #scoreSheet > .is-staff {
+    align-items: stretch;
+    justify-content: center;
+    background: transparent;
+    white-space: normal;
+    line-height: 0;
+    border-radius: 0;
+}
+
+#noteStack.sheet-on #scoreSheet .prog-changes {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: block;
+}
+
+#noteStack.sheet-on #scoreSheet .music-staff {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow: visible;
+    color: #1a1a1a;
+}
+
+#noteStack.sheet-on.is-turning #note,
+#noteStack.sheet-on.is-turning .reel-next,
+#noteStack.sheet-on.is-turning .reel-prev {
+    animation: none;
+}
+
 #topBar,
 #bottomBar {
   width: 100%;
@@ -827,6 +928,9 @@ body.is-hello[data-hello="edit"] #edit {
   #noteStack.is-turning .reel-next,
   #noteStack.is-turning .reel-prev {
     animation: none;
+  }
+  #scoreSheet {
+    transition: none !important;
   }
   body.is-hello[data-hello="exerciseFace"] #exerciseFace,
   body.is-hello[data-hello="next"] #next,

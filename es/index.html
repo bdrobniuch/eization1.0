@@ -331,6 +331,9 @@
     <main id="divnote">
         <div id="noteStack">
             <div id="reelMark" hidden aria-hidden="true"></div>
+            <div id="scoreWindow" hidden>
+                <div id="scoreSheet"></div>
+            </div>
             <p id="noteNext" class="reel-face reel-next" hidden aria-hidden="true"></p>
             <p id="note" aria-live="polite" aria-atomic="true">
                 C<sup><small></small></sup>
@@ -408,6 +411,10 @@
                 <div class="practice-toggle">
                     <p class="groove-label" data-i18n="groove.nearby">Nearby</p>
                     <button type="button" id="lookAhead" class="panel-toggle" aria-pressed="true" data-i18n-title="groove.nearbyTitle" title="Shows the next example above and the previous one below." data-i18n="groove.showNearby">Show nearby</button>
+                </div>
+                <div class="practice-toggle">
+                    <p class="groove-label" data-i18n="groove.page">Paper</p>
+                    <button type="button" id="sheetToggle" class="panel-toggle" aria-pressed="false" data-i18n-title="groove.pageTitle" title="Examples sit on a sheet of paper. The sheet moves down. The next example comes in from the top." data-i18n="groove.onPage">On paper</button>
                 </div>
             </div>
             <p class="groove-label" data-i18n="groove.swing">Swing</p>

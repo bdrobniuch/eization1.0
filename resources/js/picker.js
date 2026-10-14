@@ -18,6 +18,12 @@ var reelMaxHtml = "";
 var reelTurning = false;
 var reelTurnToken = 0;
 var REEL_TILT = 62 * Math.PI / 180;
+var scoreSheet = false;
+var sheetReady = false;
+var sheetMoving = false;
+var sheetToken = 0;
+var sheetFontPx = 48;
+var sheetRowPx = 0;
 
 function shuffleArray(array) {
   for (var i = array.length - 1; i > 0; i--) {
@@ -93,9 +99,13 @@ function fillExampleFace(el, source, role) {
   var music = parts.music || source;
   if (typeof isMusicNotation === "function" && isMusicNotation(source)) {
     el.classList.add("is-staff");
+    var staffRole = "current";
+    if (role === "reel" || (role === "sheet" && lookAhead)) {
+      staffRole = "reel";
+    }
     var svg =
       typeof renderMusicStaff === "function"
-        ? renderMusicStaff(music, role === "reel" ? "reel" : "current")
+        ? renderMusicStaff(music, staffRole)
         : null;
     if (svg) {
       var wrap = document.createElement("span");
@@ -114,7 +124,9 @@ function fillExampleFace(el, source, role) {
   el.classList.remove("is-staff");
   el.innerHTML = source;
   var size = exerciseFontPx;
-  if (role === "reel") {
+  if (role === "sheet") {
+    size = sheetFontPx || exerciseFontPx;
+  } else if (role === "reel") {
     var cap = Math.round(window.innerHeight * STAFF_REEL_VH);
     if (size > cap) {
       size = cap;
@@ -136,7 +148,312 @@ function refreshStaffFaces() {
   }
 }
 
+function motionReduced() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+
+function sheetApplies() {
+  if (!scoreSheet) {
+    return false;
+  }
+  var textDiv = document.getElementById("textdiv");
+  if (textDiv && textDiv.classList.contains("is-open")) {
+    return false;
+  }
+  return true;
+}
+
+function sheetGap() {
+  var box = noteBox();
+  var header = document.getElementById("linediv");
+  var top = header ? Math.round(header.getBoundingClientRect().bottom + 10) : 10;
+  return {
+    top: top,
+    height: Math.max(72, Math.floor(box.height))
+  };
+}
+
+function sheetFontSize(rowH) {
+  var pageW = Math.min(window.innerWidth * 0.92, 736) - 36;
+  if (pageW < 80) {
+    pageW = 80;
+  }
+  var size = exerciseFontPx || 48;
+  var heightCap = Math.floor((rowH || 48) * 0.42);
+  if (heightCap < 16) {
+    heightCap = 16;
+  }
+  if (size > heightCap) {
+    size = heightCap;
+  }
+  if (size < 16) {
+    size = 16;
+  }
+  var measure = document.getElementById("noteMeasure");
+  if (!measure) {
+    return size;
+  }
+  var samples = [];
+  if (currentNoteSource && !(typeof isMusicNotation === "function" && isMusicNotation(currentNoteSource))) {
+    samples.push(currentNoteSource);
+  }
+  if (lookAhead) {
+    var upcoming = peekNextItem();
+    if (upcoming && !(typeof isMusicNotation === "function" && isMusicNotation(upcoming))) {
+      samples.push(upcoming);
+    }
+    if (previousNote && !(typeof isMusicNotation === "function" && isMusicNotation(previousNote))) {
+      samples.push(previousNote);
+    }
+  }
+  var guard = 0;
+  while (guard < 20 && size > 16 && samples.length) {
+    measure.style.fontSize = size + "px";
+    var fits = true;
+    var s;
+    for (s = 0; s < samples.length; s++) {
+      measure.innerHTML = samples[s];
+      if (measure.scrollWidth > pageW) {
+        fits = false;
+        break;
+      }
+    }
+    if (fits) {
+      break;
+    }
+    size = Math.max(16, Math.floor(size * 0.9));
+    guard++;
+  }
+  return size;
+}
+
+function parkReelFace(el) {
+  var stack = document.getElementById("noteStack");
+  if (!el || !stack) {
+    return;
+  }
+  if (el.parentNode !== stack) {
+    stack.appendChild(el);
+  }
+  el.hidden = true;
+  el.setAttribute("aria-hidden", "true");
+  el.classList.remove("score-row", "is-staff");
+  el.style.height = "";
+  el.style.fontSize = "";
+  el.innerHTML = "";
+}
+
+function dropStraySheetRows() {
+  var sheet = document.getElementById("scoreSheet");
+  var note = document.getElementById("note");
+  var nextEl = document.getElementById("noteNext");
+  var prevEl = document.getElementById("notePrev");
+  if (!sheet) {
+    return;
+  }
+  var kids = sheet.children;
+  var i;
+  for (i = kids.length - 1; i >= 0; i--) {
+    var kid = kids[i];
+    if (kid !== note && kid !== nextEl && kid !== prevEl) {
+      kid.remove();
+    }
+  }
+}
+
+function unmountSheet() {
+  var stack = document.getElementById("noteStack");
+  var windowEl = document.getElementById("scoreWindow");
+  var sheet = document.getElementById("scoreSheet");
+  var note = document.getElementById("note");
+  var nextEl = document.getElementById("noteNext");
+  var prevEl = document.getElementById("notePrev");
+  if (!stack || !note) {
+    return;
+  }
+  var was = stack.classList.contains("sheet-on");
+  var noteInSheet = !!(sheet && note.parentNode === sheet);
+  if (!was && !noteInSheet) {
+    return;
+  }
+  dropStraySheetRows();
+  if (nextEl) {
+    nextEl.classList.remove("score-row");
+    nextEl.style.height = "";
+    stack.appendChild(nextEl);
+  }
+  note.classList.remove("score-row");
+  note.style.height = "";
+  stack.appendChild(note);
+  if (prevEl) {
+    prevEl.classList.remove("score-row");
+    prevEl.style.height = "";
+    stack.appendChild(prevEl);
+  }
+  if (sheet) {
+    sheet.style.transition = "none";
+    sheet.style.transform = "none";
+  }
+  if (windowEl) {
+    windowEl.hidden = true;
+    windowEl.style.height = "";
+  }
+  stack.classList.remove("sheet-on");
+  stack.style.top = "";
+  if (was && !note.classList.contains("is-staff")) {
+    note.style.fontSize = exerciseFontPx ? exerciseFontPx + "px" : "";
+  }
+}
+
+function mountSheet() {
+  var stack = document.getElementById("noteStack");
+  var windowEl = document.getElementById("scoreWindow");
+  var sheet = document.getElementById("scoreSheet");
+  var note = document.getElementById("note");
+  var nextEl = document.getElementById("noteNext");
+  var prevEl = document.getElementById("notePrev");
+  if (!stack || !windowEl || !sheet || !note || !nextEl || !prevEl) {
+    return;
+  }
+  dropStraySheetRows();
+  stack.classList.add("sheet-on");
+  stack.classList.remove("reel-on", "is-turning");
+  windowEl.hidden = false;
+  var mark = document.getElementById("reelMark");
+  if (mark) {
+    mark.hidden = true;
+  }
+  sheet.style.transition = "none";
+  sheet.style.transform = "none";
+  var gap = sheetGap();
+  var rowCount = lookAhead ? 3 : 1;
+  var rowH = Math.max(36, Math.floor(gap.height / rowCount));
+  var paperH = rowH * rowCount;
+  if (paperH > gap.height) {
+    rowH = Math.floor(gap.height / rowCount);
+    paperH = rowH * rowCount;
+  }
+  sheetFontPx = sheetFontSize(rowH);
+  sheetRowPx = rowH;
+  var rows;
+  if (lookAhead) {
+    sheet.appendChild(nextEl);
+    sheet.appendChild(note);
+    sheet.appendChild(prevEl);
+    nextEl.hidden = false;
+    prevEl.hidden = false;
+    nextEl.setAttribute("aria-hidden", "true");
+    prevEl.setAttribute("aria-hidden", "true");
+    nextEl.classList.add("score-row");
+    prevEl.classList.add("score-row");
+    note.classList.add("score-row");
+    fillExampleFace(nextEl, peekNextItem() || "", "sheet");
+    fillExampleFace(note, currentNoteSource || "", "sheet");
+    fillExampleFace(prevEl, previousNote || "", "sheet");
+    rows = [nextEl, note, prevEl];
+  } else {
+    sheet.appendChild(note);
+    note.classList.add("score-row");
+    fillExampleFace(note, currentNoteSource || "", "sheet");
+    parkReelFace(nextEl);
+    parkReelFace(prevEl);
+    rows = [note];
+  }
+  var r;
+  for (r = 0; r < rows.length; r++) {
+    rows[r].style.fontSize = rows[r].classList.contains("is-staff") ? "" : sheetFontPx + "px";
+    rows[r].style.height = rowH + "px";
+  }
+  var top = gap.top + Math.max(0, Math.round((gap.height - paperH) / 2));
+  stack.style.top = top + "px";
+  windowEl.style.height = paperH + "px";
+}
+
+function cancelSheetSlide() {
+  sheetToken++;
+  sheetMoving = false;
+  var sheet = document.getElementById("scoreSheet");
+  if (!sheet) {
+    return;
+  }
+  sheet.style.transition = "none";
+  sheet.style.transform = "none";
+}
+
+function beginSheetSlide() {
+  var sheet = document.getElementById("scoreSheet");
+  var note = document.getElementById("note");
+  if (!sheet || !note || note.parentNode !== sheet) {
+    fillExampleFace(note, currentNoteSource, "current");
+    renderPreview();
+    return;
+  }
+  var rowH = sheetRowPx || note.offsetHeight || Math.round((sheetFontPx || 48) * 1.35);
+  if (rowH < 1) {
+    fillExampleFace(note, currentNoteSource, "current");
+    renderPreview();
+    return;
+  }
+  var incoming = document.createElement("p");
+  incoming.className = "score-row";
+  incoming.setAttribute("aria-hidden", "true");
+  var incomingSource = lookAhead ? (peekNextItem() || "") : (currentNoteSource || "");
+  fillExampleFace(incoming, incomingSource, "sheet");
+  incoming.style.fontSize = incoming.classList.contains("is-staff") ? "" : sheetFontPx + "px";
+  incoming.style.height = rowH + "px";
+  sheet.insertBefore(incoming, sheet.firstChild);
+  sheet.style.transition = "none";
+  sheet.style.transform = "translateY(" + (-rowH) + "px)";
+  void sheet.offsetWidth;
+  var token = ++sheetToken;
+  sheetMoving = true;
+  var finished = false;
+  function finish(event) {
+    if (finished || token !== sheetToken) {
+      return;
+    }
+    if (event && event.target !== sheet) {
+      return;
+    }
+    if (event && event.propertyName && event.propertyName !== "transform") {
+      return;
+    }
+    finished = true;
+    sheet.removeEventListener("transitionend", finish);
+    clearTimeout(timer);
+    if (incoming.parentNode) {
+      incoming.remove();
+    }
+    sheetMoving = false;
+    var live = document.getElementById("note");
+    if (live) {
+      fillExampleFace(live, currentNoteSource, "current");
+    }
+    renderPreview();
+  }
+  sheet.addEventListener("transitionend", finish);
+  var timer = setTimeout(function () {
+    finish();
+  }, 450);
+  sheet.style.transition = "transform 0.32s ease-out";
+  sheet.style.transform = "translateY(0px)";
+}
+
 function renderPreview() {
+  if (sheetMoving) {
+    var editingNow = document.getElementById("textdiv");
+    if (!(editingNow && editingNow.classList.contains("is-open"))) {
+      return;
+    }
+    cancelSheetSlide();
+  }
+  if (sheetApplies()) {
+    mountSheet();
+    sheetReady = true;
+    return;
+  }
+  unmountSheet();
+  sheetReady = false;
   var nextEl = document.getElementById("noteNext");
   var prevEl = document.getElementById("notePrev");
   var stack = document.getElementById("noteStack");
@@ -304,6 +621,24 @@ function setLookAhead(on) {
   if (btn) {
     btn.setAttribute("aria-pressed", lookAhead ? "true" : "false");
   }
+  if (sheetMoving) {
+    cancelSheetSlide();
+  }
+  renderPreview();
+}
+
+function setScoreSheet(on) {
+  scoreSheet = !!on;
+  if (typeof rememberSetup === "function") {
+    rememberSetup();
+  }
+  var btn = document.getElementById("sheetToggle");
+  if (btn) {
+    btn.setAttribute("aria-pressed", scoreSheet ? "true" : "false");
+  }
+  if (sheetMoving) {
+    cancelSheetSlide();
+  }
   renderPreview();
 }
 
@@ -322,11 +657,22 @@ function showCurrentNote(text) {
   if (!note) {
     return;
   }
+  var interrupted = sheetMoving;
+  if (interrupted) {
+    cancelSheetSlide();
+  }
   currentNoteSource = text || "";
-  fillExampleFace(note, currentNoteSource, "current");
   updateRemaining();
+  var animate = !interrupted && sheetReady && !motionReduced() && sheetApplies();
+  if (animate) {
+    beginSheetSlide();
+    return;
+  }
+  fillExampleFace(note, currentNoteSource, "current");
   renderPreview();
-  turnReel();
+  if (!sheetApplies()) {
+    turnReel();
+  }
 }
 
 function turnReel() {
@@ -511,6 +857,7 @@ function newExercise(items, bars) {
     editorCloseQuiet();
   }
   chooseExerciseFont();
+  sheetReady = false;
   advanceNote();
   if (typeof metronomeAlignToDownbeat === "function") {
     metronomeAlignToDownbeat();

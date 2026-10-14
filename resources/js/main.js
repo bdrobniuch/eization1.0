@@ -877,6 +877,9 @@ function init() {
   document.getElementById("lookAhead").addEventListener("click", function () {
     setLookAhead(this.getAttribute("aria-pressed") !== "true");
   });
+  document.getElementById("sheetToggle").addEventListener("click", function () {
+    setScoreSheet(this.getAttribute("aria-pressed") !== "true");
+  });
   document.getElementById("restoreDefaults").addEventListener("click", function () {
     if (!this.classList.contains("is-armed")) {
       if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
