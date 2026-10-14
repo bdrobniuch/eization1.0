@@ -1,7 +1,7 @@
 {
-  "name": "eization. Each example comes up once, in time with the metronome.",
+  "name": "eization. Start every session differently.",
   "short_name": "eization",
-  "description": "What you already know gets played the most. The rest waits. Each example in the exercise comes up once, with the metronome. Then the order changes.",
+  "description": "Stuck in the same practice routine? You get exhausted before covering everything. eization draws one example at a time from your library, as text or on a staff, and shuffles in time with the metronome.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
