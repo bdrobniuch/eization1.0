@@ -33,7 +33,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, durations, rests, tuplets, labels). Time signature follows Setup meter |
 
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
-| `resources/js/editor.js` | Edit exercises, staff preview of the line at the caret, and the staff-writing help panel. `edit.js` does not load |
+| `resources/js/editor.js` | Edit exercises, staff preview of the line at the caret, Staff help beside Bars, Symbols behind a toggle, Share on the Exercise row (More holds occasional actions on a phone). `edit.js` does not load |
 | `resources/js/about.js` | Menu sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → Scales on a staff → Left Hand Rootless Voicings → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
@@ -76,7 +76,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 - Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
 - Staff ink (clefs, accidentals, noteheads, slash heads, augmentation dots, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
-`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. `notation.html` (and `es/notation.html`) shows the same parser: the line, then the staff. In Edit, the line at the caret previews as a staff when it parses; a notation-ish line that fails stays text with an amber note. The info button opens a short writing guide without closing the draft.
+`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. `notation.html` (and `es/notation.html`) shows the same parser: the line, then the staff. In Edit, the line at the caret previews as a staff when it parses; a notation-ish line that fails stays text with an amber note. An empty preview coaches one example per line. Staff (beside Bars) opens a short writing guide without closing the draft. Symbols stays closed until opened.
 
 ## Adding an exercise
 
@@ -86,7 +86,7 @@ The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhyt
 
 When the new id is in `menuOrder`, add a page at the site root, link it from `practice.html`, and add the URL to `sitemap.xml`. Add the Spanish page under `es/`, link it from `es/practice.html`, and list that URL too. `hreflang` on each page points at the other language. That page should link to `./?exercise=` plus the id. On open, the practice screen selects that exercise when it is still in the menu, then drops the query from the address bar. An id that is not in `menuOrder` is ignored.
 
-Share in Edit copies a link to the open exercise. The link is a `#s=` hash on that page (`https://eization.com/` or `https://eization.com/es/`). Opening it can add that exercise on this device. An exact match opens the stored exercise and says nothing. A link whose examples match a factory exercise already on this device opens that exercise the same way, even when the title is in the other language. A different exercise can replace the stored one or be added beside it. On a first visit the intro waits while that question or Preview is open, then plays once the exercise is on screen. An exercise that does not fit in the link stays on this device, and Download still writes the `.eiz` file.
+Share sits on the Exercise row in Edit (always visible). It copies a link to the open exercise and shows Link copied in Edit when the clipboard is ready. On a phone, Download, Upload, Ask AI, Clear, and Delete sit under More; on a wider screen those actions sit beside Share. The link is a `#s=` hash on that page (`https://eization.com/` or `https://eization.com/es/`). Opening it can add that exercise on this device. An exact match opens the stored exercise and says nothing. A link whose examples match a factory exercise already on this device opens that exercise the same way, even when the title is in the other language. A different exercise can replace the stored one or be added beside it. On a first visit the intro waits while that question or Preview is open, then plays once the exercise is on screen. An exercise that does not fit in the link stays on this device, and Download still writes the `.eiz` file.
 
 `more.html` (and `es/more.html`) is a catalog of extra exercises that use those share links. They are not seeded into the menu. Each Open in eization link lands on the practice screen with Add / Preview (or Update when the same share id is already on the device).
 
