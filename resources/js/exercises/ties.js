@@ -1,0 +1,30 @@
+registerExercise({
+  id: "ties",
+  label: "Held rhythm",
+  bars: 1,
+  inMenu: false,
+  items: [
+    "re /e~/q~/q rq",
+    "re /e~/q rq /q",
+    "/q.~/e re /e re /e",
+    "{/e~/e} re /e re /q.",
+    "{/e~/e} rq re /e~/q",
+    "rq {/e /e}~{/e /e}~/q",
+    "{/e~/e /e~/e} re /e~/q",
+    "rq {/e~/e}~/q~{/e /e}",
+    "re /e /q~/q~/q",
+    "re {/e /e~/e} rq /q",
+    "re /e~{/e /e /e /e}~/q",
+    "re /e~/q re {/e~/e /e}",
+    "rq {/e~/e} re {/e /e~/e}",
+    "{/e~/e}~{/e /e}~{/e /e}~/q",
+    "re /e~/q~{/e /e}~/q",
+    "/q.~/e~{/e /e~/e /e}",
+    "re /e /q~{/e~/e}~/q",
+    "{/e~/e} re /e~{/e /e /e /e}",
+    "rq /e~/e /q~/q",
+    "/q.~/e~{/e /e}~/q",
+    "re {/e~/e} re /e~/q.",
+    "re {/e /e~/e} re /q."
+  ]
+});

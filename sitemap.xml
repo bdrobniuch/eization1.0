@@ -277,6 +277,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/tuplets.html"/>
   </url>
   <url>
+    <loc>https://eization.com/ties.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/ties.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/ties.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/ties.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/ties.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/ties.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/ties.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/ties.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/free-play.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/free-play.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/free-play.html"/>
@@ -419,5 +431,17 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/voicings-and-grooves.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/voicings-and-grooves.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/voicings-and-grooves.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/for-teachers/ties-on-the-staff.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/ties-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/ties-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/ties-on-the-staff.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/for-teachers/ties-on-the-staff.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/ties-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-teachers/ties-on-the-staff.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/ties-on-the-staff.html"/>
   </url>
 </urlset>

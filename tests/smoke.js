@@ -109,7 +109,8 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 9);
+  check("hidden exercises still registered", hidden === 10);
+  check("address ignores ties", w.exerciseIdFromQuery("?exercise=ties") === "");
   var deskList = w.listDeskExercises();
   check("desk seeds the visible catalog", deskList.length === w.menuOrder.length);
   var buttons = w.document.querySelectorAll("#exerciseMenu [data-value]");
@@ -149,6 +150,39 @@ function staffNotation(w) {
     )
   );
   check("dotted whole is rejected", !w.parseMusicNotation("C4w."));
+  var tiedQuarters = w.parseMusicNotation("/q~/q");
+  check(
+    "a slash tie parses",
+    !!(tiedQuarters && tiedQuarters.events.length === 2 && tiedQuarters.events[0].tieOutKeys && tiedQuarters.events[0].tieOutKeys[0] === "slash")
+  );
+  var tiedBar = w.parseMusicNotation("C4q~|C4q");
+  check(
+    "a tie across a barline parses",
+    !!(tiedBar && tiedBar.events.length === 3 && tiedBar.events[0].tieOutKeys && tiedBar.events[0].tieOutKeys[0] === "C4" && tiedBar.events[1].type === "barline")
+  );
+  var tiedBeam = w.parseMusicNotation("{/e /e}~{/e /e}");
+  check(
+    "a tie between beams parses",
+    !!(tiedBeam && tiedBeam.events.length === 2 && tiedBeam.events[0].type === "beam" && tiedBeam.events[0].tieOutKeys && tiedBeam.events[0].tieOutKeys[0] === "slash")
+  );
+  var tiedChord = w.parseMusicNotation("[C4q E4q]~[C4q E4q]");
+  check(
+    "a chord tie keeps both pitches",
+    !!(tiedChord && tiedChord.events[0].tieOutKeys && tiedChord.events[0].tieOutKeys.length === 2)
+  );
+  var tiedInside = w.parseMusicNotation("{C4e~ C4e}");
+  check(
+    "a tie inside a beam parses",
+    !!(tiedInside && tiedInside.events[0].notes && tiedInside.events[0].notes[0].tieToNext)
+  );
+  check("a tie onto a different pitch is rejected", !w.parseMusicNotation("C4q~D4q"));
+  check("a tie from a rest is rejected", !w.parseMusicNotation("rq~/q"));
+  check("a dangling tie is rejected", !w.parseMusicNotation("C4q~"));
+  var tiedSvg = w.renderMusicStaff("/q~/q", "current");
+  check(
+    "a tie draws a curve",
+    !!(tiedSvg && tiedSvg.querySelector("path.staff-tie"))
+  );
   var brokenTuplet = w.staffNotationStatus("(3 C4e D4e E4e");
   check(
     "broken tuplet is notation-ish and not ok",
@@ -331,6 +365,37 @@ function staffTuplets(w) {
     }
   }
   check("every tuplets example fills two bars of 4/4", allFit);
+
+  var tieItems = w.exercises.ties ? w.exercises.ties.items : [];
+  var tiesFit = tieItems.length === 22;
+  for (k = 0; k < tieItems.length; k++) {
+    var tieParts = w.staffExampleParts(tieItems[k]);
+    var tieAst = w.parseMusicNotation(tieParts.music);
+    var tieTotal = 0;
+    var tieBars = 1;
+    if (!tieAst) {
+      tiesFit = false;
+      break;
+    }
+    for (e = 0; e < tieAst.events.length; e++) {
+      if (tieAst.events[e].type === "barline") {
+        tieBars++;
+      }
+      tieTotal += w.staffEventQuarters(tieAst.events[e]);
+    }
+    var tieSvg = w.renderMusicStaff(tieParts.music, "current");
+    if (
+      tieParts.music.indexOf("~") < 0 ||
+      tieBars !== 1 ||
+      Math.abs(tieTotal - 4) > 1e-9 ||
+      !tieSvg ||
+      !tieSvg.querySelector("path.staff-tie")
+    ) {
+      tiesFit = false;
+      break;
+    }
+  }
+  check("every ties example fills one bar of 4/4", tiesFit);
 }
 
 function staffBracketClearsStems(w, source, above) {
@@ -556,7 +621,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 56 share links", keys.length === 56);
+  check("more catalog has 57 share links", keys.length === 57);
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -579,7 +644,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 56 share links", esHashes.length === 56);
+  check("spanish more catalog has 57 share links", esHashes.length === 57);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -615,12 +680,18 @@ function notationGuide(w) {
   );
   var scales = notationSampleCount("../for-teachers/scales-on-the-staff.html");
   var grooves = notationSampleCount("../for-teachers/voicings-and-grooves.html");
+  var tiesArticle = notationSampleCount("../for-teachers/ties-on-the-staff.html");
+  var tiesArticleEs = notationSampleCount("../es/for-teachers/ties-on-the-staff.html");
   check(
     "teacher staff examples parse",
     scales.chunks.length >= 3 &&
       notationSamplesParse(w, scales.chunks) === scales.chunks.length &&
       grooves.chunks.length >= 6 &&
-      notationSamplesParse(w, grooves.chunks) === grooves.chunks.length
+      notationSamplesParse(w, grooves.chunks) === grooves.chunks.length &&
+      tiesArticle.chunks.length >= 3 &&
+      notationSamplesParse(w, tiesArticle.chunks) === tiesArticle.chunks.length &&
+      tiesArticleEs.chunks.length === tiesArticle.chunks.length &&
+      notationSamplesParse(w, tiesArticleEs.chunks) === tiesArticleEs.chunks.length
   );
 }
 

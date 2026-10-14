@@ -2579,5 +2579,55 @@
                       "I · Dom7 HW dim",
                       "IIIÂ° · Dom7 HW dim"
                   ]
+    },
+    {
+        "id":  "more0057",
+        "slug":  "held-rhythm",
+        "bars":  1,
+        "nameEn":  "Held rhythm",
+        "nameEs":  "Ritmo sostenido",
+        "descEn":  "Another rhythm exercise: one bar of 4/4 on the staff. Play the first note and hold it through the tie. Every line has a tie, and only between two attacks.",
+        "descEs":  "Otro ejercicio de ritmo: un compás de 4/4 en el pentagrama. Toca la primera nota y sostenla en la ligadura. Cada línea tiene una ligadura, y solo entre dos ataques.",
+        "books":  [
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      },
+                      {
+                          "href":  "./for-teachers/ties-on-the-staff.html",
+                          "en":  "Hold the First Note.",
+                          "es":  "Sostén la primera nota."
+                      }
+                  ],
+        "lines":  [
+                      "re /e~/q~/q rq",
+                      "re /e~/q rq /q",
+                      "/q.~/e re /e re /e",
+                      "{/e~/e} re /e re /q.",
+                      "{/e~/e} rq re /e~/q",
+                      "rq {/e /e}~{/e /e}~/q",
+                      "{/e~/e /e~/e} re /e~/q",
+                      "rq {/e~/e}~/q~{/e /e}",
+                      "re /e /q~/q~/q",
+                      "re {/e /e~/e} rq /q",
+                      "re /e~{/e /e /e /e}~/q",
+                      "re /e~/q re {/e~/e /e}",
+                      "rq {/e~/e} re {/e /e~/e}",
+                      "{/e~/e}~{/e /e}~{/e /e}~/q",
+                      "re /e~/q~{/e /e}~/q",
+                      "/q.~/e~{/e /e~/e /e}",
+                      "re /e /q~{/e~/e}~/q",
+                      "{/e~/e} re /e~{/e /e /e /e}",
+                      "rq /e~/e /q~/q",
+                      "/q.~/e~{/e /e}~/q",
+                      "re {/e~/e} re /e~/q.",
+                      "re {/e /e~/e} re /q."
+                  ]
     }
 ]

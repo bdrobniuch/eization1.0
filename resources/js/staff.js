@@ -586,19 +586,243 @@ function staffBeamGroupQuarters(meter) {
   return unitQ;
 }
 
+/* Split a tie mark out so `/q~/q` and `/q ~ /q` are the same tokens. */
+function staffTokenize(raw) {
+  return String(raw || "")
+    .replace(/~/g, " ~ ")
+    .replace(/\|/g, " | ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/* Same written pitch, or any slash with any slash. Natural matches a bare letter. */
+function staffTieKey(pitch) {
+  if (!pitch) {
+    return "";
+  }
+  if (pitch.head === "slash") {
+    return "slash";
+  }
+  var acc = pitch.accidental || "";
+  if (acc === "n") {
+    acc = "";
+  }
+  return pitch.letter + acc + String(pitch.octave);
+}
+
+function staffFirstEvent(events) {
+  var i;
+  for (i = 0; i < events.length; i++) {
+    if (events[i].type !== "barline") {
+      return events[i];
+    }
+  }
+  return null;
+}
+
+function staffLastEvent(events) {
+  var i;
+  for (i = events.length - 1; i >= 0; i--) {
+    if (events[i].type !== "barline") {
+      return events[i];
+    }
+  }
+  return null;
+}
+
+/* Pitches a tie can arrive at: one note, every chord tone, or the first note of a beam. */
+function staffIncomingKeys(ev) {
+  var keys = [];
+  var i;
+  if (!ev || ev.type === "rest" || ev.type === "barline") {
+    return keys;
+  }
+  if (ev.type === "note") {
+    return [staffTieKey(ev.pitch)];
+  }
+  if (ev.type === "stack") {
+    for (i = 0; i < ev.pitches.length; i++) {
+      keys.push(staffTieKey(ev.pitches[i]));
+    }
+    return keys;
+  }
+  if (ev.type === "beam") {
+    return ev.notes.length ? [staffTieKey(ev.notes[0].pitch)] : keys;
+  }
+  if (ev.type === "tuplet") {
+    return staffIncomingKeys(staffFirstEvent(ev.events));
+  }
+  return keys;
+}
+
+/* Pitches a tie can leave: one note, every chord tone, or the last note of a beam. */
+function staffOutgoingKeys(ev) {
+  var keys = [];
+  var i;
+  if (!ev || ev.type === "rest" || ev.type === "barline") {
+    return keys;
+  }
+  if (ev.type === "note") {
+    return [staffTieKey(ev.pitch)];
+  }
+  if (ev.type === "stack") {
+    for (i = 0; i < ev.pitches.length; i++) {
+      keys.push(staffTieKey(ev.pitches[i]));
+    }
+    return keys;
+  }
+  if (ev.type === "beam") {
+    return ev.notes.length ? [staffTieKey(ev.notes[ev.notes.length - 1].pitch)] : keys;
+  }
+  if (ev.type === "tuplet") {
+    return staffOutgoingKeys(staffLastEvent(ev.events));
+  }
+  return keys;
+}
+
+function staffTieEdgeIsStack(ev, dir) {
+  var edge;
+  if (!ev) {
+    return false;
+  }
+  if (ev.type === "stack") {
+    return true;
+  }
+  if (ev.type === "tuplet") {
+    edge = dir === "in" ? staffFirstEvent(ev.events) : staffLastEvent(ev.events);
+    return staffTieEdgeIsStack(edge, dir);
+  }
+  return false;
+}
+
+/* Shared pitches. A chord may tie only some of its notes. A single note must match. */
+function staffMatchTie(fromEv, toEv) {
+  var outKeys = staffOutgoingKeys(fromEv);
+  var inKeys = staffIncomingKeys(toEv);
+  var shared = [];
+  var i;
+  var j;
+  if (!outKeys.length || !inKeys.length) {
+    return { error: "tie needs the same pitch", tok: "~" };
+  }
+  if (staffTieEdgeIsStack(fromEv, "out") || staffTieEdgeIsStack(toEv, "in")) {
+    for (i = 0; i < outKeys.length; i++) {
+      for (j = 0; j < inKeys.length; j++) {
+        if (outKeys[i] === inKeys[j] && shared.indexOf(outKeys[i]) < 0) {
+          shared.push(outKeys[i]);
+        }
+      }
+    }
+    if (!shared.length) {
+      return { error: "tie needs the same pitch", tok: "~" };
+    }
+    return { keys: shared };
+  }
+  if (outKeys[0] !== inKeys[0]) {
+    return { error: "tie needs the same pitch", tok: "~" };
+  }
+  return { keys: [outKeys[0]] };
+}
+
+/* Resolve each ~ onto the following attack. A barline may sit in between. */
+function staffBindTies(events) {
+  var i;
+  var open = null;
+  var matched;
+  for (i = 0; i < events.length; i++) {
+    if (events[i].type === "tuplet") {
+      matched = staffBindTies(events[i].events);
+      if (matched.error) {
+        return matched;
+      }
+    }
+  }
+  for (i = 0; i < events.length; i++) {
+    var ev = events[i];
+    if (ev.type === "barline") {
+      continue;
+    }
+    if (ev.type === "rest") {
+      if (open) {
+        return { error: "tie needs a note after it", tok: "~" };
+      }
+      continue;
+    }
+    if (open) {
+      matched = staffMatchTie(open, ev);
+      if (matched.error) {
+        return matched;
+      }
+      open.tieOutKeys = matched.keys;
+      open = null;
+    }
+    if (ev.tieToNext) {
+      open = ev;
+    }
+  }
+  if (open) {
+    return { error: "tie needs a note after it", tok: "~" };
+  }
+  return { ok: true };
+}
+
+function staffEventsHaveTie(events) {
+  var i;
+  var n;
+  if (!events) {
+    return false;
+  }
+  for (i = 0; i < events.length; i++) {
+    var ev = events[i];
+    if (ev.tieToNext || (ev.tieOutKeys && ev.tieOutKeys.length)) {
+      return true;
+    }
+    if (ev.type === "beam") {
+      for (n = 0; n < ev.notes.length; n++) {
+        if (ev.notes[n].tieToNext) {
+          return true;
+        }
+      }
+    }
+    if (ev.type === "tuplet" && staffEventsHaveTie(ev.events)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function staffParseBeamInner(inner, clef) {
   var parts = inner.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) {
     return null;
   }
   var notes = [];
-  for (var i = 0; i < parts.length; i++) {
+  var hangTie = false;
+  var i;
+  for (i = 0; i < parts.length; i++) {
+    if (parts[i] === "~") {
+      if (!notes.length || hangTie) {
+        return { error: "tie needs a note before it", tok: "~" };
+      }
+      hangTie = true;
+      continue;
+    }
     var p = staffParsePitchToken(parts[i]) || staffParseSlashToken(parts[i], clef || "treble");
     if (!p) {
       return null;
     }
     if (!staffIsShortDuration(p.duration || "q")) {
       return null;
+    }
+    if (hangTie) {
+      var prev = notes[notes.length - 1];
+      if (staffTieKey(prev.pitch) !== staffTieKey(p)) {
+        return { error: "tie needs the same pitch", tok: "~" };
+      }
+      prev.tieToNext = true;
+      prev.tieOutKey = staffTieKey(p);
+      hangTie = false;
     }
     notes.push({
       type: "note",
@@ -609,7 +833,8 @@ function staffParseBeamInner(inner, clef) {
     });
     p.label = "";
   }
-  return notes;
+  /* A trailing ~ leaves the group and ties into whatever follows the brace. */
+  return { notes: notes, tieToNext: hangTie };
 }
 
 function staffParseStackInner(inner) {
@@ -735,11 +960,18 @@ function staffParseEventAt(tokens, i, clef) {
       return { error: "junk after beam", tok: beamBuf.slice(beamClose + 1) };
     }
     var beamInner = beamBuf.slice(1, beamClose);
-    var beamNotes = staffParseBeamInner(beamInner, clef);
-    if (!beamNotes || beamNotes.length < 1) {
-      return { error: "bad beam pitches (need e/s notes)", tok: beamInner };
+    var beamParsed = staffParseBeamInner(beamInner, clef);
+    if (!beamParsed || beamParsed.error || !beamParsed.notes || beamParsed.notes.length < 1) {
+      return {
+        error: beamParsed && beamParsed.error ? beamParsed.error : "bad beam pitches (need e/s notes)",
+        tok: beamParsed && beamParsed.tok ? beamParsed.tok : beamInner
+      };
     }
-    return { event: { type: "beam", notes: beamNotes }, next: i + 1 };
+    var beamEv = { type: "beam", notes: beamParsed.notes };
+    if (beamParsed.tieToNext) {
+      beamEv.tieToNext = true;
+    }
+    return { event: beamEv, next: i + 1 };
   }
   if (tok.charAt(0) === "[") {
     if (tok.indexOf("[", 1) >= 0) {
@@ -851,25 +1083,85 @@ function staffParseTupletAt(tokens, i, clef) {
   if (!closed) {
     return { error: "unclosed tuplet", tok: tokens[i] };
   }
-  var events = [];
+  var seq = staffParseSequence(inner, clef, { allowBarline: false, allowTuplet: false });
+  if (seq.error) {
+    return { error: seq.error, tok: seq.tok };
+  }
+  var events = seq.events;
   var count = 0;
-  var k = 0;
-  while (k < inner.length) {
-    var one = staffParseEventAt(inner, k, clef);
-    if (one.error) {
-      return one;
-    }
-    events.push(one.event);
-    count += one.event.type === "beam" ? one.event.notes.length : 1;
-    k = one.next;
+  var k;
+  for (k = 0; k < events.length; k++) {
+    count += events[k].type === "beam" ? events[k].notes.length : 1;
   }
   if (count < 2) {
     return { error: "tuplet needs two or more notes", tok: tokens[i] };
   }
-  return {
-    event: { type: "tuplet", n: n, m: m, showRatio: !!open[2], events: events },
-    next: j + 1
-  };
+  /* A ~ on the last note of the group continues into the note after the tuplet. */
+  var hang = staffLastEvent(events);
+  var tieOn = false;
+  if (hang && hang.tieToNext) {
+    hang.tieToNext = false;
+    tieOn = true;
+  }
+  var tupletEv = { type: "tuplet", n: n, m: m, showRatio: !!open[2], events: events };
+  if (tieOn) {
+    tupletEv.tieToNext = true;
+  }
+  return { event: tupletEv, next: j + 1 };
+}
+
+/*
+ * Notes, rests, beams, chords, tuplets, barlines, and ~ from tokens[0].
+ * opts.allowBarline / opts.allowTuplet gate those marks (off inside a tuplet).
+ */
+function staffParseSequence(tokens, clef, opts) {
+  var events = [];
+  var sawMusic = false;
+  var i = 0;
+  opts = opts || {};
+  while (i < tokens.length) {
+    var tok = tokens[i];
+    if (tok === "~") {
+      var prev = null;
+      var bi;
+      for (bi = events.length - 1; bi >= 0; bi--) {
+        if (events[bi].type !== "barline") {
+          prev = events[bi];
+          break;
+        }
+      }
+      if (!prev || prev.type === "rest") {
+        return { error: "tie needs a note before it", tok: tok };
+      }
+      prev.tieToNext = true;
+      i++;
+      continue;
+    }
+    if (tok === "|") {
+      if (!opts.allowBarline) {
+        return { error: "barline inside tuplet", tok: tok };
+      }
+      events.push({ type: "barline" });
+      i++;
+      continue;
+    }
+    var one;
+    if (tok.charAt(0) === "(") {
+      if (!opts.allowTuplet) {
+        return { error: "nested tuplet", tok: tok };
+      }
+      one = staffParseTupletAt(tokens, i, clef);
+    } else {
+      one = staffParseEventAt(tokens, i, clef);
+    }
+    if (one.error) {
+      return { error: one.error, tok: one.tok };
+    }
+    sawMusic = true;
+    events.push(one.event);
+    i = one.next;
+  }
+  return { events: events, sawMusic: sawMusic };
 }
 
 /* Duration of one parsed event in quarter-note units; a tuplet is scaled by m/n. */
@@ -905,7 +1197,7 @@ function parseMusicNotation(source) {
   if (staffAstCache.has(raw)) {
     return staffAstCache.get(raw);
   }
-  var tokens = raw.split(/\s+/).filter(Boolean);
+  var tokens = staffTokenize(raw);
   if (!tokens.length) {
     return null;
   }
@@ -957,29 +1249,20 @@ function parseMusicNotation(source) {
     i++;
   }
 
-  var events = [];
-  var sawMusic = false;
-  while (i < tokens.length) {
-    var tok = tokens[i];
-    if (tok === "|") {
-      events.push({ type: "barline" });
-      i++;
-      continue;
-    }
-    var one =
-      tok.charAt(0) === "("
-        ? staffParseTupletAt(tokens, i, clef)
-        : staffParseEventAt(tokens, i, clef);
-    if (one.error) {
-      return fail(one.error, one.tok);
-    }
-    sawMusic = true;
-    events.push(one.event);
-    i = one.next;
+  var seq = staffParseSequence(tokens.slice(i), clef, {
+    allowBarline: true,
+    allowTuplet: true
+  });
+  if (seq.error) {
+    return fail(seq.error, seq.tok);
   }
-
-  if (!sawMusic || !events.length) {
+  var events = seq.events;
+  if (!seq.sawMusic || !events.length) {
     return fail("no notes or rests", null);
+  }
+  var tied = staffBindTies(events);
+  if (tied.error) {
+    return fail(tied.error, tied.tok);
   }
 
   var ast = {
@@ -1053,7 +1336,7 @@ function staffNotationStatus(source) {
   if (/[<&]/.test(music)) {
     return { ok: false, notationIsh: false, music: music, caption: parts.caption || "" };
   }
-  var tokens = music.trim().split(/\s+/).filter(Boolean);
+  var tokens = staffTokenize(music);
   var notationIsh = staffLooksNotationIsh(tokens);
   var ast = parseMusicNotation(music);
   return {
@@ -1273,6 +1556,10 @@ function renderMusicStaff(source, role) {
     dropBelow + labelBand + 8,
     (hasBelowLabels ? downStemExtra : 0) + labelBand + 8
   );
+  if (staffEventsHaveTie(ast.events)) {
+    padTop += lineGap;
+    padBottom += lineGap;
+  }
 
   var staffTop = padTop;
   var staffHeight = 4 * lineGap;
@@ -1289,6 +1576,81 @@ function renderMusicStaff(source, role) {
    * neighbors: runs of e/s share one id, or with braces only the braces beam.
    */
   var tupRunId = 0;
+  /* Curves to draw once noteheads have x and y: { from, to, step }. */
+  var drawTies = [];
+  var openTie = null;
+
+  function staffEdgeColumns(ev, first, last, dir) {
+    var edges = [];
+    var pi;
+    var note;
+    var idx;
+    if (!ev || first > last) {
+      return edges;
+    }
+    if (ev.type === "note") {
+      return [{ index: first, step: ev.pitch.step, key: staffTieKey(ev.pitch) }];
+    }
+    if (ev.type === "stack") {
+      for (pi = 0; pi < ev.pitches.length; pi++) {
+        edges.push({
+          index: first,
+          step: ev.pitches[pi].step,
+          key: staffTieKey(ev.pitches[pi])
+        });
+      }
+      return edges;
+    }
+    if (ev.type === "beam" && ev.notes.length) {
+      note = dir === "in" ? ev.notes[0] : ev.notes[ev.notes.length - 1];
+      idx = dir === "in" ? first : last;
+      return [{ index: idx, step: note.pitch.step, key: staffTieKey(note.pitch) }];
+    }
+    return edges;
+  }
+
+  function staffArmOutgoing(ev, first, last, keys) {
+    var edges = staffEdgeColumns(ev, first, last, "out");
+    var sources = [];
+    var i;
+    for (i = 0; i < edges.length; i++) {
+      if (keys.indexOf(edges[i].key) >= 0) {
+        sources.push(edges[i]);
+      }
+    }
+    if (sources.length) {
+      openTie = { sources: sources };
+    }
+  }
+
+  function staffRememberTies(ev, first, last) {
+    var incoming;
+    var i;
+    var j;
+    var src;
+    var hit;
+    if (openTie) {
+      incoming = staffEdgeColumns(ev, first, last, "in");
+      for (i = 0; i < openTie.sources.length; i++) {
+        src = openTie.sources[i];
+        hit = null;
+        for (j = 0; j < incoming.length; j++) {
+          if (incoming[j].key === src.key) {
+            hit = incoming[j];
+            break;
+          }
+        }
+        if (hit) {
+          drawTies.push({ from: src.index, to: hit.index, step: src.step });
+        }
+      }
+      openTie = null;
+    }
+    if (ev.tieOutKeys && ev.tieOutKeys.length) {
+      staffArmOutgoing(ev, first, last, ev.tieOutKeys);
+    }
+  }
+
   function pushColumnEvent(ev, tup) {
     var col = null;
     if (ev.type === "barline") {
@@ -1333,8 +1695,11 @@ function renderMusicStaff(source, role) {
     } else if (ev.type === "beam") {
       var bid = nextBeamId++;
       var bi;
+      var beamFirst = columns.length;
+      var prevTie = -1;
       tupRunId = 0;
       for (bi = 0; bi < ev.notes.length; bi++) {
+        var noteCol = columns.length;
         columns.push({
           type: "note",
           pitch: ev.notes[bi].pitch,
@@ -1345,7 +1710,16 @@ function renderMusicStaff(source, role) {
           explicit: true,
           scale: tup ? tup.scale : 1
         });
+        if (prevTie >= 0) {
+          drawTies.push({
+            from: prevTie,
+            to: noteCol,
+            step: ev.notes[bi - 1].pitch.step
+          });
+        }
+        prevTie = ev.notes[bi].tieToNext ? noteCol : -1;
       }
+      staffRememberTies(ev, beamFirst, columns.length - 1);
       return;
     } else if (ev.type === "tuplet") {
       var braced = false;
@@ -1370,20 +1744,37 @@ function renderMusicStaff(source, role) {
       tupRunId = 0;
       span.last = columns.length - 1;
       tuplets.push(span);
+      if (ev.tieOutKeys && ev.tieOutKeys.length) {
+        var lastEv = staffLastEvent(ev.events);
+        var lastCol = columns.length - 1;
+        var edgeFirst = lastCol;
+        if (lastEv && lastEv.type === "beam") {
+          edgeFirst = lastCol - lastEv.notes.length + 1;
+        }
+        if (lastEv && lastEv.type !== "rest") {
+          staffArmOutgoing(lastEv, edgeFirst, lastCol, ev.tieOutKeys);
+        }
+      }
       return;
     }
     if (col) {
       col.scale = tup ? tup.scale : 1;
+      var at = columns.length;
       columns.push(col);
+      if (ev.type !== "rest") {
+        staffRememberTies(ev, at, at);
+      }
     }
   }
   for (e = 0; e < ast.events.length; e++) {
     pushColumnEvent(ast.events[e], null);
   }
   var noteEvents = [];
+  var noteEventCols = [];
   for (e = 0; e < columns.length; e++) {
     if (columns[e].type !== "barline") {
       noteEvents.push(columns[e]);
+      noteEventCols.push(e);
     }
   }
   var slot = role === "reel" ? 28 : 34;
@@ -1587,10 +1978,39 @@ function renderMusicStaff(source, role) {
     return Math.max(0, overhang + clear - freeLeft);
   }
 
+  function staffTieMeetsAccidental(colIndex) {
+    var col = columns[colIndex];
+    var t;
+    var p;
+    if (!col) {
+      return false;
+    }
+    for (t = 0; t < drawTies.length; t++) {
+      if (drawTies[t].to !== colIndex) {
+        continue;
+      }
+      if (col.type === "note" && col.head !== "slash" && col.pitch && col.pitch.step === drawTies[t].step) {
+        return !!staffWrittenAccidental(col.pitch, ast.keyAlts);
+      }
+      if (col.type === "stack" && col.pitches) {
+        for (p = 0; p < col.pitches.length; p++) {
+          if (col.pitches[p].step === drawTies[t].step && staffWrittenAccidental(col.pitches[p], ast.keyAlts)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   var accInsets = [];
   var accInsetTotal = 0;
   for (e = 0; e < noteEvents.length; e++) {
     accInsets[e] = staffEventAccInset(noteEvents[e], e === 0);
+    /* Room for the curve to stop before a sharp, flat, or natural. */
+    if (staffTieMeetsAccidental(noteEventCols[e])) {
+      accInsets[e] += lineGap * 1.15;
+    }
     accInsetTotal += accInsets[e];
   }
   var notesWidth = Math.max(1, noteEvents.length) * slot + accInsetTotal;
@@ -2163,20 +2583,23 @@ function renderMusicStaff(source, role) {
       drawLedger(x, step);
     }
     var ny = staffPitchY(step, ast.clef, staffTop, lineGap);
+    var accLeft = null;
     if (displayAcc && !slash) {
       var accName = staffAccidentalGlyphName(staffAccKind(displayAcc));
       var accAdv = staffGlyphAdvance(accName || "accidentalSharp", lineGap);
       var accGap = lineGap * 0.35;
       var colPitch = accAdv + lineGap * 0.2;
+      var accCenter = x - noteHeadRx - accGap - accAdv / 2 - (accCol || 0) * colPitch;
       staffDrawAccidental(
         svg,
-        x - noteHeadRx - accGap - accAdv / 2 - (accCol || 0) * colPitch,
+        accCenter,
         step,
         ast.clef,
         staffTop,
         lineGap,
         displayAcc
       );
+      accLeft = accCenter - accAdv / 2;
     }
     var headName = slash ? staffSlashHeadGlyph(dur || "q") : staffDurationGlyph(dur || "q");
     var headAdv = staffGlyphAdvance(headName, lineGap);
@@ -2184,10 +2607,20 @@ function renderMusicStaff(source, role) {
     /* Every slash head shares the quarter slash's bottom-left tip, where the stem sits. */
     var headLeft = slash ? x - staffGlyphAdvance("noteheadSlash", lineGap) / 2 : x - headRx;
     staffPlaceGlyph(svg, headName, headLeft, ny, lineGap);
+    var dotRight = null;
     if (staffDurationDotted(dur)) {
-      drawAugmentationDot(headLeft + headAdv + lineGap * 0.12, ny, step);
+      var dotX = headLeft + headAdv + lineGap * 0.12;
+      drawAugmentationDot(dotX, ny, step);
+      dotRight = dotX + staffGlyphAdvance("augmentationDot", lineGap);
     }
-    return { ny: ny, headRx: headRx };
+    return {
+      ny: ny,
+      headRx: headRx,
+      left: headLeft,
+      right: headLeft + headAdv,
+      accLeft: accLeft,
+      dotRight: dotRight
+    };
   }
 
   function drawBeamSegment(x1, y1, x2, y2) {
@@ -2207,6 +2640,27 @@ function renderMusicStaff(source, role) {
   /* Per-column stem stubs filled while drawing. colX is already set. */
   var colNy = [];
   var colStem = [];
+  /* Notehead edges per column, keyed by staff step, so a tie can find its pitch. */
+  var headInk = [];
+
+  function staffStoreHead(colIndex, step, drawn, dur, slash) {
+    if (!drawn) {
+      return;
+    }
+    if (!headInk[colIndex]) {
+      headInk[colIndex] = {};
+    }
+    headInk[colIndex][step] = {
+      left: drawn.left,
+      right: drawn.right,
+      y: drawn.ny,
+      dotted: staffDurationDotted(dur),
+      slash: !!slash,
+      accLeft: typeof drawn.accLeft === "number" ? drawn.accLeft : null,
+      dotRight: typeof drawn.dotRight === "number" ? drawn.dotRight : null,
+      onLine: (step - bottomStep) % 2 === 0
+    };
+  }
 
   for (e = 0; e < columns.length; e++) {
     ev = columns[e];
@@ -2244,6 +2698,7 @@ function renderMusicStaff(source, role) {
       var isSlash = ev.head === "slash";
       var disp = isSlash ? null : staffWrittenAccidental(ev.pitch, ast.keyAlts);
       var drawn = drawNotehead(cx, ev.pitch.step, ev.duration || "q", disp, 0, ev.head || "");
+      staffStoreHead(e, ev.pitch.step, drawn, ev.duration || "q", isSlash);
       var ny = drawn.ny;
       colNy[e] = ny;
       var g = colGroup[e];
@@ -2298,19 +2753,31 @@ function renderMusicStaff(source, role) {
       );
       var stemYs = [];
       for (p = 0; p < ev.pitches.length; p++) {
-        var nyP = drawNotehead(
+        var drawnP = drawNotehead(
           cx + offsets[p],
           ev.pitches[p].step,
           ev.pitches[p].duration || stackDur,
           null,
           0,
           ""
-        ).ny;
-        stemYs.push(nyP);
+        );
+        staffStoreHead(
+          e,
+          ev.pitches[p].step,
+          drawnP,
+          ev.pitches[p].duration || stackDur,
+          false
+        );
+        stemYs.push(drawnP.ny);
       }
       for (p = 0; p < ev.pitches.length; p++) {
         if (accCenters[p] === null) {
           continue;
+        }
+        var stackAccName = staffAccidentalGlyphName(staffAccKind(accCols[p].acc));
+        var stackAccAdv = staffGlyphAdvance(stackAccName || "accidentalSharp", lineGap);
+        if (headInk[e] && headInk[e][ev.pitches[p].step]) {
+          headInk[e][ev.pitches[p].step].accLeft = accCenters[p] - stackAccAdv / 2;
         }
         staffDrawAccidental(
           svg,
@@ -2505,6 +2972,212 @@ function renderMusicStaff(source, role) {
       numX += staffPlaceGlyph(gTup, lay.names[e], numX, numBase, tupletSpace);
     }
     svg.appendChild(gTup);
+  }
+
+  /*
+   * One voice on this staff. A tie curves opposite that voice's stem.
+   * Stems up: the curve goes down. Stems down: the curve goes up.
+   * Mixed stems curve up, unless both notes sit on the second ledger
+   * above the staff or higher, where the curve goes down.
+   * A chord's top note curves up, its bottom note curves down, and the
+   * notes between alternate. Slash stems go down, so those ties sit above.
+   */
+  function staffStemUpAt(colIndex) {
+    if (typeof predUp[colIndex] === "boolean") {
+      return predUp[colIndex];
+    }
+    var col = columns[colIndex];
+    if (!col || col.head === "slash") {
+      return false;
+    }
+    if (col.type === "stack") {
+      return staffEventStemUpGuess(col);
+    }
+    if (typeof colNy[colIndex] === "number") {
+      return colNy[colIndex] >= staffMidY;
+    }
+    return false;
+  }
+  var tieGroups = {};
+  for (tieN = 0; tieN < drawTies.length; tieN++) {
+    var groupKey = drawTies[tieN].from + ":" + drawTies[tieN].to;
+    if (!tieGroups[groupKey]) {
+      tieGroups[groupKey] = [];
+    }
+    tieGroups[groupKey].push(drawTies[tieN]);
+  }
+  function staffTieRank(group, step) {
+    var order = [];
+    var ri;
+    var placed;
+    for (ri = 0; ri < group.length; ri++) {
+      placed = false;
+      var rj;
+      for (rj = 0; rj < order.length; rj++) {
+        if (group[ri].step > order[rj]) {
+          order.splice(rj, 0, group[ri].step);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        order.push(group[ri].step);
+      }
+    }
+    return { n: order.length, fromTop: order.indexOf(step) };
+  }
+  function staffTieAbove(fromCol, toCol, step) {
+    var group = tieGroups[fromCol + ":" + toCol];
+    if (group && group.length > 1) {
+      var rank = staffTieRank(group, step);
+      if (rank.fromTop === 0) {
+        return true;
+      }
+      if (rank.fromTop === rank.n - 1) {
+        return false;
+      }
+      /* Under the top tie, then up, then down. */
+      return rank.fromTop % 2 === 0;
+    }
+    var upA = staffStemUpAt(fromCol);
+    var upB = staffStemUpAt(toCol);
+    if (upA !== upB) {
+      var fromBox = headInk[fromCol] && headInk[fromCol][step];
+      var toBox = headInk[toCol] && headInk[toCol][step];
+      var secondLedger = staffTop - 2 * lineGap;
+      if (fromBox && toBox && fromBox.y <= secondLedger && toBox.y <= secondLedger) {
+        return false;
+      }
+      return true;
+    }
+    return !upA;
+  }
+  function staffTieNeighborSteps(group, step, above) {
+    var best = 99;
+    if (!group) {
+      return best;
+    }
+    var ni;
+    for (ni = 0; ni < group.length; ni++) {
+      var delta = above ? group[ni].step - step : step - group[ni].step;
+      if (delta > 0 && delta < best) {
+        best = delta;
+      }
+    }
+    return best;
+  }
+  var tieN;
+  for (tieN = 0; tieN < drawTies.length; tieN++) {
+    var tie = drawTies[tieN];
+    var fromHeads = headInk[tie.from];
+    var toHeads = headInk[tie.to];
+    if (!fromHeads || !toHeads || !fromHeads[tie.step] || !toHeads[tie.step]) {
+      continue;
+    }
+    var fromBox = fromHeads[tie.step];
+    var toBox = toHeads[tie.step];
+    var above = staffTieAbove(tie.from, tie.to, tie.step);
+    var slashTie = fromBox.slash || toBox.slash;
+    var x1;
+    var x2;
+    if (slashTie) {
+      /* Slash glyphs are wide diagonals. A tie from the outer tips is a nub. Span the heads. */
+      x1 = fromBox.left + (fromBox.right - fromBox.left) * 0.62;
+      x2 = toBox.left + (toBox.right - toBox.left) * 0.28;
+    } else {
+      x1 = fromBox.right + lineGap * 0.16;
+      x2 = toBox.left - lineGap * 0.12;
+    }
+    /*
+     * A dot in a space sits beside the note. On a line it sits above, so a
+     * downward tie can pass under it. Never start inside the notehead.
+     */
+    if (typeof fromBox.dotRight === "number" && (above || !fromBox.onLine)) {
+      x1 = Math.max(x1, fromBox.dotRight + lineGap * 0.22);
+    }
+    var x1Floor = x1;
+    /* Stop before a sharp, flat, or natural on the second note. */
+    if (!slashTie && typeof toBox.accLeft === "number") {
+      x2 = Math.min(x2, toBox.accLeft - lineGap * 0.32);
+    }
+    if (x2 < x1Floor + lineGap * 0.45) {
+      var accStop = !slashTie && typeof toBox.accLeft === "number" ? toBox.accLeft - lineGap * 0.32 : null;
+      if (accStop !== null && accStop < x1Floor + lineGap * 0.45) {
+        x2 = accStop;
+        if (x2 < x1Floor) {
+          x1 = Math.max(fromBox.right + lineGap * 0.08, x2 - lineGap * 0.45);
+          x1Floor = x1;
+        }
+      } else {
+        x2 = x1Floor + lineGap * 0.45;
+      }
+    }
+    var lineNudge = lineGap * 0.28;
+    var y1 = slashTie
+      ? above
+        ? fromBox.y - lineGap * 1.35
+        : fromBox.y + lineGap * 1.35
+      : fromBox.onLine
+        ? above
+          ? fromBox.y - lineNudge
+          : fromBox.y + lineNudge
+        : fromBox.y;
+    var y2 = slashTie
+      ? above
+        ? toBox.y - lineGap * 1.35
+        : toBox.y + lineGap * 1.35
+      : toBox.onLine
+        ? above
+          ? toBox.y - lineNudge
+          : toBox.y + lineNudge
+        : toBox.y;
+    var spanTie = x2 - x1;
+    var toward = staffTieNeighborSteps(
+      tieGroups[tie.from + ":" + tie.to],
+      tie.step,
+      above
+    );
+    /*
+     * Outer ties can bow. Notes a second or a third apart share a small gap,
+     * so those curves stay shallow and do not meet.
+     */
+    var arch =
+      toward <= 1
+        ? lineGap * 0.1
+        : toward <= 2
+          ? lineGap * 0.14
+          : Math.max(lineGap * 0.42, Math.min(lineGap * 0.7, spanTie * 0.28));
+    var midY = above ? (y1 + y2) / 2 - arch : (y1 + y2) / 2 + arch;
+    var tieTop = Math.min(y1, y2, midY);
+    var tieBot = Math.max(y1, y2, midY);
+    if (tieTop < inkTop) {
+      inkTop = tieTop;
+    }
+    if (tieBot > inkBot) {
+      inkBot = tieBot;
+    }
+    svg.appendChild(
+      staffSvgEl("path", {
+        class: "staff-tie",
+        d:
+          "M" +
+          x1.toFixed(2) +
+          " " +
+          y1.toFixed(2) +
+          " Q" +
+          ((x1 + x2) / 2).toFixed(2) +
+          " " +
+          midY.toFixed(2) +
+          " " +
+          x2.toFixed(2) +
+          " " +
+          y2.toFixed(2),
+        fill: "none",
+        stroke: "currentColor",
+        "stroke-width": "1.35",
+        "stroke-linecap": "round"
+      })
+    );
   }
 
   /*

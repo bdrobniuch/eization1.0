@@ -26,6 +26,7 @@ var EDITOR_SYMBOLS = [
   { char: "\u2191", key: "sym.up" },
   { char: "\u2192", key: "sym.arrow" },
   { char: "|", key: "sym.bar" },
+  { char: "~", key: "sym.tie" },
   { char: "\uD834\uDD0E", key: "sym.simile" },
   { char: "\u00B7", key: "sym.caption" },
   { char: "\u2612", key: "sym.played" },
