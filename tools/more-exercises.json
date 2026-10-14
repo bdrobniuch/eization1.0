@@ -5661,5 +5661,42 @@
                       "F4q rh. · ☐☐☐☒☐",
                       "G4q rh. · ☐☐☐☐☒"
                   ]
+    },
+    {
+        "id":  "more0119",
+        "slug":  "the-lick",
+        "group":  "language",
+        "staff":  true,
+        "bars":  1,
+        "nameEn":  "The Lick",
+        "nameEs":  "The Lick",
+        "descEn":  "The lick in all twelve minor keys, from Cm7 to Bm7 by half steps. Each bar is 1, 2, b3, 4, 2, b7, 1, with that minor 7 chord above the staff. In D minor that is D E F G E C D over Dm7. No key signature: accidentals sit on the notes.",
+        "descEs":  "El lick en las doce tonalidades menores, de Cm7 a Bm7 por semitonos. Cada compás es 1, 2, b3, 4, 2, b7, 1, con ese acorde m7 sobre el pentagrama. En D menor es D E F G E C D sobre Dm7. Sin armadura: las alteraciones van en las notas.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#coker-elements",
+                          "en":  "Elements of the Jazz Language",
+                          "es":  "Elements of the Jazz Language"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "en":  "Patterns for Jazz",
+                          "es":  "Patterns for Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "^Cm7 {C4e D4e Eb4e F4e} D4q {Bb3e C4e} · Cm7",
+                      "^C#m7 {C#4e D#4e E4e F#4e} D#4q {B3e C#4e} · C#m7",
+                      "^Dm7 {D4e E4e F4e G4e} E4q {C4e D4e} · Dm7",
+                      "^Ebm7 {Eb4e F4e Gb4e Ab4e} F4q {Db4e Eb4e} · Ebm7",
+                      "^Em7 {E4e F#4e G4e A4e} F#4q {D4e E4e} · Em7",
+                      "^Fm7 {F4e G4e Ab4e Bb4e} G4q {Eb4e F4e} · Fm7",
+                      "^F#m7 {F#4e G#4e A4e B4e} G#4q {E4e F#4e} · F#m7",
+                      "^Gm7 {G4e A4e Bb4e C5e} A4q {F4e G4e} · Gm7",
+                      "^Abm7 {Ab4e Bb4e Cb5e Db5e} Bb4q {Gb4e Ab4e} · Abm7",
+                      "^Am7 {A4e B4e C5e D5e} B4q {G4e A4e} · Am7",
+                      "^Bbm7 {Bb4e C5e Db5e Eb5e} C5q {Ab4e Bb4e} · Bbm7",
+                      "^Bm7 {B4e C#5e D5e E5e} C#5q {A4e B4e} · Bm7"
+                  ]
     }
 ]
