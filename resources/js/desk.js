@@ -1,4 +1,7 @@
 var DESK_KEY = "eization-desk";
+/* schema 1 (2026-10-15): stock rows record seedRev and touched.
+   schema 2 (2026-10-15): one launch drops saved exercises, re-seeds the stock list, and clears the intro. */
+var DESK_SCHEMA = 2;
 var DESK_EXERCISE_CAP = 40;
 var deskReady = false;
 var deskTimer = null;
@@ -36,7 +39,7 @@ function deskExerciseStamp(data) {
       continue;
     }
     lines = row.lines && row.lines.length ? row.lines.join("\n") : "";
-    parts.push(row.id + "\n" + (row.name || "") + "\n" + (row.bars || "") + "\n" + (row.seedId || "") + "\n" + (row.shareId || "") + "\n" + lines);
+    parts.push(row.id + "\n" + (row.name || "") + "\n" + (row.bars || "") + "\n" + (row.seedId || "") + "\n" + (row.seedRev || "") + "\n" + (row.touched ? "1" : "0") + "\n" + (row.shareId || "") + "\n" + lines);
   }
   deleted = data && data.deletedSeeds && data.deletedSeeds.length ? data.deletedSeeds.join("\n") : "";
   return parts.join("\n\n") + "\n---\n" + deleted;
@@ -220,6 +223,15 @@ function normalizeDeskExercise(raw) {
   };
   if (typeof raw.seedId === "string" && raw.seedId) {
     record.seedId = raw.seedId;
+    if (raw.touched === true) {
+      record.touched = true;
+    } else if (raw.touched === false) {
+      record.touched = false;
+    }
+    var seedRev = parseInt(raw.seedRev, 10);
+    if (seedRev > 0) {
+      record.seedRev = seedRev;
+    }
   }
   var shareId = cleanShareId(raw.shareId);
   if (shareId) {
@@ -336,10 +348,21 @@ function catalogExerciseRecord(seedId) {
   return {
     id: deskIdForSeed(seedId),
     seedId: seedId,
+    seedRev: exerciseRev(seedId),
+    touched: false,
     name: cleanDeskName(ex.label, seedId),
     bars: clampDeskInt(ex.bars, 1, 16, 1),
     lines: lines
   };
+}
+
+function exerciseRev(seedId) {
+  var ex = typeof exercises !== "undefined" && exercises[seedId];
+  var rev = ex && parseInt(ex.rev, 10);
+  if (!rev || rev < 1) {
+    return 1;
+  }
+  return rev;
 }
 
 function seedFromCatalog(seedId) {
@@ -451,6 +474,21 @@ function mergeMissingSeeds(list, deleted) {
 
 function ensureDeskExercises() {
   var data = deskState();
+  var schema = parseInt(data.schema, 10);
+  if (isNaN(schema) || schema < 0) {
+    schema = 0;
+  }
+  var ahead = schema > DESK_SCHEMA;
+  if (!ahead && schema < 2 && readDesk()) {
+    delete data.exercises;
+    delete data.deletedSeeds;
+    delete data.custom;
+    delete data.exercise;
+    schema = 2;
+    if (typeof forgetHello === "function") {
+      forgetHello();
+    }
+  }
   var deleted = listDeletedSeeds(data);
   var list = [];
   var i;
@@ -484,8 +522,9 @@ function ensureDeskExercises() {
     list = buildSeededList([]);
     deleted = [];
   }
-  refreshFactoryPlayAnything(list);
-  refreshFactoryScaleRoots(list);
+  if (!ahead && schema < 1) {
+    classifySchema0(list);
+  }
   data.exercises = list;
   data.deletedSeeds = deleted;
   delete data.custom;
@@ -494,66 +533,138 @@ function ensureDeskExercises() {
   } else if (data.exercise && typeof exercises !== "undefined" && exercises[data.exercise]) {
     data.exercise = deskIdForSeed(data.exercise);
   }
+  var mirroredId = "";
+  if (!ahead) {
+    mirroredId = mirrorUntouchedSeeds(list, data.exercise || "");
+    data.schema = DESK_SCHEMA;
+  }
   writeDesk(data);
+  if (mirroredId) {
+    noteMirroredExercise(list, mirroredId);
+  }
   return list;
 }
 
-/* An unedited Scales copy named only the type. The catalog now puts the root first. */
-function refreshFactoryScaleRoots(list) {
-  var fresh = catalogExerciseRecord("scales");
-  var i;
-  var j;
-  var row;
-  var match;
-  if (!fresh) {
-    return;
+function linesMatchOlderScales(stored, fresh) {
+  if (!stored || !fresh || stored.length !== fresh.length) {
+    return false;
   }
+  var j;
+  for (j = 0; j < stored.length; j++) {
+    if (String(stored[j]) !== String(fresh[j]).replace(/\^([A-G](?:\u266F|\u266D|#|b)?)_/, "^")) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function linesMatchOlderProgressions(stored, fresh) {
+  if (!stored || !fresh || stored.length !== fresh.length) {
+    return false;
+  }
+  var j;
+  for (j = 0; j < stored.length; j++) {
+    if (String(stored[j]).replace(/\/q/g, "/") !== String(fresh[j])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function stockNameIsCatalog(seedId, name) {
+  if (!seedId || typeof exercises === "undefined" || !exercises[seedId]) {
+    return false;
+  }
+  if (typeof canonicalExerciseName === "function") {
+    return canonicalExerciseName(seedId, name) === exercises[seedId].label;
+  }
+  return name === exercises[seedId].label;
+}
+
+/* Schema 0 had no touched flag. A stock row still matches the catalog, an older Scales
+   spelling, or the older Essential Progressions slashes, and it still uses the catalog name. */
+function stockRowIsPristine(row) {
+  var fresh;
+  if (!row || !row.seedId) {
+    return false;
+  }
+  fresh = catalogExerciseRecord(row.seedId);
+  if (!fresh || !stockNameIsCatalog(row.seedId, row.name) || row.bars !== fresh.bars) {
+    return false;
+  }
+  if (shareLinesMatch(row.lines, fresh.lines)) {
+    return true;
+  }
+  if (row.seedId === "scales" && linesMatchOlderScales(row.lines, fresh.lines)) {
+    return true;
+  }
+  if (row.seedId === "essentialProgressions" && linesMatchOlderProgressions(row.lines, fresh.lines)) {
+    return true;
+  }
+  return false;
+}
+
+function classifySchema0(list) {
+  var i;
+  var row;
   for (i = 0; i < list.length; i++) {
     row = list[i];
-    if (!row || row.seedId !== "scales" || row.lines.length !== fresh.lines.length) {
+    if (!row || !row.seedId) {
       continue;
     }
-    match = true;
-    for (j = 0; j < row.lines.length; j++) {
-      if (String(row.lines[j]) !== String(fresh.lines[j]).replace(/\^([A-G](?:\u266F|\u266D|#|b)?)_/, "^")) {
-        match = false;
-        break;
-      }
+    if (row.touched === true || row.touched === false) {
+      continue;
     }
-    if (match) {
-      row.lines = fresh.lines.slice();
-      row.bars = fresh.bars;
-    }
+    row.touched = !stockRowIsPristine(row);
   }
 }
 
-/* An unedited Essential Progressions copy was stored with rhythm slashes. /q there is play anything. */
-function refreshFactoryPlayAnything(list) {
-  var fresh = catalogExerciseRecord("essentialProgressions");
+function mirrorUntouchedSeeds(list, openId) {
+  var noted = "";
   var i;
-  var j;
   var row;
-  var match;
-  if (!fresh) {
+  var fresh;
+  var changed;
+  for (i = 0; i < list.length; i++) {
+    row = list[i];
+    if (!row || !row.seedId || row.touched !== false) {
+      continue;
+    }
+    fresh = catalogExerciseRecord(row.seedId);
+    if (!fresh) {
+      continue;
+    }
+    changed = !shareLinesMatch(row.lines, fresh.lines) || row.bars !== fresh.bars || row.name !== fresh.name;
+    row.lines = fresh.lines.slice();
+    row.bars = fresh.bars;
+    row.name = fresh.name;
+    row.seedRev = fresh.seedRev;
+    row.touched = false;
+    if (changed && row.id === openId) {
+      noted = row.id;
+    }
+  }
+  return noted;
+}
+
+function noteMirroredExercise(list, id) {
+  var i;
+  var row = null;
+  if (!id || typeof showDeskNote !== "function" || typeof tr !== "function") {
     return;
   }
   for (i = 0; i < list.length; i++) {
-    row = list[i];
-    if (!row || row.seedId !== "essentialProgressions" || row.lines.length !== fresh.lines.length) {
-      continue;
-    }
-    match = true;
-    for (j = 0; j < row.lines.length; j++) {
-      if (String(row.lines[j]).replace(/\/q/g, "/") !== fresh.lines[j]) {
-        match = false;
-        break;
-      }
-    }
-    if (match) {
-      row.lines = fresh.lines.slice();
-      row.bars = fresh.bars;
+    if (list[i].id === id) {
+      row = list[i];
+      break;
     }
   }
+  if (!row) {
+    return;
+  }
+  showDeskNote(tr("desk.updated", {
+    name: typeof exerciseDisplayName === "function" ? exerciseDisplayName(row) : row.name
+  }));
 }
 
 function listDeskExercises() {
@@ -629,6 +740,19 @@ function updateDeskExercise(id, part) {
     if (shareId) {
       next.shareId = shareId;
     }
+    if (next.seedId) {
+      var freshSeed = catalogExerciseRecord(next.seedId);
+      if (freshSeed && next.bars === freshSeed.bars && shareLinesMatch(next.lines, freshSeed.lines) && stockNameIsCatalog(next.seedId, next.name)) {
+        next.touched = false;
+        next.seedRev = freshSeed.seedRev;
+        next.name = freshSeed.name;
+      } else {
+        next.touched = true;
+        if (list[i].seedRev) {
+          next.seedRev = list[i].seedRev;
+        }
+      }
+    }
     list[i] = next;
     found = next;
     break;
@@ -687,6 +811,14 @@ function packDeskExercises() {
     };
     if (list[i].seedId) {
       row.seedId = list[i].seedId;
+      if (list[i].touched === true) {
+        row.touched = true;
+      } else if (list[i].touched === false) {
+        row.touched = false;
+      }
+      if (list[i].seedRev) {
+        row.seedRev = list[i].seedRev;
+      }
     }
     if (list[i].shareId) {
       row.shareId = list[i].shareId;
@@ -753,6 +885,17 @@ function parseDeskExercisesBackup(text) {
       row.seedId = raw.seedId;
       row.id = deskIdForSeed(raw.seedId);
       seenSeed[raw.seedId] = true;
+      var backupRev = parseInt(raw.seedRev, 10);
+      if (backupRev > 0) {
+        row.seedRev = backupRev;
+      }
+      if (raw.touched === true) {
+        row.touched = true;
+      } else if (raw.touched === false) {
+        row.touched = false;
+      } else {
+        row.touched = !stockRowIsPristine(row);
+      }
     }
     var shareId = cleanShareId(raw.shareId);
     if (shareId) {
@@ -902,6 +1045,18 @@ function disarmRestoreDefaults() {
   button.classList.remove("is-armed");
   button.textContent = t("device.restore");
   button.setAttribute("aria-label", t("device.restore"));
+}
+
+function replayIntro() {
+  if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
+    return;
+  }
+  if (typeof forgetHello === "function") {
+    forgetHello();
+  }
+  if (typeof showDeskNote === "function" && typeof t === "function") {
+    showDeskNote(t("device.introQueued"));
+  }
 }
 
 function restoreDefaults() {

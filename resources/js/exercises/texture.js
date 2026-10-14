@@ -7,6 +7,7 @@ registerExercise({
   label: "Rhythmic Devices",
   bars: 8,
   inMenu: true,
+  rev: 1,
   items: [
     textureItem("Short", "about one bar"),
     textureItem("Medium", "two to four bars"),

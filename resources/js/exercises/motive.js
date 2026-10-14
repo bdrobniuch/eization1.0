@@ -7,6 +7,7 @@ registerExercise({
   label: "Motivic Development",
   bars: 8,
   inMenu: true,
+  rev: 1,
   items: [
     motiveItem("Repeat", "say it again"),
     motiveItem("Sequence", "same shape, new pitch"),

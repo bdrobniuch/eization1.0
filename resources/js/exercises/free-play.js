@@ -7,6 +7,7 @@ registerExercise({
   label: "Free Play",
   bars: 8,
   inMenu: true,
+  rev: 1,
   items: [
     freePlayItem("🫧", "one note, then space"),
     freePlayItem("🌬️", "breathe, then play"),

@@ -70,6 +70,7 @@ function run() {
     notationGuide(w);
     chatCase(w);
     foreignDesk(w);
+    storageMigration(w);
     check("practice screen can stay awake", typeof w.keepPracticeAwake === "function" && typeof w.practiceScreenAwake === "function");
     w.keepPracticeAwake();
     check("staying awake leaves play stopped", w.paused === true);
@@ -1334,10 +1335,141 @@ function deskRoundTrip(w) {
   check("restore re-seeds the desk", !!(after && after.exercises && after.exercises.length === w.menuOrder.length));
   check("restore clears deleted seeds", !!(after && (!after.deletedSeeds || !after.deletedSeeds.length)));
   check("restore clears the intro flag", helloGone);
+  check("restore stamps the schema", !!(after && after.schema === 2 && after.exercises[0].seedId === "allNotes" && after.exercises[0].seedRev === 1 && after.exercises[0].touched === false));
   check("restore leaves the metronome paused", w.paused === true);
   if (beforeHello) {
     try {
       localStorage.setItem("eization-hello", beforeHello);
     } catch (err) {}
   }
+}
+
+function storageMigration(w) {
+  var freshScales = w.catalogExerciseRecord("scales");
+  var freshProg = w.catalogExerciseRecord("essentialProgressions");
+  var freshNotes = w.catalogExerciseRecord("allNotes");
+  var freshTones = w.catalogExerciseRecord("chordTones");
+  var oldScaleLines = [];
+  var oldProgLines = [];
+  var editedNotes;
+  var editedScale;
+  var i;
+  var stored;
+  var scales;
+  var notes;
+  var prog;
+  var tones;
+  var custom;
+  var ask;
+  var groove;
+  var beforeDesk;
+  var afterDesk;
+  var restored;
+  for (i = 0; i < freshScales.lines.length; i++) {
+    oldScaleLines.push(String(freshScales.lines[i]).replace(/\^([A-G](?:\u266F|\u266D|#|b)?)_/, "^"));
+  }
+  for (i = 0; i < freshProg.lines.length; i++) {
+    oldProgLines.push(String(freshProg.lines[i]).replace(/\//g, "/q"));
+  }
+  editedNotes = freshNotes.lines.slice();
+  editedNotes[0] = editedNotes[0] + " edited";
+  check("older scales spelling differs", oldScaleLines[0] !== freshScales.lines[0]);
+  check("older progressions spelling differs", oldProgLines[0] !== freshProg.lines[0]);
+  check("catalog birthdays", w.exercises.scales.rev === 2 && w.exercises.essentialProgressions.rev === 2 && w.exercises.allNotes.rev === 1);
+  localStorage.setItem("eization-hello", "1");
+  localStorage.setItem("eization-desk", JSON.stringify({
+    bpm: 132,
+    beats: 3,
+    exercise: "ex:keepme",
+    deletedSeeds: ["freePlay"],
+    exercises: [
+      { id: "ex:scales", seedId: "scales", name: "Scales", bars: freshScales.bars, lines: oldScaleLines },
+      { id: "ex:essentialProgressions", seedId: "essentialProgressions", name: "Essential Progressions", bars: freshProg.bars, lines: oldProgLines },
+      { id: "ex:allNotes", seedId: "allNotes", name: "All Notes", bars: freshNotes.bars, lines: editedNotes },
+      { id: "ex:chordTones", seedId: "chordTones", name: w.I18N.es["seed.chordTones"], bars: freshTones.bars, lines: freshTones.lines.slice() },
+      { id: "ex:keepme", name: "My line", bars: 2, lines: ["C4", "D4"] }
+    ]
+  }));
+  w.ensureDeskExercises();
+  scales = w.getDeskExercise("ex:scales");
+  notes = w.getDeskExercise("ex:allNotes");
+  stored = JSON.parse(localStorage.getItem("eization-desk"));
+  check("one launch re-seeds the stock list", !!(scales && scales.lines[0] === freshScales.lines[0] && scales.touched === false && stored.exercises.length === w.menuOrder.length));
+  check("one launch drops saved exercises", !w.getDeskExercise("ex:keepme") && notes && notes.lines[0] === freshNotes.lines[0]);
+  check("one launch brings back a deleted stock exercise", !!w.getDeskExercise("ex:freePlay") && (!stored.deletedSeeds || stored.deletedSeeds.indexOf("freePlay") < 0));
+  check("one launch keeps tempo", stored.schema === 2 && stored.bpm === 132 && stored.beats === 3);
+  check("one launch clears the intro", localStorage.getItem("eization-hello") === null);
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+  ask = w.document.getElementById("shareAsk");
+  if (ask) {
+    ask.hidden = true;
+  }
+  w.document.body.classList.remove("is-editing", "is-about", "is-picking", "is-setup", "is-hello");
+  groove = w.document.getElementById("groovePanel");
+  if (groove) {
+    groove.hidden = true;
+  }
+  w.helloTouched = false;
+  w.maybeHello();
+  check("one launch plays the whole intro", w.document.body.classList.contains("is-hello") && w.helloStepIndex === 0 && w.helloSliceEnd === w.HELLO_LAUNCH_END);
+  w.endHello();
+  editedScale = freshScales.lines.slice();
+  editedScale[0] = w.cleanDeskLines(["x " + freshScales.lines[0]])[0];
+  custom = w.createDeskExercise({ name: "After", bars: 1, lines: ["C4"] });
+  w.updateDeskExercise("ex:scales", { lines: editedScale });
+  w.ensureDeskExercises();
+  scales = w.getDeskExercise("ex:scales");
+  check("later exercises stay", !!(custom && w.getDeskExercise(custom.id) && w.getDeskExercise(custom.id).lines[0] === "C4" && scales && scales.lines[0] === editedScale[0] && scales.touched === true && localStorage.getItem("eization-hello") === "1"));
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+  if (w.document.body.classList.contains("is-hello")) {
+    w.endHello();
+  }
+  ask = w.document.getElementById("shareAsk");
+  if (ask) {
+    ask.hidden = true;
+  }
+  w.document.body.classList.remove("is-editing", "is-about", "is-picking", "is-setup");
+  groove = w.document.getElementById("groovePanel");
+  if (groove) {
+    groove.hidden = true;
+  }
+  localStorage.setItem("eization-hello", "1");
+  w.helloTouched = false;
+  w.maybeHello();
+  check("seen intro stays quiet", !w.document.body.classList.contains("is-hello") && w.helloGen() === 1 && w.helloSeen());
+  w.HELLO_GEN = 2;
+  w.HELLO_RETURN = { from: 8, to: 9 };
+  localStorage.setItem("eization-hello", "1");
+  w.helloTouched = false;
+  w.maybeHello();
+  check("older intro plays the new slice", w.document.body.classList.contains("is-hello") && w.helloStepIndex === 8 && w.helloSliceEnd === 9);
+  w.endHello();
+  w.HELLO_GEN = 1;
+  w.HELLO_RETURN = null;
+  localStorage.setItem("eization-hello", "1");
+  beforeDesk = JSON.parse(localStorage.getItem("eization-desk"));
+  w.document.getElementById("replayIntro").click();
+  afterDesk = JSON.parse(localStorage.getItem("eization-desk"));
+  check("intro again lives in Menu", !!w.document.querySelector("#about #replayIntro"));
+  check(
+    "intro again clears only the intro",
+    localStorage.getItem("eization-hello") === null &&
+      JSON.stringify(afterDesk.exercises) === JSON.stringify(beforeDesk.exercises) &&
+      afterDesk.bpm === beforeDesk.bpm &&
+      afterDesk.schema === beforeDesk.schema
+  );
+  check("intro again is announced", w.document.getElementById("deskNote").textContent === w.t("device.introQueued"));
+  w.restoreDefaults();
+  restored = JSON.parse(localStorage.getItem("eization-desk"));
+  check(
+    "restore still clears both keys",
+    localStorage.getItem("eization-hello") === null &&
+      restored.exercises.length === w.menuOrder.length &&
+      !w.getDeskExercise("ex:keepme")
+  );
+  localStorage.setItem("eization-hello", "1");
 }

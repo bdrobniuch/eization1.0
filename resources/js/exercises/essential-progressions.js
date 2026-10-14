@@ -64,6 +64,8 @@ registerExercise({
   label: "Essential Progressions",
   bars: 4,
   inMenu: true,
+  /* 2026-10-15: / is play anything. Older copies wrote /q. */
+  rev: 2,
   items: [
     progressionItem(progressionBars("IV&#916;", "IV&#916;", "I&#916;", "I&#916;"), "Amen"),
     progressionItem(progressionBars("II- (V7)", "VII&#248; III7", "VIm&#916;", "%"), "Autumnal"),

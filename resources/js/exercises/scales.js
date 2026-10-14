@@ -373,6 +373,8 @@
     id: "scales",
     label: "Scales",
     inMenu: true,
+    /* 2026-10-15: the root leads each example. Older copies named only the type. */
+    rev: 2,
     items: items
   });
 })();

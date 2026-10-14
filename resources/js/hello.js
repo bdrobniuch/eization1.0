@@ -1,4 +1,9 @@
 var HELLO_KEY = "eization-hello";
+/* Generation 1 is the launch tour. Bump HELLO_GEN when the tour grows.
+   Set HELLO_RETURN to the new step range so people already on the previous
+   generation see only that slice. 2026-10-15: generation 1, no return slice. */
+var HELLO_GEN = 1;
+var HELLO_RETURN = null;
 var helloTimers = [];
 var helloAim = null;
 var helloTouched = false;
@@ -127,17 +132,26 @@ document.addEventListener("pointerdown", function () {
   helloTouched = true;
 }, true);
 
-function helloSeen() {
+function helloGen() {
   try {
-    return localStorage.getItem(HELLO_KEY) === "1";
+    var raw = localStorage.getItem(HELLO_KEY);
+    var n = parseInt(raw, 10);
+    if (!raw || isNaN(n) || n < 0) {
+      return 0;
+    }
+    return n;
   } catch (err) {
-    return true;
+    return HELLO_GEN;
   }
+}
+
+function helloSeen() {
+  return helloGen() >= HELLO_GEN;
 }
 
 function markHello() {
   try {
-    localStorage.setItem(HELLO_KEY, "1");
+    localStorage.setItem(HELLO_KEY, String(HELLO_GEN));
   } catch (err) {}
 }
 
@@ -527,6 +541,11 @@ function maybeHello() {
   }
   var panel = document.getElementById("groovePanel");
   if (panel && !panel.hidden) {
+    return;
+  }
+  var seen = helloGen();
+  if (seen > 0 && HELLO_RETURN && typeof HELLO_RETURN.from === "number" && typeof HELLO_RETURN.to === "number") {
+    beginHello(HELLO_RETURN.from, HELLO_RETURN.to);
     return;
   }
   beginHello(0, HELLO_LAUNCH_END);

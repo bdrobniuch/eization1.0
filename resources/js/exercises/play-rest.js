@@ -3,6 +3,7 @@ registerExercise({
   label: "Play/Rest",
   bars: 2,
   inMenu: true,
+  rev: 1,
   items: [
     "/ / / / | / / / /",
     "/ / / / | / / / rq",

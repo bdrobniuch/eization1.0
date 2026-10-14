@@ -2,6 +2,7 @@ registerExercise({
   id: "chordTones",
   label: "Chord Tones",
   inMenu: true,
+  rev: 1,
   items: [
     "1",
     "&#9837;3",

@@ -880,6 +880,9 @@ function init() {
   document.getElementById("sheetToggle").addEventListener("click", function () {
     setScoreSheet(this.getAttribute("aria-pressed") !== "true");
   });
+  document.getElementById("replayIntro").addEventListener("click", function () {
+    replayIntro();
+  });
   document.getElementById("restoreDefaults").addEventListener("click", function () {
     if (!this.classList.contains("is-armed")) {
       if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {

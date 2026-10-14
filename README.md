@@ -86,7 +86,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 
 ## Adding an exercise
 
-Add a script tag after `registry.js` and before `picker.js`. Call `registerExercise` with a new `id`. Put that id in `menuOrder` only when it should seed into the exercise menu. An exercise with `inMenu: false` stays in the code and stays out of the seed list. Do not delete those files to tidy the list.
+Add a script tag after `registry.js` and before `picker.js`. Call `registerExercise` with a new `id`. Put that id in `menuOrder` only when it should seed into the exercise menu. An exercise with `inMenu: false` stays in the code and stays out of the seed list. Do not delete those files to tidy the list. A menu exercise carries `rev`, starting at 1. Bump `rev` when its examples, bars, or label change, and note the date beside that bump. Untouched copies on a device pick up the new text. An edited copy stays.
 
 The rhythms exercise id is `limbs`. Its menu label is Rhythms. Its page is `rhythms.html`. After Restore defaults the menu is All Notes, Scales, All Chords, Chord Tones, Left Hand Rootless Voicings, Essential Progressions, Play/Rest, Rhythmic Devices, Motivic Development, Rhythms, and Free Play. Play/Rest (`playRest`, `play-rest.html`) is two bars of 4/4: a stemless `/` is play anything, and `rq` is a quarter rest. Tuplets, the two-bar Held rhythm seed (`ties`), Dynamics, Sonic Nuances, All Intervals, Approach Notes, and Finger Patterns stay registered and live in More exercises. More already lists the one-bar Held rhythm catalog at `more.html#held-rhythm`.
 
@@ -102,11 +102,19 @@ On first visit the catalog is copied into `eization-desk.exercises`. The menu re
 
 ## Saved on this device
 
-`eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, and `deletedSeeds`. A shared exercise also stores `shareId` on its row. Two rows may share one `shareId`. It does not store whether the metronome is running.
+`eization-desk` keeps tempo, meter, clicks, bars, repeat, swing, count-in, nearby notes, mute, the last exercise, the exercise list, `deletedSeeds`, and `schema`. A shared exercise also stores `shareId` on its row. Two rows may share one `shareId`. It does not store whether the metronome is running.
+
+`schema` is the shape of that object. A missing schema is 0. Schema 1 records `seedRev` and `touched` on each stock row (`seedId` set). `seedRev` is the catalog `rev` last copied onto that row. `touched` means the person edited it. A row with no `seedId` was written here or saved as new.
+
+Schema 2 is a one-time reset of the exercise list. The next launch on a device that has not stored schema 2 drops every saved exercise, brings back the stock list, and clears `eization-hello` so the full intro plays. Tempo and meter stay. Schema 2 is stored on that launch, so a later visit does not drop exercises again.
+
+After that, stock rows with `touched` false are copied from the current catalog. List order, `shareId`, and `deletedSeeds` stay. A new id in `menuOrder` is appended unless that id was deleted. A grammar change is the next schema step, and it rewrites example lines on every row, including custom ones. That step still does not drop a row that has lines.
 
 The practice screen keeps the display on while that page is in front, so a phone or tablet can sit on the stand while you play. It asks for a screen wake lock as soon as the page is open, again after the first tap, Play, or Next, and again when you come back to it. If the device refuses the lock (older iOS, some Home Screen installs, Low Power Mode), a muted looping video with a silent audio track plays instead. That clip is not the metronome, and the hello tour still must not start the metronome. Switching apps lets the device sleep. Low Power Mode can still turn the screen off.
 
-`eization-hello` is `"1"` after the intro has played or been skipped. Restore defaults (in Menu) clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
+`eization-hello` is the intro generation, a string. `"1"` means generation 1 has played or been skipped. A missing key plays the full intro. The schema 2 launch clears this key, so the full intro plays on that open. When the tour grows later, bump `HELLO_GEN` in `hello.js` and set `HELLO_RETURN` to the new step range. People already on the previous generation see only that slice, once, on the next launch. Skip stores the new generation. Play the intro again (in Menu → This device) clears only `eization-hello`. Tempo, meter, and exercises stay. The intro plays on the next launch, not on that click.
+
+Restore defaults (in Menu) still clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
 
 ## Analytics
 

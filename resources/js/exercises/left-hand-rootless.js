@@ -302,6 +302,7 @@
     id: "leftHandRootless",
     label: "Left Hand Rootless Voicings",
     inMenu: true,
+    rev: 1,
     items: items
   });
 })();

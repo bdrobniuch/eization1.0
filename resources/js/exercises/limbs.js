@@ -11,6 +11,7 @@ registerExercise({
   label: "Rhythms",
   bars: 2,
   inMenu: true,
+  rev: 1,
   items: [
     limbTwice("rq /q rq /q", "Backbeat"),
     limbTwice("/q rq /q rq", "Downbeats"),
