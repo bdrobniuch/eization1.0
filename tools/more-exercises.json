@@ -47,6 +47,58 @@
         "descEs":  "Los estudiantes se quedan en C, F y Bb. Cada mayor y cada menor natural tiene un turno para que las fáciles no ocupen todo el pase."
     },
     {
+        "id":  "more0070",
+        "slug":  "sticky-keys-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Sticky keys on the staff",
+        "nameEs":  "Tonalidades difíciles en el pentagrama",
+        "descEn":  "Every major and every natural minor, one octave up and down, written in its key. The easy keys and the ones students skip get the same two bars.",
+        "descEs":  "Cada mayor y cada menor natural, una octava de ida y vuelta, escrita en su armadura. Las fáciles y las que se saltan tienen los mismos dos compases.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html",
+                          "en":  "Scales and pitch sets",
+                          "es":  "Escalas y conjuntos de alturas"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#weiskopf-around-the-horn",
+                          "en":  "Around the Horn",
+                          "es":  "Around the Horn"
+                      }
+                  ],
+        "lines":  [
+                      "@key=C C4e D4e E4e F4e G4e A4e B4e C5e | B4e A4e G4e F4e E4e D4e C4e re · C major",
+                      "@key=Db Db4e Eb4e F4e Gb4e Ab4e Bb4e C5e Db5e | C5e Bb4e Ab4e Gb4e F4e Eb4e Db4e re · Db major",
+                      "@key=D D4e E4e F#4e G4e A4e B4e C#5e D5e | C#5e B4e A4e G4e F#4e E4e D4e re · D major",
+                      "@key=Eb Eb4e F4e G4e Ab4e Bb4e C5e D5e Eb5e | D5e C5e Bb4e Ab4e G4e F4e Eb4e re · Eb major",
+                      "@key=E E4e F#4e G#4e A4e B4e C#5e D#5e E5e | D#5e C#5e B4e A4e G#4e F#4e E4e re · E major",
+                      "@key=F F4e G4e A4e Bb4e C5e D5e E5e F5e | E5e D5e C5e Bb4e A4e G4e F4e re · F major",
+                      "@key=F# F#4e G#4e A#4e B4e C#5e D#5e E#5e F#5e | E#5e D#5e C#5e B4e A#4e G#4e F#4e re · F# major",
+                      "@key=G G4e A4e B4e C5e D5e E5e F#5e G5e | F#5e E5e D5e C5e B4e A4e G4e re · G major",
+                      "@key=Ab Ab4e Bb4e C5e Db5e Eb5e F5e G5e Ab5e | G5e F5e Eb5e Db5e C5e Bb4e Ab4e re · Ab major",
+                      "@key=A A4e B4e C#5e D5e E5e F#5e G#5e A5e | G#5e F#5e E5e D5e C#5e B4e A4e re · A major",
+                      "@key=Bb Bb4e C5e D5e Eb5e F5e G5e A5e Bb5e | A5e G5e F5e Eb5e D5e C5e Bb4e re · Bb major",
+                      "@key=B B4e C#5e D#5e E5e F#5e G#5e A#5e B5e | A#5e G#5e F#5e E5e D#5e C#5e B4e re · B major",
+                      "@key=Cm C4e D4e Eb4e F4e G4e Ab4e Bb4e C5e | Bb4e Ab4e G4e F4e Eb4e D4e C4e re · C minor",
+                      "@key=C#m C#4e D#4e E4e F#4e G#4e A4e B4e C#5e | B4e A4e G#4e F#4e E4e D#4e C#4e re · C# minor",
+                      "@key=Dm D4e E4e F4e G4e A4e Bb4e C5e D5e | C5e Bb4e A4e G4e F4e E4e D4e re · D minor",
+                      "@key=Ebm Eb4e F4e Gb4e Ab4e Bb4e Cb5e Db5e Eb5e | Db5e Cb5e Bb4e Ab4e Gb4e F4e Eb4e re · Eb minor",
+                      "@key=Em E4e F#4e G4e A4e B4e C5e D5e E5e | D5e C5e B4e A4e G4e F#4e E4e re · E minor",
+                      "@key=Fm F4e G4e Ab4e Bb4e C5e Db5e Eb5e F5e | Eb5e Db5e C5e Bb4e Ab4e G4e F4e re · F minor",
+                      "@key=F#m F#4e G#4e A4e B4e C#5e D5e E5e F#5e | E5e D5e C#5e B4e A4e G#4e F#4e re · F# minor",
+                      "@key=Gm G4e A4e Bb4e C5e D5e Eb5e F5e G5e | F5e Eb5e D5e C5e Bb4e A4e G4e re · G minor",
+                      "@key=G#m G#3e A#3e B3e C#4e D#4e E4e F#4e G#4e | F#4e E4e D#4e C#4e B3e A#3e G#3e re · G# minor",
+                      "@key=Am A3e B3e C4e D4e E4e F4e G4e A4e | G4e F4e E4e D4e C4e B3e A3e re · A minor",
+                      "@key=Bbm Bb3e C4e Db4e Eb4e F4e Gb4e Ab4e Bb4e | Ab4e Gb4e F4e Eb4e Db4e C4e Bb3e re · Bb minor",
+                      "@key=Bm B3e C#4e D4e E4e F#4e G4e A4e B4e | A4e G4e F#4e E4e D4e C#4e B3e re · B minor"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0002",
         "slug":  "two-five-one-clock",
         "bars":  4,
@@ -204,6 +256,75 @@
         "descEn":  "Before fancy lines, hear the skeleton. All twelve II-V-I keys in three shapes: 1-3-5-7, 7-5-3-1, and 3-5-7-9."
     },
     {
+        "id":  "more0071",
+        "slug":  "outline-changes-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Outline the changes on the staff",
+        "nameEs":  "Dibujar los cambios en el pentagrama",
+        "descEn":  "The three skeletons written out: 1-3-5-7, then 7-5-3-1, then 3-5-7-9, on a II-V-I in all twelve keys. The I chord fills the last two bars.",
+        "descEs":  "Los tres esqueletos escritos: 1-3-5-7, luego 7-5-3-1, luego 3-5-7-9, en un II-V-I de las doce tonalidades. El I ocupa los dos últimos compases.",
+        "books":  [
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      },
+                      {
+                          "href":  "./changes.html#levine-changes",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      }
+                  ],
+        "lines":  [
+                      "^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q | ^Cmaj7 C4q E4q G4q B4q | ^Cmaj7 C4q E4q G4q B4q · 1 3 5 7 Dm7 G7 Cmaj7",
+                      "^Gm7 G4q Bb4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^Fmaj7 F4q A4q C5q E5q | ^Fmaj7 F4q A4q C5q E5q · 1 3 5 7 Gm7 C7 Fmaj7",
+                      "^Cm7 C4q Eb4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^Bbmaj7 Bb3q D4q F4q A4q | ^Bbmaj7 Bb3q D4q F4q A4q · 1 3 5 7 Cm7 F7 Bbmaj7",
+                      "^Fm7 F4q Ab4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Ebmaj7 Eb4q G4q Bb4q D5q | ^Ebmaj7 Eb4q G4q Bb4q D5q · 1 3 5 7 Fm7 Bb7 Ebmaj7",
+                      "^Bbm7 Bb3q Db4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Abmaj7 Ab3q C4q Eb4q G4q | ^Abmaj7 Ab3q C4q Eb4q G4q · 1 3 5 7 Bbm7 Eb7 Abmaj7",
+                      "^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Dbmaj7 Db4q F4q Ab4q C5q | ^Dbmaj7 Db4q F4q Ab4q C5q · 1 3 5 7 Ebm7 Ab7 Dbmaj7",
+                      "^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Gbmaj7 Gb4q Bb4q Db5q F5q | ^Gbmaj7 Gb4q Bb4q Db5q F5q · 1 3 5 7 Abm7 Db7 Gbmaj7",
+                      "^C#m7 C#4q E4q G#4q B4q | ^F#7 F#4q A#4q C#5q E5q | ^Bmaj7 B3q D#4q F#4q A#4q | ^Bmaj7 B3q D#4q F#4q A#4q · 1 3 5 7 C#m7 F#7 Bmaj7",
+                      "^F#m7 F#4q A4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^Emaj7 E4q G#4q B4q D#5q | ^Emaj7 E4q G#4q B4q D#5q · 1 3 5 7 F#m7 B7 Emaj7",
+                      "^Bm7 B3q D4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^Amaj7 A3q C#4q E4q G#4q | ^Amaj7 A3q C#4q E4q G#4q · 1 3 5 7 Bm7 E7 Amaj7",
+                      "^Em7 E4q G4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^Dmaj7 D4q F#4q A4q C#5q | ^Dmaj7 D4q F#4q A4q C#5q · 1 3 5 7 Em7 A7 Dmaj7",
+                      "^Am7 A3q C4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^Gmaj7 G4q B4q D5q F#5q | ^Gmaj7 G4q B4q D5q F#5q · 1 3 5 7 Am7 D7 Gmaj7",
+                      "^Dm7 C5q A4q F4q D4q | ^G7 F5q D5q B4q G4q | ^Cmaj7 B4q G4q E4q C4q | ^Cmaj7 B4q G4q E4q C4q · 7 5 3 1 Dm7 G7 Cmaj7",
+                      "^Gm7 F5q D5q Bb4q G4q | ^C7 Bb4q G4q E4q C4q | ^Fmaj7 E5q C5q A4q F4q | ^Fmaj7 E5q C5q A4q F4q · 7 5 3 1 Gm7 C7 Fmaj7",
+                      "^Cm7 Bb4q G4q Eb4q C4q | ^F7 Eb5q C5q A4q F4q | ^Bbmaj7 A4q F4q D4q Bb3q | ^Bbmaj7 A4q F4q D4q Bb3q · 7 5 3 1 Cm7 F7 Bbmaj7",
+                      "^Fm7 Eb5q C5q Ab4q F4q | ^Bb7 Ab4q F4q D4q Bb3q | ^Ebmaj7 D5q Bb4q G4q Eb4q | ^Ebmaj7 D5q Bb4q G4q Eb4q · 7 5 3 1 Fm7 Bb7 Ebmaj7",
+                      "^Bbm7 Ab4q F4q Db4q Bb3q | ^Eb7 Db5q Bb4q G4q Eb4q | ^Abmaj7 G4q Eb4q C4q Ab3q | ^Abmaj7 G4q Eb4q C4q Ab3q · 7 5 3 1 Bbm7 Eb7 Abmaj7",
+                      "^Ebm7 Db5q Bb4q Gb4q Eb4q | ^Ab7 Gb4q Eb4q C4q Ab3q | ^Dbmaj7 C5q Ab4q F4q Db4q | ^Dbmaj7 C5q Ab4q F4q Db4q · 7 5 3 1 Ebm7 Ab7 Dbmaj7",
+                      "^Abm7 Gb4q Eb4q Cb4q Ab3q | ^Db7 Cb5q Ab4q F4q Db4q | ^Gbmaj7 F5q Db5q Bb4q Gb4q | ^Gbmaj7 F5q Db5q Bb4q Gb4q · 7 5 3 1 Abm7 Db7 Gbmaj7",
+                      "^C#m7 B4q G#4q E4q C#4q | ^F#7 E5q C#5q A#4q F#4q | ^Bmaj7 A#4q F#4q D#4q B3q | ^Bmaj7 A#4q F#4q D#4q B3q · 7 5 3 1 C#m7 F#7 Bmaj7",
+                      "^F#m7 E5q C#5q A4q F#4q | ^B7 A4q F#4q D#4q B3q | ^Emaj7 D#5q B4q G#4q E4q | ^Emaj7 D#5q B4q G#4q E4q · 7 5 3 1 F#m7 B7 Emaj7",
+                      "^Bm7 A4q F#4q D4q B3q | ^E7 D5q B4q G#4q E4q | ^Amaj7 G#4q E4q C#4q A3q | ^Amaj7 G#4q E4q C#4q A3q · 7 5 3 1 Bm7 E7 Amaj7",
+                      "^Em7 D5q B4q G4q E4q | ^A7 G4q E4q C#4q A3q | ^Dmaj7 C#5q A4q F#4q D4q | ^Dmaj7 C#5q A4q F#4q D4q · 7 5 3 1 Em7 A7 Dmaj7",
+                      "^Am7 G4q E4q C4q A3q | ^D7 C5q A4q F#4q D4q | ^Gmaj7 F#5q D5q B4q G4q | ^Gmaj7 F#5q D5q B4q G4q · 7 5 3 1 Am7 D7 Gmaj7",
+                      "^Dm7 F4q A4q C5q E5q | ^G7 B4q D5q F5q A5q | ^Cmaj7 E4q G4q B4q D5q | ^Cmaj7 E4q G4q B4q D5q · 3 5 7 9 Dm7 G7 Cmaj7",
+                      "^Gm7 Bb4q D5q F5q A5q | ^C7 E4q G4q Bb4q D5q | ^Fmaj7 A4q C5q E5q G5q | ^Fmaj7 A4q C5q E5q G5q · 3 5 7 9 Gm7 C7 Fmaj7",
+                      "^Cm7 Eb4q G4q Bb4q D5q | ^F7 A4q C5q Eb5q G5q | ^Bbmaj7 D4q F4q A4q C5q | ^Bbmaj7 D4q F4q A4q C5q · 3 5 7 9 Cm7 F7 Bbmaj7",
+                      "^Fm7 Ab4q C5q Eb5q G5q | ^Bb7 D4q F4q Ab4q C5q | ^Ebmaj7 G4q Bb4q D5q F5q | ^Ebmaj7 G4q Bb4q D5q F5q · 3 5 7 9 Fm7 Bb7 Ebmaj7",
+                      "^Bbm7 Db4q F4q Ab4q C5q | ^Eb7 G4q Bb4q Db5q F5q | ^Abmaj7 C4q Eb4q G4q Bb4q | ^Abmaj7 C4q Eb4q G4q Bb4q · 3 5 7 9 Bbm7 Eb7 Abmaj7",
+                      "^Ebm7 Gb4q Bb4q Db5q F5q | ^Ab7 C4q Eb4q Gb4q Bb4q | ^Dbmaj7 F4q Ab4q C5q Eb5q | ^Dbmaj7 F4q Ab4q C5q Eb5q · 3 5 7 9 Ebm7 Ab7 Dbmaj7",
+                      "^Abm7 Cb4q Eb4q Gb4q Bb4q | ^Db7 F4q Ab4q Cb5q Eb5q | ^Gbmaj7 Bb4q Db5q F5q Ab5q | ^Gbmaj7 Bb4q Db5q F5q Ab5q · 3 5 7 9 Abm7 Db7 Gbmaj7",
+                      "^C#m7 E4q G#4q B4q D#5q | ^F#7 A#4q C#5q E5q G#5q | ^Bmaj7 D#4q F#4q A#4q C#5q | ^Bmaj7 D#4q F#4q A#4q C#5q · 3 5 7 9 C#m7 F#7 Bmaj7",
+                      "^F#m7 A4q C#5q E5q G#5q | ^B7 D#4q F#4q A4q C#5q | ^Emaj7 G#4q B4q D#5q F#5q | ^Emaj7 G#4q B4q D#5q F#5q · 3 5 7 9 F#m7 B7 Emaj7",
+                      "^Bm7 D4q F#4q A4q C#5q | ^E7 G#4q B4q D5q F#5q | ^Amaj7 C#4q E4q G#4q B4q | ^Amaj7 C#4q E4q G#4q B4q · 3 5 7 9 Bm7 E7 Amaj7",
+                      "^Em7 G4q B4q D5q F#5q | ^A7 C#4q E4q G4q B4q | ^Dmaj7 F#4q A4q C#5q E5q | ^Dmaj7 F#4q A4q C#5q E5q · 3 5 7 9 Em7 A7 Dmaj7",
+                      "^Am7 C4q E4q G4q B4q | ^D7 F#4q A4q C5q E5q | ^Gmaj7 B4q D5q F#5q A5q | ^Gmaj7 B4q D5q F#5q A5q · 3 5 7 9 Am7 D7 Gmaj7"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0005",
         "slug":  "enclosures",
         "bars":  2,
@@ -294,6 +415,49 @@
                   ]
     },
     {
+        "id":  "more0072",
+        "slug":  "slow-time-staff",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Slow time on the staff",
+        "nameEs":  "Tiempo lento en el pentagrama",
+        "descEn":  "One written rhythm per turn, on C-D-E-G, at a slow click. Wholes, halves, quarters, eighths, then the placements: 1 and 3, 2 and 4, the offbeats, one attack, two attacks, and a rest on bars 2 and 4.",
+        "descEs":  "Un ritmo escrito por turno, sobre C-D-E-G, con el clic lento. Redondas, blancas, negras, corcheas, y luego las colocaciones: 1 y 3, 2 y 4, los contratiempos, un ataque, dos ataques, y silencio en los compases 2 y 4.",
+        "books":  [
+                      {
+                          "href":  "./time.html",
+                          "en":  "Time",
+                          "es":  "Tiempo"
+                      },
+                      {
+                          "href":  "./time.html#erskine-time",
+                          "en":  "Time Awareness for All Musicians",
+                          "es":  "Time Awareness for All Musicians"
+                      },
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "en":  "Rhythmic Devices",
+                          "es":  "Recursos rítmicos"
+                      }
+                  ],
+        "lines":  [
+                      "C4w | D4w | E4w | G4w · Whole notes",
+                      "C4h E4h | G4h C5h | E4h C4h | G4h E4h · Half notes",
+                      "C4q D4q E4q G4q | G4q E4q D4q C4q | E4q G4q C5q G4q | E4q D4q C4q C4q · Quarters",
+                      "C4e D4e E4e G4e C5e G4e E4e D4e | C4e D4e E4e G4e C5e G4e E4e D4e | C4e D4e E4e G4e C5e G4e E4e D4e | C4e D4e E4e G4e C5e G4e E4e D4e · Eighths",
+                      "C4q rq E4q rq | G4q rq C5q rq | E4q rq C4q rq | G4q rq E4q rq · Beats 1 and 3",
+                      "rq C4q rq E4q | rq G4q rq C5q | rq E4q rq C4q | rq G4q rq E4q · Beats 2 and 4",
+                      "re C4e re D4e re E4e re G4e | re C4e re D4e re E4e re G4e | re C4e re D4e re E4e re G4e | re C4e re D4e re E4e re G4e · Off the beat",
+                      "C4q rq rq rq | E4q rq rq rq | G4q rq rq rq | C5q rq rq rq · One short note per bar",
+                      "C4q E4q rq rq | G4q C5q rq rq | E4q D4q rq rq | C4q G4q rq rq · Two notes per bar",
+                      "C4w | rw | E4w | rw · Rest bars 2 and 4"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0007",
         "slug":  "wide-intervals",
         "bars":  2,
@@ -336,6 +500,54 @@
         "nameEn":  "Interval families",
         "descEn":  "Every interval family from minor 2nd through octave, plus a few mixed drills. One family per turn so stepwise comfort cannot hide the leaps."
     },
+    {
+        "id":  "more0073",
+        "slug":  "interval-families-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Interval families on the staff",
+        "nameEs":  "Familias de intervalos en el pentagrama",
+        "descEn":  "Each family written as eight leaps from C: minor 2nds through the octave, then 4ths into 5ths, 6ths into 3rds, and 2nds into 7ths. One family fills the two bars.",
+        "descEs":  "Cada familia escrita como ocho saltos desde C: de 2as menores hasta la octava, luego 4as hacia 5as, 6as hacia 3as, y 2as hacia 7as. Una familia llena los dos compases.",
+        "books":  [
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#weiskopf-intervallic",
+                          "en":  "Intervallic Improvisation",
+                          "es":  "Intervallic Improvisation"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#bergonzi-intervallic-melodies",
+                          "en":  "Thesaurus of Intervallic Melodies",
+                          "es":  "Thesaurus of Intervallic Melodies"
+                      }
+                  ],
+        "lines":  [
+                      "C4e Db4e D4e Eb4e E4e F4e F4e Gb4e | G4e Ab4e A4e Bb4e B4e C5e C5e Db5e · Minor 2nds",
+                      "C4e D4e D4e E4e E4e F#4e F4e G4e | G4e A4e A4e B4e B4e C#5e C5e D5e · Major 2nds",
+                      "C4e Eb4e D4e F4e E4e G4e F4e Ab4e | G4e Bb4e A4e C5e B4e D5e C5e Eb5e · Minor 3rds",
+                      "C4e E4e D4e F#4e E4e G#4e F4e A4e | G4e B4e A4e C#5e B4e D#5e C5e E5e · Major 3rds",
+                      "C4e F4e D4e G4e E4e A4e F4e Bb4e | G4e C5e A4e D5e B4e E5e C5e F5e · Perfect 4ths",
+                      "C4e Gb4e D4e Ab4e E4e Bb4e F4e Cb5e | G4e Db5e A4e Eb5e B4e F5e C5e Gb5e · Tritones",
+                      "C4e G4e D4e A4e E4e B4e F4e C5e | G4e D5e A4e E5e B4e F#5e C5e G5e · Perfect 5ths",
+                      "C4e Ab4e D4e Bb4e E4e C5e F4e Db5e | G4e Eb5e A4e F5e B4e G5e C5e Ab5e · Minor 6ths",
+                      "C4e A4e D4e B4e E4e C#5e F4e D5e | G4e E5e A4e F#5e B4e G#5e C5e A5e · Major 6ths",
+                      "C4e Bb4e D4e C5e E4e D5e F4e Eb5e | G4e F5e A4e G5e B4e A5e C5e Bb5e · Minor 7ths",
+                      "C4e B4e D4e C#5e E4e D#5e F4e E5e | G4e F#5e A4e G#5e B4e A#5e C5e B5e · Major 7ths",
+                      "C4e C5e D4e D5e E4e E5e F4e F5e | G4e G5e A4e A5e B4e B5e C5e C6e · Octaves",
+                      "C4e F4e D4e G4e E4e A4e F4e Bb4e | C4e G4e D4e A4e E4e B4e F4e C5e · 4ths then 5ths",
+                      "C4e A4e D4e B4e E4e C#5e F4e D5e | C4e E4e D4e F#4e E4e G#4e F4e A4e · 6ths then 3rds",
+                      "C4e D4e D4e E4e E4e F#4e F4e G4e | C4e Bb4e D4e C5e E4e D5e F4e Eb5e · 2nds then 7ths"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0008",
         "slug":  "minor-two-five",
@@ -416,6 +628,49 @@
                   ]
     },
     {
+        "id":  "more0074",
+        "slug":  "turnarounds-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Turnarounds on the staff",
+        "nameEs":  "Turnarounds en el pentagrama",
+        "descEn":  "Each turnaround spelled as chord tones, one chord to a bar. Starlight puts the last two chords in the fourth bar, root and third of each.",
+        "descEs":  "Cada turnaround escrito con las notas del acorde, un acorde por compás. Starlight pone los dos últimos acordes en el cuarto compás, fundamental y tercera de cada uno.",
+        "books":  [
+                      {
+                          "href":  "./changes.html#cork-lego",
+                          "en":  "Harmony with LEGO Bricks",
+                          "es":  "Harmony with LEGO Bricks"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./changes.html#elliott-insights",
+                          "en":  "Insights in Jazz",
+                          "es":  "Insights in Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4q E4q G4q B4q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q · POT",
+                      "^Cmaj7 C4q E4q G4q B4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Abmaj7 Ab3q C4q Eb4q G4q | ^Db7 Db4q F4q Ab4q Cb5q · Ladybird",
+                      "^Em7 E4q G4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q · SPOT",
+                      "^Cmaj7 C4q E4q G4q B4q | ^C7 C4q E4q G4q Bb4q | ^Fmaj7 F4q A4q C5q E5q | ^F#o F#4q A4q C5q Eb5q · To IV",
+                      "^Cmaj7 C4q E4q G4q B4q | ^A7 A3q C#4q E4q G4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^G7 G4q B4q D5q F5q · Nowhere",
+                      "^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q | ^Em7 E4q G4q B4q D5q | ^A7 A3q C#4q E4q G4q · Pullback",
+                      "^Cmaj7 C4q E4q G4q B4q | ^E7 E4q G#4q B4q D5q | ^Am7 A3q C4q E4q G4q | ^D7 D4q F#4q A4q C5q · III VI II V",
+                      "^Cmaj7 C4q E4q G4q B4q | ^Bb7 Bb3q D4q F4q Ab4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^G7 G4q B4q D5q F5q · Chromatic",
+                      "^Am7 A3q C4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q · Dogleg",
+                      "^Cmaj7 C4q E4q G4q B4q | ^F#m7b5 F#4q A4q C5q E5q | ^B7 B3q D#4q F#4q A4q | ^Em7 E4q G4q ^A7 A3q C#4q · Starlight"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0010",
         "slug":  "blues-forms",
         "bars":  12,
@@ -449,6 +704,45 @@
                       "I7 | bVII7 | I7 | I7 | IV7 | #IVo | I7 | VI7 | IIm7 | V7 | I7 | V7 · Side slip"
                   ]
     },
+    {
+        "id":  "more0075",
+        "slug":  "blues-forms-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  12,
+        "nameEn":  "Blues forms on the staff",
+        "nameEs":  "Formas de blues en el pentagrama",
+        "descEn":  "Six twelve-bar shapes in C, each chord written 1-3-5-7. Basic, jazz, minor, Bird, major, and the side slip. The all-key charts stay in the text blues exercises.",
+        "descEs":  "Seis formas de doce compases en C, cada acorde escrito 1-3-5-7. Básico, jazz, menor, Bird, mayor y el side slip. Las tablas en todas las tonalidades siguen en los ejercicios de blues en texto.",
+        "books":  [
+                      {
+                          "href":  "./more.html#basic-major-blues",
+                          "en":  "Basic major blues",
+                          "es":  "Blues mayor básico"
+                      },
+                      {
+                          "href":  "./more.html#jazz-major-blues",
+                          "en":  "Jazz major blues",
+                          "es":  "Blues mayor jazz"
+                      },
+                      {
+                          "href":  "./more.html#minor-blues",
+                          "en":  "Minor blues",
+                          "es":  "Blues menor"
+                      }
+                  ],
+        "lines":  [
+                      "^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q · Basic",
+                      "^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^F#o F#4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q · Jazz",
+                      "^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Fm7 F4q Ab4q C5q Eb5q | ^Fm7 F4q Ab4q C5q Eb5q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^G7 G4q B4q D5q F5q | ^Cm7 C4q Eb4q G4q Bb4q | ^G7 G4q B4q D5q F5q · Minor",
+                      "^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q · Bird",
+                      "^Cmaj7 C4q E4q G4q B4q | ^F7 F4q A4q C5q Eb5q | ^Cmaj7 C4q E4q G4q B4q | ^Cmaj7 C4q E4q G4q B4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^Cmaj7 C4q E4q G4q B4q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q | ^Cmaj7 C4q E4q G4q B4q | ^G7 G4q B4q D5q F5q · Major",
+                      "^C7 C4q E4q G4q Bb4q | ^Bb7 Bb3q D4q F4q Ab4q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^F#o F#4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q · Side slip"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0011",
         "slug":  "rhythm-bridge",
@@ -490,6 +784,51 @@
                   ]
     },
     {
+        "id":  "more0076",
+        "slug":  "rhythm-bridge-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Rhythm bridge on the staff",
+        "nameEs":  "Puente de Rhythm Changes en el pentagrama",
+        "descEn":  "III7-VI7-II7-V7 from all twelve centers, each dominant arpeggiated 1-3-5-b7 for a bar.",
+        "descEs":  "III7-VI7-II7-V7 desde los doce centros, cada dominante arpegiado 1-3-5-b7 durante un compás.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "lines":  [
+                      "^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q · from C",
+                      "^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q · from Db",
+                      "^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q · from D",
+                      "^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q · from Eb",
+                      "^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^B7 B3q D#4q F#4q A4q · from E",
+                      "^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q · from F",
+                      "^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q · from F#",
+                      "^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q · from G",
+                      "^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q · from Ab",
+                      "^C#7 C#4q E#4q G#4q B4q | ^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q · from A",
+                      "^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q · from Bb",
+                      "^D#7 D#4q F##4q A#4q C#5q | ^G#7 G#3q B#3q D#4q F#4q | ^C#7 C#4q E#4q G#4q B4q | ^F#7 F#4q A#4q C#5q E5q · from B"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0012",
         "slug":  "tritone-road",
         "bars":  2,
@@ -530,6 +869,51 @@
         "descEn":  "Substitutions feel abstract until they are under the fingers. II-bII7-I in all twelve keys, one cadence per turn."
     },
     {
+        "id":  "more0077",
+        "slug":  "tritone-road-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Tritone road on the staff",
+        "nameEs":  "Camino del tritono en el pentagrama",
+        "descEn":  "II-bII7-I in all twelve keys. The II chord is a full bar of 1-3-5-7. The next bar is the root and third of bII7, then the root and third of I.",
+        "descEs":  "II-bII7-I en las doce tonalidades. El II es un compás de 1-3-5-7. El compás siguiente es fundamental y tercera de bII7, luego fundamental y tercera de I.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./changes.html#levine-changes",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "^Dm7 D4q F4q A4q C5q | ^Db7 Db4q F4q ^Cmaj7 C4q E4q · Dm7 Db7 Cmaj7",
+                      "^Ebm7 Eb4q Gb4q Bb4q Db5q | ^D7 D4q F#4q ^Dbmaj7 Db4q F4q · Ebm7 D7 Dbmaj7",
+                      "^Em7 E4q G4q B4q D5q | ^Eb7 Eb4q G4q ^Dmaj7 D4q F#4q · Em7 Eb7 Dmaj7",
+                      "^Fm7 F4q Ab4q C5q Eb5q | ^E7 E4q G#4q ^Ebmaj7 Eb4q G4q · Fm7 E7 Ebmaj7",
+                      "^F#m7 F#4q A4q C#5q E5q | ^F7 F4q A4q ^Emaj7 E4q G#4q · F#m7 F7 Emaj7",
+                      "^Gm7 G4q Bb4q D5q F5q | ^Gb7 Gb4q Bb4q ^Fmaj7 F4q A4q · Gm7 Gb7 Fmaj7",
+                      "^Abm7 Ab3q Cb4q Eb4q Gb4q | ^G7 G4q B4q ^Gbmaj7 Gb4q Bb4q · Abm7 G7 Gbmaj7",
+                      "^Am7 A3q C4q E4q G4q | ^Ab7 Ab3q C4q ^Gmaj7 G4q B4q · Am7 Ab7 Gmaj7",
+                      "^Bbm7 Bb3q Db4q F4q Ab4q | ^A7 A3q C#4q ^Abmaj7 Ab3q C4q · Bbm7 A7 Abmaj7",
+                      "^Bm7 B3q D4q F#4q A4q | ^Bb7 Bb3q D4q ^Amaj7 A3q C#4q · Bm7 Bb7 Amaj7",
+                      "^Cm7 C4q Eb4q G4q Bb4q | ^B7 B3q D#4q ^Bbmaj7 Bb3q D4q · Cm7 B7 Bbmaj7",
+                      "^C#m7 C#4q E4q G#4q B4q | ^C7 C4q E4q ^Bmaj7 B3q D#4q · C#m7 C7 Bmaj7"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0013",
         "slug":  "pentatonic-colors",
         "bars":  4,
@@ -568,6 +952,49 @@
                   ]
     },
     {
+        "id":  "more0078",
+        "slug":  "pentatonic-colors-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Pentatonic colors on the staff",
+        "nameEs":  "Colores pentatónicos en el pentagrama",
+        "descEn":  "The named major or minor pentatonic, written over its chord and walked up and down for four bars. The color has to keep moving.",
+        "descEs":  "La pentatónica mayor o menor nombrada, escrita sobre su acorde y recorrida de ida y vuelta durante cuatro compases. El color tiene que seguir moviéndose.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales for Jazz",
+                          "es":  "Pentatonic Scales for Jazz"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4e D4e E4e G4e A4e C5e A4e G4e | E4e D4e C4e D4e E4e G4e A4e C5e | A4e G4e E4e D4e C4e D4e E4e G4e | A4e C5e A4e G4e E4e D4e C4e D4e · C major pent",
+                      "^Cmaj7 G4e A4e B4e D5e E5e G5e E5e D5e | B4e A4e G4e A4e B4e D5e E5e G5e | E5e D5e B4e A4e G4e A4e B4e D5e | E5e G5e E5e D5e B4e A4e G4e A4e · G major pent",
+                      "^Dm7 A3e C4e D4e E4e G4e A4e G4e E4e | D4e C4e A3e C4e D4e E4e G4e A4e | G4e E4e D4e C4e A3e C4e D4e E4e | G4e A4e G4e E4e D4e C4e A3e C4e · A minor pent",
+                      "^G7 D4e F4e G4e A4e C5e D5e C5e A4e | G4e F4e D4e F4e G4e A4e C5e D5e | C5e A4e G4e F4e D4e F4e G4e A4e | C5e D5e C5e A4e G4e F4e D4e F4e · D minor pent",
+                      "^C7alt Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e | G4e F4e Eb4e F4e G4e Bb4e C5e Eb5e | C5e Bb4e G4e F4e Eb4e F4e G4e Bb4e | C5e Eb5e C5e Bb4e G4e F4e Eb4e F4e · Eb major pent",
+                      "^D7 F#4e A4e B4e C#5e E5e F#5e E5e C#5e | B4e A4e F#4e A4e B4e C#5e E5e F#5e | E5e C#5e B4e A4e F#4e A4e B4e C#5e | E5e F#5e E5e C#5e B4e A4e F#4e A4e · F# minor pent",
+                      "^Cm7 Bb3e Db4e Eb4e F4e Ab4e Bb4e Ab4e F4e | Eb4e Db4e Bb3e Db4e Eb4e F4e Ab4e Bb4e | Ab4e F4e Eb4e Db4e Bb3e Db4e Eb4e F4e | Ab4e Bb4e Ab4e F4e Eb4e Db4e Bb3e Db4e · Bb minor pent",
+                      "^A7 E4e F#4e G#4e B4e C#5e E5e C#5e B4e | G#4e F#4e E4e F#4e G#4e B4e C#5e E5e | C#5e B4e G#4e F#4e E4e F#4e G#4e B4e | C#5e E5e C#5e B4e G#4e F#4e E4e F#4e · E major pent",
+                      "^Bbmaj7 F4e G4e A4e C5e D5e F5e D5e C5e | A4e G4e F4e G4e A4e C5e D5e F5e | D5e C5e A4e G4e F4e G4e A4e C5e | D5e F5e D5e C5e A4e G4e F4e G4e · F major pent",
+                      "^F#7 C#4e E4e F#4e G#4e B4e C#5e B4e G#4e | F#4e E4e C#4e E4e F#4e G#4e B4e C#5e | B4e G#4e F#4e E4e C#4e E4e F#4e G#4e | B4e C#5e B4e G#4e F#4e E4e C#4e E4e · C# minor pent"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0014",
         "slug":  "into-the-bar",
         "bars":  4,
@@ -605,6 +1032,49 @@
                       "Start on the and of 4"
                   ]
     },
+    {
+        "id":  "more0079",
+        "slug":  "into-the-bar-staff",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Into the next bar on the staff",
+        "nameEs":  "Hacia el siguiente compás en el pentagrama",
+        "descEn":  "Ten written lines over Dm7-G7-Cmaj7. Each one does the cue: arrive on a downbeat, aim at V or I, anticipate, land on the 3rd or the 7th, tie across the bar, or start late.",
+        "descEs":  "Diez líneas escritas sobre Dm7-G7-Cmaj7. Cada una cumple la consigna: llegar a un tiempo fuerte, apuntar al V o al I, anticipar, caer en la 3a o la 7a, ligar el compás, o entrar tarde.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#galper-forward-motion",
+                          "en":  "Forward Motion",
+                          "es":  "Forward Motion"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#berg-goal-note",
+                          "en":  "The Goal-Note Method",
+                          "es":  "The Goal-Note Method"
+                      },
+                      {
+                          "href":  "./changes.html#crook-ready",
+                          "en":  "Ready, Aim, Improvise!",
+                          "es":  "Ready, Aim, Improvise!"
+                      }
+                  ],
+        "lines":  [
+                      "^Dm7 D4e F4e A4e C5e E4e G4e B4e D5e | ^G7 B4q rh. | rw | rw · Aim at beat 1 of bar 2",
+                      "^Dm7 D4q F4q A4q C5q | ^G7 B4q D5q F5q D5q | ^Cmaj7 E4w | rw · Aim at the V7",
+                      "^Dm7 D4q F4q A4q C5q | ^G7 B4q A4q G4q F4q | ^Cmaj7 E4q rq rq rq | rw · Aim at the I",
+                      "^Cmaj7 C4q rq rq rq | E4q rq rq rq | G4q rq rq rq | C5q rq rq rq · Resolve on beat 1 only",
+                      "^Dm7 D4q F4q A4q re B4e | ^G7 D5q rq rq re E4e | ^Cmaj7 G4q rq rq rq | rw · Anticipate the next chord",
+                      "^Dm7 D4q E4q F4q G4q | ^G7 B4q_3 rq rq rq | ^Cmaj7 E4q_3 rq rq rq | rw · Land on the 3rd of the next chord",
+                      "^Dm7 D4q E4q F4q G4q | ^G7 F4q_b7 rq rq rq | ^Cmaj7 B4q_7 rq rq rq | rw · Land on the 7th of the next chord",
+                      "^Dm7 D4q F4q A4q C5q~ | ^G7 C5q B4q rq rq | ^Cmaj7 E4w | rw · Phrase across the barline",
+                      "^Dm7 rq rq rq D4q | ^G7 B4q D5q F5q D5q | ^Cmaj7 E4w | rw · Start on beat 4",
+                      "^Dm7 rq rq rq re D4e | ^G7 B4q rq rq rq | ^Cmaj7 E4w | rw · Start on the and of 4"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0015",
         "slug":  "leave-space",
@@ -649,6 +1119,54 @@
         "descEn":  "Overplaying fills every bar. Every common play/rest ratio gets a turn so the comfortable 2+2 does not hide the rest."
     },
     {
+        "id":  "more0080",
+        "slug":  "leave-space-staff",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  8,
+        "nameEn":  "Leave space on the staff",
+        "nameEs":  "Dejar espacio en el pentagrama",
+        "descEn":  "Each play/rest ratio written in an eight-bar form. A slash bar is play, a rest bar is silence. Where the ratio does not divide eight, it keeps going until the form ends.",
+        "descEs":  "Cada ratio de tocar y callar, escrito en una forma de ocho compases. Un compás con slash se toca, un silencio se calla. Si el ratio no cabe exacto, sigue hasta el final de la forma.",
+        "books":  [
+                      {
+                          "href":  "./play-rest.html",
+                          "en":  "Play/Rest",
+                          "es":  "Tocar/Silencio"
+                      },
+                      {
+                          "href":  "./time.html#crook-beyond-time",
+                          "en":  "Beyond Time and Changes",
+                          "es":  "Beyond Time and Changes"
+                      },
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "en":  "Sonic Nuances",
+                          "es":  "Matices sonoros"
+                      }
+                  ],
+        "lines":  [
+                      "/w | rw | /w | rw | /w | rw | /w | rw · Play 1, rest 1",
+                      "/w | rw | rw | /w | rw | rw | /w | rw · Play 1, rest 2",
+                      "/w | rw | rw | rw | /w | rw | rw | rw · Play 1, rest 3",
+                      "/w | /w | rw | /w | /w | rw | /w | /w · Play 2, rest 1",
+                      "/w | /w | rw | rw | /w | /w | rw | rw · Play 2, rest 2",
+                      "/w | /w | rw | rw | rw | /w | /w | rw · Play 2, rest 3",
+                      "/w | /w | /w | rw | /w | /w | /w | rw · Play 3, rest 1",
+                      "/w | /w | /w | rw | rw | /w | /w | /w · Play 3, rest 2",
+                      "/w | /w | /w | rw | rw | rw | /w | /w · Play 3, rest 3",
+                      "/w | /w | /w | /w | rw | /w | /w | /w · Play 4, rest 1",
+                      "/w | /w | /w | /w | rw | rw | /w | /w · Play 4, rest 2",
+                      "/w | /w | /w | /w | rw | rw | rw | rw · Play 4, rest 4",
+                      "rw | /w | /w | /w | /w | /w | /w | /w · Rest first bar",
+                      "/w | /w | /w | /w | /w | /w | /w | rw · Rest last bar",
+                      "/w | /w | /w | /w | rw | rw | rw | rw · Trade fours with silence"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0016",
         "slug":  "one-octave",
         "bars":  2,
@@ -686,6 +1204,49 @@
                       "1357 cell · one octave"
                   ]
     },
+    {
+        "id":  "more0081",
+        "slug":  "one-octave-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "One octave on the staff",
+        "nameEs":  "Solo una octava en el pentagrama",
+        "descEn":  "Scales, arpeggios, and two cells written inside C4 to C5. The major scale here walks that one octave. The all-key majors and minors are in Sticky keys on the staff.",
+        "descEs":  "Escalas, arpegios y dos células escritas entre C4 y C5. La escala mayor recorre esa octava. Las mayores y menores en todas las tonalidades están en Tonalidades difíciles en el pentagrama.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./finger-patterns.html",
+                          "en":  "Finger Patterns",
+                          "es":  "Digitaciones"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#okazaki-fundamentals",
+                          "en":  "Fundamentals of Guitar",
+                          "es":  "Fundamentals of Guitar"
+                      }
+                  ],
+        "lines":  [
+                      "C4e D4e E4e F4e G4e A4e B4e C5e | B4e A4e G4e F4e E4e D4e C4e C4e · Major scale",
+                      "C4e D4e E4e F4e G4e A4e Bb4e C5e | Bb4e A4e G4e F4e E4e D4e C4e C4e · Mixolydian",
+                      "C4e D4e Eb4e F4e G4e A4e Bb4e C5e | Bb4e A4e G4e F4e Eb4e D4e C4e C4e · Dorian",
+                      "C4e Eb4e F4e G4e Bb4e C5e Bb4e G4e | F4e Eb4e C4e C4e Eb4e F4e G4e Bb4e · Minor pentatonic",
+                      "C4q E4q G4q C5q | C5q G4q E4q C4q · Major arpeggio",
+                      "C4q E4q G4q Bb4q | Bb4q G4q E4q C4q · Dominant 7 arpeggio",
+                      "C4q Eb4q G4q Bb4q | Bb4q G4q Eb4q C4q · Minor 7 arpeggio",
+                      "C4e C#4e D4e D#4e E4e F4e F#4e G4e | G#4e A4e A#4e B4e C5e rq. · Chromatic",
+                      "C4q D4q E4q G4q | G4q E4q D4q C4q · 1 2 3 5",
+                      "C4q E4q G4q B4q | B4q G4q E4q C4q · 1 3 5 7"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0017",
         "slug":  "sing-first",
@@ -842,6 +1403,49 @@
                   ]
     },
     {
+        "id":  "more0082",
+        "slug":  "goal-notes-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Goal notes on the staff",
+        "nameEs":  "Notas objetivo en el pentagrama",
+        "descEn":  "One written path per goal. The labeled note is the chord tone, on the beat the cue names. The bars before it are a way in.",
+        "descEs":  "Un camino escrito por objetivo. La nota con cifra es la nota del acorde, en el tiempo que pide la consigna. Los compases de antes son una entrada.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#berg-goal-note",
+                          "en":  "The Goal-Note Method",
+                          "es":  "The Goal-Note Method"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#riposo-target",
+                          "en":  "Target and Approach Tones",
+                          "es":  "Target and Approach Tones"
+                      },
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      }
+                  ],
+        "lines":  [
+                      "C4q D4q E4q F4q | ^Cmaj7 E4q_3 rq rq rq | rw | rw · 3 of Cmaj7 on beat 1",
+                      "D4q E4q F#4q G4q | ^G7 F5q_b7 rq rq rq | rw | rw · b7 of G7 on beat 1",
+                      "A4q G4q E4q D4q | ^Dm7 F4q_b3 rq rq rq | rw | rw · b3 of Dm7 on beat 1",
+                      "C4q D4q E4q F4q | ^Cmaj7 E4q F4q G4q_5 rq | rw | rw · 5 of Cmaj7 on beat 3",
+                      "F4q G4q A4q B4q | ^G7 Ab4q_b9 rq rq rq | rw | rw · b9 of G7 on beat 1",
+                      "D4q F4q A4q C5q | ^Dm7 E5q_9 rq rq rq | rw | rw · 9 of Dm7 on beat 1",
+                      "F4q G4q Bb4q C5q | ^Fmaj7 A4q_3 rq rq rq | rw | rw · 3 of Fmaj7 on beat 1",
+                      "G4q A4q B4q C5q | ^C7 Bb4q_b7 rq rq rq | rw | rw · b7 of C7 on beat 1",
+                      "E4q G4q B4q C5q | ^Am7 A4q_1 rq rq rq | rw | rw · Root of Am7 on beat 1",
+                      "E4q F#4q G#4q A4q | ^E7 E4q F#4q G#4q_3 rq | rw | rw · 3 of E7 on beat 3"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0021",
         "slug":  "basic-major-blues",
         "bars":  12,
@@ -881,6 +1485,51 @@
                       "G7 | C7 | G7 | G7 | C7 | C7 | G7 | G7 | D7 | C7 | G7 | D7 · G"
                   ]
     },
+    {
+        "id":  "more0083",
+        "slug":  "basic-major-blues-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  12,
+        "nameEn":  "Basic major blues on the staff",
+        "nameEs":  "Blues mayor básico en el pentagrama",
+        "descEn":  "The plain twelve-bar major blues in every key, each chord written 1-3-5-b7. One chorus, then the next key.",
+        "descEs":  "El blues mayor de doce compases en cada tonalidad, cada acorde escrito 1-3-5-b7. Un chorus, luego la tonalidad siguiente.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#aebersold-vol-1",
+                          "en":  "Aebersold Vol. 1",
+                          "es":  "Aebersold Vol. 1"
+                      },
+                      {
+                          "href":  "./more.html#blues-forms",
+                          "en":  "Blues forms",
+                          "es":  "Formas de blues"
+                      }
+                  ],
+        "lines":  [
+                      "^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q · C",
+                      "^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q · F",
+                      "^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q · Bb",
+                      "^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q · Eb",
+                      "^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q · Ab",
+                      "^Db7 Db4q F4q Ab4q Cb5q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q · Db",
+                      "^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q | ^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q | ^F#7 F#4q A#4q C#5q E5q | ^C#7 C#4q E#4q G#4q B4q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q | ^C#7 C#4q E#4q G#4q B4q · F#",
+                      "^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q | ^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q · B",
+                      "^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q | ^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q · E",
+                      "^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q | ^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q · A",
+                      "^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q | ^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q · D",
+                      "^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q · G"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0022",
         "slug":  "jazz-major-blues",
@@ -922,6 +1571,51 @@
                   ]
     },
     {
+        "id":  "more0084",
+        "slug":  "jazz-major-blues-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  12,
+        "nameEn":  "Jazz major blues on the staff",
+        "nameEs":  "Blues mayor jazz en el pentagrama",
+        "descEn":  "The jazz blues in every key, written out: dominant arpeggios, the sharp-IV diminished seventh, and the II-V.",
+        "descEs":  "El blues de jazz en cada tonalidad, escrito: arpegios dominantes, la séptima disminuida del IV sostenido, y el II-V.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./progressions.html",
+                          "en":  "Essential Progressions",
+                          "es":  "Progresiones esenciales"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "lines":  [
+                      "^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C#o C#4q E4q G4q Bb4q | ^C7 C4q E4q G4q Bb4q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q · C",
+                      "^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^F#o F#4q A4q C5q Eb5q | ^F7 F4q A4q C5q Eb5q | ^D7 D4q F#4q A4q C5q | ^Gm7 G4q Bb4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q · F",
+                      "^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bo B3q D4q F4q Ab4q | ^Bb7 Bb3q D4q F4q Ab4q | ^G7 G4q B4q D5q F5q | ^Cm7 C4q Eb4q G4q Bb4q | ^F7 F4q A4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q · Bb",
+                      "^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eo E4q G4q Bb4q Db5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^C7 C4q E4q G4q Bb4q | ^Fm7 F4q Ab4q C5q Eb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q · Eb",
+                      "^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ao A3q C4q Eb4q Gb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^F7 F4q A4q C5q Eb5q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q · Ab",
+                      "^Db7 Db4q F4q Ab4q Cb5q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^Do D4q F4q Ab4q Cb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^Bb7 Bb3q D4q F4q Ab4q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^Db7 Db4q F4q Ab4q Cb5q | ^Ab7 Ab3q C4q Eb4q Gb4q · Db",
+                      "^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q | ^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^Go G4q Bb4q Db5q Fb5q | ^F#7 F#4q A#4q C#5q E5q | ^D#7 D#4q F##4q A#4q C#5q | ^G#m7 G#3q B3q D#4q F#4q | ^C#7 C#4q E#4q G#4q B4q | ^F#7 F#4q A#4q C#5q E5q | ^C#7 C#4q E#4q G#4q B4q · F#",
+                      "^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q | ^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^Co C4q Eb4q Gb4q A4q | ^B7 B3q D#4q F#4q A4q | ^G#7 G#3q B#3q D#4q F#4q | ^C#m7 C#4q E4q G#4q B4q | ^F#7 F#4q A#4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q · B",
+                      "^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q | ^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^Fo F4q Ab4q Cb5q Ebb5q | ^E7 E4q G#4q B4q D5q | ^C#7 C#4q E#4q G#4q B4q | ^F#m7 F#4q A4q C#5q E5q | ^B7 B3q D#4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^B7 B3q D#4q F#4q A4q · E",
+                      "^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q | ^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^A#o A#3q C#4q E4q G4q | ^A7 A3q C#4q E4q G4q | ^F#7 F#4q A#4q C#5q E5q | ^Bm7 B3q D4q F#4q A4q | ^E7 E4q G#4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^E7 E4q G#4q B4q D5q · A",
+                      "^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q | ^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^D#o D#4q F#4q A4q C5q | ^D7 D4q F#4q A4q C5q | ^B7 B3q D#4q F#4q A4q | ^Em7 E4q G4q B4q D5q | ^A7 A3q C#4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^A7 A3q C#4q E4q G4q · D",
+                      "^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G7 G4q B4q D5q F5q | ^G7 G4q B4q D5q F5q | ^C7 C4q E4q G4q Bb4q | ^G#o G#3q B3q D4q F4q | ^G7 G4q B4q D5q F5q | ^E7 E4q G#4q B4q D5q | ^Am7 A3q C4q E4q G4q | ^D7 D4q F#4q A4q C5q | ^G7 G4q B4q D5q F5q | ^D7 D4q F#4q A4q C5q · G"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0023",
         "slug":  "minor-blues",
         "bars":  12,
@@ -961,6 +1655,51 @@
                       "Gm7 | Gm7 | Gm7 | Gm7 | Cm7 | Cm7 | Gm7 | Gm7 | Eb7 | D7 | Gm7 | D7 · Gm"
                   ]
     },
+    {
+        "id":  "more0085",
+        "slug":  "minor-blues-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  12,
+        "nameEn":  "Minor blues on the staff",
+        "nameEs":  "Blues menor en el pentagrama",
+        "descEn":  "The minor twelve-bar blues in every key. Im7 and IVm7 are 1-b3-5-b7. bVI7 and V7 are 1-3-5-b7, spelled from the chord in the chart.",
+        "descEs":  "El blues menor de doce compases en cada tonalidad. Im7 y IVm7 son 1-b3-5-b7. bVI7 y V7 son 1-3-5-b7, escritos desde el acorde de la tabla.",
+        "books":  [
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales",
+                          "es":  "Pentatonic Scales"
+                      },
+                      {
+                          "href":  "./more.html#blues-forms",
+                          "en":  "Blues forms",
+                          "es":  "Formas de blues"
+                      }
+                  ],
+        "lines":  [
+                      "^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Fm7 F4q Ab4q C5q Eb5q | ^Fm7 F4q Ab4q C5q Eb5q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Ab7 Ab3q C4q Eb4q Gb4q | ^G7 G4q B4q D5q F5q | ^Cm7 C4q Eb4q G4q Bb4q | ^G7 G4q B4q D5q F5q · Cm",
+                      "^Fm7 F4q Ab4q C5q Eb5q | ^Fm7 F4q Ab4q C5q Eb5q | ^Fm7 F4q Ab4q C5q Eb5q | ^Fm7 F4q Ab4q C5q Eb5q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Fm7 F4q Ab4q C5q Eb5q | ^Fm7 F4q Ab4q C5q Eb5q | ^Db7 Db4q F4q Ab4q Cb5q | ^C7 C4q E4q G4q Bb4q | ^Fm7 F4q Ab4q C5q Eb5q | ^C7 C4q E4q G4q Bb4q · Fm",
+                      "^Bbm7 Bb3q Db4q F4q Ab4q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^Gb7 Gb4q Bb4q Db5q Fb5q | ^F7 F4q A4q C5q Eb5q | ^Bbm7 Bb3q Db4q F4q Ab4q | ^F7 F4q A4q C5q Eb5q · Bbm",
+                      "^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Cb7 Cb3q Eb3q Gb3q A3q | ^Bb7 Bb3q D4q F4q Ab4q | ^Ebm7 Eb4q Gb4q Bb4q Db5q | ^Bb7 Bb3q D4q F4q Ab4q · Ebm",
+                      "^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Dbm7 Db4q Fb4q Ab4q Cb5q | ^Dbm7 Db4q Fb4q Ab4q Cb5q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Fb7 Fb4q Ab4q Cb5q Ebb5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^Abm7 Ab3q Cb4q Eb4q Gb4q | ^Eb7 Eb4q G4q Bb4q Db5q · Abm",
+                      "^C#m7 C#4q E4q G#4q B4q | ^C#m7 C#4q E4q G#4q B4q | ^C#m7 C#4q E4q G#4q B4q | ^C#m7 C#4q E4q G#4q B4q | ^F#m7 F#4q A4q C#5q E5q | ^F#m7 F#4q A4q C#5q E5q | ^C#m7 C#4q E4q G#4q B4q | ^C#m7 C#4q E4q G#4q B4q | ^A7 A3q C#4q E4q G4q | ^G#7 G#3q B#3q D#4q F#4q | ^C#m7 C#4q E4q G#4q B4q | ^G#7 G#3q B#3q D#4q F#4q · C#m",
+                      "^F#m7 F#4q A4q C#5q E5q | ^F#m7 F#4q A4q C#5q E5q | ^F#m7 F#4q A4q C#5q E5q | ^F#m7 F#4q A4q C#5q E5q | ^Bm7 B3q D4q F#4q A4q | ^Bm7 B3q D4q F#4q A4q | ^F#m7 F#4q A4q C#5q E5q | ^F#m7 F#4q A4q C#5q E5q | ^D7 D4q F#4q A4q C5q | ^C#7 C#4q E#4q G#4q B4q | ^F#m7 F#4q A4q C#5q E5q | ^C#7 C#4q E#4q G#4q B4q · F#m",
+                      "^Bm7 B3q D4q F#4q A4q | ^Bm7 B3q D4q F#4q A4q | ^Bm7 B3q D4q F#4q A4q | ^Bm7 B3q D4q F#4q A4q | ^Em7 E4q G4q B4q D5q | ^Em7 E4q G4q B4q D5q | ^Bm7 B3q D4q F#4q A4q | ^Bm7 B3q D4q F#4q A4q | ^G7 G4q B4q D5q F5q | ^F#7 F#4q A#4q C#5q E5q | ^Bm7 B3q D4q F#4q A4q | ^F#7 F#4q A#4q C#5q E5q · Bm",
+                      "^Em7 E4q G4q B4q D5q | ^Em7 E4q G4q B4q D5q | ^Em7 E4q G4q B4q D5q | ^Em7 E4q G4q B4q D5q | ^Am7 A3q C4q E4q G4q | ^Am7 A3q C4q E4q G4q | ^Em7 E4q G4q B4q D5q | ^Em7 E4q G4q B4q D5q | ^C7 C4q E4q G4q Bb4q | ^B7 B3q D#4q F#4q A4q | ^Em7 E4q G4q B4q D5q | ^B7 B3q D#4q F#4q A4q · Em",
+                      "^Am7 A3q C4q E4q G4q | ^Am7 A3q C4q E4q G4q | ^Am7 A3q C4q E4q G4q | ^Am7 A3q C4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^Dm7 D4q F4q A4q C5q | ^Am7 A3q C4q E4q G4q | ^Am7 A3q C4q E4q G4q | ^F7 F4q A4q C5q Eb5q | ^E7 E4q G#4q B4q D5q | ^Am7 A3q C4q E4q G4q | ^E7 E4q G#4q B4q D5q · Am",
+                      "^Dm7 D4q F4q A4q C5q | ^Dm7 D4q F4q A4q C5q | ^Dm7 D4q F4q A4q C5q | ^Dm7 D4q F4q A4q C5q | ^Gm7 G4q Bb4q D5q F5q | ^Gm7 G4q Bb4q D5q F5q | ^Dm7 D4q F4q A4q C5q | ^Dm7 D4q F4q A4q C5q | ^Bb7 Bb3q D4q F4q Ab4q | ^A7 A3q C#4q E4q G4q | ^Dm7 D4q F4q A4q C5q | ^A7 A3q C#4q E4q G4q · Dm",
+                      "^Gm7 G4q Bb4q D5q F5q | ^Gm7 G4q Bb4q D5q F5q | ^Gm7 G4q Bb4q D5q F5q | ^Gm7 G4q Bb4q D5q F5q | ^Cm7 C4q Eb4q G4q Bb4q | ^Cm7 C4q Eb4q G4q Bb4q | ^Gm7 G4q Bb4q D5q F5q | ^Gm7 G4q Bb4q D5q F5q | ^Eb7 Eb4q G4q Bb4q Db5q | ^D7 D4q F#4q A4q C5q | ^Gm7 G4q Bb4q D5q F5q | ^D7 D4q F#4q A4q C5q · Gm"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0024",
         "slug":  "scale-patterns",
@@ -1043,6 +1782,92 @@
                   ]
     },
     {
+        "id":  "more0086",
+        "slug":  "scale-patterns-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  1,
+        "nameEn":  "Scale patterns on the staff",
+        "nameEs":  "Patrones de escala en el pentagrama",
+        "descEn":  "All forty-eight cells written in C. The number under the note is the scale degree. One shape, one bar, then the next shape.",
+        "descEs":  "Las cuarenta y ocho células escritas en C. El número bajo la nota es el grado. Una forma, un compás, luego la siguiente.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html",
+                          "en":  "Scales and pitch sets",
+                          "es":  "Escalas y conjuntos de alturas"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "en":  "Patterns for Jazz",
+                          "es":  "Patterns for Jazz"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#ligon-technique",
+                          "en":  "Comprehensive Technique",
+                          "es":  "Comprehensive Technique"
+                      }
+                  ],
+        "lines":  [
+                      "C4q_1 D4q_2 E4q_3 G4q_5 · +2",
+                      "C4q_1 G4q_5 D4q_2 E4q_3 · +2",
+                      "C4q_1 G4q_5 E4q_3 D4q_2 · +2",
+                      "D4q_2 C4q_1 G4q_5 E4q_3 · +2",
+                      "D4q_2 E4q_3 C4q_1 G4q_5 · +2",
+                      "D4q_2 G4q_5 E4q_3 C4q_1 · +2",
+                      "E4q_3 D4q_2 C4q_1 G4q_5 · +2",
+                      "E4q_3 G4q_5 D4q_2 C4q_1 · +2",
+                      "E4q_3 G4q_5 C4q_1 D4q_2 · +2",
+                      "G4q_5 E4q_3 D4q_2 C4q_1 · +2",
+                      "G4q_5 E4q_3 C4q_1 D4q_2 · +2",
+                      "G4q_5 C4q_1 D4q_2 E4q_3 · +2",
+                      "C4q_1 E4q_3 F4q_4 G4q_5 · +4",
+                      "C4q_1 G4q_5 F4q_4 E4q_3 · +4",
+                      "C4q_1 F4q_4 E4q_3 G4q_5 · +4",
+                      "E4q_3 F4q_4 G4q_5 C4q_1 · +4",
+                      "E4q_3 C4q_1 F4q_4 G4q_5 · +4",
+                      "E4q_3 G4q_5 C4q_1 F4q_4 · +4",
+                      "F4q_4 G4q_5 E4q_3 C4q_1 · +4",
+                      "F4q_4 C4q_1 E4q_3 G4q_5 · +4",
+                      "F4q_4 E4q_3 C4q_1 G4q_5 · +4",
+                      "G4q_5 F4q_4 E4q_3 C4q_1 · +4",
+                      "G4q_5 C4q_1 F4q_4 E4q_3 · +4",
+                      "G4q_5 C4q_1 E4q_3 F4q_4 · +4",
+                      "C4q_1 E4q_3 G4q_5 A4q_6 · +6",
+                      "C4q_1 A4q_6 G4q_5 E4q_3 · +6",
+                      "C4q_1 G4q_5 E4q_3 A4q_6 · +6",
+                      "E4q_3 A4q_6 G4q_5 C4q_1 · +6",
+                      "E4q_3 C4q_1 A4q_6 G4q_5 · +6",
+                      "E4q_3 G4q_5 C4q_1 A4q_6 · +6",
+                      "G4q_5 E4q_3 C4q_1 A4q_6 · +6",
+                      "G4q_5 A4q_6 C4q_1 E4q_3 · +6",
+                      "G4q_5 C4q_1 E4q_3 A4q_6 · +6",
+                      "A4q_6 G4q_5 E4q_3 C4q_1 · +6",
+                      "A4q_6 C4q_1 E4q_3 G4q_5 · +6",
+                      "A4q_6 G4q_5 C4q_1 E4q_3 · +6",
+                      "C4q_1 E4q_3 G4q_5 B4q_7 · +7",
+                      "C4q_1 G4q_5 E4q_3 B4q_7 · +7",
+                      "C4q_1 B4q_7 G4q_5 E4q_3 · +7",
+                      "E4q_3 G4q_5 B4q_7 C4q_1 · +7",
+                      "E4q_3 B4q_7 G4q_5 C4q_1 · +7",
+                      "E4q_3 C4q_1 B4q_7 G4q_5 · +7",
+                      "G4q_5 E4q_3 C4q_1 B4q_7 · +7",
+                      "G4q_5 C4q_1 E4q_3 B4q_7 · +7",
+                      "G4q_5 B4q_7 C4q_1 E4q_3 · +7",
+                      "B4q_7 G4q_5 E4q_3 C4q_1 · +7",
+                      "B4q_7 C4q_1 E4q_3 G4q_5 · +7",
+                      "B4q_7 E4q_3 G4q_5 C4q_1 · +7"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0025",
         "slug":  "lower-structure-triads",
         "bars":  2,
@@ -1086,6 +1911,55 @@
                       "Augmented/Major 7 · I+ and III"
                   ]
     },
+    {
+        "id":  "more0088",
+        "slug":  "lower-structure-triads-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Lower structure triads on the staff",
+        "nameEs":  "Tríades de estructura inferior en el pentagrama",
+        "descEn":  "Each chord type on C, with the lower triads written out. 7sus4 uses the bVII and the sus triad the text points to. The diminished seventh walks its four triads.",
+        "descEs":  "Cada tipo de acorde sobre C, con las tríades inferiores escritas. El 7sus4 usa el bVII y la tríada sus. La séptima disminuida recorre sus cuatro tríades.",
+        "books":  [
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#levine-theory",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4q E4q G4q C5q | E4q G4q B4q E5q · Major 7 Â· I and III-",
+                      "^C6 C4q E4q G4q C5q | A4q C5q E5q A5q · Major 6 Â· I and VI-",
+                      "^C7 C4q E4q G4q C5q | E4q G4q Bb4q E5q · Dominant 7 Â· I and IIIdim",
+                      "^C7sus Bb4q D5q F5q Bb4q | C4q F4q G4q C5q · 7sus4 Â· bVII and I",
+                      "^C7#5 C4q E4q G#4q C5q | C5q G#4q E4q C4q · Augmented dominant Â· I+",
+                      "^CmMaj7 C4q Eb4q G4q C5q | Eb4q G4q B4q Eb5q · Minor-major 7 Â· I- and bIII+",
+                      "^Cm6 C4q Eb4q G4q C5q | A4q C5q Eb5q A4q · Minor 6 Â· I- and VIdim",
+                      "^Cm7 C4q Eb4q G4q C5q | Eb4q G4q Bb4q Eb5q · Minor 7 Â· I- and bIII",
+                      "^Cm7b5 C4q Eb4q Gb4q C5q | Eb4q Gb4q Bb4q Eb5q · Minor 7b5 Â· Idim and bIII-",
+                      "^Cdim7 C4e Eb4e Gb4e Eb4e Gb4e A4e Gb4e A4e | C5e A4e C5e Eb5e rq rq · Diminished 7 Â· Idim bIIIdim bVdim VIdim",
+                      "^Cmaj7#5 C4q E4q G#4q C5q | E4q G#4q B4q E5q · Augmented major 7 Â· I+ and III"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0026",
         "slug":  "upper-structure-triads",
@@ -1139,6 +2013,63 @@
                   ]
     },
     {
+        "id":  "more0089",
+        "slug":  "upper-structure-triads-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Upper structure triads on the staff",
+        "nameEs":  "Tríades de estructura superior en el pentagrama",
+        "descEn":  "Each upper structure from the list, spelled on a C chord of that scale. The triads repeat until the two bars are full.",
+        "descEs":  "Cada estructura superior de la lista, escrita sobre un acorde de C de esa escala. Las tríades se repiten hasta llenar los dos compases.",
+        "books":  [
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#lower-structure-triads",
+                          "en":  "Lower structure triads",
+                          "es":  "Tríades de estructura inferior"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 G4e B4e D5e G4e B4e D5e G4e B4e | D5e G4e B4e D5e G4e B4e D5e re · Ionian Â· V",
+                      "^Cmaj7 D4e F#4e A4e G4e B4e D5e B3e D#4e | F#4e rh. re · Lydian Â· II, V, VII-",
+                      "^C7sus C4e E4e G4e D4e F#4e A4e F4e A4e | C5e A3e C#4e E4e Bb3e D4e F4e re · Mixolydian sus 4 Â· I, II-, IV, VI-, bVII",
+                      "^C7 G4e B4e D5e A3e C#4e E4e Bb3e D4e | F4e rh. re · Mixolydian Â· V-, VI-, (bVII)",
+                      "^C7 D4e F#4e A4e Bb3e D4e F#4e D4e F#4e | A4e Bb3e D4e F#4e rh · Lydian b7 Â· II, bVII+",
+                      "^C7alt Gb4e Bb4e Db5e Ab3e C4e Eb4e Db4e F4e | Ab4e Eb4e G4e Bb4e rh · Altered Â· bV, bVI, bII-, bIII-",
+                      "^C7 Eb4e G4e Bb4e Gb4e Bb4e Db5e A3e C#4e | E4e rh. re · Half-whole Â· bIII, bV, VI",
+                      "^C7 D4e F#4e A#4e D4e F#4e A#4e D4e F#4e | A#4e D4e F#4e A#4e D4e F#4e A#4e re · Whole tone Â· II+",
+                      "^C7 Db4e F4e Ab4e E4e G#4e B#4e Db4e F4e | Ab4e E4e G#4e B#4e rh · Mixolydian b9 b13 Â· bII-, III+",
+                      "^Cm6 D4e F#4e A4e Eb4e G4e B4e F4e A4e | C5e G4e B4e D5e rh · Melodic minor Â· II-, bIII+, IV, V",
+                      "^CmMaj7 G4e B4e D5e G4e B4e D5e G4e B4e | D5e G4e B4e D5e G4e B4e D5e re · Harmonic minor Â· V",
+                      "^Cm7 D4e F#4e A4e F4e A4e C5e G4e B4e | D5e Bb3e D4e F4e rh · Dorian Â· II-, IV, V-, bVII",
+                      "^Cm7 G4e B4e D5e Bb3e D4e F4e G4e B4e | D5e Bb3e D4e F4e rh · Aeolian Â· V-, bVII",
+                      "^Cm7 Ab3e C4e Eb4e Db4e F4e Ab4e Ab3e C4e | Eb4e Db4e F4e Ab4e rh · Phrygian Â· bVI, (bII)",
+                      "^Cm7b5 Ab3e C4e Eb4e Db4e F4e Ab4e Gb4e Bb4e | Db5e rh. re · Locrian Â· bVI, (bII), (bV)",
+                      "^Cm7b5 Ab3e C4e Eb4e Bb3e D4e F4e Ab3e C4e | Eb4e Bb3e D4e F4e rh · Locrian ♮9 Â· bVI, bVII",
+                      "^Cdim7 D4e F#4e A4e F4e A4e C5e Ab3e C4e | Eb4e B3e D#4e F#4e rh · Whole-half Â· II, IV, bVI, VII",
+                      "^Cmaj7#5 B3e D#4e F#4e D4e F#4e A4e B3e D#4e | F#4e D4e F#4e A4e rh · Lydian augmented Â· VII-, (II)",
+                      "^Cmaj7#5 G4e B4e D5e G4e B4e D5e G4e B4e | D5e G4e B4e D5e G4e B4e D5e re · Ionian augmented Â· V"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0027",
         "slug":  "major-pentatonics-on-chords",
         "bars":  2,
@@ -1190,6 +2121,57 @@
                       "Ionian augmented · Augmented/Major 7 — none"
                   ]
     },
+    {
+        "id":  "more0090",
+        "slug":  "major-pentatonics-on-chords-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Major pentatonics on chords on the staff",
+        "nameEs":  "Pentatónicas mayores sobre acordes en el pentagrama",
+        "descEn":  "Every major pentatonic the text names, written on a C chord of that scale. A row marked none has no pentatonic to write, so it stays in the text exercise.",
+        "descEs":  "Cada pentatónica mayor que el texto nombra, escrita sobre un acorde de C de esa escala. Una fila con none no tiene pentatónica que escribir, y se queda en el ejercicio de texto.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales for Jazz",
+                          "es":  "Pentatonic Scales for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4e D4e E4e G4e A4e C5e A4e G4e | G4e A4e B4e D5e E5e G5e E5e D5e | C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e · Ionian",
+                      "^Cmaj7 C4e D4e E4e G4e A4e C5e A4e G4e | D4e E4e F#4e A4e B4e D5e B4e A4e | G4e A4e B4e D5e E5e G5e E5e D5e | C4e D4e E4e G4e A4e C5e A4e G4e · Lydian",
+                      "^C7sus C4e D4e E4e G4e A4e C5e A4e G4e | F4e G4e A4e C5e D5e F5e D5e C5e | Bb3e C4e D4e F4e G4e Bb4e G4e F4e | C4e D4e E4e G4e A4e C5e A4e G4e · Mixolydian sus 4",
+                      "^C7 C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e · Mixolydian",
+                      "^C7 C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e · Lydian b7",
+                      "^C7alt Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e | Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e | Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e | Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e · Altered",
+                      "^Cm6 F4e G4e A4e C5e D5e F5e D5e C5e | F4e G4e A4e C5e D5e F5e D5e C5e | F4e G4e A4e C5e D5e F5e D5e C5e | F4e G4e A4e C5e D5e F5e D5e C5e · Melodic minor",
+                      "^Cm7 Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e | F4e G4e A4e C5e D5e F5e D5e C5e | Bb3e C4e D4e F4e G4e Bb4e G4e F4e | Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e · Dorian",
+                      "^Cm7 Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e | Bb3e C4e D4e F4e G4e Bb4e G4e F4e | Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e | Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e · Aeolian",
+                      "^Cm7 Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Db4e Eb4e F4e Ab4e Bb4e Db5e Bb4e Ab4e | Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e · Phrygian",
+                      "^Cm7b5 Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e · Locrian",
+                      "^Cm7b5 Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e · Locrian ♮9",
+                      "^Cmaj7#5 D4e E4e F#4e A4e B4e D5e B4e A4e | D4e E4e F#4e A4e B4e D5e B4e A4e | D4e E4e F#4e A4e B4e D5e B4e A4e | D4e E4e F#4e A4e B4e D5e B4e A4e · Lydian augmented"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0028",
         "slug":  "triad-coupling-relationships",
@@ -1364,6 +2346,101 @@
                   ]
     },
     {
+        "id":  "more0091",
+        "slug":  "tritonic-structures-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Tritonic, 7sus4, pentatonic on the staff",
+        "nameEs":  "Tritónico, 7sus4, pentatónica en el pentagrama",
+        "descEn":  "Each named structure spelled from its degree on a C chord. Tritonic is 1-4-5, 7sus4 adds the flat 7, and pentatonic is the minor pentatonic. Where the text pairs Dorian and Mixolydian, bar 1 is Cm7 and bar 2 is C7.",
+        "descEs":  "Cada estructura nombrada, escrita desde su grado sobre un acorde de C. Tritónico es 1-4-5, 7sus4 suma la 7a bemol, y pentatónica es la pentatónica menor. Donde el texto junta dórico y mixolidio, el compás 1 es Cm7 y el 2 es C7.",
+        "books":  [
+                      {
+                          "href":  "./more.html#add2-add4-madd4",
+                          "en":  "add2, add4, madd4",
+                          "es":  "add2, add4, madd4"
+                      },
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4q F4q G4q C5q | ^Cmaj7 C5q G4q F4q C4q · Tritonic C Â· Maj7 Ionian",
+                      "^Cmaj7 D4q G4q A4q D5q | ^Cmaj7 D5q A4q G4q D4q · Tritonic D Â· Maj7 Ionian",
+                      "^Cmaj7 E4q A4q B4q E5q | ^Cmaj7 E5q B4q A4q E4q · Tritonic E Â· Maj7 Ionian",
+                      "^Cmaj7 G4q C5q D5q G5q | ^Cmaj7 G5q D5q C5q G4q · Tritonic G Â· Maj7 Ionian",
+                      "^Cmaj7 A3q D4q E4q A4q | ^Cmaj7 A4q E4q D4q A3q · Tritonic A Â· Maj7 Ionian",
+                      "^Cmaj7 B3q E4q F#4q B4q | ^Cmaj7 B4q F#4q E4q B3q · Tritonic B Â· Maj7 Ionian",
+                      "^Cmaj7 D4q G4q A4q C5q | ^Cmaj7 C5q A4q G4q D4q · 7sus4 D Â· Maj7 Ionian",
+                      "^Cmaj7 E4q A4q B4q D5q | ^Cmaj7 D5q B4q A4q E4q · 7sus4 E Â· Maj7 Ionian",
+                      "^Cmaj7 G4q C5q D5q F5q | ^Cmaj7 F5q D5q C5q G4q · 7sus4 G Â· Maj7 Ionian",
+                      "^Cmaj7 A3q D4q E4q G4q | ^Cmaj7 G4q E4q D4q A3q · 7sus4 A Â· Maj7 Ionian",
+                      "^Cmaj7 B3q E4q F#4q A4q | ^Cmaj7 A4q F#4q E4q B3q · 7sus4 B Â· Maj7 Ionian",
+                      "^Cmaj7 D4e F4e G4e A4e C5e D5e C5e A4e | G4e F4e D4e D4e F4e G4e A4e C5e · Pent D Â· Maj7 Ionian",
+                      "^Cmaj7 E4e G4e A4e B4e D5e E5e D5e B4e | A4e G4e E4e E4e G4e A4e B4e D5e · Pent E Â· Maj7 Ionian",
+                      "^Cmaj7 A3e C4e D4e E4e G4e A4e G4e E4e | D4e C4e A3e A3e C4e D4e E4e G4e · Pent A Â· Maj7 Ionian",
+                      "^Cmaj7 B3e D4e E4e F#4e A4e B4e A4e F#4e | E4e D4e B3e B3e D4e E4e F#4e A4e · Pent B Â· Maj7 Ionian",
+                      "^Cmaj7 C4q F4q G4q C5q | ^Cmaj7 C5q G4q F4q C4q · Tritonic C Â· Maj7 Lydian",
+                      "^Cmaj7 D4q G4q A4q D5q | ^Cmaj7 D5q A4q G4q D4q · Tritonic D Â· Maj7 Lydian",
+                      "^Cmaj7 F4q Bb4q C5q F5q | ^Cmaj7 F5q C5q Bb4q F4q · Tritonic F Â· Maj7 Lydian",
+                      "^Cmaj7 G4q C5q D5q G5q | ^Cmaj7 G5q D5q C5q G4q · Tritonic G Â· Maj7 Lydian",
+                      "^Cmaj7 B3q E4q F#4q B4q | ^Cmaj7 B4q F#4q E4q B3q · Tritonic B Â· Maj7 Lydian",
+                      "^Cmaj7 C4q F4q G4q Bb4q | ^Cmaj7 Bb4q G4q F4q C4q · 7sus4 C Â· Maj7 Lydian",
+                      "^Cmaj7 D4q G4q A4q C5q | ^Cmaj7 C5q A4q G4q D4q · 7sus4 D Â· Maj7 Lydian",
+                      "^Cmaj7 F4q Bb4q C5q Eb5q | ^Cmaj7 Eb5q C5q Bb4q F4q · 7sus4 F Â· Maj7 Lydian",
+                      "^Cmaj7 G4q C5q D5q F5q | ^Cmaj7 F5q D5q C5q G4q · 7sus4 G Â· Maj7 Lydian",
+                      "^Cmaj7 C4e Eb4e F4e G4e Bb4e C5e Bb4e G4e | F4e Eb4e C4e C4e Eb4e F4e G4e Bb4e · Pent C Â· Maj7 Lydian",
+                      "^Cmaj7 D4e F4e G4e A4e C5e D5e C5e A4e | G4e F4e D4e D4e F4e G4e A4e C5e · Pent D Â· Maj7 Lydian",
+                      "^Cmaj7 G4e Bb4e C5e D5e F5e G5e F5e D5e | C5e Bb4e G4e G4e Bb4e C5e D5e F5e · Pent G Â· Maj7 Lydian",
+                      "^Cm7 C4q F4q G4q C5q | ^C7 C5q G4q F4q C4q · Tritonic C Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 D4q G4q A4q D5q | ^C7 D5q A4q G4q D4q · Tritonic D Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 F4q Bb4q C5q F5q | ^C7 F5q C5q Bb4q F4q · Tritonic F Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 G4q C5q D5q G5q | ^C7 G5q D5q C5q G4q · Tritonic G Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 A3q D4q E4q A4q | ^C7 A4q E4q D4q A3q · Tritonic A Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 C4q F4q G4q Bb4q | ^C7 Bb4q G4q F4q C4q · 7sus4 C Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 D4q G4q A4q C5q | ^C7 C5q A4q G4q D4q · 7sus4 D Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 G4q C5q D5q F5q | ^C7 F5q D5q C5q G4q · 7sus4 G Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 A3q D4q E4q G4q | ^C7 G4q E4q D4q A3q · 7sus4 A Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 D4e F4e G4e A4e C5e D5e C5e A4e | ^C7 G4e F4e D4e D4e F4e G4e A4e C5e · Pent D Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 G4e Bb4e C5e D5e F5e G5e F5e D5e | ^C7 C5e Bb4e G4e G4e Bb4e C5e D5e F5e · Pent G Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7 A3e C4e D4e E4e G4e A4e G4e E4e | ^C7 D4e C4e A3e A3e C4e D4e E4e G4e · Pent A Â· Min7 Dorian / Dom7 Mixolydian",
+                      "^Cm7b5 Db4q Gb4q Ab4q Db5q | ^Cm7b5 Db5q Ab4q Gb4q Db4q · Tritonic Db Â· Half-dim Locrian",
+                      "^Cm7b5 Eb4q Ab4q Bb4q Eb5q | ^Cm7b5 Eb5q Bb4q Ab4q Eb4q · Tritonic Eb Â· Half-dim Locrian",
+                      "^Cm7b5 F4q Bb4q C5q F5q | ^Cm7b5 F5q C5q Bb4q F4q · Tritonic F Â· Half-dim Locrian",
+                      "^Cm7b5 Ab3q Db4q Eb4q Ab4q | ^Cm7b5 Ab4q Eb4q Db4q Ab3q · Tritonic Ab Â· Half-dim Locrian",
+                      "^Cm7b5 B3q E4q F#4q B4q | ^Cm7b5 B4q F#4q E4q B3q · Tritonic B Â· Half-dim Locrian",
+                      "^Cm7b5 Eb4q Ab4q Bb4q Db5q | ^Cm7b5 Db5q Bb4q Ab4q Eb4q · 7sus4 Eb Â· Half-dim Locrian",
+                      "^Cm7b5 F4q Bb4q C5q Eb5q | ^Cm7b5 Eb5q C5q Bb4q F4q · 7sus4 F Â· Half-dim Locrian",
+                      "^Cm7b5 Ab3q Db4q Eb4q Gb4q | ^Cm7b5 Gb4q Eb4q Db4q Ab3q · 7sus4 Ab Â· Half-dim Locrian",
+                      "^Cm7b5 B3q E4q F#4q A4q | ^Cm7b5 A4q F#4q E4q B3q · 7sus4 B Â· Half-dim Locrian",
+                      "^Cm7b5 Eb4e Gb4e Ab4e Bb4e Db5e Eb5e Db5e Bb4e | Ab4e Gb4e Eb4e Eb4e Gb4e Ab4e Bb4e Db5e · Pent Eb Â· Half-dim Locrian",
+                      "^Cm7b5 F4e Ab4e Bb4e C5e Eb5e F5e Eb5e C5e | Bb4e Ab4e F4e F4e Ab4e Bb4e C5e Eb5e · Pent F Â· Half-dim Locrian",
+                      "^Cm7b5 B3e D4e E4e F#4e A4e B4e A4e F#4e | E4e D4e B3e B3e D4e E4e F#4e A4e · Pent B Â· Half-dim Locrian",
+                      "^C7alt Db4q Gb4q Ab4q Db5q | ^C7alt Db5q Ab4q Gb4q Db4q · Tritonic Db Â· Altered",
+                      "^C7alt D#4q G#4q A#4q D#5q | ^C7alt D#5q A#4q G#4q D#4q · Tritonic D# Â· Altered",
+                      "^C7alt G#3q C#4q D#4q G#4q | ^C7alt G#4q D#4q C#4q G#3q · Tritonic G# Â· Altered",
+                      "^C7alt D#4q G#4q A#4q C#5q | ^C7alt C#5q A#4q G#4q D#4q · 7sus4 D# Â· Altered",
+                      "^C7alt G#3q C#4q D#4q F#4q | ^C7alt F#4q D#4q C#4q G#3q · 7sus4 G# Â· Altered",
+                      "^C7alt D#4e F#4e G#4e A#4e C#5e D#5e C#5e A#4e | G#4e F#4e D#4e D#4e F#4e G#4e A#4e C#5e · Pent D# Â· Altered"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0031",
         "slug":  "add2-add4-madd4",
         "bars":  2,
@@ -1434,6 +2511,81 @@
                   ]
     },
     {
+        "id":  "more0092",
+        "slug":  "add-colors-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "add2, add4, madd4 on the staff",
+        "nameEs":  "add2, add4, madd4 en el pentagrama",
+        "descEn":  "add2 is 1-2-3-5, add4 is 1-3-4-5, and madd4 is 1-b3-4-5, each spelled from the named degree on a C chord.",
+        "descEs":  "add2 es 1-2-3-5, add4 es 1-3-4-5, y madd4 es 1-b3-4-5, cada una escrita desde el grado nombrado sobre un acorde de C.",
+        "books":  [
+                      {
+                          "href":  "./more.html#tritonic-7sus4-pentatonic",
+                          "en":  "Tritonic, 7sus4, pentatonic",
+                          "es":  "Tritónico, 7sus4, pentatónica"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "All Chords",
+                          "es":  "Todos los acordes"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4q D4q E4q G4q | ^Cmaj7 G4q E4q D4q C4q · add2 C Â· Maj7 Ionian",
+                      "^Cmaj7 F4q G4q A4q C5q | ^Cmaj7 C5q A4q G4q F4q · add2 F Â· Maj7 Ionian",
+                      "^Cmaj7 D4q E4q F#4q A4q | ^Cmaj7 A4q F#4q E4q D4q · add2 D Â· Maj7 Ionian",
+                      "^Cmaj7 C4q E4q F4q G4q | ^Cmaj7 G4q F4q E4q C4q · add4 C Â· Maj7 Ionian",
+                      "^Cmaj7 D4q F#4q G4q A4q | ^Cmaj7 A4q G4q F#4q D4q · add4 D Â· Maj7 Ionian",
+                      "^Cmaj7 D4q F4q G4q A4q | ^Cmaj7 A4q G4q F4q D4q · madd4 D Â· Maj7 Ionian",
+                      "^Cmaj7 E4q G4q A4q B4q | ^Cmaj7 B4q A4q G4q E4q · madd4 E Â· Maj7 Ionian",
+                      "^Cmaj7 B3q D4q E4q F#4q | ^Cmaj7 F#4q E4q D4q B3q · madd4 B Â· Maj7 Ionian",
+                      "^Cm7 Eb4q F4q G4q Bb4q | ^Cm7 Bb4q G4q F4q Eb4q · add2 Eb Â· Min7 Dorian",
+                      "^Cm7 F4q G4q A4q C5q | ^Cm7 C5q A4q G4q F4q · add2 F Â· Min7 Dorian",
+                      "^Cm7 Bb3q C4q D4q F4q | ^Cm7 F4q D4q C4q Bb3q · add2 Bb Â· Min7 Dorian",
+                      "^Cm7 F4q A4q Bb4q C5q | ^Cm7 C5q Bb4q A4q F4q · add4 F Â· Min7 Dorian",
+                      "^Cm7 Bb3q D4q Eb4q F4q | ^Cm7 F4q Eb4q D4q Bb3q · add4 Bb Â· Min7 Dorian",
+                      "^Cm7 C4q Eb4q F4q G4q | ^Cm7 G4q F4q Eb4q C4q · madd4 C Â· Min7 Dorian",
+                      "^Cm7 D4q F4q G4q A4q | ^Cm7 A4q G4q F4q D4q · madd4 D Â· Min7 Dorian",
+                      "^Cm7 G4q Bb4q C5q D5q | ^Cm7 D5q C5q Bb4q G4q · madd4 G Â· Min7 Dorian",
+                      "^C7 C4q D4q E4q G4q | ^C7 G4q E4q D4q C4q · add2 C Â· Dom7 Mixolydian",
+                      "^C7 F4q G4q A4q C5q | ^C7 C5q A4q G4q F4q · add2 F Â· Dom7 Mixolydian",
+                      "^C7 Bb3q C4q D4q F4q | ^C7 F4q D4q C4q Bb3q · add2 Bb Â· Dom7 Mixolydian",
+                      "^C7 C4q E4q F4q G4q | ^C7 G4q F4q E4q C4q · add4 C Â· Dom7 Mixolydian",
+                      "^C7 F4q A4q Bb4q C5q | ^C7 C5q Bb4q A4q F4q · add4 F Â· Dom7 Mixolydian",
+                      "^C7 D4q F4q G4q A4q | ^C7 A4q G4q F4q D4q · madd4 D Â· Dom7 Mixolydian",
+                      "^C7 G4q Bb4q C5q D5q | ^C7 D5q C5q Bb4q G4q · madd4 G Â· Dom7 Mixolydian",
+                      "^C7 A3q C4q D4q E4q | ^C7 E4q D4q C4q A3q · madd4 A Â· Dom7 Mixolydian",
+                      "^Cm7b5 Db4q Eb4q F4q Ab4q | ^Cm7b5 Ab4q F4q Eb4q Db4q · add2 Db Â· Half-dim Locrian",
+                      "^Cm7b5 Gb4q Ab4q Bb4q Db5q | ^Cm7b5 Db5q Bb4q Ab4q Gb4q · add2 Gb Â· Half-dim Locrian",
+                      "^Cm7b5 Ab3q Bb3q C4q Eb4q | ^Cm7b5 Eb4q C4q Bb3q Ab3q · add2 Ab Â· Half-dim Locrian",
+                      "^Cm7b5 Db4q F4q Gb4q Ab4q | ^Cm7b5 Ab4q Gb4q F4q Db4q · add4 Db Â· Half-dim Locrian",
+                      "^Cm7b5 Ab3q C4q Db4q Eb4q | ^Cm7b5 Eb4q Db4q C4q Ab3q · add4 Ab Â· Half-dim Locrian",
+                      "^Cm7b5 Eb4q Gb4q Ab4q Bb4q | ^Cm7b5 Bb4q Ab4q Gb4q Eb4q · madd4 Eb Â· Half-dim Locrian",
+                      "^Cm7b5 F4q Ab4q Bb4q C5q | ^Cm7b5 C5q Bb4q Ab4q F4q · madd4 F Â· Half-dim Locrian",
+                      "^Cm7b5 B3q D4q E4q F#4q | ^Cm7b5 F#4q E4q D4q B3q · madd4 B Â· Half-dim Locrian",
+                      "^C7alt Gb4q Ab4q Bb4q Db5q | ^C7alt Db5q Bb4q Ab4q Gb4q · add2 Gb Â· Altered",
+                      "^C7alt G#3q A#3q B#3q D#4q | ^C7alt D#4q B#3q A#3q G#3q · add2 G# Â· Altered",
+                      "^C7alt G#3q B#3q C#4q D#4q | ^C7alt D#4q C#4q B#3q G#3q · add4 G# Â· Altered",
+                      "^C7alt Db4q Fb4q Gb4q Ab4q | ^C7alt Ab4q Gb4q Fb4q Db4q · madd4 Db Â· Altered",
+                      "^C7alt D#4q F#4q G#4q A#4q | ^C7alt A#4q G#4q F#4q D#4q · madd4 D# Â· Altered"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "one-two-three-five-perms",
         "id":  "more0032",
         "descEs":  "Los veinticuatro órdenes de la célula 1-2-3-5. Una forma por turno sobre cada acorde. Une cada compás con el enlace más cercano.",
@@ -1486,6 +2638,63 @@
         "descEn":  "All twenty-four orders of the 1-2-3-5 cell. One shape per turn over every chord. Connect each bar with the closest voice leading."
     },
     {
+        "id":  "more0087",
+        "slug":  "one-two-three-five-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "1-2-3-5 permutations on the staff",
+        "nameEs":  "Permutaciones 1-2-3-5 en el pentagrama",
+        "descEn":  "All twenty-four orders written in C. Bar 1 is the order. Bar 2 is that order backwards, so the next shape can begin near the last note.",
+        "descEs":  "Los veinticuatro órdenes escritos en C. El compás 1 es el orden. El compás 2 es ese orden al revés, para que la forma siguiente empiece cerca de la última nota.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#scale-patterns",
+                          "en":  "Scale patterns",
+                          "es":  "Patrones de escala"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "en":  "Patterns for Jazz",
+                          "es":  "Patterns for Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "C4q_1 D4q_2 E4q_3 G4q_5 | G4q_5 E4q_3 D4q_2 C4q_1 · 1 2 3 5",
+                      "C4q_1 D4q_2 G4q_5 E4q_3 | E4q_3 G4q_5 D4q_2 C4q_1 · 1 2 5 3",
+                      "C4q_1 E4q_3 D4q_2 G4q_5 | G4q_5 D4q_2 E4q_3 C4q_1 · 1 3 2 5",
+                      "C4q_1 E4q_3 G4q_5 D4q_2 | D4q_2 G4q_5 E4q_3 C4q_1 · 1 3 5 2",
+                      "C4q_1 G4q_5 D4q_2 E4q_3 | E4q_3 D4q_2 G4q_5 C4q_1 · 1 5 2 3",
+                      "C4q_1 G4q_5 E4q_3 D4q_2 | D4q_2 E4q_3 G4q_5 C4q_1 · 1 5 3 2",
+                      "D4q_2 C4q_1 E4q_3 G4q_5 | G4q_5 E4q_3 C4q_1 D4q_2 · 2 1 3 5",
+                      "D4q_2 C4q_1 G4q_5 E4q_3 | E4q_3 G4q_5 C4q_1 D4q_2 · 2 1 5 3",
+                      "D4q_2 E4q_3 C4q_1 G4q_5 | G4q_5 C4q_1 E4q_3 D4q_2 · 2 3 1 5",
+                      "D4q_2 E4q_3 G4q_5 C4q_1 | C4q_1 G4q_5 E4q_3 D4q_2 · 2 3 5 1",
+                      "D4q_2 G4q_5 C4q_1 E4q_3 | E4q_3 C4q_1 G4q_5 D4q_2 · 2 5 1 3",
+                      "D4q_2 G4q_5 E4q_3 C4q_1 | C4q_1 E4q_3 G4q_5 D4q_2 · 2 5 3 1",
+                      "E4q_3 C4q_1 D4q_2 G4q_5 | G4q_5 D4q_2 C4q_1 E4q_3 · 3 1 2 5",
+                      "E4q_3 C4q_1 G4q_5 D4q_2 | D4q_2 G4q_5 C4q_1 E4q_3 · 3 1 5 2",
+                      "E4q_3 D4q_2 C4q_1 G4q_5 | G4q_5 C4q_1 D4q_2 E4q_3 · 3 2 1 5",
+                      "E4q_3 D4q_2 G4q_5 C4q_1 | C4q_1 G4q_5 D4q_2 E4q_3 · 3 2 5 1",
+                      "E4q_3 G4q_5 C4q_1 D4q_2 | D4q_2 C4q_1 G4q_5 E4q_3 · 3 5 1 2",
+                      "E4q_3 G4q_5 D4q_2 C4q_1 | C4q_1 D4q_2 G4q_5 E4q_3 · 3 5 2 1",
+                      "G4q_5 C4q_1 D4q_2 E4q_3 | E4q_3 D4q_2 C4q_1 G4q_5 · 5 1 2 3",
+                      "G4q_5 C4q_1 E4q_3 D4q_2 | D4q_2 E4q_3 C4q_1 G4q_5 · 5 1 3 2",
+                      "G4q_5 D4q_2 C4q_1 E4q_3 | E4q_3 C4q_1 D4q_2 G4q_5 · 5 2 1 3",
+                      "G4q_5 D4q_2 E4q_3 C4q_1 | C4q_1 E4q_3 D4q_2 G4q_5 · 5 2 3 1",
+                      "G4q_5 E4q_3 C4q_1 D4q_2 | D4q_2 C4q_1 E4q_3 G4q_5 · 5 3 1 2",
+                      "G4q_5 E4q_3 D4q_2 C4q_1 | C4q_1 D4q_2 E4q_3 G4q_5 · 5 3 2 1"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "phrase-start-end",
         "id":  "more0033",
         "descEs":  "Fuerza dónde empieza la frase y dónde aterriza. Cada inicio y final habitual tiene turno para que el tiempo 1 no sea la única entrada.",
@@ -1528,6 +2737,54 @@
                   ],
         "descEn":  "Force where the phrase begins and where it lands. Every common start and end beat gets a turn so beat 1 does not own every entrance."
     },
+    {
+        "id":  "more0093",
+        "slug":  "phrase-start-end-staff",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Phrase start and end on the staff",
+        "nameEs":  "Inicio y final de frase en el pentagrama",
+        "descEn":  "One written phrase per cue. C-D-E-G leads to C5. The first note is on the start beat and C5 is on the end beat, inside four bars.",
+        "descEs":  "Una frase escrita por consigna. C-D-E-G llega a C5. La primera nota cae en el tiempo de entrada y C5 en el tiempo de llegada, dentro de cuatro compases.",
+        "books":  [
+                      {
+                          "href":  "./more.html#into-the-bar",
+                          "en":  "Into the next bar",
+                          "es":  "Hacia el siguiente compás"
+                      },
+                      {
+                          "href":  "./time.html",
+                          "en":  "Time",
+                          "es":  "Tiempo"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#galper-forward-motion",
+                          "en":  "Forward Motion",
+                          "es":  "Forward Motion"
+                      }
+                  ],
+        "lines":  [
+                      "re re re re re re re re | C4e re re re re D4e E4e G4e | C5e re re re re re re re | re re re re re re re re · Start on beat 1 · end on 1",
+                      "re re re re re re re re | C4e re re re re re re re | re D4e E4e G4e C5e re re re | re re re re re re re re · Start on beat 1 · end on 3",
+                      "re re re re re re re re | C4e re re re re re re re | re re re re D4e E4e G4e C5e | re re re re re re re re · Start on beat 1 · end on and of 4",
+                      "re re re re re re re re | re re C4e re re D4e E4e G4e | C5e re re re re re re re | re re re re re re re re · Start on beat 2 · end on 1",
+                      "re re re re re re re re | re re C4e re re re re re | re D4e E4e G4e C5e re re re | re re re re re re re re · Start on beat 2 · end on 3",
+                      "re re re re re re re re | re re C4e re re re re re | re re re D4e E4e G4e C5e re | re re re re re re re re · Start on beat 2 · end on 4",
+                      "re re re re re re re re | re re re re C4e D4e E4e G4e | C5e re re re re re re re | re re re re re re re re · Start on beat 3 · end on 1",
+                      "re re re re re re re re | re re re re C4e re re re | re D4e E4e G4e C5e re re re | re re re re re re re re · Start on beat 3 · end on 3",
+                      "re re re re re re re re | re re re re re re C4e re | re re re re re D4e E4e G4e | C5e re re re re re re re · Start on beat 4 · end on 1",
+                      "re re re re re re re re | re C4e re re re D4e E4e G4e | C5e re re re re re re re | re re re re re re re re · Start on and of 1 · end on 1",
+                      "re re re re re re re re | re re re C4e re D4e E4e G4e | C5e re re re re re re re | re re re re re re re re · Start on and of 2 · end on 1",
+                      "re re re re re re re re | re re re re re re re C4e | re re re re re D4e E4e G4e | C5e re re re re re re re · Start on and of 4 · end on 1",
+                      "re re re re re re re re | re re re re re re re C4e | re D4e E4e G4e C5e re re re | re re re re re re re re · Start on and of 4 · end on 3",
+                      "re re re re re re re re | re re re re re re C4e re | D4e E4e G4e C5e re re re re | re re re re re re re re · Start on beat 4 · end on and of 2",
+                      "re re re re re re re re | re re C4e re re re re re | re re re re D4e E4e G4e C5e | re re re re re re re re · Start anywhere · end on and of 4"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "time-feel",
         "id":  "more0034",
@@ -1609,6 +2866,51 @@
         "descEn":  "Replace stock 1-2-3-5 with other four-note shapes by chord quality. One formula per turn so the familiar cell does not take every chorus."
     },
     {
+        "id":  "more0094",
+        "slug":  "alt-four-note-cells-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Four-note cells on the staff",
+        "nameEs":  "Células de cuatro notas en el pentagrama",
+        "descEn":  "Each cell written in C. Bar 1 is the cell. Bar 2 is the cell backwards.",
+        "descEs":  "Cada célula escrita en C. El compás 1 es la célula. El compás 2 es la célula al revés.",
+        "books":  [
+                      {
+                          "href":  "./more.html#one-two-three-five-perms",
+                          "en":  "1-2-3-5 permutations",
+                          "es":  "Permutaciones 1-2-3-5"
+                      },
+                      {
+                          "href":  "./more.html#scale-patterns",
+                          "en":  "Scale patterns",
+                          "es":  "Patrones de escala"
+                      },
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      }
+                  ],
+        "lines":  [
+                      "C4q D4q E4q G4q | G4q E4q D4q C4q · major / dominant",
+                      "C4q E4q F4q G4q | G4q F4q E4q C4q · major add4 color",
+                      "C4q D4q Eb4q G4q | G4q Eb4q D4q C4q · minor",
+                      "C4q Db4q E4q G4q | G4q E4q Db4q C4q · phrygian / susb9",
+                      "C4q D4q E4q Gb4q | Gb4q E4q D4q C4q · half-diminished color",
+                      "C4q E4q G4q Bb4q | Bb4q G4q E4q C4q · dominant outline",
+                      "C4q D4q F4q G4q | G4q F4q D4q C4q · sus color",
+                      "C4q Eb4q F4q G4q | G4q F4q Eb4q C4q · dorian cell",
+                      "C4q D4q Eb4q F4q | F4q Eb4q D4q C4q · minor cluster",
+                      "C4q E4q F#4q G4q | G4q F#4q E4q C4q · lydian",
+                      "C4q Db4q Eb4q G4q | G4q Eb4q Db4q C4q · altered minor",
+                      "C4q D4q E4q B4q | B4q E4q D4q C4q · major leading"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "dom-pentatonic-grid",
         "id":  "more0036",
         "descEs":  "Sobre un dominante, cada raíz pentatónica mayor habitual de la escala y sus tensiones. Una raíz por turno.",
@@ -1648,6 +2950,51 @@
                   ],
         "descEn":  "Over one dominant chord, every common major-pentatonic root from the scale and its tensions. One root per turn so I-pentatonic does not hide b2, b3, and b7 colors."
     },
+    {
+        "id":  "more0095",
+        "slug":  "dom-pentatonic-grid-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Dominant pentatonic grid on the staff",
+        "nameEs":  "Rejilla de pentatónicas dominantes en el pentagrama",
+        "descEn":  "The major pentatonic from each degree, written over C7. One bar of the scale, then the same bar again.",
+        "descEs":  "La pentatónica mayor desde cada grado, escrita sobre C7. Un compás de la escala, y el mismo compás otra vez.",
+        "books":  [
+                      {
+                          "href":  "./more.html#major-pentatonics-on-chords",
+                          "en":  "Major pentatonics on chords",
+                          "es":  "Pentatónicas mayores sobre acordes"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-pentatonic",
+                          "en":  "Pentatonic Scales for Jazz",
+                          "es":  "Pentatonic Scales for Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "^C7 C4e D4e E4e G4e A4e C5e A4e G4e | C4e D4e E4e G4e A4e C5e A4e G4e · Maj pent on 1",
+                      "^C7 D4e E4e F#4e A4e B4e D5e B4e A4e | D4e E4e F#4e A4e B4e D5e B4e A4e · Maj pent on 2",
+                      "^C7 Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e | Eb4e F4e G4e Bb4e C5e Eb5e C5e Bb4e · Maj pent on b3",
+                      "^C7 E4e F#4e G#4e B4e C#5e E5e C#5e B4e | E4e F#4e G#4e B4e C#5e E5e C#5e B4e · Maj pent on 3",
+                      "^C7 F4e G4e A4e C5e D5e F5e D5e C5e | F4e G4e A4e C5e D5e F5e D5e C5e · Maj pent on 4",
+                      "^C7 Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e | Gb4e Ab4e Bb4e Db5e Eb5e Gb5e Eb5e Db5e · Maj pent on b5",
+                      "^C7 G4e A4e B4e D5e E5e G5e E5e D5e | G4e A4e B4e D5e E5e G5e E5e D5e · Maj pent on 5",
+                      "^C7 Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e | Ab3e Bb3e C4e Eb4e F4e Ab4e F4e Eb4e · Maj pent on b6",
+                      "^C7 A3e B3e C#4e E4e F#4e A4e F#4e E4e | A3e B3e C#4e E4e F#4e A4e F#4e E4e · Maj pent on 6",
+                      "^C7 Bb3e C4e D4e F4e G4e Bb4e G4e F4e | Bb3e C4e D4e F4e G4e Bb4e G4e F4e · Maj pent on b7",
+                      "^C7 B3e C#4e D#4e F#4e G#4e B4e G#4e F#4e | B3e C#4e D#4e F#4e G#4e B4e G#4e F#4e · Maj pent on 7",
+                      "^C7 Db4e Eb4e F4e Ab4e Bb4e Db5e Bb4e Ab4e | Db4e Eb4e F4e Ab4e Bb4e Db5e Bb4e Ab4e · Maj pent on b2"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "pentatonic-three-note",
         "id":  "more0037",
@@ -1691,6 +3038,54 @@
                   ],
         "descEn":  "Split a pentatonic into consecutive 3-note cells and cycle them. Every rotation gets a turn for angular triad-like texture without full five-note runs."
     },
+    {
+        "id":  "more0096",
+        "slug":  "pentatonic-three-note-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Pentatonic three-note cells on the staff",
+        "nameEs":  "Células pentatónicas de tres notas en el pentagrama",
+        "descEn":  "Each three-note cell of the C major pentatonic, written and repeated through two bars. Downward cells descend.",
+        "descEs":  "Cada célula de tres notas de la pentatónica mayor de C, escrita y repetida en dos compases. Las células descendentes bajan.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-pentatonics",
+                          "en":  "Pentatonics",
+                          "es":  "Pentatonics"
+                      },
+                      {
+                          "href":  "./more.html#dom-pentatonic-grid",
+                          "en":  "Dominant pentatonic grid",
+                          "es":  "Rejilla pentatónica dominante"
+                      },
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      }
+                  ],
+        "lines":  [
+                      "C4e D4e E4e C4e D4e E4e C4e D4e | E4e C4e D4e E4e C4e D4e E4e C4e · 1 2 3",
+                      "D4e E4e G4e D4e E4e G4e D4e E4e | G4e D4e E4e G4e D4e E4e G4e D4e · 2 3 5",
+                      "E4e G4e A4e E4e G4e A4e E4e G4e | A4e E4e G4e A4e E4e G4e A4e E4e · 3 5 6",
+                      "G4e A4e C5e G4e A4e C5e G4e A4e | C5e G4e A4e C5e G4e A4e C5e G4e · 5 6 1",
+                      "A4e C5e D5e A4e C5e D5e A4e C5e | D5e A4e C5e D5e A4e C5e D5e A4e · 6 1 2",
+                      "C4e E4e G4e C4e E4e G4e C4e E4e | G4e C4e E4e G4e C4e E4e G4e C4e · 1 3 5",
+                      "D4e G4e A4e D4e G4e A4e D4e G4e | A4e D4e G4e A4e D4e G4e A4e D4e · 2 5 6",
+                      "E4e A4e C5e E4e A4e C5e E4e A4e | C5e E4e A4e C5e E4e A4e C5e E4e · 3 6 1",
+                      "G4e C5e D5e G4e C5e D5e G4e C5e | D5e G4e C5e D5e G4e C5e D5e G4e · 5 1 2",
+                      "A4e D5e E5e A4e D5e E5e A4e D5e | E5e A4e D5e E5e A4e D5e E5e A4e · 6 2 3",
+                      "E4e D4e C4e E4e D4e C4e E4e D4e | C4e E4e D4e C4e E4e D4e C4e E4e · 3 2 1",
+                      "G4e E4e D4e G4e E4e D4e G4e E4e | D4e G4e E4e D4e G4e E4e D4e G4e · 5 3 2",
+                      "A4e G4e E4e A4e G4e E4e A4e G4e | E4e A4e G4e E4e A4e G4e E4e A4e · 6 5 3",
+                      "C5e A4e G4e C5e A4e G4e C5e A4e | G4e C5e A4e G4e C5e A4e G4e C5e · 1 6 5",
+                      "D5e C5e A4e D5e C5e A4e D5e C5e | A4e D5e C5e A4e D5e C5e A4e D5e · 2 1 6"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "chromatic-lower-approach",
         "id":  "more0038",
@@ -1736,6 +3131,55 @@
         "descEn":  "Land chord tones on beats 1 and 3. The upbeat before each target is always a half-step from below. Targets rotate so 1, 3, 5, and 7 each get turns."
     },
     {
+        "id":  "more0097",
+        "slug":  "chromatic-lower-approach-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Chromatic approach from below on the staff",
+        "nameEs":  "Aproximación cromática desde abajo en el pentagrama",
+        "descEn":  "The note a half step under the chord tone is written on the eighth before it. Targets on beats 1 and 3, or on the single beat the cue names. Lines marked for any chord are written on Cmaj7.",
+        "descEs":  "La nota un semitono bajo la nota del acorde está escrita en la corchea anterior. Los objetivos caen en los tiempos 1 y 3, o en el tiempo que nombra la consigna. Las líneas para cualquier acorde están escritas sobre Cmaj7.",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      },
+                      {
+                          "href":  "./more.html#enclosures",
+                          "en":  "Enclosures",
+                          "es":  "Envolventes"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "lines":  [
+                      "B3e ^Cmaj7 C4q re B3e C4q re | B3e ^Cmaj7 C4q re B3e C4q re · to 1 from below · Cmaj7",
+                      "D#4e ^Cmaj7 E4q re D#4e E4q re | D#4e ^Cmaj7 E4q re D#4e E4q re · to 3 from below · Cmaj7",
+                      "F#4e ^Cmaj7 G4q re F#4e G4q re | F#4e ^Cmaj7 G4q re F#4e G4q re · to 5 from below · Cmaj7",
+                      "A#4e ^Cmaj7 B4q re A#4e B4q re | A#4e ^Cmaj7 B4q re A#4e B4q re · to 7 from below · Cmaj7",
+                      "C#4e ^Dm7 D4q re C#4e D4q re | C#4e ^Dm7 D4q re C#4e D4q re · to 1 from below · Dm7",
+                      "E4e ^Dm7 F4q re E4e F4q re | E4e ^Dm7 F4q re E4e F4q re · to 3 from below · Dm7",
+                      "G#4e ^Dm7 A4q re G#4e A4q re | G#4e ^Dm7 A4q re G#4e A4q re · to 5 from below · Dm7",
+                      "B4e ^Dm7 C5q re B4e C5q re | B4e ^Dm7 C5q re B4e C5q re · to 7 from below · Dm7",
+                      "F#4e ^G7 G4q re F#4e G4q re | F#4e ^G7 G4q re F#4e G4q re · to 1 from below · G7",
+                      "A#4e ^G7 B4q re A#4e B4q re | A#4e ^G7 B4q re A#4e B4q re · to 3 from below · G7",
+                      "C#5e ^G7 D5q re C#5e D5q re | C#5e ^G7 D5q re C#5e D5q re · to 5 from below · G7",
+                      "E5e ^G7 F5q re E5e F5q re | E5e ^G7 F5q re E5e F5q re · to b7 from below · G7",
+                      "rq rq rq re D#4e | ^Cmaj7 E4q rq rq rq · to 3 on beat 1 · any chord",
+                      "rq rq rq re A#4e | ^Cmaj7 B4q rq rq rq · to 7 on beat 1 · any chord",
+                      "rq re D#4e ^Cmaj7 E4q rq | rq re D#4e ^Cmaj7 E4q rq · to 3 on beat 3 · any chord",
+                      "rq re A#4e ^Cmaj7 B4q rq | rq re A#4e ^Cmaj7 B4q rq · to 7 on beat 3 · any chord"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "double-chromatic-approach",
         "id":  "more0039",
         "descEs":  "Dos notas cromáticas seguidas hacia el objetivo desde arriba o desde abajo. Cada dirección y objetivo tiene turno.",
@@ -1780,6 +3224,55 @@
         "descEn":  "Two consecutive chromatic notes into the target from above or from below. Every direction and chord-tone target gets a turn."
     },
     {
+        "id":  "more0098",
+        "slug":  "double-chromatic-approach-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Double chromatic approach on the staff",
+        "nameEs":  "Aproximación cromática doble en el pentagrama",
+        "descEn":  "Two chromatic notes, then the chord tone on the next downbeat. The mix lines put one note from above and one from below before C.",
+        "descEs":  "Dos notas cromáticas, y luego la nota del acorde en el siguiente tiempo fuerte. Las líneas mixtas ponen una nota desde arriba y una desde abajo antes de C.",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      },
+                      {
+                          "href":  "./more.html#chromatic-lower-approach",
+                          "en":  "Chromatic lower approach",
+                          "es":  "Aproximación cromática inferior"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#baker-bebop",
+                          "en":  "How to Play Bebop",
+                          "es":  "How to Play Bebop"
+                      }
+                  ],
+        "lines":  [
+                      "rh rq Bb3e B3e | ^Cmaj7 C4q rq rq rq · from below into 1",
+                      "rh rq D4e D#4e | ^Cmaj7 E4q rq rq rq · from below into 3",
+                      "rh rq F4e F#4e | ^Cmaj7 G4q rq rq rq · from below into 5",
+                      "rh rq A4e A#4e | ^Cmaj7 B4q rq rq rq · from below into 7",
+                      "rh rq D4e Db4e | ^Cmaj7 C4q rq rq rq · from above into 1",
+                      "rh rq F#4e F4e | ^Cmaj7 E4q rq rq rq · from above into 3",
+                      "rh rq A4e Ab4e | ^Cmaj7 G4q rq rq rq · from above into 5",
+                      "rh rq C#5e C5e | ^Cmaj7 B4q rq rq rq · from above into 7",
+                      "rh rq A4e A#4e | ^G7 B4q rq rq rq · below into 3 of Dom7",
+                      "rh rq C#5e C5e | ^G7 B4q rq rq rq · above into 3 of Dom7",
+                      "rh rq Eb4e E4e | ^G7 F4q rq rq rq · below into b7 of Dom7",
+                      "rh rq G4e Gb4e | ^G7 F4q rq rq rq · above into b7 of Dom7",
+                      "rh rq Eb4e E4e | ^Dm7 F4q rq rq rq · below into 3 of Min7",
+                      "rh rq G4e Gb4e | ^Dm7 F4q rq rq rq · above into 3 of Min7",
+                      "rh rq D4e B3e | ^Cmaj7 C4q rq rq rq · mix above then below into 1",
+                      "rh rq B3e D4e | ^Cmaj7 C4q rq rq rq · mix below then above into 1"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "line-deflection",
         "id":  "more0040",
         "descEs":  "Apunta a un objetivo y en el último tiempo salta al otro lado antes de resolver. Rompe las escalas predecibles.",
@@ -1819,6 +3312,50 @@
                   ],
         "descEn":  "Drive toward a target, then leap the other way on the last beat before you resolve. Breaks predictable scalar runs. Every target degree gets a turn."
     },
+    {
+        "id":  "more0099",
+        "slug":  "line-deflection-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Line deflection on the staff",
+        "nameEs":  "Desvío de la línea en el pentagrama",
+        "descEn":  "A scale or arpeggio aims at a chord tone of Cmaj7, then the last beat leaps away and the next bar resolves. Leap sizes are a 3rd, a 5th, and an octave. The 4th leap is the line that aims at 1.",
+        "descEs":  "Una escala o un arpegio apunta a una nota de Cmaj7, el último tiempo salta y el compás siguiente resuelve. Los saltos son de 3a, de 5a y de octava. El salto de 4a es la línea que apunta al 1.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#bergonzi-jazz-line",
+                          "en":  "Jazz Line",
+                          "es":  "Jazz Line"
+                      },
+                      {
+                          "href":  "./more.html#goal-notes",
+                          "en":  "Goal notes",
+                          "es":  "Notas objetivo"
+                      },
+                      {
+                          "href":  "./more.html#into-the-bar",
+                          "en":  "Into the next bar",
+                          "es":  "Hacia el siguiente compás"
+                      }
+                  ],
+        "lines":  [
+                      "C4e D4e E4e F4e G4e A4e E4q | ^Cmaj7 C5q rq rq rq · Aim at 1",
+                      "D4e E4e F4e G4e A4e B4e F#4q | ^Cmaj7 E5q rq rq rq · Aim at 3",
+                      "E4e F4e G4e A4e B4e C5e G4q | ^Cmaj7 G5q rq rq rq · Aim at 5",
+                      "F4e G4e A4e B4e C5e D5e A4q | ^Cmaj7 B4q rq rq rq · Aim at 7",
+                      "C4e D4e E4e F4e G4e A4e B4e G4e | ^Cmaj7 E5q rq rq rq · Scale up into 3",
+                      "C5e B4e A4e G4e F4e E4e D4e B4e | ^Cmaj7 C5q rq rq rq · Scale down into 1",
+                      "D#4e E4e F4e F#4e G4e G#4e A4e C4e | ^Cmaj7 G4q rq rq rq · Chromatic into 5",
+                      "C4e E4e G4e C5e E5e G5e C6e G4e | ^Cmaj7 B4q rq rq rq · Arpeggio into 7",
+                      "C4e D4e E4e F4e G4e A4e F4q | ^Cmaj7 C5q rq rq rq · Deflect by a 3rd",
+                      "C4e D4e E4e F4e G4e A4e D4q | ^Cmaj7 C5q rq rq rq · Deflect by a 5th",
+                      "C4e D4e E4e F4e G4e A4e A3q | ^Cmaj7 C5q rq rq rq · Deflect by an octave"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "rhythmic-displacement",
         "id":  "more0041",
@@ -1862,6 +3399,53 @@
         "descEn":  "One short phrase, repeated while its start point shifts forward by an eighth each time. Every shift amount gets a turn so the original downbeat does not own the motif."
     },
     {
+        "id":  "more0100",
+        "slug":  "rhythmic-displacement-staff",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Rhythmic displacement on the staff",
+        "nameEs":  "Desplazamiento rítmico en el pentagrama",
+        "descEn":  "The cell C-D-E-G written on each eighth-note shift, then a 2-note cell, a 3-note cell, the cell moved from beat 1 to the and of 1 in the next half, quarters across the barline, a pull onto the and of 4, and the same rhythm on one pitch.",
+        "descEs":  "La célula C-D-E-G escrita en cada desplazamiento de corchea, luego una célula de 2 notas, una de 3, la célula movida del tiempo 1 a la parte débil del 1 en la mitad siguiente, negras a través de la barra, un tirón a la parte débil del 4, y el mismo ritmo en un solo sonido.",
+        "books":  [
+                      {
+                          "href":  "./time.html",
+                          "en":  "Time",
+                          "es":  "Tiempo"
+                      },
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "en":  "Rhythmic Devices",
+                          "es":  "Recursos rítmicos"
+                      },
+                      {
+                          "href":  "./motivic-development.html",
+                          "en":  "Motivic Development",
+                          "es":  "Desarrollo motívico"
+                      }
+                  ],
+        "lines":  [
+                      "C4e D4e E4e G4e re re re re | re re re re re re re re | C4e D4e E4e G4e re re re re | re re re re re re re re · Start on beat 1",
+                      "re C4e D4e E4e G4e re re re | re re re re re re re re | re C4e D4e E4e G4e re re re | re re re re re re re re · Shift +1 eighth",
+                      "re re C4e D4e E4e G4e re re | re re re re re re re re | re re C4e D4e E4e G4e re re | re re re re re re re re · Shift +2 eighths",
+                      "re re re C4e D4e E4e G4e re | re re re re re re re re | re re re C4e D4e E4e G4e re | re re re re re re re re · Shift +3 eighths",
+                      "re re re re C4e D4e E4e G4e | re re re re re re re re | re re re re C4e D4e E4e G4e | re re re re re re re re · Shift +4 eighths",
+                      "re re re re re C4e D4e E4e | G4e re re re re re re re | re re re re re C4e D4e E4e | G4e re re re re re re re · Shift +5 eighths",
+                      "re re re re re re C4e D4e | E4e G4e re re re re re re | re re re re re re C4e D4e | E4e G4e re re re re re re · Shift +6 eighths",
+                      "re re re re re re re C4e | D4e E4e G4e re re re re re | re re re re re re re C4e | D4e E4e G4e re re re re re · Shift +7 eighths",
+                      "re C4e D4e re re re re re | re re re re re re re re | re C4e D4e re re re re re | re re re re re re re re · Displace a 2-note cell",
+                      "re C4e D4e E4e re re re re | re re re re re re re re | re C4e D4e E4e re re re re | re re re re re re re re · Displace a 3-note cell",
+                      "C4e D4e E4e G4e re re re re | re re re re re re re re | re re C4e D4e E4e G4e re re | re re re re re re re re · Displace a 4-note cell",
+                      "rq rq rq C4q | D4q E4q G4q rq | rq rq rq C4q | D4q E4q G4q rq · Displace across the barline",
+                      "C4e D4e E4e G4e re re re re | re re re re re re re C4e | D4e E4e G4e re re re re re | re re re re re re re re · Backwards shift one eighth",
+                      "C4e C4e C4e C4e re re re re | re re re re re re re re | re C4e C4e C4e C4e re re re | re re re re re re re re · Hold pitch, move only the rhythm"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "quartal-lines",
         "id":  "more0042",
         "descEs":  "Construye la línea con 4as apiladas o 4as mezcladas con 3as. Cada patrón tiene turno.",
@@ -1901,6 +3485,51 @@
                   ],
         "descEn":  "Build the line from stacked 4ths or 4ths mixed with 3rds. Every stacking pattern gets a turn so stepwise scales do not take the whole session."
     },
+    {
+        "id":  "more0101",
+        "slug":  "quartal-lines-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Quartal lines on the staff",
+        "nameEs":  "Líneas por cuartas en el pentagrama",
+        "descEn":  "Fourths written out: up, down, fourth then third, third then fourth, from the root of C7, from E of Cmaj7, from Bb of Cm7, and from Gb of Cm7b5. Each pair that alternates is up a fourth and back. The last line resolves to E.",
+        "descEs":  "Cuartas escritas: hacia arriba, hacia abajo, cuarta y luego tercera, tercera y luego cuarta, desde la fundamental de C7, desde el E de Cmaj7, desde el Bb de Cm7 y desde el Gb de Cm7b5. Cada par que alterna sube una cuarta y vuelve. La última línea resuelve al E.",
+        "books":  [
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#ricker-fourths",
+                          "en":  "Technique Development in Fourths",
+                          "es":  "Technique Development in Fourths"
+                      },
+                      {
+                          "href":  "./more.html#wide-intervals",
+                          "en":  "Interval families",
+                          "es":  "Familias de intervalos"
+                      }
+                  ],
+        "lines":  [
+                      "C4q F4q Bb4q Eb5q | Ab5q Db6q Gb6q Cb7q · Stacked 4ths ascending",
+                      "Cb7q Gb6q Db6q Ab5q | Eb5q Bb4q F4q C4q · Stacked 4ths descending",
+                      "C4q F4q Ab4q Db5q | E5q A5q C6q F6q · 4th then 3rd",
+                      "C4q E4q A4q Db5q | F#5q Bb5q D6q G6q · 3rd then 4th",
+                      "^C7 C4q F4q Bb4q Eb5q | Ab5q Db6q Gb6q Cb7q · 4ths only on Dom7",
+                      "^Cmaj7 E4q A4q D5q G5q | C6q F6q Bb6q Eb7q · 4ths only on Maj7",
+                      "^Cm7 Bb3q Eb4q Ab4q Db5q | Gb5q Cb6q Fb6q A6q · 4ths only on Min7",
+                      "^Cm7b5 Gb3q Cb4q Fb4q A4q | D5q G5q C6q F6q · 4ths only on Min7b5",
+                      "C4q F4q C4q F4q | D4q G4q D4q G4q · Alternate 4th up / 4th down",
+                      "C4q F4q Bb4q C5q | F4q Bb4q Eb5q F5q · Two 4ths then a step",
+                      "C4e F4e Bb4e F4e Bb4e Eb5e Bb4e Eb5e | Ab4e Db5e Gb5e Db5e Gb5e Cb6e Gb5e Cb6e · Quartal triad shapes",
+                      "C4q F4q Bb4q Eb5q | ^Cmaj7 E4q rq rq rq · Quartal into a chord tone"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "inverted-interval-motifs",
         "id":  "more0043",
@@ -1942,6 +3571,51 @@
         "descEn":  "Fix an interval shape, then flip its direction every bar. Up/down and down/up both get turns for each interval size."
     },
     {
+        "id":  "more0102",
+        "slug":  "inverted-interval-motifs-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Inverted interval motifs on the staff",
+        "nameEs":  "Motivos de intervalos invertidos en el pentagrama",
+        "descEn":  "Each pair written in one direction and then the other: 3rds, 4ths, 5ths against 3rds, 5ths, 6ths against 2nds, and octaves against steps.",
+        "descEs":  "Cada par escrito en una dirección y luego en la otra: 3as, 4as, 5as contra 3as, 5as, 6as contra 2as, y octavas contra grados conjuntos.",
+        "books":  [
+                      {
+                          "href":  "./motivic-development.html",
+                          "en":  "Motivic Development",
+                          "es":  "Desarrollo motívico"
+                      },
+                      {
+                          "href":  "./more.html#wide-intervals",
+                          "en":  "Interval families",
+                          "es":  "Familias de intervalos"
+                      },
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      }
+                  ],
+        "lines":  [
+                      "C4e E4e G4e B4e D5e F5e A5e C6e | C6e A5e F5e D5e B4e G4e E4e C4e · Up 3rd / down 3rd",
+                      "C6e A5e F5e D5e B4e G4e E4e C4e | C4e E4e G4e B4e D5e F5e A5e C6e · Down 3rd / up 3rd",
+                      "C4e F4e Bb4e Eb5e Ab5e Db6e Gb6e Cb7e | Cb7e Gb6e Db6e Ab5e Eb5e Bb4e F4e C4e · Up 4th / down 4th",
+                      "Cb7e Gb6e Db6e Ab5e Eb5e Bb4e F4e C4e | C4e F4e Bb4e Eb5e Ab5e Db6e Gb6e Cb7e · Down 4th / up 4th",
+                      "C4e G4e E4e B4e Ab4e Eb5e C5e G5e | E5e B5e Ab5e Eb6e C6e G6e E6e B6e · Up 5th / down 3rd",
+                      "C6e F5e Ab5e Db5e E5e A4e C5e F4e | Ab4e Db4e E4e A3e C4e F3e Ab3e Db3e · Down 5th / up 3rd",
+                      "C4e G4e C4e G4e C4e G4e C4e G4e | D4e A4e D4e A4e D4e A4e D4e A4e · Up 5th / down 5th",
+                      "G4e C4e G4e C4e G4e C4e G4e C4e | A4e D4e A4e D4e A4e D4e A4e D4e · Down 5th / up 5th",
+                      "C4e A4e D4e B4e E4e C5e F4e D5e | C5e B4e A4e G4e F4e E4e D4e C4e · Up 6th / down 2nd",
+                      "A4e C4e B4e D4e C5e Eb4e D5e F4e | F4e G4e A4e B4e C5e D5e E5e F5e · Down 6th / up 2nd",
+                      "C4e C5e D4e D5e E4e E5e F4e F5e | E5e D5e C5e B4e A4e G4e F4e E4e · Up octave / down step",
+                      "C5e C4e D5e D4e E5e E4e F5e F4e | G4e A4e B4e C5e D5e E5e F5e G5e · Down octave / up step"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "altered-hexatonic-pairs",
         "id":  "more0044",
         "descEs":  "Dos tríadas mayores en grados de tensión de un dominante (color de seis notas). Cada par habitual sobre sonido tipo C7 tiene turno.",
@@ -1982,6 +3656,51 @@
         "descEn":  "Two major triads on tension degrees of one dominant (six-note color, no full scale). Every common pair over C7-type sound gets a turn."
     },
     {
+        "id":  "more0103",
+        "slug":  "altered-hexatonic-pairs-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Altered hexatonic pairs on the staff",
+        "nameEs":  "Pares hexatónicos alterados en el pentagrama",
+        "descEn":  "Both major triads of the pair, one bar each, over C7.",
+        "descEs":  "Las dos tríades mayores del par, un compás cada una, sobre C7.",
+        "books":  [
+                      {
+                          "href":  "./more.html#triad-coupling-relationships",
+                          "en":  "Triad coupling relationships",
+                          "es":  "Relaciones de acoplamiento"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "en":  "Hexatonics",
+                          "es":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "en":  "Triad Pairs for Jazz",
+                          "es":  "Triad Pairs for Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "^C7 Db4q F4q Ab4q Db5q | Eb4q G4q Bb4q Eb5q · Db/Eb",
+                      "^C7 Db4q F4q Ab4q Db5q | E4q G#4q B4q E5q · Db/E",
+                      "^C7 Db4q F4q Ab4q Db5q | F#4q A#4q C#5q F#5q · Db/F#",
+                      "^C7 Eb4q G4q Bb4q Eb5q | E4q G#4q B4q E5q · Eb/E",
+                      "^C7 Eb4q G4q Bb4q Eb5q | F#4q A#4q C#5q F#5q · Eb/F#",
+                      "^C7 Eb4q G4q Bb4q Eb5q | Ab3q C4q Eb4q Ab4q · Eb/Ab",
+                      "^C7 E4q G#4q B4q E5q | F#4q A#4q C#5q F#5q · E/F#",
+                      "^C7 E4q G#4q B4q E5q | Ab3q C4q Eb4q Ab4q · E/Ab",
+                      "^C7 F#4q A#4q C#5q F#5q | Ab3q C4q Eb4q Ab4q · F#/Ab",
+                      "^C7 F#4q A#4q C#5q F#5q | Bb3q D4q F4q Bb4q · F#/Bb",
+                      "^C7 Ab3q C4q Eb4q Ab4q | Bb3q D4q F4q Bb4q · Ab/Bb",
+                      "^C7 Db4q F4q Ab4q Db5q | Bb3q D4q F4q Bb4q · Db/Bb"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "vocab-rhythm-or-pitch",
         "id":  "more0045",
         "descEs":  "Una frase corta que ya sabes. Alterna: mismas alturas ritmo nuevo, luego mismo ritmo alturas nuevas.",
@@ -2021,6 +3740,51 @@
                   ],
         "descEn":  "One short phrase you already know. Alternate: same pitches new rhythm, then same rhythm new pitches. Both operations get equal turns."
     },
+    {
+        "id":  "more0104",
+        "slug":  "vocab-rhythm-or-pitch-staff",
+        "group":  "language",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Rhythm or pitch on the staff",
+        "nameEs":  "Ritmo o altura en el pentagrama",
+        "descEn":  "The melody C-E-G-A-G-E-D-C is the source. Each line changes one thing: the rhythm, the pitches, the speed, the key step, the entrance, the contour, the articulation, or the guide tones. The trade plays the melody, then the rhythm on C.",
+        "descEs":  "La melodía C-E-G-A-G-E-D-C es la fuente. Cada línea cambia una cosa: el ritmo, las alturas, la velocidad, el grado de transposición, la entrada, el contorno, la articulación o las guías. El intercambio toca la melodía y luego el ritmo sobre C.",
+        "books":  [
+                      {
+                          "href":  "./motivic-development.html",
+                          "en":  "Motivic Development",
+                          "es":  "Desarrollo motívico"
+                      },
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "en":  "Rhythmic Devices",
+                          "es":  "Recursos rítmicos"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#riposo-vocabulary",
+                          "en":  "Developing a Jazz Vocabulary",
+                          "es":  "Developing a Jazz Vocabulary"
+                      }
+                  ],
+        "lines":  [
+                      "C4q. E4e G4q A4q | G4e E4e D4q C4h | C4q. E4e G4q A4q | G4e E4e D4q C4h · Same pitches, new rhythm",
+                      "F4q A4q C5e D5e C5q | A4q G4q F4h | F4q A4q C5e D5e C5q | A4q G4q F4h · Same rhythm, new pitches",
+                      "C4h E4h | G4q A4q G4h | E4h D4h | C4w · Half-time rhythm",
+                      "C4e E4e G4e A4e G4e E4e D4e C4e | C4e E4e G4e A4e G4e E4e D4e C4e | C4e E4e G4e A4e G4e E4e D4e C4e | C4e E4e G4e A4e G4e E4e D4e C4e · Double-time rhythm",
+                      "D4q F#4q A4e B4e A4q | F#4q E4q D4h | D4q F#4q A4e B4e A4q | F#4q E4q D4h · Sequence up a step",
+                      "Bb3q D4q F4e G4e F4q | D4q C4q Bb3h | Bb3q D4q F4e G4e F4q | D4q C4q Bb3h · Sequence down a step",
+                      "rq C4q E4q G4e A4e | G4q E4q D4q C4q | rq C4q E4q G4e A4e | G4q E4q D4q C4q · Start on beat 2",
+                      "rq rq rq re C4e | E4q G4e A4e G4q E4q | D4q C4h rq | rq rq rq rq · Start on the and of 4",
+                      "C5q Ab4q F4e Eb4e F4q | Ab4q Bb4q C5h | C5q Ab4q F4e Eb4e F4q | Ab4q Bb4q C5h · Opposite contour",
+                      "C4q\u0027 E4q\u0027 G4e\u0027 A4e\u0027 G4q\u0027 | E4q\u0027 D4q\u0027 C4h\u0027 | C4q\u0027 E4q\u0027 G4e\u0027 A4e\u0027 G4q\u0027 | E4q\u0027 D4q\u0027 C4h\u0027 · Staccato",
+                      "F4q C5q B4e F4e B4q | E4q B4q E4h | F4q C5q B4e F4e B4q | E4q B4q E4h · Guide tones",
+                      "C4q E4q G4e A4e G4q | E4q D4q C4h | C4q C4q C4e C4e C4q | C4q C4q C4h · Trade pitches then rhythm"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "twelve-key-transpose",
         "id":  "more0046",
@@ -2066,6 +3830,55 @@
         "descEn":  "One short line you can sing. Move it through all twelve keys by the cycle of fifths, then by whole steps and minor thirds. Every key gets a turn."
     },
     {
+        "id":  "more0105",
+        "slug":  "twelve-key-transpose-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Twelve-key transposition on the staff",
+        "nameEs":  "Transposición a doce tonalidades en el pentagrama",
+        "descEn":  "The motif 1-3-5-6-5-3-2-1 written in each key, twice. The sequence lines pair the key with its transposition: up a whole step, or up a minor 3rd.",
+        "descEs":  "El motivo 1-3-5-6-5-3-2-1 escrito en cada tonalidad, dos veces. Las líneas de secuencia emparejan la tonalidad con su transposición: un tono arriba, o una 3a menor arriba.",
+        "books":  [
+                      {
+                          "href":  "./melodic-lines.html#coker-patterns",
+                          "en":  "Patterns for Jazz",
+                          "es":  "Patterns for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#sticky-keys",
+                          "en":  "Sticky keys",
+                          "es":  "Tonalidades difíciles"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#weiskopf-around-the-horn",
+                          "en":  "Around the Horn",
+                          "es":  "Around the Horn"
+                      }
+                  ],
+        "lines":  [
+                      "@key=C C4q E4q G4e A4e G4q | E4q D4q C4h | C4q E4q G4e A4e G4q | E4q D4q C4h · in C",
+                      "@key=F F4q A4q C5e D5e C5q | A4q G4q F4h | F4q A4q C5e D5e C5q | A4q G4q F4h · in F",
+                      "@key=Bb Bb3q D4q F4e G4e F4q | D4q C4q Bb3h | Bb3q D4q F4e G4e F4q | D4q C4q Bb3h · in Bb",
+                      "@key=Eb Eb4q G4q Bb4e C5e Bb4q | G4q F4q Eb4h | Eb4q G4q Bb4e C5e Bb4q | G4q F4q Eb4h · in Eb",
+                      "@key=Ab Ab3q C4q Eb4e F4e Eb4q | C4q Bb3q Ab3h | Ab3q C4q Eb4e F4e Eb4q | C4q Bb3q Ab3h · in Ab",
+                      "@key=Db Db4q F4q Ab4e Bb4e Ab4q | F4q Eb4q Db4h | Db4q F4q Ab4e Bb4e Ab4q | F4q Eb4q Db4h · in Db",
+                      "@key=Gb Gb4q Bb4q Db5e Eb5e Db5q | Bb4q Ab4q Gb4h | Gb4q Bb4q Db5e Eb5e Db5q | Bb4q Ab4q Gb4h · in Gb",
+                      "@key=B B3q D#4q F#4e G#4e F#4q | D#4q C#4q B3h | B3q D#4q F#4e G#4e F#4q | D#4q C#4q B3h · in B",
+                      "@key=E E4q G#4q B4e C#5e B4q | G#4q F#4q E4h | E4q G#4q B4e C#5e B4q | G#4q F#4q E4h · in E",
+                      "@key=A A3q C#4q E4e F#4e E4q | C#4q B3q A3h | A3q C#4q E4e F#4e E4q | C#4q B3q A3h · in A",
+                      "@key=D D4q F#4q A4e B4e A4q | F#4q E4q D4h | D4q F#4q A4e B4e A4q | F#4q E4q D4h · in D",
+                      "@key=G G4q B4q D5e E5e D5q | B4q A4q G4h | G4q B4q D5e E5e D5q | B4q A4q G4h · in G",
+                      "C4q E4q G4e A4e G4q | E4q D4q C4h | D4q F#4q A4e B4e A4q | F#4q E4q D4h · Whole steps up from C",
+                      "Db4q F4q Ab4e Bb4e Ab4q | F4q Eb4q Db4h | Eb4q G4q Bb4e C5e Bb4q | G4q F4q Eb4h · Whole steps up from Db",
+                      "C4q E4q G4e A4e G4q | E4q D4q C4h | Eb4q G4q Bb4e C5e Bb4q | G4q F4q Eb4h · Minor 3rds up from C",
+                      "Db4q F4q Ab4e Bb4e Ab4q | F4q Eb4q Db4h | E4q G#4q B4e C#5e B4q | G#4q F#4q E4h · Minor 3rds up from Db"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "rhythmic-density",
         "id":  "more0047",
         "descEs":  "Restringe el solo a un valor de nota por turno. Blancas, negras, corcheas y tresillos tienen el mismo tiempo.",
@@ -2105,6 +3918,51 @@
                   ],
         "descEn":  "Restrict the solo to one note value for a full turn. Half notes, quarters, eighths, and triplets each get equal time so the comfortable eighth-note default does not hide the rest."
     },
+    {
+        "id":  "more0106",
+        "slug":  "rhythmic-density-staff",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Rhythmic density on the staff",
+        "nameEs":  "Densidad rítmica en el pentagrama",
+        "descEn":  "The C major scale written in one note value at a time, then two values in one four-bar line. The last line changes at bar 3, which is the turn inside this four-bar form.",
+        "descEs":  "La escala mayor de C escrita en un valor por vez, y luego dos valores en una línea de cuatro compases. La última línea cambia en el compás 3, el giro dentro de esta forma de cuatro compases.",
+        "books":  [
+                      {
+                          "href":  "./rhythmic-devices.html",
+                          "en":  "Rhythmic Devices",
+                          "es":  "Recursos rítmicos"
+                      },
+                      {
+                          "href":  "./more.html#leave-space",
+                          "en":  "Leave space",
+                          "es":  "Deja espacio"
+                      },
+                      {
+                          "href":  "./time.html",
+                          "en":  "Time",
+                          "es":  "Tiempo"
+                      }
+                  ],
+        "lines":  [
+                      "C4w | D4w | E4w | F4w · Whole notes",
+                      "C4h D4h | E4h F4h | G4h A4h | B4h C5h · Half notes",
+                      "C4q D4q E4q F4q | G4q A4q B4q C5q | C4q D4q E4q F4q | G4q A4q B4q C5q · Quarter notes",
+                      "C4e D4e E4e F4e G4e A4e B4e C5e | C4e D4e E4e F4e G4e A4e B4e C5e | C4e D4e E4e F4e G4e A4e B4e C5e | C4e D4e E4e F4e G4e A4e B4e C5e · Eighth notes",
+                      "(3 C4e D4e E4e) (3 F4e G4e A4e) (3 B4e C5e C4e) (3 D4e E4e F4e) | (3 G4e A4e B4e) (3 C5e C4e D4e) (3 E4e F4e G4e) (3 A4e B4e C5e) | (3 C4e D4e E4e) (3 F4e G4e A4e) (3 B4e C5e C4e) (3 D4e E4e F4e) | (3 G4e A4e B4e) (3 C5e C4e D4e) (3 E4e F4e G4e) (3 A4e B4e C5e) · Triplets",
+                      "C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s · Sixteenth notes",
+                      "C4q. D4q. rq | E4q. F4q. rq | G4q. A4q. rq | B4q. C5q. rq · Dotted quarters",
+                      "C4q D4q E4q F4q | G4q A4q B4q C5q | C4e D4e E4e F4e G4e A4e B4e C5e | C4e D4e E4e F4e G4e A4e B4e C5e · Quarters then eighths",
+                      "C4e D4e E4e F4e G4e A4e B4e C5e | C4e D4e E4e F4e G4e A4e B4e C5e | (3 C4e D4e E4e) (3 F4e G4e A4e) (3 B4e C5e C4e) (3 D4e E4e F4e) | (3 G4e A4e B4e) (3 C5e C4e D4e) (3 E4e F4e G4e) (3 A4e B4e C5e) · Eighths then triplets",
+                      "D4e C4h E4q. | F4h G4h | A4h B4h | C5h B4h · Half notes with one pickup",
+                      "C4h D4h | E4h F4h | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s · One value per phrase",
+                      "C4q D4q E4q F4q | G4q A4q B4q C5q | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s | C4s D4s E4s F4s G4s A4s B4s C5s C4s D4s E4s F4s G4s A4s B4s C5s · Change value at bar 3"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "dynamics-articulation",
         "id":  "more0048",
@@ -2187,6 +4045,50 @@
         "descEn":  "Start from a plain melody. Add grace notes, turns, and neighbor ornaments step by step without losing the original pitches."
     },
     {
+        "id":  "more0107",
+        "slug":  "ornament-the-melody-staff",
+        "group":  "sound",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Ornament the melody on the staff",
+        "nameEs":  "Adornar la melodía en el pentagrama",
+        "descEn":  "The melody C-E-G-E-D-F-E-C with each ornament written out: neighbors, turns, mordents, trills, a decorated downbeat, a decorated ending, and jazz and classical versions. The plain melody is the first line.",
+        "descEs":  "La melodía C-E-G-E-D-F-E-C con cada adorno escrito: bordaduras, grupetos, mordentes, trinos, un tiempo fuerte decorado, un final decorado, y las versiones de jazz y clásica. La melodía sola es la primera línea.",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "en":  "Sonic Nuances",
+                          "es":  "Matices sonoros"
+                      },
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      },
+                      {
+                          "href":  "./motivic-development.html",
+                          "en":  "Motivic Development",
+                          "es":  "Desarrollo motívico"
+                      }
+                  ],
+        "lines":  [
+                      "C4q E4q G4q E4q | D4q F4q E4q C4q · Melody only",
+                      "D4e C4e F4e E4e A4e G4e F4e E4e | E4e D4e G4e F4e F4e E4e D4e C4e · Upper neighbor before each note",
+                      "C4s D4s C4s B3s E4s F4s E4s D4s G4s A4s G4s F4s E4s F4s E4s D4s | D4s E4s D4s C4s F4s G4s F4s E4s E4s F4s E4s D4s C4s D4s C4s B3s · Upper-neighbor turns",
+                      "C4s B3s C4s D4s E4s D4s E4s F4s G4s F4s G4s A4s E4s D4s E4s F4s | D4s C4s D4s E4s F4s E4s F4s G4s E4s D4s E4s F4s C4s B3s C4s D4s · Lower-neighbor turns",
+                      "C4s D4s C4e E4s F4s E4e G4s A4s G4e E4s F4s E4e | D4s E4s D4e F4s G4s F4e E4s F4s E4e C4s D4s C4e · Mordents",
+                      "C4s D4s C4s D4s E4s F4s E4s F4s G4s A4s G4s A4s E4s F4s E4s F4s | D4s E4s D4s E4s F4s G4s F4s G4s E4s F4s E4s F4s C4s D4s C4s D4s · Trills",
+                      "C4s D4s C4e E4q G4q E4q | D4s E4s D4e F4q E4q C4q · Ornament the start of each bar",
+                      "C4q E4q G4q E4q | D4q F4q E4q B3s C4s B3s C4s · Ornament the last note",
+                      "D4s B3s C4e F4s D4s E4e A4s F4s G4e F4s D4s E4e | E4s C4s D4e G4s E4s F4e F4s D4s E4e D4s B3s C4e · Double ornaments",
+                      "B3e C4e D#4e E4e F#4e G4e D#4e E4e | C#4e D4e E4e F4e D#4e E4e B3e C4e · Jazz lower neighbors",
+                      "D4s C4s B3s C4s F4s E4s D4s E4s A4s G4s F4s G4s F4s E4s D4s E4s | E4s D4s C4s D4s G4s F4s E4s F4s F4s E4s D4s E4s D4s C4s B3s C4s · Classical turns"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "three-note-contours",
         "id":  "more0050",
         "descEs":  "Ocho formas de contorno para cualquier célula de 3 notas: cada patrón arriba/abajo tiene turno. Aquí sobre 1-3-5, 1-2-3 y 1-4-5 para que el cómodo Arriba-Arriba-Arriba no esconda el resto. Mantén ese contorno sobre los cambios.",
@@ -2239,6 +4141,63 @@
         "descEn":  "Eight contour shapes for any 3-note cell: every up/down pattern gets a turn. Applied here to 1-3-5, 1-2-3, and 1-4-5 so the comfortable Up-Up-Up cannot hide the rest. Keep that contour across the changes."
     },
     {
+        "id":  "more0108",
+        "slug":  "three-note-contours-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Three-note contours on the staff",
+        "nameEs":  "Contornos de tres notas en el pentagrama",
+        "descEn":  "Four notes, three directions, on the cells 1-3-5, 1-2-3, and 1-4-5. Each step is the nearest chord tone that still goes the named way. The four notes repeat for the second bar.",
+        "descEs":  "Cuatro notas, tres direcciones, sobre las células 1-3-5, 1-2-3 y 1-4-5. Cada paso es la nota del grupo más cercana que sigue la dirección. Las cuatro notas se repiten en el segundo compás.",
+        "books":  [
+                      {
+                          "href":  "./motivic-development.html",
+                          "en":  "Motivic Development",
+                          "es":  "Desarrollo motívico"
+                      },
+                      {
+                          "href":  "./more.html#pentatonic-three-note",
+                          "en":  "Pentatonic 3-note cells",
+                          "es":  "Células pentatónicas de 3 notas"
+                      },
+                      {
+                          "href":  "./more.html#inverted-interval-motifs",
+                          "en":  "Inverted interval motifs",
+                          "es":  "Motivos de intervalo invertidos"
+                      }
+                  ],
+        "lines":  [
+                      "C4q E4q G4q C5q | C4q E4q G4q C5q · Up Up Up cell 1 3 5",
+                      "C4q E4q G4q E4q | C4q E4q G4q E4q · Up Up Down cell 1 3 5",
+                      "C4q E4q C4q E4q | C4q E4q C4q E4q · Up Down Up cell 1 3 5",
+                      "C4q E4q C4q G3q | C4q E4q C4q G3q · Up Down Down cell 1 3 5",
+                      "G4q E4q G4q C5q | G4q E4q G4q C5q · Down Up Up cell 1 3 5",
+                      "G4q E4q G4q E4q | G4q E4q G4q E4q · Down Up Down cell 1 3 5",
+                      "G4q E4q C4q E4q | G4q E4q C4q E4q · Down Down Up cell 1 3 5",
+                      "G4q E4q C4q G3q | G4q E4q C4q G3q · Down Down Down cell 1 3 5",
+                      "C4q D4q E4q C5q | C4q D4q E4q C5q · Up Up Up cell 1 2 3",
+                      "C4q D4q E4q D4q | C4q D4q E4q D4q · Up Up Down cell 1 2 3",
+                      "C4q D4q C4q D4q | C4q D4q C4q D4q · Up Down Up cell 1 2 3",
+                      "C4q D4q C4q E3q | C4q D4q C4q E3q · Up Down Down cell 1 2 3",
+                      "E4q D4q E4q C5q | E4q D4q E4q C5q · Down Up Up cell 1 2 3",
+                      "E4q D4q E4q D4q | E4q D4q E4q D4q · Down Up Down cell 1 2 3",
+                      "E4q D4q C4q D4q | E4q D4q C4q D4q · Down Down Up cell 1 2 3",
+                      "E4q D4q C4q E3q | E4q D4q C4q E3q · Down Down Down cell 1 2 3",
+                      "C4q F4q G4q C5q | C4q F4q G4q C5q · Up Up Up cell 1 4 5",
+                      "C4q F4q G4q F4q | C4q F4q G4q F4q · Up Up Down cell 1 4 5",
+                      "C4q F4q C4q F4q | C4q F4q C4q F4q · Up Down Up cell 1 4 5",
+                      "C4q F4q C4q G3q | C4q F4q C4q G3q · Up Down Down cell 1 4 5",
+                      "G4q F4q G4q C5q | G4q F4q G4q C5q · Down Up Up cell 1 4 5",
+                      "G4q F4q G4q F4q | G4q F4q G4q F4q · Down Up Down cell 1 4 5",
+                      "G4q F4q C4q F4q | G4q F4q C4q F4q · Down Down Up cell 1 4 5",
+                      "G4q F4q C4q G3q | G4q F4q C4q G3q · Down Down Down cell 1 4 5"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "whole-step-triad-pairs",
         "id":  "more0051",
         "descEs":  "Color hexatónico de dos tríadas a tono de distancia. Cada acorde listado recibe cada par no ordenado de su conjunto, para que Bb/C no ocupe todos los pases.",
@@ -2289,6 +4248,62 @@
                   ],
         "descEn":  "Hexatonic color from two triads a whole step apart. Every listed chord gets every unordered pair from its triad set, so Bb/C does not take every pass while Am/Gm waits."
     },
+    {
+        "id":  "more0109",
+        "slug":  "whole-step-triad-pairs-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Whole-step triad pairs on the staff",
+        "nameEs":  "Pares de tríades a un tono en el pentagrama",
+        "descEn":  "Each pair written as two bars of chord tones over the chord named in the text. One triad on its own is played twice.",
+        "descEs":  "Cada par escrito en dos compases de notas del acorde, sobre el acorde que nombra el texto. Una tríada sola se toca dos veces.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "en":  "Hexatonics",
+                          "es":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "en":  "Triad Pairs for Jazz",
+                          "es":  "Triad Pairs for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#major-2nd-triad-couplings",
+                          "en":  "Major 2nd triad couplings",
+                          "es":  "Acoplamientos de 2a mayor"
+                      }
+                  ],
+        "lines":  [
+                      "^Bbmaj7 Bb3q D4q F4q Bb4q | C4q E4q G4q C5q · Bb/C",
+                      "^Bbmaj7 Bb3q D4q F4q Bb4q | A3q C#4q E4q A4q · Bb/Am",
+                      "^Bbmaj7 Bb3q D4q F4q Bb4q | G4q B4q D5q G5q · Bb/Gm",
+                      "^Bbmaj7 C4q E4q G4q C5q | A3q C#4q E4q A4q · C/Am",
+                      "^Bbmaj7 C4q E4q G4q C5q | G4q B4q D5q G5q · C/Gm",
+                      "^Bbmaj7 A3q C#4q E4q A4q | G4q B4q D5q G5q · Am/Gm",
+                      "^Gm Bb3q D4q F4q Bb4q | C4q E4q G4q C5q · Bb/C",
+                      "^Gm Bb3q D4q F4q Bb4q | A3q C#4q E4q A4q · Bb/Am",
+                      "^Gm Bb3q D4q F4q Bb4q | G4q B4q D5q G5q · Bb/Gm",
+                      "^Gm C4q E4q G4q C5q | A3q C#4q E4q A4q · C/Am",
+                      "^Gm C4q E4q G4q C5q | G4q B4q D5q G5q · C/Gm",
+                      "^Gm A3q C#4q E4q A4q | G4q B4q D5q G5q · Am/Gm",
+                      "^E-7b5 Bb3q D4q F4q Bb4q | C4q E4q G4q C5q · Bb/C",
+                      "^E7alt Bb3q D4q F4q Bb4q | C4q E4q G4q C5q · Bb/C",
+                      "^E7alt Bb3q D4q F4q Bb4q | F4q A4q C5q F5q · Bb/Fm",
+                      "^E7alt Bb3q D4q F4q Bb4q | G4q B4q D5q G5q · Bb/Gm",
+                      "^E7alt C4q E4q G4q C5q | F4q A4q C5q F5q · C/Fm",
+                      "^E7alt C4q E4q G4q C5q | G4q B4q D5q G5q · C/Gm",
+                      "^E7alt F4q A4q C5q F5q | G4q B4q D5q G5q · Fm/Gm",
+                      "^Bb7 Bb3q D4q F4q Bb4q | C4q E4q G4q C5q · Bb/C",
+                      "^Bb7sus Ab3q C4q Eb4q Ab4q | Bb3q D4q F4q Bb4q · Ab/Bb",
+                      "^Em6/9 A3q C#4q E4q A4q | B3q D#4q F#4q B4q · A/B",
+                      "^Dm7 G4q B4q D5q G5q | A3q C#4q E4q A4q · G/A"
+                  ]
+    },
+    
+    
+    
     {
         "slug":  "half-step-triad-pairs",
         "id":  "more0052",
@@ -2370,6 +4385,91 @@
         "descEn":  "Hexatonic (or dense cluster) color from two triads a half step apart. Every chord in the set gets every unordered pair from its listâ€”especially the long Bb7 and C7 rowsâ€”so one favorite pair cannot hide the rest."
     },
     {
+        "id":  "more0110",
+        "slug":  "half-step-triad-pairs-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Half-step triad pairs on the staff",
+        "nameEs":  "Pares de tríades a un semitono en el pentagrama",
+        "descEn":  "Each half-step pair written as two bars of chord tones over the chord named in the text.",
+        "descEs":  "Cada par a un semitono escrito en dos compases de notas del acorde, sobre el acorde que nombra el texto.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "en":  "Hexatonics",
+                          "es":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "en":  "Triad Pairs for Jazz",
+                          "es":  "Triad Pairs for Jazz"
+                      },
+                      {
+                          "href":  "./more.html#altered-hexatonic-pairs",
+                          "en":  "Altered hexatonic triad pairs",
+                          "es":  "Pares hexatónicos alterados"
+                      }
+                  ],
+        "lines":  [
+                      "^Fm7 E4q G#4q B4q E5q | F4q A4q C5q F5q · Em/Fm",
+                      "^Bb7 E4q G#4q B4q E5q | F4q A4q C5q F5q · Em/Fm",
+                      "^Bb7 E4q G#4q B4q E5q | G4q B4q D5q G5q · Em/Gm",
+                      "^Bb7 E4q G#4q B4q E5q | Ab3q C4q Eb4q Ab4q · Em/Abm",
+                      "^Bb7 E4q G#4q B4q E5q | Bb3q D4q F4q Bb4q · Em/Bbm",
+                      "^Bb7 E4q G#4q B4q E5q | B3q D#4q F#4q B4q · Em/Bm",
+                      "^Bb7 E4q G#4q B4q E5q | C#4q E#4q G#4q C#5q · Em/C#m",
+                      "^Bb7 E4q G#4q B4q E5q | D4q F#4q A4q D5q · Em/Dm",
+                      "^Bb7 F4q A4q C5q F5q | G4q B4q D5q G5q · Fm/Gm",
+                      "^Bb7 F4q A4q C5q F5q | Ab3q C4q Eb4q Ab4q · Fm/Abm",
+                      "^Bb7 F4q A4q C5q F5q | Bb3q D4q F4q Bb4q · Fm/Bbm",
+                      "^Bb7 F4q A4q C5q F5q | B3q D#4q F#4q B4q · Fm/Bm",
+                      "^Bb7 F4q A4q C5q F5q | C#4q E#4q G#4q C#5q · Fm/C#m",
+                      "^Bb7 F4q A4q C5q F5q | D4q F#4q A4q D5q · Fm/Dm",
+                      "^Bb7 G4q B4q D5q G5q | Ab3q C4q Eb4q Ab4q · Gm/Abm",
+                      "^Bb7 G4q B4q D5q G5q | Bb3q D4q F4q Bb4q · Gm/Bbm",
+                      "^Bb7 G4q B4q D5q G5q | B3q D#4q F#4q B4q · Gm/Bm",
+                      "^Bb7 G4q B4q D5q G5q | C#4q E#4q G#4q C#5q · Gm/C#m",
+                      "^Bb7 G4q B4q D5q G5q | D4q F#4q A4q D5q · Gm/Dm",
+                      "^Bb7 Ab3q C4q Eb4q Ab4q | Bb3q D4q F4q Bb4q · Abm/Bbm",
+                      "^Bb7 Ab3q C4q Eb4q Ab4q | B3q D#4q F#4q B4q · Abm/Bm",
+                      "^Bb7 Ab3q C4q Eb4q Ab4q | C#4q E#4q G#4q C#5q · Abm/C#m",
+                      "^Bb7 Ab3q C4q Eb4q Ab4q | D4q F#4q A4q D5q · Abm/Dm",
+                      "^Bb7 Bb3q D4q F4q Bb4q | B3q D#4q F#4q B4q · Bbm/Bm",
+                      "^Bb7 Bb3q D4q F4q Bb4q | C#4q E#4q G#4q C#5q · Bbm/C#m",
+                      "^Bb7 Bb3q D4q F4q Bb4q | D4q F#4q A4q D5q · Bbm/Dm",
+                      "^Bb7 B3q D#4q F#4q B4q | C#4q E#4q G#4q C#5q · Bm/C#m",
+                      "^Bb7 B3q D#4q F#4q B4q | D4q F#4q A4q D5q · Bm/Dm",
+                      "^Bb7 C#4q E#4q G#4q C#5q | D4q F#4q A4q D5q · C#m/Dm",
+                      "^A7 F#4q A#4q C#5q F#5q | G4q B4q D5q G5q · F#m/Gm",
+                      "^D7 Ab3q C4q Eb4q Ab4q | A3q C#4q E4q A4q · Abm/Am",
+                      "^G7 Bb3q D4q F4q Bb4q | B3q D#4q F#4q B4q · Bbm/Bm",
+                      "^C7 C4q E4q G4q C5q | C#4q E#4q G#4q C#5q · Cm/C#m",
+                      "^C7 C4q E4q G4q C5q | F#4q A#4q C#5q F#5q · Cm/F#m",
+                      "^C7 C4q E4q G4q C5q | G4q B4q D5q G5q · Cm/Gm",
+                      "^C7 C4q E4q G4q C5q | A3q C#4q E4q A4q · Cm/Am",
+                      "^C7 C4q E4q G4q C5q | Bb3q D4q F4q Bb4q · Cm/Bbm",
+                      "^C7 C#4q E#4q G#4q C#5q | F#4q A#4q C#5q F#5q · C#m/F#m",
+                      "^C7 C#4q E#4q G#4q C#5q | G4q B4q D5q G5q · C#m/Gm",
+                      "^C7 C#4q E#4q G#4q C#5q | A3q C#4q E4q A4q · C#m/Am",
+                      "^C7 C#4q E#4q G#4q C#5q | Bb3q D4q F4q Bb4q · C#m/Bbm",
+                      "^C7 F#4q A#4q C#5q F#5q | G4q B4q D5q G5q · F#m/Gm",
+                      "^C7 F#4q A#4q C#5q F#5q | A3q C#4q E4q A4q · F#m/Am",
+                      "^C7 F#4q A#4q C#5q F#5q | Bb3q D4q F4q Bb4q · F#m/Bbm",
+                      "^C7 G4q B4q D5q G5q | A3q C#4q E4q A4q · Gm/Am",
+                      "^C7 G4q B4q D5q G5q | Bb3q D4q F4q Bb4q · Gm/Bbm",
+                      "^C7 A3q C#4q E4q A4q | Bb3q D4q F4q Bb4q · Am/Bbm",
+                      "^Gm F#4q A#4q C#5q F#5q | C4q E4q G4q C5q · F#m/Cm",
+                      "^C7b9sus4 C4q E4q G4q C5q | Db4q F4q Ab4q Db5q · C/Db",
+                      "^Fmaj7b5 E4q G#4q B4q E5q | F4q A4q C5q F5q · E/F",
+                      "^F#-7b5 B3q D#4q F#4q B4q | C4q E4q G4q C5q · B/C",
+                      "^F7 Db4q F4q Ab4q Db5q | D4q F#4q A4q D5q · Db/D"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "augmented-triad-pairs",
         "id":  "more0053",
         "descEs":  "Pares de tríadas aumentadas (y el set de tres en Bbmaj7#5). Cada acorde recibe cada par.",
@@ -2415,6 +4515,56 @@
         "descEn":  "Augmented triad pairs (and the three-augmented set on Bbmaj7#5). Every chord gets every unordered pair so one + shape cannot own the session."
     },
     {
+        "id":  "more0111",
+        "slug":  "augmented-triad-pairs-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Augmented triad pairs on the staff",
+        "nameEs":  "Pares de tríades aumentadas en el pentagrama",
+        "descEn":  "Each augmented pair written as two bars of chord tones over the chord named in the text.",
+        "descEs":  "Cada par aumentado escrito en dos compases de notas del acorde, sobre el acorde que nombra el texto.",
+        "books":  [
+                      {
+                          "href":  "./scales-and-sets.html#bergonzi-hexatonics",
+                          "en":  "Hexatonics",
+                          "es":  "Hexatonics"
+                      },
+                      {
+                          "href":  "./more.html#whole-step-triad-pairs",
+                          "en":  "Whole-step triad pairs",
+                          "es":  "Pares de tríadas a tono"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "Chords",
+                          "es":  "Acordes"
+                      }
+                  ],
+        "lines":  [
+                      "^B7 B3q D#4q F##4q B4q | C#4q E#4q G##4q C#5q · B+/C#+",
+                      "^B7 B3q D#4q F##4q B4q | Bb3q D4q F#4q Bb4q · B+/Bb+",
+                      "^B7 B3q D#4q F##4q B4q | C4q E4q G#4q C5q · B+/C+",
+                      "^B7 C#4q E#4q G##4q C#5q | Bb3q D4q F#4q Bb4q · C#+/Bb+",
+                      "^B7 C#4q E#4q G##4q C#5q | C4q E4q G#4q C5q · C#+/C+",
+                      "^B7 Bb3q D4q F#4q Bb4q | C4q E4q G#4q C5q · Bb+/C+",
+                      "^C7b9 Db4q F4q A4q Db5q | C4q E4q G#4q C5q · Db+/C+",
+                      "^F-Maj7 E4q G#4q B#4q E5q | F#4q A#4q C##5q F#5q · E+/F#+",
+                      "^F-Maj7 E4q G#4q B#4q E5q | Eb4q G4q B4q Eb5q · E+/Eb+",
+                      "^F-Maj7 F#4q A#4q C##5q F#5q | Eb4q G4q B4q Eb5q · F#+/Eb+",
+                      "^C B3q D#4q F##4q B4q | C4q E4q G#4q C5q · B+/C+",
+                      "^G7alt Ab3q C4q E4q Ab4q | G4q B4q D#5q G5q · Ab+/G+",
+                      "^Cm D4q F#4q A#4q D5q | Eb4q G4q B4q Eb5q · D+/Eb+",
+                      "^F7 D4q F#4q A#4q D5q | Eb4q G4q B4q Eb5q · D+/Eb+",
+                      "^Bbmaj7#5 Ab3q C4q E4q Ab4q | A3q C#4q E#4q A4q · Ab+/A+",
+                      "^Bbmaj7#5 Ab3q C4q E4q Ab4q | Bb3q D4q F#4q Bb4q · Ab+/Bb+",
+                      "^Bbmaj7#5 A3q C#4q E#4q A4q | Bb3q D4q F#4q Bb4q · A+/Bb+"
+                  ]
+    },
+    
+    
+    
+    {
         "slug":  "mixed-triad-pairs",
         "id":  "more0054",
         "descEs":  "Los pares restantes de la hoja hexatónica: calidades mixtas y el par de tritono Bb/E sobre Bb7. Cada combinación tiene turno.",
@@ -2445,6 +4595,42 @@
                   ],
         "descEn":  "The leftover pairs from the hexatonic sheet: mixed qualities and the Bb/E tritone pair on Bb7. Each listed combination gets a turn."
     },
+    {
+        "id":  "more0112",
+        "slug":  "mixed-triad-pairs-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Mixed triad pairs on the staff",
+        "nameEs":  "Pares de tríades mixtas en el pentagrama",
+        "descEn":  "Each mixed pair written as two bars of chord tones over the chord named in the text. A single triad is played twice.",
+        "descEs":  "Cada par mixto escrito en dos compases de notas del acorde, sobre el acorde que nombra el texto. Una tríada sola se toca dos veces.",
+        "books":  [
+                      {
+                          "href":  "./more.html#whole-step-triad-pairs",
+                          "en":  "Whole-step triad pairs",
+                          "es":  "Pares de tríadas a tono"
+                      },
+                      {
+                          "href":  "./more.html#half-step-triad-pairs",
+                          "en":  "Half-step triad pairs",
+                          "es":  "Pares de tríadas a semitono"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#campbell-triad-pairs",
+                          "en":  "Triad Pairs for Jazz",
+                          "es":  "Triad Pairs for Jazz"
+                      }
+                  ],
+        "lines":  [
+                      "^Fm G4q B4q D5q G5q | E4q G#4q B4q E5q · G/Em",
+                      "^Bbmaj7 F#4q A#4q C#5q F#5q | F#4q A#4q C#5q F#5q · F#m triad",
+                      "^Bb7 Bb3q D4q F4q Bb4q | E4q G#4q B4q E5q · Bb/E"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0055",
         "slug":  "ust-chord-families",
@@ -2536,6 +4722,101 @@
                   ]
     },
     {
+        "id":  "more0113",
+        "slug":  "ust-chord-families-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Upper structures on the staff",
+        "nameEs":  "Estructuras superiores en el pentagrama",
+        "descEn":  "Each upper-structure triad written twice over a C chord of that family. The degree in the caption is the root.",
+        "descEs":  "Cada tríada de estructura superior escrita dos veces sobre un acorde de C de esa familia. El grado del título es la fundamental.",
+        "books":  [
+                      {
+                          "href":  "./more.html#lst-chord-families",
+                          "en":  "Lower structures by chord family",
+                          "es":  "Estructuras inferiores por familia de acorde"
+                      },
+                      {
+                          "href":  "./more.html#upper-structure-triads",
+                          "en":  "Upper structure triads",
+                          "es":  "Tríades de estructura superior"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "Chords",
+                          "es":  "Acordes"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#levine-theory",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 D4q F#4q A4q D5q | D4q F#4q A4q D5q · IIMaj",
+                      "^Cmaj7 F#4q A4q C5q F#5q | F#4q A4q C5q F#5q · #IVÂ°",
+                      "^Cmaj7 G4q B4q D5q G5q | G4q B4q D5q G5q · V",
+                      "^Cmaj7 A3q C#4q E4q A4q | A3q C#4q E4q A4q · VI-",
+                      "^Cmaj7 B3q D#4q F#4q B4q | B3q D#4q F#4q B4q · VII-",
+                      "^C7 G4q B4q D5q G5q | G4q B4q D5q G5q · V-",
+                      "^C7 A3q C#4q E4q A4q | A3q C#4q E4q A4q · VI-",
+                      "^C7sus D4q F#4q A4q D5q | D4q F#4q A4q D5q · II-",
+                      "^C7sus F4q A4q C5q F5q | F4q A4q C5q F5q · IV",
+                      "^C7sus Bb3q D4q F4q Bb4q | Bb3q D4q F4q Bb4q · bVII",
+                      "^Cm7 D4q F#4q A4q D5q | D4q F#4q A4q D5q · II-",
+                      "^Cm7 F4q A4q C5q F5q | F4q A4q C5q F5q · IV",
+                      "^Cm7 G4q B4q D5q G5q | G4q B4q D5q G5q · V-",
+                      "^Cm7 A3q C4q Eb4q A4q | A3q C4q Eb4q A4q · VIÂ°",
+                      "^Cm7 Bb3q D4q F4q Bb4q | Bb3q D4q F4q Bb4q · bVII",
+                      "^Cm7b5 D4q F4q Ab4q D5q | D4q F4q Ab4q D5q · IIÂ°",
+                      "^Cm7b5 D4q F#4q A#4q D5q | D4q F#4q A#4q D5q · II+",
+                      "^Cm7b5 F4q A4q C5q F5q | F4q A4q C5q F5q · IV-",
+                      "^Cm7b5 Gb4q Bb4q D5q Gb5q | Gb4q Bb4q D5q Gb5q · bV+",
+                      "^Cm7b5 Ab3q C4q Eb4q Ab4q | Ab3q C4q Eb4q Ab4q · bVI",
+                      "^Cm7b5 Bb3q D4q F4q Bb4q | Bb3q D4q F4q Bb4q · bVII",
+                      "^Cm7b5 Bb3q D4q F#4q Bb4q | Bb3q D4q F#4q Bb4q · bVII+",
+                      "^Cdim7 D4q F#4q A4q D5q | D4q F#4q A4q D5q · II",
+                      "^Cdim7 D4q F#4q A4q D5q | D4q F#4q A4q D5q · II-",
+                      "^Cdim7 D4q F4q Ab4q D5q | D4q F4q Ab4q D5q · IIÂ°",
+                      "^Cdim7 F4q A4q C5q F5q | F4q A4q C5q F5q · IV",
+                      "^Cdim7 F4q A4q C5q F5q | F4q A4q C5q F5q · IV-",
+                      "^Cdim7 F4q Ab4q Cb5q F5q | F4q Ab4q Cb5q F5q · IVÂ°",
+                      "^Cdim7 Ab3q C4q Eb4q Ab4q | Ab3q C4q Eb4q Ab4q · bVI",
+                      "^Cdim7 Ab3q C4q Eb4q Ab4q | Ab3q C4q Eb4q Ab4q · bVI-",
+                      "^Cdim7 Ab3q Cb4q Ebb4q Ab4q | Ab3q Cb4q Ebb4q Ab4q · bVIÂ°",
+                      "^Cdim7 B3q D#4q F#4q B4q | B3q D#4q F#4q B4q · VII",
+                      "^Cdim7 B3q D#4q F#4q B4q | B3q D#4q F#4q B4q · VII-",
+                      "^Cdim7 B3q D4q F4q B4q | B3q D4q F4q B4q · VIIÂ°",
+                      "^C7alt C4q E4q G#4q C5q | C4q E4q G#4q C5q · I+",
+                      "^C7alt C4q Eb4q Gb4q C5q | C4q Eb4q Gb4q C5q · IÂ°",
+                      "^C7alt Db4q F4q Ab4q Db5q | Db4q F4q Ab4q Db5q · bII-",
+                      "^C7alt Eb4q G4q Bb4q Eb5q | Eb4q G4q Bb4q Eb5q · bIII-",
+                      "^C7alt E4q G#4q B#4q E5q | E4q G#4q B#4q E5q · III+",
+                      "^C7alt Gb4q Bb4q Db5q Gb5q | Gb4q Bb4q Db5q Gb5q · bV",
+                      "^C7alt Ab3q C4q Eb4q Ab4q | Ab3q C4q Eb4q Ab4q · bVI",
+                      "^C7alt Ab3q C4q E4q Ab4q | Ab3q C4q E4q Ab4q · bVI+",
+                      "^C7alt Bb3q Db4q Fb4q Bb4q | Bb3q Db4q Fb4q Bb4q · bVIIÂ°",
+                      "^C7 C4q E4q G4q C5q | C4q E4q G4q C5q · I-",
+                      "^C7 C4q Eb4q Gb4q C5q | C4q Eb4q Gb4q C5q · IÂ°",
+                      "^C7 Db4q Fb4q Abb4q Db5q | Db4q Fb4q Abb4q Db5q · bIIÂ°",
+                      "^C7 Eb4q G4q Bb4q Eb5q | Eb4q G4q Bb4q Eb5q · bIII",
+                      "^C7 Eb4q G4q Bb4q Eb5q | Eb4q G4q Bb4q Eb5q · bIII-",
+                      "^C7 Eb4q Gb4q A4q Eb5q | Eb4q Gb4q A4q Eb5q · bIIIÂ°",
+                      "^C7 F#4q A#4q C#5q F#5q | F#4q A#4q C#5q F#5q · #IV",
+                      "^C7 F#4q A#4q C#5q F#5q | F#4q A#4q C#5q F#5q · #IV-",
+                      "^C7 F#4q A4q C5q F#5q | F#4q A4q C5q F#5q · #IVÂ°",
+                      "^C7 G4q Bb4q Db5q G5q | G4q Bb4q Db5q G5q · VÂ°",
+                      "^C7 A3q C#4q E4q A4q | A3q C#4q E4q A4q · VI",
+                      "^C7 A3q C#4q E4q A4q | A3q C#4q E4q A4q · VI-",
+                      "^C7 A3q C4q Eb4q A4q | A3q C4q Eb4q A4q · VIÂ°",
+                      "^C7 Bb3q Db4q Fb4q Bb4q | Bb3q Db4q Fb4q Bb4q · bVIIÂ°"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0056",
         "slug":  "lst-chord-families",
         "bars":  2,
@@ -2583,6 +4864,59 @@
                       "IIIÂ° · Dom7 HW dim"
                   ]
     },
+    {
+        "id":  "more0114",
+        "slug":  "lst-chord-families-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Lower structures on the staff",
+        "nameEs":  "Estructuras inferiores en el pentagrama",
+        "descEn":  "Each lower-structure triad written twice over a C chord of that family.",
+        "descEs":  "Cada tríada de estructura inferior escrita dos veces sobre un acorde de C de esa familia.",
+        "books":  [
+                      {
+                          "href":  "./more.html#ust-chord-families",
+                          "en":  "Upper structures by chord family",
+                          "es":  "Estructuras superiores por familia de acorde"
+                      },
+                      {
+                          "href":  "./more.html#lower-structure-triads",
+                          "en":  "Lower structure triads",
+                          "es":  "Tríades de estructura inferior"
+                      },
+                      {
+                          "href":  "./chords.html",
+                          "en":  "Chords",
+                          "es":  "Acordes"
+                      },
+                      {
+                          "href":  "./scales-and-sets.html#levine-theory",
+                          "en":  "The Jazz Theory Book",
+                          "es":  "The Jazz Theory Book"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj7 C4q E4q G4q C5q | C4q E4q G4q C5q · I",
+                      "^Cmaj7 E4q G#4q B4q E5q | E4q G#4q B4q E5q · III-",
+                      "^C7 C4q E4q G4q C5q | C4q E4q G4q C5q · I",
+                      "^C7 E4q G4q Bb4q E5q | E4q G4q Bb4q E5q · IIIÂ°",
+                      "^C7sus C4q F4q G4q C5q | C4q F4q G4q C5q · Isus4",
+                      "^Cm7 C4q E4q G4q C5q | C4q E4q G4q C5q · I-",
+                      "^Cm7 Eb4q G4q Bb4q Eb5q | Eb4q G4q Bb4q Eb5q · bIII",
+                      "^Cm7b5 C4q Eb4q Gb4q C5q | C4q Eb4q Gb4q C5q · IÂ°",
+                      "^Cm7b5 Eb4q G4q Bb4q Eb5q | Eb4q G4q Bb4q Eb5q · bIII-",
+                      "^Cdim7 C4q Eb4q Gb4q C5q | C4q Eb4q Gb4q C5q · IÂ°",
+                      "^Cdim7 Eb4q Gb4q A4q Eb5q | Eb4q Gb4q A4q Eb5q · bIIIÂ°",
+                      "^Cdim7 Gb4q A4q Dbb5q Gb5q | Gb4q A4q Dbb5q Gb5q · bVÂ°",
+                      "^Cdim7 A3q C4q Eb4q A4q | A3q C4q Eb4q A4q · bbVIIÂ°",
+                      "^C7 C4q E4q G4q C5q | C4q E4q G4q C5q · I",
+                      "^C7 E4q G4q Bb4q E5q | E4q G4q Bb4q E5q · IIIÂ°"
+                  ]
+    },
+    
+    
+    
     {
         "id":  "more0057",
         "slug":  "held-rhythm",
@@ -2703,6 +5037,81 @@
                       "13 - 11"
                   ]
     },
+    {
+        "id":  "more0115",
+        "slug":  "two-chord-tones-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Two chord tones on the staff",
+        "nameEs":  "Dos notas del acorde en el pentagrama",
+        "descEn":  "Every ordered pair from the Cmaj13 chord, as half notes. The number under the note is the degree. Each pair is played twice.",
+        "descEs":  "Cada par ordenado del acorde Cmaj13, en blancas. El número bajo la nota es el grado. Cada par se toca dos veces.",
+        "books":  [
+                      {
+                          "href":  "./chord-tones.html",
+                          "en":  "Chord Tones",
+                          "es":  "Notas del acorde"
+                      },
+                      {
+                          "href":  "./intervals.html",
+                          "en":  "All Intervals",
+                          "es":  "Todos los intervalos"
+                      },
+                      {
+                          "href":  "./melodic-lines.html#coker-elements",
+                          "en":  "Elements of the Jazz Language",
+                          "es":  "Elements of the Jazz Language"
+                      }
+                  ],
+        "lines":  [
+                      "^Cmaj13 C4h_1 E4h_3 | C4h_1 E4h_3 · 1 - 3",
+                      "^Cmaj13 C4h_1 G4h_5 | C4h_1 G4h_5 · 1 - 5",
+                      "^Cmaj13 C4h_1 B4h_7 | C4h_1 B4h_7 · 1 - 7",
+                      "^Cmaj13 C4h_1 D5h_9 | C4h_1 D5h_9 · 1 - 9",
+                      "^Cmaj13 C4h_1 F5h_11 | C4h_1 F5h_11 · 1 - 11",
+                      "^Cmaj13 C4h_1 A5h_13 | C4h_1 A5h_13 · 1 - 13",
+                      "^Cmaj13 E4h_3 C4h_1 | E4h_3 C4h_1 · 3 - 1",
+                      "^Cmaj13 E4h_3 G4h_5 | E4h_3 G4h_5 · 3 - 5",
+                      "^Cmaj13 E4h_3 B4h_7 | E4h_3 B4h_7 · 3 - 7",
+                      "^Cmaj13 E4h_3 D5h_9 | E4h_3 D5h_9 · 3 - 9",
+                      "^Cmaj13 E4h_3 F5h_11 | E4h_3 F5h_11 · 3 - 11",
+                      "^Cmaj13 E4h_3 A5h_13 | E4h_3 A5h_13 · 3 - 13",
+                      "^Cmaj13 G4h_5 C4h_1 | G4h_5 C4h_1 · 5 - 1",
+                      "^Cmaj13 G4h_5 E4h_3 | G4h_5 E4h_3 · 5 - 3",
+                      "^Cmaj13 G4h_5 B4h_7 | G4h_5 B4h_7 · 5 - 7",
+                      "^Cmaj13 G4h_5 D5h_9 | G4h_5 D5h_9 · 5 - 9",
+                      "^Cmaj13 G4h_5 F5h_11 | G4h_5 F5h_11 · 5 - 11",
+                      "^Cmaj13 G4h_5 A5h_13 | G4h_5 A5h_13 · 5 - 13",
+                      "^Cmaj13 B4h_7 C4h_1 | B4h_7 C4h_1 · 7 - 1",
+                      "^Cmaj13 B4h_7 E4h_3 | B4h_7 E4h_3 · 7 - 3",
+                      "^Cmaj13 B4h_7 G4h_5 | B4h_7 G4h_5 · 7 - 5",
+                      "^Cmaj13 B4h_7 D5h_9 | B4h_7 D5h_9 · 7 - 9",
+                      "^Cmaj13 B4h_7 F5h_11 | B4h_7 F5h_11 · 7 - 11",
+                      "^Cmaj13 B4h_7 A5h_13 | B4h_7 A5h_13 · 7 - 13",
+                      "^Cmaj13 D5h_9 C4h_1 | D5h_9 C4h_1 · 9 - 1",
+                      "^Cmaj13 D5h_9 E4h_3 | D5h_9 E4h_3 · 9 - 3",
+                      "^Cmaj13 D5h_9 G4h_5 | D5h_9 G4h_5 · 9 - 5",
+                      "^Cmaj13 D5h_9 B4h_7 | D5h_9 B4h_7 · 9 - 7",
+                      "^Cmaj13 D5h_9 F5h_11 | D5h_9 F5h_11 · 9 - 11",
+                      "^Cmaj13 D5h_9 A5h_13 | D5h_9 A5h_13 · 9 - 13",
+                      "^Cmaj13 F5h_11 C4h_1 | F5h_11 C4h_1 · 11 - 1",
+                      "^Cmaj13 F5h_11 E4h_3 | F5h_11 E4h_3 · 11 - 3",
+                      "^Cmaj13 F5h_11 G4h_5 | F5h_11 G4h_5 · 11 - 5",
+                      "^Cmaj13 F5h_11 B4h_7 | F5h_11 B4h_7 · 11 - 7",
+                      "^Cmaj13 F5h_11 D5h_9 | F5h_11 D5h_9 · 11 - 9",
+                      "^Cmaj13 F5h_11 A5h_13 | F5h_11 A5h_13 · 11 - 13",
+                      "^Cmaj13 A5h_13 C4h_1 | A5h_13 C4h_1 · 13 - 1",
+                      "^Cmaj13 A5h_13 E4h_3 | A5h_13 E4h_3 · 13 - 3",
+                      "^Cmaj13 A5h_13 G4h_5 | A5h_13 G4h_5 · 13 - 5",
+                      "^Cmaj13 A5h_13 B4h_7 | A5h_13 B4h_7 · 13 - 7",
+                      "^Cmaj13 A5h_13 D5h_9 | A5h_13 D5h_9 · 13 - 9",
+                      "^Cmaj13 A5h_13 F5h_11 | A5h_13 F5h_11 · 13 - 11"
+                  ]
+    },
+    
+    
+    
     {
         "id": "more0059",
         "slug": "intervals-from-c",
@@ -2952,6 +5361,41 @@
                   ]
     },
     {
+        "id":  "more0116",
+        "slug":  "sonic-nuances-staff",
+        "group":  "sound",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Sonic nuances on the staff",
+        "nameEs":  "Matices sonoros en el pentagrama",
+        "descEn":  "The marks that can be written as notes: an accent on the and, accents on the peaks, ghost notes, a trill, a tremolo, a rolled chord, and a finger pedal that holds E while the lower note moves. Loud, soft, staccato, legato, and placement against the beat stay in the text exercise.",
+        "descEs":  "Las marcas que se pueden escribir como notas: un acento en la parte débil, acentos en los picos, notas fantasma, un trino, un trémolo, un acorde desplegado, y un pedal de dedo que sostiene el E mientras la nota grave se mueve. Fuerte, suave, staccato, legato y el lugar contra el pulso se quedan en el ejercicio de texto.",
+        "books":  [
+                      {
+                          "href":  "./sonic-nuances.html",
+                          "en":  "Sonic Nuances",
+                          "es":  "Matices sonoros"
+                      },
+                      {
+                          "href":  "./dynamics.html",
+                          "en":  "Dynamics",
+                          "es":  "Matices"
+                      }
+                  ],
+        "lines":  [
+                      "rq C4q\u003e rq C4q\u003e | rq D4q\u003e rq E4q\u003e · Accent on the and",
+                      "C4q\u003e E4q G4q\u003e C5q\u003e | C5q\u003e G4q E4q C4q\u003e · Accent the peaks",
+                      "mf C4q pp E4q mf G4q pp E4q | mf D4q pp F4q mf E4q pp C4q · Ghost notes",
+                      "C4s D4s C4s D4s C4s D4s C4s D4s C4s D4s C4s D4s C4s D4s C4s D4s | E4s F4s E4s F4s E4s F4s E4s F4s E4s F4s E4s F4s E4s F4s E4s F4s · Trill",
+                      "C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s | C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s C4s C5s · Tremolo",
+                      "C4e E4e G4e C5e rq rq | E4e G4e B4e E5e rq rq · Roll",
+                      "[C4q E5q]~ [D4q E5q]~ [E4q E5q]~ [F4q E5q]~ | [G4q E5q]~ [E4q E5q]~ [D4q E5q]~ [C4q E5q] · Finger pedal"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0067",
         "slug":  "all-intervals",
         "group":  "pitch",
@@ -3051,6 +5495,63 @@
                   ]
     },
     {
+        "id":  "more0117",
+        "slug":  "approach-notes-staff",
+        "group":  "changes",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "Approach notes on the staff",
+        "nameEs":  "Notas de aproximación en el pentagrama",
+        "descEn":  "Every approach pattern written into C4. C means chromatic steps and D means C-major steps. The arrow before the number is the direction. The bar repeats.",
+        "descEs":  "Cada patrón de aproximación escrito hacia C4. C es por semitonos y D es por grados de C mayor. La flecha antes del número es la dirección. El compás se repite.",
+        "books":  [
+                      {
+                          "href":  "./approach-notes.html",
+                          "en":  "Approach Notes",
+                          "es":  "Notas de aproximación"
+                      },
+                      {
+                          "href":  "./changes.html",
+                          "en":  "Chord changes",
+                          "es":  "Cambios de acordes"
+                      }
+                  ],
+        "lines":  [
+                      "B3e C4e re re re re re re | B3e C4e re re re re re re · ↓1C → T",
+                      "D4e C4e re re re re re re | D4e C4e re re re re re re · ↑1D → T",
+                      "C#4e C4e re re re re re re | C#4e C4e re re re re re re · ↑1C → T",
+                      "D4e B3e C4e re re re re re | D4e B3e C4e re re re re re · ↑1D ↓1C → T",
+                      "B3e D4e C4e re re re re re | B3e D4e C4e re re re re re · ↓1C ↑1D → T",
+                      "Bb3e B3e C4e re re re re re | Bb3e B3e C4e re re re re re · ↓2C ↓1C → T",
+                      "D4e C#4e C4e re re re re re | D4e C#4e C4e re re re re re · ↑2C ↑1C → T",
+                      "C#4e B3e C4e re re re re re | C#4e B3e C4e re re re re re · ↑1C ↓1C → T",
+                      "Bb3e B3e D4e C4e re re re re | Bb3e B3e D4e C4e re re re re · ↓2C ↓1C ↑1D → T",
+                      "D4e C#4e B3e C4e re re re re | D4e C#4e B3e C4e re re re re · ↑2C ↑1C ↓1C → T",
+                      "D4e Bb3e B3e C4e re re re re | D4e Bb3e B3e C4e re re re re · ↑1D ↓2C ↓1C → T",
+                      "B3e D4e C#4e C4e re re re re | B3e D4e C#4e C4e re re re re · ↓1C ↑2C ↑1C → T",
+                      "B3e D4e B3e C4e re re re re | B3e D4e B3e C4e re re re re · ↓1C ↑1D ↓1C → T",
+                      "D4e C#4e B3e C4e re re re re | D4e C#4e B3e C4e re re re re · ↑1D ↑1C ↓1C → T",
+                      "Bb3e B3e D4e C#4e C4e re re re | Bb3e B3e D4e C#4e C4e re re re · ↓2C ↓1C ↑2C ↑1C → T",
+                      "D4e C#4e Bb3e B3e C4e re re re | D4e C#4e Bb3e B3e C4e re re re · ↑2C ↑1C ↓2C ↓1C → T",
+                      "Bb3e B3e D4e B3e C4e re re re | Bb3e B3e D4e B3e C4e re re re · ↓2C ↓1C ↑1D ↓1C → T",
+                      "D4e Bb3e B3e D4e C4e re re re | D4e Bb3e B3e D4e C4e re re re · ↑1D ↓2C ↓1C ↑1D → T",
+                      "B3e D4e C#4e B3e C4e re re re | B3e D4e C#4e B3e C4e re re re · ↓1C ↑2C ↑1C ↓1C → T",
+                      "D4e Bb3e C#4e B3e C4e re re re | D4e Bb3e C#4e B3e C4e re re re · ↑2C ↓2C ↑1C ↓1C → T",
+                      "D4e Bb3e B3e C#4e C4e re re re | D4e Bb3e B3e C#4e C4e re re re · ↑2C ↓2C ↓1C ↑1C → T",
+                      "Bb3e D4e B3e C#4e C4e re re re | Bb3e D4e B3e C#4e C4e re re re · ↓2C ↑2C ↓1C ↑1C → T",
+                      "Bb3e D4e C#4e B3e C4e re re re | Bb3e D4e C#4e B3e C4e re re re · ↓2C ↑2C ↑1C ↓1C → T",
+                      "D4e C#4e Bb3e B3e C4e re re re | D4e C#4e Bb3e B3e C4e re re re · ↑1D ↑1C ↓2C ↓1C → T",
+                      "D4e B3e Bb3e B3e C4e re re re | D4e B3e Bb3e B3e C4e re re re · ↑1D ↓1D ↓2C ↓1C → T",
+                      "Ab3e A3e Bb3e B3e C4e re re re | Ab3e A3e Bb3e B3e C4e re re re · ↓4C ↓3C ↓2C ↓1C → T",
+                      "E4e D#4e D4e C#4e C4e re re re | E4e D#4e D4e C#4e C4e re re re · ↑4C ↑3C ↑2C ↑1C → T",
+                      "Bb3e B3e D4e C#4e B3e C4e re re | Bb3e B3e D4e C#4e B3e C4e re re · ↓2C ↓1C ↑2C ↑1C ↓1C → T",
+                      "D4e C#4e Bb3e B3e C#4e C4e re re | D4e C#4e Bb3e B3e C#4e C4e re re · ↑2C ↑1C ↓2C ↓1C ↑1C → T"
+                  ]
+    },
+    
+    
+    
+    {
         "id":  "more0069",
         "slug":  "finger-patterns",
         "group":  "pitch",
@@ -3103,6 +5604,62 @@
                       "☐☐☐☒☒",
                       "☐☐☐☒☐",
                       "☐☐☐☐☒"
+                  ]
+    },
+    {
+        "id":  "more0118",
+        "slug":  "finger-patterns-staff",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  1,
+        "nameEn":  "Finger patterns on the staff",
+        "nameEs":  "Patrones de dedos en el pentagrama",
+        "descEn":  "Each box pattern written as a chord. Finger 1 is C, then D, E, F, and G. A filled box plays. An empty box is silent. The caption keeps the boxes.",
+        "descEs":  "Cada patrón de casillas escrito como acorde. El dedo 1 es C, luego D, E, F y G. Una casilla llena suena. Una casilla vacía calla. El título conserva las casillas.",
+        "books":  [
+                      {
+                          "href":  "./finger-patterns.html",
+                          "en":  "Finger Patterns",
+                          "es":  "Digitaciones"
+                      },
+                      {
+                          "href":  "./practice.html",
+                          "en":  "How to practice",
+                          "es":  "Cómo practicar"
+                      }
+                  ],
+        "lines":  [
+                      "[C4q D4q E4q F4q G4q] rh. · ☒☒☒☒☒",
+                      "[C4q D4q E4q F4q] rh. · ☒☒☒☒☐",
+                      "[C4q D4q E4q G4q] rh. · ☒☒☒☐☒",
+                      "[C4q D4q E4q] rh. · ☒☒☒☐☐",
+                      "[C4q D4q F4q G4q] rh. · ☒☒☐☒☒",
+                      "[C4q D4q F4q] rh. · ☒☒☐☒☐",
+                      "[C4q D4q G4q] rh. · ☒☒☐☐☒",
+                      "[C4q D4q] rh. · ☒☒☐☐☐",
+                      "[C4q E4q F4q G4q] rh. · ☒☐☒☒☒",
+                      "[C4q E4q F4q] rh. · ☒☐☒☒☐",
+                      "[C4q E4q G4q] rh. · ☒☐☒☐☒",
+                      "[C4q E4q] rh. · ☒☐☒☐☐",
+                      "[C4q F4q G4q] rh. · ☒☐☐☒☒",
+                      "[C4q F4q] rh. · ☒☐☐☒☐",
+                      "[C4q G4q] rh. · ☒☐☐☐☒",
+                      "C4q rh. · ☒☐☐☐☐",
+                      "[D4q E4q F4q G4q] rh. · ☐☒☒☒☒",
+                      "[D4q E4q F4q] rh. · ☐☒☒☒☐",
+                      "[D4q E4q G4q] rh. · ☐☒☒☐☒",
+                      "[D4q E4q] rh. · ☐☒☒☐☐",
+                      "[D4q F4q G4q] rh. · ☐☒☐☒☒",
+                      "[D4q F4q] rh. · ☐☒☐☒☐",
+                      "[D4q G4q] rh. · ☐☒☐☐☒",
+                      "D4q rh. · ☐☒☐☐☐",
+                      "[E4q F4q G4q] rh. · ☐☐☒☒☒",
+                      "[E4q F4q] rh. · ☐☐☒☒☐",
+                      "[E4q G4q] rh. · ☐☐☒☐☒",
+                      "E4q rh. · ☐☐☒☐☐",
+                      "[F4q G4q] rh. · ☐☐☐☒☒",
+                      "F4q rh. · ☐☐☐☒☐",
+                      "G4q rh. · ☐☐☐☐☒"
                   ]
     }
 ]
