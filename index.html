@@ -188,7 +188,18 @@
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
                     <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
                 </button>
+                <button type="button" id="editViewToggle" data-i18n="edit.allExamples">All examples</button>
             </div>
+        </div>
+        <div id="editFocusChrome">
+            <div id="editFocusBar">
+                <button type="button" id="editFocusPrev" data-i18n-aria="edit.focusPrev" aria-label="Previous example" data-i18n-title="edit.focusPrev" title="Previous example">‹</button>
+                <p id="editFocusIndex" aria-live="polite">1 / 1</p>
+                <button type="button" id="editFocusNext" data-i18n-aria="edit.focusNext" aria-label="Next example" data-i18n-title="edit.focusNext" title="Next example">›</button>
+                <button type="button" id="editFocusAdd" data-i18n="edit.focusAdd" data-i18n-title="edit.focusAddTitle" title="Add an example after this one">Add</button>
+                <button type="button" id="editFocusRemove" data-i18n="edit.focusRemove" data-i18n-title="edit.focusRemoveTitle" title="Remove this example">Remove</button>
+            </div>
+            <input id="editFocusLine" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.focusLineAria" aria-label="Current example" data-i18n-placeholder="edit.focusPlaceholder" placeholder="One example">
         </div>
         <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.areaAria" aria-label="Examples, one per line" data-i18n-placeholder="edit.placeholder" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
         <div id="editPreview" class="is-empty" data-i18n-empty="edit.preview" data-empty="One example per line. A staff line draws here."></div>

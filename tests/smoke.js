@@ -922,6 +922,70 @@ function chatCase(w) {
   symbolsToggle.click();
   check("symbols close", symbolsPanel.hidden === true && symbolsToggle.getAttribute("aria-expanded") === "false");
   check("intro edit line stays after chat", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
+  var focusChrome = w.document.getElementById("editFocusChrome");
+  var focusLine = w.document.getElementById("editFocusLine");
+  var focusIndex = w.document.getElementById("editFocusIndex");
+  var viewToggle = w.document.getElementById("editViewToggle");
+  var area = w.document.getElementById("allEdit");
+  var sheet = w.document.getElementById("textdiv");
+  check(
+    "focus chrome sits in edit",
+    !!(
+      focusChrome &&
+      focusLine &&
+      focusIndex &&
+      viewToggle &&
+      area &&
+      w.document.getElementById("editFocusPrev") &&
+      w.document.getElementById("editFocusNext") &&
+      w.document.getElementById("editFocusAdd") &&
+      w.document.getElementById("editFocusRemove") &&
+      w.I18N.en["edit.allExamples"] === "All examples" &&
+      w.I18N.es["edit.allExamples"] === "Todos los ejemplos" &&
+      w.I18N.en["edit.oneExample"] === "One example" &&
+      w.I18N.es["edit.oneExample"] === "Un ejemplo" &&
+      w.I18N.en["edit.focusIndex"] === "{n} / {total}"
+    )
+  );
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+  w.restoreDefaults();
+  localStorage.setItem("eization-hello", "1");
+  var focusWalk = w.createDeskExercise({ name: "Focus Walk", bars: 1, lines: ["Alpha", "Bravo", "Charlie"] });
+  var focusWalkId = focusWalk && focusWalk.id;
+  check("focus walk saves", !!focusWalkId);
+  if (focusWalkId) {
+    w.currentExerciseId = focusWalkId;
+    w.SelectExercise();
+    w.editorOpen();
+    var narrowFocus = !desktopActions;
+    check(
+      "edit opens in the viewport view",
+      !!(
+        sheet &&
+        sheet.classList.contains(narrowFocus ? "is-edit-focus" : "is-edit-list") &&
+        viewToggle.textContent === (narrowFocus ? w.t("edit.allExamples") : w.t("edit.oneExample"))
+      )
+    );
+    if (!narrowFocus) {
+      viewToggle.click();
+    }
+    check("focus shows one line", !!(sheet.classList.contains("is-edit-focus") && focusLine.value === "Alpha" && focusIndex.textContent.indexOf("1") >= 0 && area.value.indexOf("Alpha") >= 0 && area.value.indexOf("Charlie") >= 0));
+    w.document.getElementById("editFocusNext").click();
+    check("focus pages forward", focusLine.value === "Bravo" && focusIndex.textContent.indexOf("2") >= 0);
+    focusLine.value = "Bravo edited";
+    focusLine.dispatchEvent(new w.Event("input", { bubbles: true }));
+    w.document.getElementById("editUpdate").click();
+    var walked = w.getDeskExercise(focusWalkId);
+    check("update still reads lines from allEdit", !!(walked && walked.lines && walked.lines[1] === "Bravo edited" && walked.lines[0] === "Alpha" && walked.lines[2] === "Charlie"));
+    w.editorOpen();
+    if (!sheet.classList.contains("is-edit-list")) {
+      viewToggle.click();
+    }
+    check("list still keeps the textarea", !!(sheet.classList.contains("is-edit-list") && area && w.getComputedStyle(area).position !== "absolute" && area.value.indexOf("Bravo edited") >= 0));
+    w.editorCancel();
+  }
 }
 
 function foreignDesk(w) {

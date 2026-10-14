@@ -11,6 +11,8 @@ var editorDraft = {
 var editStaffWarnTimer = null;
 var editStaffWarnLine = "";
 var editorStaffHelpSelection = { start: 0, end: 0 };
+var editorFocusIndex = 0;
+var editorViewOverride = null;
 
 var EDITOR_SYMBOLS = [
   { char: "\u266F", key: "sym.sharp" },
@@ -134,10 +136,18 @@ function editorNameValue() {
   return field ? field.value : "";
 }
 
+function editorFlushFocus() {
+  var sheet = document.getElementById("textdiv");
+  if (sheet && sheet.classList.contains("is-edit-focus")) {
+    editorSyncFocusToArea();
+  }
+}
+
 function editorIsDirty() {
   if (!editorIsOpen()) {
     return false;
   }
+  editorFlushFocus();
   var area = document.getElementById("allEdit");
   var bars = clampEditorBars(document.getElementById("editBars").value);
   var text = editorLinesFrom(area.value).join("\n");
@@ -416,14 +426,24 @@ function editorCloseStaffHelp(options) {
     btn.setAttribute("aria-expanded", "false");
   }
   if (options.focus !== false) {
-    var area = document.getElementById("allEdit");
-    if (area) {
-      if (window.matchMedia("(pointer: fine)").matches) {
-        area.focus();
+    if (editorIsFocusMode()) {
+      var field = document.getElementById("editFocusLine");
+      if (field && window.matchMedia("(pointer: fine)").matches) {
+        field.focus();
+        try {
+          field.setSelectionRange(editorStaffHelpSelection.start, editorStaffHelpSelection.end);
+        } catch (errFocus) {}
       }
-      try {
-        area.setSelectionRange(editorStaffHelpSelection.start, editorStaffHelpSelection.end);
-      } catch (err) {}
+    } else {
+      var area = document.getElementById("allEdit");
+      if (area) {
+        if (window.matchMedia("(pointer: fine)").matches) {
+          area.focus();
+        }
+        try {
+          area.setSelectionRange(editorStaffHelpSelection.start, editorStaffHelpSelection.end);
+        } catch (err) {}
+      }
     }
   }
   return true;
@@ -440,7 +460,13 @@ function editorOpenStaffHelp() {
   }
   editorCloseMore();
   editorCloseSymbols();
-  if (area) {
+  if (editorIsFocusMode()) {
+    var field = document.getElementById("editFocusLine");
+    if (field) {
+      editorStaffHelpSelection.start = field.selectionStart || 0;
+      editorStaffHelpSelection.end = field.selectionEnd || 0;
+    }
+  } else if (area) {
     editorStaffHelpSelection.start = area.selectionStart || 0;
     editorStaffHelpSelection.end = area.selectionEnd || 0;
   }
@@ -506,15 +532,20 @@ function editorCloseQuiet() {
   if (!editorIsOpen()) {
     return;
   }
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+  }
   editorCloseStaffHelp({ focus: false });
   editorCloseMore();
   editorCloseSymbols();
   clearEditStaffNote();
   var sheet = document.getElementById("textdiv");
-  sheet.classList.remove("is-open");
+  sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
   sheet.style.display = "";
   document.body.classList.remove("is-editing");
   editorDraft.mode = "edit";
+  editorViewOverride = null;
+  editorFocusIndex = 0;
   setEditButton(false);
   clearEditorNotice();
   disarmEditorDelete();
@@ -550,7 +581,253 @@ function placeEditor() {
   sheet.style.bottom = Math.max(0, window.innerHeight - limit) + "px";
 }
 
+function editorDefaultViewMode() {
+  return window.matchMedia("(max-width: 840px)").matches ? "focus" : "list";
+}
+
+function editorEffectiveViewMode() {
+  return editorViewOverride || editorDefaultViewMode();
+}
+
+function editorIsFocusMode() {
+  return editorIsOpen() && editorEffectiveViewMode() === "focus";
+}
+
+function editorRawLines() {
+  var area = document.getElementById("allEdit");
+  var value = area ? String(area.value || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n") : "";
+  if (!value) {
+    return [""];
+  }
+  return value.split("\n");
+}
+
+function editorSetRawLines(lines) {
+  var area = document.getElementById("allEdit");
+  if (!area) {
+    return;
+  }
+  if (!lines || !lines.length) {
+    lines = [""];
+  }
+  area.value = lines.join("\n");
+}
+
+function editorCaretLineIndex() {
+  var area = document.getElementById("allEdit");
+  if (!area) {
+    return 0;
+  }
+  var start = area.selectionStart || 0;
+  var before = String(area.value || "").slice(0, start).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  return before.split("\n").length - 1;
+}
+
+function editorClampFocusIndex(total) {
+  if (total < 1) {
+    total = 1;
+  }
+  if (editorFocusIndex < 0) {
+    editorFocusIndex = 0;
+  }
+  if (editorFocusIndex >= total) {
+    editorFocusIndex = total - 1;
+  }
+}
+
+function editorSyncFocusToArea() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  var field = document.getElementById("editFocusLine");
+  if (!field) {
+    return;
+  }
+  var lines = editorRawLines();
+  editorClampFocusIndex(lines.length);
+  lines[editorFocusIndex] = field.value;
+  editorSetRawLines(lines);
+}
+
+function editorUpdateFocusChrome() {
+  var indexEl = document.getElementById("editFocusIndex");
+  var prev = document.getElementById("editFocusPrev");
+  var next = document.getElementById("editFocusNext");
+  var remove = document.getElementById("editFocusRemove");
+  var lines = editorRawLines();
+  editorClampFocusIndex(lines.length);
+  if (indexEl) {
+    indexEl.textContent = tr("edit.focusIndex", { n: editorFocusIndex + 1, total: lines.length });
+  }
+  if (prev) {
+    prev.disabled = editorFocusIndex <= 0;
+  }
+  if (next) {
+    next.disabled = editorFocusIndex >= lines.length - 1;
+  }
+  if (remove) {
+    remove.disabled = lines.length <= 1 && !collapseEditorSpaces(lines[0] || "");
+  }
+}
+
+function editorSyncFocusFromArea() {
+  var field = document.getElementById("editFocusLine");
+  var lines = editorRawLines();
+  editorClampFocusIndex(lines.length);
+  if (field) {
+    field.value = lines[editorFocusIndex] || "";
+  }
+  editorUpdateFocusChrome();
+}
+
+function editorRefreshViewToggle() {
+  var button = document.getElementById("editViewToggle");
+  if (!button) {
+    return;
+  }
+  var focus = editorEffectiveViewMode() === "focus";
+  button.textContent = focus ? t("edit.allExamples") : t("edit.oneExample");
+  button.setAttribute("aria-pressed", focus ? "true" : "false");
+}
+
+function editorApplyViewMode() {
+  var sheet = document.getElementById("textdiv");
+  if (!sheet) {
+    return;
+  }
+  var wasFocus = sheet.classList.contains("is-edit-focus");
+  var focus = editorEffectiveViewMode() === "focus";
+  if (wasFocus) {
+    editorSyncFocusToArea();
+  }
+  sheet.classList.toggle("is-edit-focus", focus);
+  sheet.classList.toggle("is-edit-list", !focus);
+  editorRefreshViewToggle();
+  if (focus) {
+    editorSyncFocusFromArea();
+  }
+}
+
+function editorSetViewMode(mode) {
+  editorViewOverride = mode === "focus" || mode === "list" ? mode : null;
+  if (mode === "focus") {
+    editorFocusIndex = editorCaretLineIndex();
+  } else if (mode === "list") {
+    editorSyncFocusToArea();
+    var area = document.getElementById("allEdit");
+    var lines = editorRawLines();
+    editorClampFocusIndex(lines.length);
+    if (area) {
+      var start = 0;
+      var i;
+      for (i = 0; i < editorFocusIndex; i++) {
+        start += (lines[i] || "").length + 1;
+      }
+      var end = start + (lines[editorFocusIndex] || "").length;
+      area.focus();
+      try {
+        area.setSelectionRange(start, end);
+      } catch (err) {}
+    }
+  }
+  editorApplyViewMode();
+  refreshEditor();
+  if (mode === "focus") {
+    var field = document.getElementById("editFocusLine");
+    if (field && window.matchMedia("(pointer: fine)").matches) {
+      field.focus();
+      field.select();
+    }
+  }
+}
+
+function editorToggleViewMode() {
+  if (!editorIsOpen()) {
+    return;
+  }
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+    editorSetViewMode("list");
+  } else {
+    editorSetViewMode("focus");
+  }
+}
+
+function editorFocusGo(delta) {
+  if (!editorIsFocusMode()) {
+    return;
+  }
+  editorSyncFocusToArea();
+  var lines = editorRawLines();
+  editorClampFocusIndex(lines.length);
+  var next = editorFocusIndex + delta;
+  if (next < 0 || next >= lines.length) {
+    return;
+  }
+  editorFocusIndex = next;
+  editorSyncFocusFromArea();
+  clearEditorNotice();
+  refreshEditor();
+  var field = document.getElementById("editFocusLine");
+  if (field) {
+    field.focus();
+  }
+}
+
+function editorFocusAdd() {
+  if (!editorIsFocusMode()) {
+    return;
+  }
+  editorSyncFocusToArea();
+  var lines = editorRawLines();
+  if (lines.length >= 500) {
+    editorNotice(t("edit.tooMany"));
+    return;
+  }
+  editorClampFocusIndex(lines.length);
+  lines.splice(editorFocusIndex + 1, 0, "");
+  editorSetRawLines(lines);
+  editorFocusIndex += 1;
+  editorSyncFocusFromArea();
+  clearEditorNotice();
+  refreshEditor();
+  var field = document.getElementById("editFocusLine");
+  if (field) {
+    field.focus();
+  }
+}
+
+function editorFocusRemove() {
+  if (!editorIsFocusMode()) {
+    return;
+  }
+  editorSyncFocusToArea();
+  var lines = editorRawLines();
+  editorClampFocusIndex(lines.length);
+  if (lines.length <= 1) {
+    editorSetRawLines([""]);
+    editorFocusIndex = 0;
+  } else {
+    lines.splice(editorFocusIndex, 1);
+    editorSetRawLines(lines);
+    if (editorFocusIndex >= lines.length) {
+      editorFocusIndex = lines.length - 1;
+    }
+  }
+  editorSyncFocusFromArea();
+  clearEditorNotice();
+  refreshEditor();
+  var field = document.getElementById("editFocusLine");
+  if (field) {
+    field.focus();
+  }
+}
+
 function currentEditorLine() {
+  if (editorIsFocusMode()) {
+    var field = document.getElementById("editFocusLine");
+    return field ? field.value : "";
+  }
   var area = document.getElementById("allEdit");
   var value = area.value;
   var start = area.selectionStart || 0;
@@ -577,10 +854,15 @@ function refreshEditor() {
   var area = document.getElementById("allEdit");
   var count = document.getElementById("editCount");
   var preview = document.getElementById("editPreview");
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+    editorUpdateFocusChrome();
+  }
   var total = visibleLineCount(area.value);
   if (count) {
     count.textContent = total === 1 ? t("edit.examplesOne") : tr("edit.examplesMany", { n: total });
   }
+  editorRefreshViewToggle();
   if (!preview) {
     return;
   }
@@ -632,19 +914,70 @@ function refreshEditor() {
 }
 
 function insertEditorText(text) {
+  if (editorIsFocusMode()) {
+    var field = document.getElementById("editFocusLine");
+    if (!field) {
+      return;
+    }
+    var start = field.selectionStart || 0;
+    var end = field.selectionEnd || 0;
+    var single = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    if (single.indexOf("\n") >= 0) {
+      editorSyncFocusToArea();
+      var lines = editorRawLines();
+      editorClampFocusIndex(lines.length);
+      var parts = single.split("\n").map(function (part) {
+        var decoded = itemToLine(part);
+        return decoded || part.replace(/^\s+|\s+$/g, "");
+      });
+      var head = (field.value || "").slice(0, start) + parts[0];
+      var tail = (field.value || "").slice(end);
+      var inserted = [head].concat(parts.slice(1));
+      inserted[inserted.length - 1] = inserted[inserted.length - 1] + tail;
+      var before = lines.slice(0, editorFocusIndex);
+      var after = lines.slice(editorFocusIndex + 1);
+      var next = before.concat(inserted, after);
+      if (next.length > 500) {
+        editorNotice(t("edit.tooMany"));
+        return;
+      }
+      editorSetRawLines(next);
+      editorFocusIndex = before.length + inserted.length - 1;
+      editorSyncFocusFromArea();
+      field.focus();
+      var caret = (inserted[inserted.length - 1] || "").length - tail.length;
+      if (caret < 0) {
+        caret = 0;
+      }
+      try {
+        field.setSelectionRange(caret, caret);
+      } catch (err) {}
+    } else {
+      var value = field.value || "";
+      field.value = value.slice(0, start) + single + value.slice(end);
+      var pos = start + single.length;
+      field.focus();
+      try {
+        field.setSelectionRange(pos, pos);
+      } catch (err2) {}
+    }
+    clearEditorNotice();
+    refreshEditor();
+    return;
+  }
   var area = document.getElementById("allEdit");
-  var start = area.selectionStart || 0;
-  var end = area.selectionEnd || 0;
-  if (start > area.value.length) {
-    start = area.value.length;
-    end = start;
+  var areaStart = area.selectionStart || 0;
+  var areaEnd = area.selectionEnd || 0;
+  if (areaStart > area.value.length) {
+    areaStart = area.value.length;
+    areaEnd = areaStart;
   }
   area.focus();
   if (typeof area.setRangeText === "function") {
-    area.setRangeText(text, start, end, "end");
+    area.setRangeText(text, areaStart, areaEnd, "end");
   } else {
-    area.value = area.value.slice(0, start) + text + area.value.slice(end);
-    var caret = start + text.length;
+    area.value = area.value.slice(0, areaStart) + text + area.value.slice(areaEnd);
+    var caret = areaStart + text.length;
     area.setSelectionRange(caret, caret);
   }
   clearEditorNotice();
@@ -690,10 +1023,21 @@ function clearEditorList() {
   var area = document.getElementById("allEdit");
   area.value = "";
   area.setSelectionRange(0, 0);
+  editorFocusIndex = 0;
+  if (editorIsFocusMode()) {
+    editorSyncFocusFromArea();
+  }
   clearEditorNotice();
   refreshEditor();
   if (window.matchMedia("(pointer: fine)").matches) {
-    area.focus();
+    if (editorIsFocusMode()) {
+      var field = document.getElementById("editFocusLine");
+      if (field) {
+        field.focus();
+      }
+    } else {
+      area.focus();
+    }
   }
 }
 
@@ -743,6 +1087,8 @@ function editorOpenSheet(options) {
     editorDraft.text = lines.join("\n");
   }
   editorDraft.storedLines = editorIsCreateMode() ? null : editorStoredLinesNow(editorDraft.id);
+  editorViewOverride = null;
+  editorFocusIndex = 0;
   var area = document.getElementById("allEdit");
   area.value = editorDraft.text;
   document.getElementById("editBars").value = String(editorDraft.bars);
@@ -762,6 +1108,7 @@ function editorOpenSheet(options) {
   if (editorIsCreateMode()) {
     syncEditorFaceName();
   }
+  editorApplyViewMode();
   refreshEditor();
   placeEditor();
   if (typeof layoutFrame === "function") {
@@ -773,6 +1120,12 @@ function editorOpenSheet(options) {
     if (editorIsCreateMode() && nameField) {
       nameField.focus();
       nameField.select();
+    } else if (editorIsFocusMode()) {
+      var focusField = document.getElementById("editFocusLine");
+      if (focusField) {
+        focusField.focus();
+        focusField.select();
+      }
     } else {
       area.focus();
     }
@@ -851,6 +1204,8 @@ function editorOpenSharePreview(spec) {
     editorDraft.text = editorPlainLines(target.lines);
   }
   editorDraft.storedLines = editorDraft.mode === "create" || !target ? null : editorPlainLines(target.lines);
+  editorViewOverride = null;
+  editorFocusIndex = 0;
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
   document.getElementById("editBars").value = String(spec.bars || 1);
@@ -868,6 +1223,7 @@ function editorOpenSharePreview(spec) {
   document.body.classList.add("is-editing");
   setEditButton(true);
   syncEditorFaceName();
+  editorApplyViewMode();
   refreshEditor();
   placeEditor();
   if (typeof layoutFrame === "function") {
@@ -876,7 +1232,15 @@ function editorOpenSharePreview(spec) {
   area.scrollTop = 0;
   area.setSelectionRange(0, 0);
   if (window.matchMedia("(pointer: fine)").matches) {
-    area.focus();
+    if (editorIsFocusMode()) {
+      var focusField = document.getElementById("editFocusLine");
+      if (focusField) {
+        focusField.focus();
+        focusField.select();
+      }
+    } else {
+      area.focus();
+    }
   }
   refreshEditor();
 }
@@ -957,6 +1321,7 @@ function editorSaveFile() {
   if (!editorIsOpen()) {
     return;
   }
+  editorFlushFocus();
   var lines = editorLinesFrom(document.getElementById("allEdit").value);
   if (!lines.length) {
     editorNotice(t("edit.oneLine"));
@@ -1007,6 +1372,7 @@ function editorOpenFile(file) {
     }
     var area = document.getElementById("allEdit");
     area.value = parsed.lines.join("\n");
+    editorFocusIndex = 0;
     if (parsed.bars) {
       document.getElementById("editBars").value = String(parsed.bars);
     }
@@ -1016,6 +1382,9 @@ function editorOpenFile(file) {
         nameField.value = parsed.name;
       }
       syncEditorFaceName();
+    }
+    if (editorIsFocusMode()) {
+      editorSyncFocusFromArea();
     }
     editorNotice(t("edit.uploadReplaced"));
     refreshEditor();
@@ -1249,6 +1618,7 @@ function editorUpdate() {
   if (!editorIsOpen()) {
     return;
   }
+  editorFlushFocus();
   if (editorIsCreateMode()) {
     editorSaveAsNew();
     return;
@@ -1307,6 +1677,7 @@ function editorSaveAsNew() {
   if (!editorIsOpen()) {
     return;
   }
+  editorFlushFocus();
   var lines = editorLinesFrom(document.getElementById("allEdit").value);
   if (!lines.length) {
     editorNotice(t("edit.oneLine"));
@@ -1609,6 +1980,7 @@ function editorOpenChat(target) {
   if (!editorIsOpen()) {
     return;
   }
+  editorFlushFocus();
   lines = editorLinesFrom(document.getElementById("allEdit").value);
   if (lines.length > 500) {
     editorNotice(t("edit.tooMany"));
@@ -1642,6 +2014,7 @@ function editorShare() {
   if (!editorIsOpen()) {
     return;
   }
+  editorFlushFocus();
   var lines = editorLinesFrom(document.getElementById("allEdit").value);
   if (!lines.length) {
     editorNotice(t("edit.oneLine"));
@@ -1780,6 +2153,100 @@ function initEditor() {
     event.preventDefault();
     insertEditorText(button.getAttribute("data-symbol") || "");
   });
+  var viewToggle = document.getElementById("editViewToggle");
+  if (viewToggle) {
+    viewToggle.addEventListener("click", editorToggleViewMode);
+  }
+  var focusPrev = document.getElementById("editFocusPrev");
+  if (focusPrev) {
+    focusPrev.addEventListener("click", function () {
+      editorFocusGo(-1);
+    });
+  }
+  var focusNext = document.getElementById("editFocusNext");
+  if (focusNext) {
+    focusNext.addEventListener("click", function () {
+      editorFocusGo(1);
+    });
+  }
+  var focusAdd = document.getElementById("editFocusAdd");
+  if (focusAdd) {
+    focusAdd.addEventListener("click", editorFocusAdd);
+  }
+  var focusRemove = document.getElementById("editFocusRemove");
+  if (focusRemove) {
+    focusRemove.addEventListener("click", editorFocusRemove);
+  }
+  var focusField = document.getElementById("editFocusLine");
+  if (focusField) {
+    focusField.addEventListener("input", function () {
+      editorSyncFocusToArea();
+      convertEditorCodes();
+      if (editorIsFocusMode()) {
+        var caret = focusField.selectionStart || 0;
+        editorSyncFocusFromArea();
+        try {
+          focusField.setSelectionRange(caret, caret);
+        } catch (errConvert) {}
+      }
+      disarmEditorDelete();
+      clearEditorNotice();
+      refreshEditor();
+    });
+    focusField.addEventListener("keyup", refreshEditor);
+    focusField.addEventListener("click", refreshEditor);
+    focusField.addEventListener("paste", function (event) {
+      var data = event.clipboardData;
+      if (!data) {
+        return;
+      }
+      var text = data.getData("text/plain");
+      if (!text) {
+        text = data.getData("text/html");
+      }
+      if (!text) {
+        return;
+      }
+      event.preventDefault();
+      var cleaned = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").map(function (line) {
+        var decoded = itemToLine(line);
+        return decoded || line.replace(/^\s+|\s+$/g, "");
+      }).join("\n");
+      insertEditorText(cleaned);
+    });
+    focusField.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (editorCloseStaffHelp()) {
+          return;
+        }
+        if (editorCloseSymbols()) {
+          return;
+        }
+        if (editorCloseMore()) {
+          return;
+        }
+        editorCancel();
+        return;
+      }
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        editorUpdate();
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        editorSyncFocusToArea();
+        var lines = editorRawLines();
+        editorClampFocusIndex(lines.length);
+        if (editorFocusIndex >= lines.length - 1) {
+          editorFocusAdd();
+        } else {
+          editorFocusGo(1);
+        }
+      }
+    });
+  }
   area.addEventListener("input", function () {
     convertEditorCodes();
     disarmEditorDelete();
@@ -1789,7 +2256,10 @@ function initEditor() {
   area.addEventListener("keyup", refreshEditor);
   area.addEventListener("click", refreshEditor);
   document.addEventListener("selectionchange", function () {
-    if (editorIsOpen() && document.activeElement === area) {
+    if (!editorIsOpen()) {
+      return;
+    }
+    if (document.activeElement === area || document.activeElement === focusField) {
       refreshEditor();
     }
   });
@@ -1853,9 +2323,16 @@ function initEditor() {
       event.preventDefault();
       return;
     }
-    if (event.target !== area) {
+    if (event.target !== area && event.target !== focusField) {
       editorCancel();
     }
+  });
+  window.addEventListener("resize", function () {
+    if (!editorIsOpen() || editorViewOverride) {
+      return;
+    }
+    editorApplyViewMode();
+    refreshEditor();
   });
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", placeEditor);
