@@ -33,14 +33,14 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/staff.js` | Optional SVG staff for examples that parse as notation (clef, key, pitches, durations, rests, tuplets, labels). Time signature follows Setup meter |
 
 | `resources/js/metronome.js` | Lookahead click. The clock is eighth notes. BPM is the speed of the bottom number |
-| `resources/js/editor.js` | Edit exercises. `edit.js` does not load |
+| `resources/js/editor.js` | Edit exercises, staff preview of the line at the caret, and the staff-writing help panel. `edit.js` does not load |
 | `resources/js/about.js` | Menu sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → Scales on a staff → Left Hand Rootless Voicings → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
 | `resources/js/awake.js` | Keeps the practice display on while that page is in front. Screen wake lock, then a muted looping clip with a silent audio track if the device refuses the lock |
 | `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/css/style.css` | Practice screen layout |
-| `notation.html` | How to write an example as staff notation. Each sample is the line, then the staff that line parses into |
+| `notation.html` | How to write an example as staff notation. Each sample is the line, then the staff that line parses into. Try a line edits live and samples load into that box |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
 | `for-teachers.html` | Hub for teacher articles. Pieces live under `for-teachers/` and `es/for-teachers/` |
 | `more.html` | Extra exercises as share links. Open one to Add or Preview in eization. Not in the default menu. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
@@ -76,7 +76,7 @@ An example line that parses as music notation renders as an SVG staff instead of
 - Time signature is not in the string — it follows Setup meter (`beatsPerBar` / `beatUnit`). **4/4** → common-time **C**; **2/2** → cut-time **₵**; other meters use digits. Beat / compound group size also drives auto-beaming
 - Staff ink (clefs, accidentals, noteheads, slash heads, augmentation dots, flags, rests, time digits / C / ₵) uses Bravura/SMuFL SVG paths in `staff-glyphs.js` (SIL OFL), not a music font. Quarters/halves/eighths/sixteenths get stems; wholes are the whole-notehead glyph only; beams are SVG lines. Chord labels stay text (`--face-font` / Noto Music for ♯ etc.)
 
-`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. `notation.html` (and `es/notation.html`) shows the same parser: the line, then the staff.
+`staff-glyphs.js` then `staff.js` load after the exercise scripts and before `picker.js`. `notation.html` (and `es/notation.html`) shows the same parser: the line, then the staff. In Edit, the line at the caret previews as a staff when it parses; a notation-ish line that fails stays text with an amber note. The info button opens a short writing guide without closing the draft.
 
 ## Adding an exercise
 

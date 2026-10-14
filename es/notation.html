@@ -51,8 +51,30 @@
         <p>Algunos ejercicios son texto grande. Una línea que se lee como música es un pentagrama. Un ejemplo por línea en Editar. El texto de abajo es la línea. El pentagrama debajo es lo que se ve.</p>
         <p>El compás no va en la línea. Sigue a Ajustes. Estas figuras usan 4/4 salvo que la figura diga otra cosa. Una línea que no se lee se queda en texto.</p>
 
+        <section class="notation-try" id="notationTry">
+            <h2>Prueba una línea</h2>
+            <p>Escribe un ejemplo. El pentagrama se actualiza al escribir. El compás de aquí es solo para este recuadro; en un ejercicio sigue a Ajustes. Toca cualquier ejemplo de esta página para cargarlo aquí.</p>
+            <div class="notation-try-tools">
+                <label class="notation-try-meter">
+                    <span>Compás</span>
+                    <select id="notationTryMeter" aria-label="Compás de este recuadro de prueba">
+                        <option value="4/4" selected>4/4</option>
+                        <option value="3/4">3/4</option>
+                        <option value="6/8">6/8</option>
+                        <option value="2/2">2/2</option>
+                        <option value="4/2">4/2</option>
+                    </select>
+                </label>
+            </div>
+            <input id="notationTryInput" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" aria-label="Línea de ejemplo para probar" value="C4 E4 G4 C5">
+            <p id="notationTryNote" class="notation-try-note" hidden role="status" aria-live="polite"></p>
+            <div class="notation-try-preview">
+                <div id="notationTryStaff" class="notation-staff is-empty"></div>
+            </div>
+        </section>
+
         <h2>Una nota, y luego las duraciones</h2>
-        <p>Letra y octava. <code>C4</code> es el do central, una negra. Después de la octava: <code>w</code> redonda, <code>h</code> blanca, <code>q</code> negra, <code>e</code> corchea, <code>s</code> semicorchea. El puntillo va después de la duración: <code>q.</code></p>
+        <p>Letra y octava. Cada nota es su propia palabra: <code>C4 E4</code> son dos notas; <code>C4E4</code> no. <code>C4</code> es el do central, una negra. Después de la octava: <code>w</code> redonda, <code>h</code> blanca, <code>q</code> negra, <code>e</code> corchea, <code>s</code> semicorchea. El puntillo va después de la duración: <code>q.</code>. Alteraciones: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> o <code>C##4</code>, <code>Ebb4</code>. Los botones de sostenido, bemol y becuadro en Editar insertan ♯ ♭ ♮, que se leen igual.</p>
         <figure class="notation-sample">
             <pre>C4</pre>
             <div class="notation-staff"></div>
@@ -74,7 +96,7 @@
         </figure>
 
         <h2>Una escala</h2>
-        <p><code>^Major</code> es el nombre sobre el pentagrama, un solo token, antes de las notas. <code>_1</code> es el grado bajo esa nota. <code>_b3</code> se ve como ♭3. Las llaves barran corcheas y semicorcheas en un grupo.</p>
+        <p><code>^Major</code> es cualquier palabra sobre el pentagrama, antes de las notas — el nombre de una escala o un cifrado. <code>_1</code> es el grado bajo esa nota. <code>_b3</code> se ve como ♭3. Las llaves barran corcheas y semicorcheas en un grupo.</p>
         <figure class="notation-sample">
             <pre>@treble @key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
             <div class="notation-staff"></div>
@@ -88,7 +110,7 @@
         </figure>
 
         <h2>Ritmo</h2>
-        <p>Un slash no tiene altura: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Los silencios son <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. <code>|</code> es la barra de compás. Un texto después de <code> · </code> (espacio, punto medio, espacio) queda bajo el pentagrama. <code>_R</code> y <code>_L</code> marcan un slash.</p>
+        <p>Un slash no tiene altura: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Los silencios son <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. Un silencio puede llevar puntillo: <code>re.</code> <code>rq.</code>. Una redonda con puntillo (<code>w.</code>) no se lee. <code>|</code> es la barra de compás. Un texto después de <code> · </code> (espacio, punto medio, espacio) queda bajo el pentagrama. <code>_R</code> y <code>_L</code> marcan un slash.</p>
         <figure class="notation-sample">
             <pre>/q. /e rh | rq /q · Charleston</pre>
             <div class="notation-staff"></div>
@@ -99,7 +121,7 @@
         </figure>
 
         <h2>Barrados</h2>
-        <p>Las llaves fuerzan un barrado. En 6/8, las corcheas sin llaves igual se agrupan de tres en tres, porque el pulso es una negra con puntillo. Ese compás se pone en Ajustes. Esta última figura está dibujada en 6/8.</p>
+        <p>En 4/4, las corcheas y semicorcheas se barran con el pulso aunque no haya llaves. Las llaves siguen forzando un solo grupo. En 6/8, las corcheas sin llaves igual se agrupan de tres en tres, porque el pulso es una negra con puntillo. Ese compás se pone en Ajustes. El 4/4 se dibuja como tiempo ordinario; el 2/2 como alla breve. La armadura de compás sigue viniendo de Ajustes, no de la línea. Esta última figura está dibujada en 6/8.</p>
         <figure class="notation-sample">
             <pre>{C4e D4e E4e F4e}</pre>
             <div class="notation-staff"></div>
@@ -130,7 +152,7 @@
         </figure>
 
         <h2>En un ejercicio</h2>
-        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Ritmos y Grupos irregulares se escriben así. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8.</p>
+        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Ritmos y Grupos irregulares se escriben así. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, un grupo irregular de una sola nota, una barra de compás dentro de un grupo irregular, o un grupo irregular anidado.</p>
         <p><a class="open" href="./?exercise=scales">Abrir Escalas</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Abrir Voicings rootless de mano izquierda</a></p>
         <p><a class="open" href="./?exercise=limbs">Abrir Ritmos</a></p>

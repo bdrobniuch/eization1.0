@@ -136,6 +136,7 @@ function exerciseMenu(w) {
 
 function staffNotation(w) {
   check("staff parser is loaded", typeof w.parseMusicNotation === "function" && typeof w.isMusicNotation === "function");
+  check("staff status helper is loaded", typeof w.staffNotationStatus === "function");
   var dotted = w.parseMusicNotation("C4q. D4e");
   check(
     "dotted quarter parses",
@@ -148,6 +149,21 @@ function staffNotation(w) {
     )
   );
   check("dotted whole is rejected", !w.parseMusicNotation("C4w."));
+  var brokenTuplet = w.staffNotationStatus("(3 C4e D4e E4e");
+  check(
+    "broken tuplet is notation-ish and not ok",
+    !!(brokenTuplet && !brokenTuplet.ok && brokenTuplet.notationIsh)
+  );
+  var plainStatus = w.staffNotationStatus("C♯");
+  check(
+    "plain text is not notation-ish",
+    !!(plainStatus && !plainStatus.ok && !plainStatus.notationIsh)
+  );
+  var okStatus = w.staffNotationStatus("C4q · Caption");
+  check(
+    "valid staff status keeps caption",
+    !!(okStatus && okStatus.ok && okStatus.music === "C4q" && okStatus.caption === "Caption")
+  );
   var slash = w.parseMusicNotation("/q. /e rh");
   check(
     "slash charleston parses",

@@ -1040,6 +1040,30 @@ function isMusicNotation(source) {
   return !!parseMusicNotation(parts.music);
 }
 
+/*
+ * Status for the edit preview: whether the line draws as a staff, and whether
+ * a failed line still looks like notation (show an amber note, not a stale staff).
+ */
+function staffNotationStatus(source) {
+  var parts = staffExampleParts(source);
+  var music = parts.music || "";
+  if (!music) {
+    return { ok: false, notationIsh: false, music: "", caption: parts.caption || "" };
+  }
+  if (/[<&]/.test(music)) {
+    return { ok: false, notationIsh: false, music: music, caption: parts.caption || "" };
+  }
+  var tokens = music.trim().split(/\s+/).filter(Boolean);
+  var notationIsh = staffLooksNotationIsh(tokens);
+  var ast = parseMusicNotation(music);
+  return {
+    ok: !!ast,
+    notationIsh: notationIsh,
+    music: music,
+    caption: parts.caption || ""
+  };
+}
+
 function staffBottomLineStep(clef) {
   return clef === "bass" ? STAFF_LETTER_STEPS.G + 2 * 7 : STAFF_LETTER_STEPS.E + 4 * 7;
 }

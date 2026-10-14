@@ -1679,6 +1679,7 @@ body.is-editing #counter {
 #editUpdate,
 #editDuplicate,
 #editClearList,
+#editStaffHelp,
 #editSave,
 #editShare,
 #editAsk,
@@ -1686,7 +1687,8 @@ body.is-editing #counter {
 #editAskClaude,
 #editAskGemini,
 #editOpen,
-#editDelete {
+#editDelete,
+#editStaffHelpClose {
   flex: 0 0 auto;
   min-height: 44px;
   padding: 0 14px;
@@ -1698,6 +1700,12 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
+#editStaffHelp[aria-expanded="true"] {
+  background: #ffffff;
+  color: #0C8A50;
+}
+
+#editStaffHelp,
 #editSave,
 #editOpen,
 #editShare,
@@ -1708,6 +1716,7 @@ body.is-editing #counter {
   gap: 6px;
 }
 
+#editStaffHelp .chrome-icon,
 #editSave .chrome-icon,
 #editOpen .chrome-icon,
 #editShare .chrome-icon,
@@ -1805,7 +1814,7 @@ body.is-editing #counter {
 }
 
 #editPreview.is-empty::before {
-  content: "Preview";
+  content: attr(data-empty);
   opacity: 0.45;
   font-size: 14px;
 }
@@ -1814,6 +1823,126 @@ body.is-editing #counter {
 #editPreview .prog-name {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#editPreview.is-staff {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  padding: 8px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  background: #fff;
+  color: #111;
+  border-radius: 2px;
+  line-height: 0;
+  white-space: normal;
+}
+
+#editPreview.is-staff .prog-changes {
+  display: block;
+  overflow: visible;
+  text-overflow: unset;
+  line-height: 0;
+}
+
+#editPreview.is-staff .prog-name {
+  flex: 0 0 auto;
+  margin-top: 0.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+  font-size: max(11px, 0.85rem);
+  text-align: center;
+  white-space: nowrap;
+}
+
+#editPreview.is-staff .music-staff {
+  display: block;
+  max-width: none;
+  height: auto;
+  overflow: visible;
+  color: #111;
+}
+
+#editStaffNote {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #ffe08a;
+}
+
+#editStaffNote[hidden] {
+  display: none !important;
+}
+
+#editStaffPanel {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+#textdiv.is-staff-help > :not(#editHead):not(#editStaffPanel) {
+  display: none !important;
+}
+
+#textdiv.is-staff-help #editStaffPanel {
+  display: flex;
+}
+
+#editStaffPanelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+#editStaffPanelTitle {
+  flex: 1 1 160px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+#editStaffPanelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+#editStaffPanelBody p {
+  margin: 0 0 0.75em;
+}
+
+#editStaffPanelBody ul {
+  margin: 0 0 1em;
+  padding-left: 1.2em;
+}
+
+#editStaffPanelBody li {
+  margin: 0 0 0.55em;
+}
+
+#editStaffPanelBody a {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 #editError {
@@ -1838,6 +1967,19 @@ body.is-editing #counter {
 
 #textdiv .stepper {
   flex: 0 0 auto;
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  border-width: 2px;
+  opacity: 1;
+}
+
+#textdiv .stepper button,
+#textdiv .stepper input,
+#textdiv .stepper .step-label {
+  box-sizing: border-box;
+  min-height: 0;
+  height: 100%;
 }
 
 #textdiv .step-label {

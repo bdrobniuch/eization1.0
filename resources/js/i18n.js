@@ -177,6 +177,22 @@ var I18N = {
     "edit.removeFirst": "Remove an exercise first.",
     "edit.finish": "Finish or cancel editing first.",
     "edit.cancelFirst": "Cancel editing before choosing another exercise.",
+    "edit.staffHelp": "How to write on the staff",
+    "edit.staffHelpLabel": "Staff",
+    "edit.staffHelpClose": "Close",
+    "edit.staffHelpTitle": "How to write on the staff",
+    "edit.staffHelpLead": "One example per line. The preview under the box draws the line at the caret. The time signature follows Setup. Use the full guide to try lines without saving.",
+    "edit.staffHelpPitch": "Pitch: letter, accidental, octave — C4, C#4, Db4, Cn4. Each note is its own word.",
+    "edit.staffHelpDuration": "Duration after the octave: w h q e s, then an optional dot — C4, C4h, C4e, C4q.",
+    "edit.staffHelpClef": "Clef and key: @treble or @bass, and @key=Eb. Default is treble, key of C.",
+    "edit.staffHelpChord": "Chord: [E3h G3h B3h D4h]_C∆7. Same duration on every pitch.",
+    "edit.staffHelpBeam": "Beams: braces force one group — {C4e D4e E4e F4e}. In 4/4, short notes also beam with the beat.",
+    "edit.staffHelpRhythm": "Slash and rest: /q /e, r rq rh rw re rs. A rest can take a dot: re.",
+    "edit.staffHelpTuplet": "Tuplet: (3 C4e D4e E4e). (5:4 …) sets the ratio. No barline inside; at least two notes.",
+    "edit.staffHelpCaption": "Caption: space, middle dot, space — /q · Charleston.",
+    "edit.staffHelpOpen": "Full guide with samples",
+    "edit.staffWarn": "This line won't draw as a staff. It will stay text.",
+    "edit.preview": "Preview",
     "groove.meter": "Meter",
     "groove.meterTitle": "Top number: how many units in a bar. Bottom number: 1 whole, 2 half, 4 quarter, 8 eighth, 16 sixteenth. BPM is the speed of that note.",
     "groove.fewerUnits": "Fewer units in a bar",
@@ -503,6 +519,22 @@ var I18N = {
     "edit.removeFirst": "Quita un ejercicio primero.",
     "edit.finish": "Termina o cancela la edición primero.",
     "edit.cancelFirst": "Cancela la edición antes de elegir otro ejercicio.",
+    "edit.staffHelp": "Cómo escribir en el pentagrama",
+    "edit.staffHelpLabel": "Pentagrama",
+    "edit.staffHelpClose": "Cerrar",
+    "edit.staffHelpTitle": "Cómo escribir en el pentagrama",
+    "edit.staffHelpLead": "Un ejemplo por línea. La vista previa bajo el recuadro dibuja la línea del cursor. El compás sigue a Ajustes. Usa la guía completa para probar líneas sin guardar.",
+    "edit.staffHelpPitch": "Altura: letra, alteración, octava — C4, C#4, Db4, Cn4. Cada nota es su propia palabra.",
+    "edit.staffHelpDuration": "Duración después de la octava: w h q e s, y un puntillo opcional — C4, C4h, C4e, C4q.",
+    "edit.staffHelpClef": "Clave y armadura: @treble o @bass, y @key=Eb. Por defecto es clave de sol, tonalidad de do.",
+    "edit.staffHelpChord": "Acorde: [E3h G3h B3h D4h]_C∆7. La misma duración en cada nota.",
+    "edit.staffHelpBeam": "Barrados: las llaves fuerzan un grupo — {C4e D4e E4e F4e}. En 4/4, las notas cortas también se barran con el pulso.",
+    "edit.staffHelpRhythm": "Slash y silencio: /q /e, r rq rh rw re rs. Un silencio puede llevar puntillo: re.",
+    "edit.staffHelpTuplet": "Grupo irregular: (3 C4e D4e E4e). (5:4 …) fija la proporción. Sin barra de compás dentro; al menos dos notas.",
+    "edit.staffHelpCaption": "Texto bajo el pentagrama: espacio, punto medio, espacio — /q · Charleston.",
+    "edit.staffHelpOpen": "Guía completa con ejemplos",
+    "edit.staffWarn": "Esta línea no se dibujará como pentagrama. Se quedará en texto.",
+    "edit.preview": "Vista previa",
     "groove.meter": "Compás",
     "groove.meterTitle": "Número de arriba: cuántas unidades tiene el compás. Número de abajo: 1 redonda, 2 blanca, 4 negra, 8 corchea, 16 semicorchea. El BPM es la velocidad de esa nota.",
     "groove.fewerUnits": "Menos unidades en el compás",
@@ -785,6 +817,11 @@ function applyStaticCopy() {
   for (i = 0; i < nodes.length; i++) {
     el = nodes[i];
     el.setAttribute("content", t(el.getAttribute("data-i18n-content")));
+  }
+  nodes = document.querySelectorAll("[data-i18n-empty]");
+  for (i = 0; i < nodes.length; i++) {
+    el = nodes[i];
+    el.setAttribute("data-empty", t(el.getAttribute("data-i18n-empty")));
   }
   nodes = document.querySelectorAll("[data-set-lang]");
   for (i = 0; i < nodes.length; i++) {

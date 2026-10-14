@@ -13,6 +13,45 @@ function notationApplyMeter(raw) {
   beatUnit = bottom;
 }
 
+function notationAppendStaff(host, source, meter) {
+  host.textContent = "";
+  host.classList.remove("is-text", "is-empty", "is-staff");
+  var trimmed = String(source || "").replace(/^\s+|\s+$/g, "");
+  if (!trimmed) {
+    host.classList.add("is-empty");
+    return { ok: false, notationIsh: false, music: "", caption: "" };
+  }
+  notationApplyMeter(meter);
+  var status =
+    typeof staffNotationStatus === "function"
+      ? staffNotationStatus(trimmed)
+      : { ok: false, notationIsh: false, music: trimmed, caption: "" };
+  if (status.ok && typeof renderMusicStaff === "function") {
+    host.classList.add("is-staff");
+    var svg = renderMusicStaff(status.music || trimmed, "current");
+    if (svg) {
+      var box = (svg.getAttribute("viewBox") || "").split(/\s+/);
+      var w = parseFloat(box[2]);
+      var h = parseFloat(box[3]);
+      if (w > 0 && h > 0) {
+        svg.setAttribute("width", String(Math.round(w)));
+        svg.setAttribute("height", String(Math.round(h)));
+      }
+      host.appendChild(svg);
+    }
+    if (status.caption) {
+      var cap = document.createElement("p");
+      cap.className = "notation-caption";
+      cap.textContent = status.caption;
+      host.appendChild(cap);
+    }
+    return status;
+  }
+  host.classList.add("is-text");
+  host.textContent = trimmed;
+  return status;
+}
+
 function renderNotationSamples() {
   var nodes = document.querySelectorAll(".notation-sample");
   var i;
@@ -27,33 +66,159 @@ function renderNotationSamples() {
     if (!source) {
       continue;
     }
-    notationApplyMeter(el.getAttribute("data-meter"));
-    var parts = typeof staffExampleParts === "function"
-      ? staffExampleParts(source)
-      : { music: source, caption: "" };
-    var svg = renderMusicStaff(parts.music || source, "current");
-    host.textContent = "";
-    if (svg) {
-      var box = (svg.getAttribute("viewBox") || "").split(/\s+/);
-      var w = parseFloat(box[2]);
-      var h = parseFloat(box[3]);
-      if (w > 0 && h > 0) {
-        svg.setAttribute("width", String(Math.round(w)));
-        svg.setAttribute("height", String(Math.round(h)));
-      }
-      host.appendChild(svg);
-    }
-    if (parts.caption) {
-      var cap = document.createElement("p");
-      cap.className = "notation-caption";
-      cap.textContent = parts.caption;
-      host.appendChild(cap);
-    }
+    notationAppendStaff(host, source, el.getAttribute("data-meter"));
   }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", renderNotationSamples);
-} else {
+var notationTryWarnTimer = null;
+var notationTryWarnLine = "";
+
+function notationTryWarnMessage() {
+  return document.documentElement.lang === "es"
+    ? "Esta línea no se dibujará como pentagrama. Se quedará en texto."
+    : "This line won't draw as a staff. It will stay text.";
+}
+
+function notationClearTryNote() {
+  if (notationTryWarnTimer) {
+    clearTimeout(notationTryWarnTimer);
+    notationTryWarnTimer = null;
+  }
+  notationTryWarnLine = "";
+  var note = document.getElementById("notationTryNote");
+  if (note) {
+    note.hidden = true;
+    note.textContent = "";
+  }
+}
+
+function notationScheduleTryWarn(line) {
+  var note = document.getElementById("notationTryNote");
+  if (!note) {
+    return;
+  }
+  if (notationTryWarnTimer) {
+    clearTimeout(notationTryWarnTimer);
+  }
+  notationTryWarnLine = line;
+  note.hidden = true;
+  note.textContent = "";
+  notationTryWarnTimer = setTimeout(function () {
+    notationTryWarnTimer = null;
+    var input = document.getElementById("notationTryInput");
+    var current = input ? String(input.value || "").replace(/^\s+|\s+$/g, "") : "";
+    if (current !== notationTryWarnLine) {
+      return;
+    }
+    note.textContent = notationTryWarnMessage();
+    note.hidden = false;
+  }, 400);
+}
+
+function notationTryMeterValue() {
+  var meter = document.getElementById("notationTryMeter");
+  return meter ? meter.value : "4/4";
+}
+
+function refreshNotationTry() {
+  var input = document.getElementById("notationTryInput");
+  var host = document.getElementById("notationTryStaff");
+  if (!input || !host) {
+    return;
+  }
+  var line = String(input.value || "").replace(/^\s+|\s+$/g, "");
+  var status = notationAppendStaff(host, line, notationTryMeterValue());
+  if (!line) {
+    notationClearTryNote();
+    return;
+  }
+  if (status.ok) {
+    notationClearTryNote();
+  } else if (status.notationIsh) {
+    notationScheduleTryWarn(line);
+  } else {
+    notationClearTryNote();
+  }
+}
+
+function notationLoadTryLine(source, meter) {
+  var input = document.getElementById("notationTryInput");
+  var meterEl = document.getElementById("notationTryMeter");
+  var tryBox = document.getElementById("notationTry");
+  if (!input) {
+    return;
+  }
+  input.value = String(source || "").replace(/^\s+|\s+$/g, "");
+  if (meterEl && meter) {
+    var opt = meterEl.querySelector('option[value="' + meter + '"]');
+    if (opt) {
+      meterEl.value = meter;
+    }
+  }
+  refreshNotationTry();
+  if (tryBox && typeof tryBox.scrollIntoView === "function") {
+    tryBox.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  input.focus();
+  if (typeof input.setSelectionRange === "function") {
+    var end = input.value.length;
+    input.setSelectionRange(end, end);
+  }
+}
+
+function wireNotationTry() {
+  var input = document.getElementById("notationTryInput");
+  var meter = document.getElementById("notationTryMeter");
+  if (!input) {
+    return;
+  }
+  input.addEventListener("input", refreshNotationTry);
+  if (meter) {
+    meter.addEventListener("change", refreshNotationTry);
+  }
+  refreshNotationTry();
+
+  var samples = document.querySelectorAll(".notation-sample");
+  var i;
+  for (i = 0; i < samples.length; i++) {
+    (function (el) {
+      var pre = el.querySelector("pre");
+      if (!pre) {
+        return;
+      }
+      pre.setAttribute("tabindex", "0");
+      pre.setAttribute("role", "button");
+      pre.setAttribute(
+        "aria-label",
+        document.documentElement.lang === "es"
+          ? "Cargar este ejemplo en Prueba una línea"
+          : "Load this example into Try a line"
+      );
+      pre.title =
+        document.documentElement.lang === "es"
+          ? "Cargar en Prueba una línea"
+          : "Load into Try a line";
+      function load() {
+        notationLoadTryLine(pre.textContent, el.getAttribute("data-meter") || "4/4");
+      }
+      pre.addEventListener("click", load);
+      pre.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          load();
+        }
+      });
+    })(samples[i]);
+  }
+}
+
+function initNotationPage() {
   renderNotationSamples();
+  wireNotationTry();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initNotationPage);
+} else {
+  initNotationPage();
 }

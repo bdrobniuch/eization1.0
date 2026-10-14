@@ -51,8 +51,30 @@
         <p>Some exercises are large text. A line that parses as music is a staff instead. One example per line in Edit. The text below is the line. The staff under it is what you see.</p>
         <p>The time signature is not in the line. It follows Setup. These figures use 4/4 unless the figure says otherwise. A line that does not parse stays text.</p>
 
+        <section class="notation-try" id="notationTry">
+            <h2>Try a line</h2>
+            <p>Type one example. The staff updates as you write. Meter here is only for this box; in an exercise it follows Setup. Tap any sample on this page to load it here.</p>
+            <div class="notation-try-tools">
+                <label class="notation-try-meter">
+                    <span>Meter</span>
+                    <select id="notationTryMeter" aria-label="Meter for this try box">
+                        <option value="4/4" selected>4/4</option>
+                        <option value="3/4">3/4</option>
+                        <option value="6/8">6/8</option>
+                        <option value="2/2">2/2</option>
+                        <option value="4/2">4/2</option>
+                    </select>
+                </label>
+            </div>
+            <input id="notationTryInput" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" aria-label="Example line to try" value="C4 E4 G4 C5">
+            <p id="notationTryNote" class="notation-try-note" hidden role="status" aria-live="polite"></p>
+            <div class="notation-try-preview">
+                <div id="notationTryStaff" class="notation-staff is-empty"></div>
+            </div>
+        </section>
+
         <h2>One pitch, then the durations</h2>
-        <p>Letter, octave. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth. A dot follows the duration: <code>q.</code></p>
+        <p>Letter, octave. Each note is its own word: <code>C4 E4</code> is two notes; <code>C4E4</code> is not. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth. A dot follows the duration: <code>q.</code>. Accidentals: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> or <code>C##4</code>, <code>Ebb4</code>. The sharp, flat, and natural buttons in Edit insert ♯ ♭ ♮, which parse the same way.</p>
         <figure class="notation-sample">
             <pre>C4</pre>
             <div class="notation-staff"></div>
@@ -74,7 +96,7 @@
         </figure>
 
         <h2>A scale</h2>
-        <p><code>^Major</code> is the name above the staff, one token, before the notes. <code>_1</code> is the degree under that note. <code>_b3</code> prints as ♭3. Braces beam eighths and sixteenths into one group.</p>
+        <p><code>^Major</code> is any one word above the staff, before the notes — a scale name or a chord symbol. <code>_1</code> is the degree under that note. <code>_b3</code> prints as ♭3. Braces beam eighths and sixteenths into one group.</p>
         <figure class="notation-sample">
             <pre>@treble @key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
             <div class="notation-staff"></div>
@@ -88,7 +110,7 @@
         </figure>
 
         <h2>Rhythm</h2>
-        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> and <code>_L</code> label a slash.</p>
+        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. A rest can take a dot: <code>re.</code> <code>rq.</code>. A dotted whole (<code>w.</code>) does not parse. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> and <code>_L</code> label a slash.</p>
         <figure class="notation-sample">
             <pre>/q. /e rh | rq /q · Charleston</pre>
             <div class="notation-staff"></div>
@@ -99,7 +121,7 @@
         </figure>
 
         <h2>Beams</h2>
-        <p>Braces force one beam. In 6/8, eighths without braces still group in threes, because the beat is a dotted quarter. Set that meter in Setup. This last figure is drawn in 6/8.</p>
+        <p>In 4/4, eighths and sixteenths beam with the beat even without braces. Braces still force one group. In 6/8, eighths without braces still group in threes, because the beat is a dotted quarter. Set that meter in Setup. 4/4 draws as common time; 2/2 draws as cut time. The signature still comes from Setup, not from the line. This last figure is drawn in 6/8.</p>
         <figure class="notation-sample">
             <pre>{C4e D4e E4e F4e}</pre>
             <div class="notation-staff"></div>
@@ -130,7 +152,7 @@
         </figure>
 
         <h2>In an exercise</h2>
-        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Rhythms, and Tuplets are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8.</p>
+        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Rhythms, and Tuplets are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a tuplet of one note, a barline inside a tuplet, or a nested tuplet.</p>
         <p><a class="open" href="./?exercise=scales">Open Scales</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Open Left Hand Rootless Voicings</a></p>
         <p><a class="open" href="./?exercise=limbs">Open Rhythms</a></p>

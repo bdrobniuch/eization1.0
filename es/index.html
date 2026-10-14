@@ -136,6 +136,10 @@
         <div id="editExercise">
             <div id="editSend">
                 <p id="editExerciseLabel" class="combo-kicker" data-i18n="edit.exercise">Exercise</p>
+                <button type="button" id="editStaffHelp" data-i18n-title="edit.staffHelp" title="How to write on the staff" data-i18n-aria="edit.staffHelp" aria-label="How to write on the staff" aria-expanded="false" aria-controls="editStaffPanel">
+                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
+                    <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
+                </button>
                 <button type="button" id="editSave" data-i18n-title="edit.downloadTitle" title="Download this exercise as an .eiz file">
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v10.5M8 11l4 4 4-4M5 20h14"/></svg>
                     <span class="btn-label" data-i18n="edit.download">Download</span>
@@ -183,8 +187,29 @@
             </div>
         </div>
         <textarea id="allEdit" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.areaAria" aria-label="Examples, one per line" data-i18n-placeholder="edit.placeholder" placeholder="C♯&#10;D♭&#10;| iim7 | V7 | Imaj7 | &#119054; | · Straight Cadence"></textarea>
-        <p id="editPreview" class="is-empty"></p>
+        <div id="editPreview" class="is-empty" data-i18n-empty="edit.preview" data-empty="Preview"></div>
+        <p id="editStaffNote" hidden role="status" aria-live="polite"></p>
         <div id="editSymbols"></div>
+        <div id="editStaffPanel" hidden>
+            <div id="editStaffPanelHead">
+                <h2 id="editStaffPanelTitle" data-i18n="edit.staffHelpTitle">How to write on the staff</h2>
+                <button type="button" id="editStaffHelpClose" data-i18n="edit.staffHelpClose">Close</button>
+            </div>
+            <div id="editStaffPanelBody">
+                <p data-i18n="edit.staffHelpLead">One example per line. The preview under the box draws the line at the caret. The time signature follows Setup. Use the full guide to try lines without saving.</p>
+                <ul>
+                    <li data-i18n="edit.staffHelpPitch">Pitch: letter, accidental, octave — C4, C#4, Db4, Cn4. Each note is its own word.</li>
+                    <li data-i18n="edit.staffHelpDuration">Duration after the octave: w h q e s, then an optional dot — C4, C4h, C4e, C4q.</li>
+                    <li data-i18n="edit.staffHelpClef">Clef and key: @treble or @bass, and @key=Eb. Default is treble, key of C.</li>
+                    <li data-i18n="edit.staffHelpChord">Chord: [E3h G3h B3h D4h]_C∆7. Same duration on every pitch.</li>
+                    <li data-i18n="edit.staffHelpBeam">Beams: braces force one group — {C4e D4e E4e F4e}. In 4/4, short notes also beam with the beat.</li>
+                    <li data-i18n="edit.staffHelpRhythm">Slash and rest: /q /e, r rq rh rw re rs. A rest can take a dot: re.</li>
+                    <li data-i18n="edit.staffHelpTuplet">Tuplet: (3 C4e D4e E4e). (5:4 …) sets the ratio. No barline inside; at least two notes.</li>
+                    <li data-i18n="edit.staffHelpCaption">Caption: space, middle dot, space — /q · Charleston.</li>
+                </ul>
+                <p><a class="open" href="./notation.html" target="_blank" rel="noopener" data-i18n="edit.staffHelpOpen">Full guide with samples</a></p>
+            </div>
+        </div>
     </div>
 
     <div id="about">

@@ -8,6 +8,10 @@ var editorDraft = {
   storedLines: null
 };
 
+var editStaffWarnTimer = null;
+var editStaffWarnLine = "";
+var editorStaffHelpSelection = { start: 0, end: 0 };
+
 var EDITOR_SYMBOLS = [
   { char: "\u266F", key: "sym.sharp" },
   { char: "\u266D", key: "sym.flat" },
@@ -300,10 +304,117 @@ function editorRestoreFace() {
   selectExerciseChip(editorDraft.id);
 }
 
+function editorStaffHelpIsOpen() {
+  var panel = document.getElementById("editStaffPanel");
+  return !!(panel && !panel.hidden);
+}
+
+function editorCloseStaffHelp(options) {
+  options = options || {};
+  var panel = document.getElementById("editStaffPanel");
+  var btn = document.getElementById("editStaffHelp");
+  var sheet = document.getElementById("textdiv");
+  if (!panel || panel.hidden) {
+    return false;
+  }
+  panel.hidden = true;
+  if (sheet) {
+    sheet.classList.remove("is-staff-help");
+  }
+  if (btn) {
+    btn.setAttribute("aria-expanded", "false");
+  }
+  if (options.focus !== false) {
+    var area = document.getElementById("allEdit");
+    if (area) {
+      if (window.matchMedia("(pointer: fine)").matches) {
+        area.focus();
+      }
+      try {
+        area.setSelectionRange(editorStaffHelpSelection.start, editorStaffHelpSelection.end);
+      } catch (err) {}
+    }
+  }
+  return true;
+}
+
+function editorOpenStaffHelp() {
+  var panel = document.getElementById("editStaffPanel");
+  var btn = document.getElementById("editStaffHelp");
+  var sheet = document.getElementById("textdiv");
+  var closeBtn = document.getElementById("editStaffHelpClose");
+  var area = document.getElementById("allEdit");
+  if (!panel || !editorIsOpen()) {
+    return;
+  }
+  if (area) {
+    editorStaffHelpSelection.start = area.selectionStart || 0;
+    editorStaffHelpSelection.end = area.selectionEnd || 0;
+  }
+  panel.hidden = false;
+  if (sheet) {
+    sheet.classList.add("is-staff-help");
+  }
+  if (btn) {
+    btn.setAttribute("aria-expanded", "true");
+  }
+  if (closeBtn) {
+    closeBtn.focus();
+  }
+}
+
+function editorToggleStaffHelp() {
+  if (editorStaffHelpIsOpen()) {
+    editorCloseStaffHelp();
+  } else {
+    editorOpenStaffHelp();
+  }
+}
+
+function clearEditStaffNote() {
+  if (editStaffWarnTimer) {
+    clearTimeout(editStaffWarnTimer);
+    editStaffWarnTimer = null;
+  }
+  editStaffWarnLine = "";
+  var note = document.getElementById("editStaffNote");
+  if (note) {
+    note.hidden = true;
+    note.textContent = "";
+  }
+}
+
+function scheduleEditStaffWarn(line) {
+  var note = document.getElementById("editStaffNote");
+  if (!note) {
+    return;
+  }
+  if (editStaffWarnTimer) {
+    clearTimeout(editStaffWarnTimer);
+  }
+  editStaffWarnLine = line;
+  note.hidden = true;
+  note.textContent = "";
+  editStaffWarnTimer = setTimeout(function () {
+    editStaffWarnTimer = null;
+    if (!editorIsOpen()) {
+      return;
+    }
+    var current = itemToLine(currentEditorLine());
+    if (current !== editStaffWarnLine) {
+      return;
+    }
+    note.textContent = t("edit.staffWarn");
+    note.hidden = false;
+  }, 400);
+}
+
 function editorCloseQuiet() {
   if (!editorIsOpen()) {
     return;
   }
+  editorCloseStaffHelp({ focus: false });
+  clearEditStaffNote();
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open");
   sheet.style.display = "";
@@ -380,7 +491,48 @@ function refreshEditor() {
   }
   var line = itemToLine(currentEditorLine());
   preview.classList.toggle("is-empty", !line);
-  preview.innerHTML = line ? lineToItem(line) : "";
+  preview.classList.remove("is-staff");
+  preview.innerHTML = "";
+  if (!line) {
+    clearEditStaffNote();
+    refreshEditorHint();
+    return;
+  }
+  var status =
+    typeof staffNotationStatus === "function"
+      ? staffNotationStatus(line)
+      : { ok: false, notationIsh: false, music: line, caption: "" };
+  if (status.ok && typeof renderMusicStaff === "function") {
+    clearEditStaffNote();
+    preview.classList.add("is-staff");
+    var svg = renderMusicStaff(status.music, "current");
+    if (svg) {
+      var box = (svg.getAttribute("viewBox") || "").split(/\s+/);
+      var w = parseFloat(box[2]);
+      var h = parseFloat(box[3]);
+      if (w > 0 && h > 0) {
+        svg.setAttribute("width", String(Math.round(w)));
+        svg.setAttribute("height", String(Math.round(h)));
+      }
+      var wrap = document.createElement("span");
+      wrap.className = "prog-changes";
+      wrap.appendChild(svg);
+      preview.appendChild(wrap);
+    }
+    if (status.caption) {
+      var cap = document.createElement("span");
+      cap.className = "prog-name";
+      cap.textContent = status.caption;
+      preview.appendChild(cap);
+    }
+  } else {
+    preview.innerHTML = lineToItem(line);
+    if (status.notationIsh) {
+      scheduleEditStaffWarn(line);
+    } else {
+      clearEditStaffNote();
+    }
+  }
   refreshEditorHint();
 }
 
@@ -1499,6 +1651,16 @@ function initEditor() {
   document.getElementById("editClearList").addEventListener("click", clearEditorList);
   document.getElementById("editSave").addEventListener("click", editorSaveFile);
   document.getElementById("editShare").addEventListener("click", editorShare);
+  var staffHelp = document.getElementById("editStaffHelp");
+  if (staffHelp) {
+    staffHelp.addEventListener("click", editorToggleStaffHelp);
+  }
+  var staffHelpClose = document.getElementById("editStaffHelpClose");
+  if (staffHelpClose) {
+    staffHelpClose.addEventListener("click", function () {
+      editorCloseStaffHelp();
+    });
+  }
   document.getElementById("editAsk").addEventListener("click", function () {
     var menu = document.getElementById("editAskMenu");
     editorAskMenu(!!(menu && menu.hidden));
@@ -1579,6 +1741,9 @@ function initEditor() {
   area.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
       event.preventDefault();
+      if (editorCloseStaffHelp()) {
+        return;
+      }
       editorCancel();
       return;
     }
@@ -1593,7 +1758,14 @@ function initEditor() {
     refreshEditorHint();
   });
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && editorIsOpen() && event.target !== area) {
+    if (event.key !== "Escape" || !editorIsOpen()) {
+      return;
+    }
+    if (editorCloseStaffHelp()) {
+      event.preventDefault();
+      return;
+    }
+    if (event.target !== area) {
       editorCancel();
     }
   });
