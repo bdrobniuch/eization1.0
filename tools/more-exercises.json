@@ -5888,5 +5888,461 @@
                       "(3 /e /e /e) (3 /e /e re) (3 re re re) (3 re /e /e) · 7 triplet eighths",
                       "(3 /e /e /e) (3 /e /e /e) (3 re re re) (3 re re /e) · 7 triplet eighths"
                   ]
+    },
+    {
+        "id":  "more0122",
+        "slug":  "rhythm-motifs",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs",
+        "nameEs":  "22 motivos rítmicos",
+        "descEn":  "Twenty-two one-bar slash rhythms in 4/4. Displacements of the same set are the cards that follow: early 1, early 2, delayed 1, early 1/2, early 1 1/2, early 2 1/2, and delayed 1/2.",
+        "descEs":  "Veintidós ritmos de un compás con barras en 4/4. Los desplazamientos del mismo conjunto son las tarjetas que siguen: 1 antes, 2 antes, 1 retrasado, 1/2 antes, 1 1/2 antes, 2 1/2 antes y 1/2 retrasado.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs-early-1",
+                          "en":  "early 1",
+                          "es":  "1 antes"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "re /q /e /q rq · 1",
+                      "/q. /e re /e re /e · 2",
+                      "{/e /e} rq re /e /q · 3",
+                      "{/e /e /e /e} re /q /e · 4",
+                      "/e /q /e~/q /q · 5",
+                      "re {/e /e /e} {/e /e} /q · 6",
+                      "rq {/e /e} re {/e /e /e} · 7",
+                      "re /q /e~{/e /e} /q · 8",
+                      "re /q /e /q {/e /e} · 9",
+                      "rq re /e~/e /q /e · 10",
+                      "re {/e /e /e} re {/e /e /e} · 11",
+                      "re /q /e rq /q · 12",
+                      "{/e /e} re /e re /e re /e · 13",
+                      "re {/e /e /e}~{/e /e}~/q · 14",
+                      "rq {/e /e} /q {/e /e} · 15",
+                      "re {/e /e /e} rq /q · 16",
+                      "{/e /e} re /e /q {/e /e} · 17",
+                      "/q {/e /e} {/e /e} /q · 18",
+                      "/q. /e {/e /e /e /e} · 19",
+                      "{/e /e} re /e re {/e /e /e} · 20",
+                      "/q. /e~{/e /e}~/q · 21",
+                      "re {/e /e /e} re /q. · 22"
+                  ]
+    },
+    {
+        "id":  "more0123",
+        "slug":  "rhythm-motifs-early-1",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · early 1",
+        "nameEs":  "22 motivos rítmicos · 1 antes",
+        "descEn":  "The 22 Rhythm Motifs played one beat early. Pickup before the barline when an attack crosses it.",
+        "descEs":  "Los 22 motivos rítmicos un tiempo antes. Anacrusa antes de la barra de compás cuando un ataque la cruza.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "re /e~ | {/e /e} /q rh · 1 · early 1",
+                      "/q~ | {/e /e} re /e re /e rq · 2 · early 1",
+                      "{/e /e} | rq. /e /q rq · 3 · early 1",
+                      "{/e /e} | {/e /e} re /q /e rq · 4 · early 1",
+                      "{/e /e}~ | {/e /e}~/q /q rq · 5 · early 1",
+                      "re /e | {/e /e /e /e} /q rq · 6 · early 1",
+                      "{/e /e} re {/e /e /e} rq · 7 · early 1",
+                      "re /e~ | {/e /e~/e /e} /q rq · 8 · early 1",
+                      "re /e~ | {/e /e} /q {/e /e} rq · 9 · early 1",
+                      "re {/e~/e} /q /e rq · 10 · early 1",
+                      "re /e | {/e /e} re {/e /e /e} rq · 11 · early 1",
+                      "re /e~ | {/e /e} rq /q rq · 12 · early 1",
+                      "{/e /e} | re /e re /e re /e rq · 13 · early 1",
+                      "re /e | {/e /e~/e /e}~/q rq · 14 · early 1",
+                      "{/e /e} /q {/e /e} rq · 15 · early 1",
+                      "re /e | {/e /e} rq /q rq · 16 · early 1",
+                      "{/e /e} | re /e /q {/e /e} rq · 17 · early 1",
+                      "/q | {/e /e /e /e} /q rq · 18 · early 1",
+                      "/q~ | {/e /e /e /e /e /e} rq · 19 · early 1",
+                      "{/e /e} | re /e re {/e /e /e} rq · 20 · early 1",
+                      "/q~ | {/e /e~/e /e}~/q rq · 21 · early 1",
+                      "re /e | {/e /e} re /q. rq · 22 · early 1"
+                  ]
+    },
+    {
+        "id":  "more0124",
+        "slug":  "rhythm-motifs-early-2",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · early 2",
+        "nameEs":  "22 motivos rítmicos · 2 antes",
+        "descEn":  "The 22 Rhythm Motifs played two beats early.",
+        "descEs":  "Los 22 motivos rítmicos dos tiempos antes.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "re /q /e | /q rh. · 1 · early 2",
+                      "/q. /e | re /e re /e rh · 2 · early 2",
+                      "{/e /e} rq | re /e /q rh · 3 · early 2",
+                      "{/e /e /e /e} | re /q /e rh · 4 · early 2",
+                      "/e /q /e~ | /q /q rh · 5 · early 2",
+                      "re {/e /e /e} | {/e /e} /q rh · 6 · early 2",
+                      "rq {/e /e} | re {/e /e /e} rh · 7 · early 2",
+                      "re /q /e~ | {/e /e} /q rh · 8 · early 2",
+                      "re /q /e | /q {/e /e} rh · 9 · early 2",
+                      "rq. /e~ | /e /q /e rh · 10 · early 2",
+                      "re {/e /e /e} | re {/e /e /e} rh · 11 · early 2",
+                      "re /q /e | rq /q rh · 12 · early 2",
+                      "{/e /e} re /e | re /e re /e rh · 13 · early 2",
+                      "re {/e /e /e}~ | {/e /e}~/q rh · 14 · early 2",
+                      "rq {/e /e} | /q {/e /e} rh · 15 · early 2",
+                      "re {/e /e /e} | rq /q rh · 16 · early 2",
+                      "{/e /e} re /e | /q {/e /e} rh · 17 · early 2",
+                      "/q {/e /e} | {/e /e} /q rh · 18 · early 2",
+                      "/q. /e | {/e /e /e /e} rh · 19 · early 2",
+                      "{/e /e} re /e | re {/e /e /e} rh · 20 · early 2",
+                      "/q. /e~ | {/e /e}~/q rh · 21 · early 2",
+                      "re {/e /e /e} | re /q. rh · 22 · early 2"
+                  ]
+    },
+    {
+        "id":  "more0125",
+        "slug":  "rhythm-motifs-delayed-1",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · delayed 1",
+        "nameEs":  "22 motivos rítmicos · 1 retrasado",
+        "descEn":  "The 22 Rhythm Motifs played one beat delayed. Leading rest; a second bar when an attack spills past 4.",
+        "descEs":  "Los 22 motivos rítmicos un tiempo retrasados. Silencio al inicio; un segundo compás cuando un ataque pasa del 4.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "rq. /q /e /q · 1 · delayed 1",
+                      "rq /q. /e re /e | re /e rh. · 2 · delayed 1",
+                      "rq {/e /e} rq. /e | /q rh. · 3 · delayed 1",
+                      "rq {/e /e /e /e} re /e~ | {/e /e} rh. · 4 · delayed 1",
+                      "rq /e /q /e~/q | /q rh. · 5 · delayed 1",
+                      "rq. {/e /e /e /e /e} | /q rh. · 6 · delayed 1",
+                      "rh {/e /e} re /e | {/e /e} rh. · 7 · delayed 1",
+                      "rq. /q {/e~/e /e} | /q rh. · 8 · delayed 1",
+                      "rq. /q /e /q | {/e /e} rh. · 9 · delayed 1",
+                      "rh re {/e~/e /e}~ | {/e /e} rh. · 10 · delayed 1",
+                      "rq. {/e /e /e} re /e | {/e /e} rh. · 11 · delayed 1",
+                      "rq. /q /e rq | /q rh. · 12 · delayed 1",
+                      "rq {/e /e} re /e re /e | re /e rh. · 13 · delayed 1",
+                      "rq. {/e /e /e~/e /e}~ | /q rh. · 14 · delayed 1",
+                      "rh {/e /e} /q | {/e /e} rh. · 15 · delayed 1",
+                      "rq. {/e /e /e} rq | /q rh. · 16 · delayed 1",
+                      "rq {/e /e} re /e /q | {/e /e} rh. · 17 · delayed 1",
+                      "rq /q {/e /e /e /e} | /q rh. · 18 · delayed 1",
+                      "rq /q. {/e /e /e} | {/e /e} rh. · 19 · delayed 1",
+                      "rq {/e /e} re /e re /e | {/e /e} rh. · 20 · delayed 1",
+                      "rq /q. {/e~/e /e}~ | /q rh. · 21 · delayed 1",
+                      "rq. {/e /e /e} re /e~ | /q rh. · 22 · delayed 1"
+                  ]
+    },
+    {
+        "id":  "more0126",
+        "slug":  "rhythm-motifs-early-1-2",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · early 1/2",
+        "nameEs":  "22 motivos rítmicos · 1/2 antes",
+        "descEn":  "The 22 Rhythm Motifs anticipated by a half beat.",
+        "descEs":  "Los 22 motivos rítmicos anticipados medio tiempo.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "/q /e /q rq. · 1 · early 1/2",
+                      "/e~ | /q /e re /e re /e re · 2 · early 1/2",
+                      "/e | /e rq. /e /q re · 3 · early 1/2",
+                      "/e | {/e /e /e} re /q /e re · 4 · early 1/2",
+                      "/e | /q /e~/q /q re · 5 · early 1/2",
+                      "{/e /e /e /e /e} /q re · 6 · early 1/2",
+                      "re {/e /e} re {/e /e /e} re · 7 · early 1/2",
+                      "/q {/e~/e /e} /q re · 8 · early 1/2",
+                      "/q /e /q {/e /e} re · 9 · early 1/2",
+                      "rq {/e~/e} /q /e re · 10 · early 1/2",
+                      "{/e /e /e} re {/e /e /e} re · 11 · early 1/2",
+                      "/q /e rq /q re · 12 · early 1/2",
+                      "/e | /e re /e re /e re /e re · 13 · early 1/2",
+                      "{/e /e /e~/e /e}~/q re · 14 · early 1/2",
+                      "re {/e /e} /q {/e /e} re · 15 · early 1/2",
+                      "{/e /e /e} rq /q re · 16 · early 1/2",
+                      "/e | /e re /e /q {/e /e} re · 17 · early 1/2",
+                      "/e~ | {/e /e /e /e /e} /q re · 18 · early 1/2",
+                      "/e~ | /q {/e /e /e /e /e} re · 19 · early 1/2",
+                      "/e | /e re /e re {/e /e /e} re · 20 · early 1/2",
+                      "/e~ | /q {/e~/e /e}~/q re · 21 · early 1/2",
+                      "{/e /e /e} re /q. re · 22 · early 1/2"
+                  ]
+    },
+    {
+        "id":  "more0127",
+        "slug":  "rhythm-motifs-early-1-1-2",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · early 1 1/2",
+        "nameEs":  "22 motivos rítmicos · 1 1/2 antes",
+        "descEn":  "The 22 Rhythm Motifs anticipated by one and a half beats.",
+        "descEs":  "Los 22 motivos rítmicos anticipados un tiempo y medio.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "re /q | /e /q rh re · 1 · early 1 1/2",
+                      "/q. | /e re /e re /e rq. · 2 · early 1 1/2",
+                      "{/e /e} re | rq /e /q rq. · 3 · early 1 1/2",
+                      "{/e /e /e} | /e re /q /e rq. · 4 · early 1 1/2",
+                      "/e /q | /e~/q /q rq. · 5 · early 1 1/2",
+                      "re {/e /e} | {/e /e /e} /q rq. · 6 · early 1 1/2",
+                      "rq /e | /e re {/e /e /e} rq. · 7 · early 1 1/2",
+                      "re /q | {/e~/e /e} /q rq. · 8 · early 1 1/2",
+                      "re /q | /e /q {/e /e} rq. · 9 · early 1 1/2",
+                      "{/e~/e} /q /e rq. · 10 · early 1 1/2",
+                      "re {/e /e} | /e re {/e /e /e} rq. · 11 · early 1 1/2",
+                      "re /q | /e rq /q rq. · 12 · early 1 1/2",
+                      "{/e /e} re | /e re /e re /e rq. · 13 · early 1 1/2",
+                      "re {/e /e} | {/e~/e /e}~/q rq. · 14 · early 1 1/2",
+                      "rq /e | /e /q {/e /e} rq. · 15 · early 1 1/2",
+                      "re {/e /e} | /e rq /q rq. · 16 · early 1 1/2",
+                      "{/e /e} re | /e /q {/e /e} rq. · 17 · early 1 1/2",
+                      "/q /e | {/e /e /e} /q rq. · 18 · early 1 1/2",
+                      "/q. | {/e /e /e /e /e} rq. · 19 · early 1 1/2",
+                      "{/e /e} re | /e re {/e /e /e} rq. · 20 · early 1 1/2",
+                      "/q. | {/e~/e /e}~/q rq. · 21 · early 1 1/2",
+                      "re {/e /e} | /e re /q. rq. · 22 · early 1 1/2"
+                  ]
+    },
+    {
+        "id":  "more0128",
+        "slug":  "rhythm-motifs-early-2-1-2",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · early 2 1/2",
+        "nameEs":  "22 motivos rítmicos · 2 1/2 antes",
+        "descEn":  "The 22 Rhythm Motifs anticipated by two and a half beats.",
+        "descEs":  "Los 22 motivos rítmicos anticipados dos tiempos y medio.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "re /q {/e /e}~ | /e rh. re · 1 · early 2 1/2",
+                      "/q. /e re | /e re /e rh re · 2 · early 2 1/2",
+                      "{/e /e} rq. | /e /q rh re · 3 · early 2 1/2",
+                      "{/e /e /e /e} re | /q /e rh re · 4 · early 2 1/2",
+                      "/e /q {/e~/e}~ | /e /q rh re · 5 · early 2 1/2",
+                      "re {/e /e /e /e} | /e /q rh re · 6 · early 2 1/2",
+                      "rq {/e /e} re | {/e /e /e} rh re · 7 · early 2 1/2",
+                      "re /q {/e~/e} | /e /q rh re · 8 · early 2 1/2",
+                      "re /q {/e /e}~ | {/e /e /e} rh re · 9 · early 2 1/2",
+                      "rq. {/e~/e} | /q /e rh re · 10 · early 2 1/2",
+                      "re {/e /e /e} re | {/e /e /e} rh re · 11 · early 2 1/2",
+                      "re /q /e re | re /q rh re · 12 · early 2 1/2",
+                      "{/e /e} re /e re | /e re /e rh re · 13 · early 2 1/2",
+                      "re {/e /e /e~/e} | /e~/q rh re · 14 · early 2 1/2",
+                      "rq {/e /e /e}~ | {/e /e /e} rh re · 15 · early 2 1/2",
+                      "re {/e /e /e} re | re /q rh re · 16 · early 2 1/2",
+                      "{/e /e} re {/e /e}~ | {/e /e /e} rh re · 17 · early 2 1/2",
+                      "/q {/e /e /e} | /e /q rh re · 18 · early 2 1/2",
+                      "/q. {/e /e} | {/e /e /e} rh re · 19 · early 2 1/2",
+                      "{/e /e} re /e re | {/e /e /e} rh re · 20 · early 2 1/2",
+                      "/q. {/e~/e} | /e~/q rh re · 21 · early 2 1/2",
+                      "re {/e /e /e} re | /q. rh re · 22 · early 2 1/2"
+                  ]
+    },
+    {
+        "id":  "more0129",
+        "slug":  "rhythm-motifs-delayed-1-2",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "nameEn":  "22 Rhythm Motifs · delayed 1/2",
+        "nameEs":  "22 motivos rítmicos · 1/2 retrasado",
+        "descEn":  "The 22 Rhythm Motifs delayed by a half beat.",
+        "descEs":  "Los 22 motivos rítmicos retrasados medio tiempo.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "rq /q /e /q re · 1 · delayed 1/2",
+                      "re /q. /e re /e re | /e rh. re · 2 · delayed 1/2",
+                      "re {/e /e} rq. {/e /e}~ | /e rh. re · 3 · delayed 1/2",
+                      "re {/e /e /e /e} re /q | /e rh. re · 4 · delayed 1/2",
+                      "re /e /q /e~/q /e~ | /e rh. re · 5 · delayed 1/2",
+                      "rq {/e /e /e /e /e /e}~ | /e rh. re · 6 · delayed 1/2",
+                      "rq. {/e /e} re {/e /e} | /e rh. re · 7 · delayed 1/2",
+                      "rq /q {/e~/e /e /e}~ | /e rh. re · 8 · delayed 1/2",
+                      "rq /q /e /q /e | /e rh. re · 9 · delayed 1/2",
+                      "rh {/e~/e} /q | /e rh. re · 10 · delayed 1/2",
+                      "rq {/e /e /e} re {/e /e} | /e rh. re · 11 · delayed 1/2",
+                      "rq /q /e rq /e~ | /e rh. re · 12 · delayed 1/2",
+                      "re {/e /e} re /e re /e re | /e rh. re · 13 · delayed 1/2",
+                      "rq {/e /e /e~/e /e~/e}~ | /e rh. re · 14 · delayed 1/2",
+                      "rq. {/e /e} /q /e | /e rh. re · 15 · delayed 1/2",
+                      "rq {/e /e /e} rq /e~ | /e rh. re · 16 · delayed 1/2",
+                      "re {/e /e} re /e /q /e | /e rh. re · 17 · delayed 1/2",
+                      "re /q {/e /e /e /e /e}~ | /e rh. re · 18 · delayed 1/2",
+                      "re /q. {/e /e /e /e} | /e rh. re · 19 · delayed 1/2",
+                      "re {/e /e} re /e re {/e /e} | /e rh. re · 20 · delayed 1/2",
+                      "re /q. {/e~/e /e~/e}~ | /e rh. re · 21 · delayed 1/2",
+                      "rq {/e /e /e} re /q~ | /e rh. re · 22 · delayed 1/2"
+                  ]
     }
 ]
