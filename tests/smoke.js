@@ -110,7 +110,7 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 16);
+  check("hidden exercises still registered", hidden === 20);
   check("address finds a seeded exercise", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address waits to add a library exercise", w.exerciseIdFromQuery("?exercise=intervals") === "");
   var deskList = w.listDeskExercises();
@@ -318,7 +318,16 @@ function staffNotation(w) {
     "a simile bar draws the repeat sign",
     !!(simileSvg && simileSvg.querySelector(".staff-simile"))
   );
-  var staffIds = ["essentialProgressions", "playRest", "dynamics", "tuplets", "ties", "limbs"];
+  var staffIds = [
+    "essentialProgressions",
+    "playRest",
+    "dynamics",
+    "tuplets",
+    "consecutiveEightNotes",
+    "consecutiveTripletEightNotes",
+    "ties",
+    "limbs"
+  ];
   var badLine = "";
   var si;
   var li;
@@ -482,6 +491,56 @@ function staffTuplets(w) {
     }
   }
   check("every tuplets example fills two bars of 4/4", allFit);
+
+  var consecEightItems = w.exercises.consecutiveEightNotes ? w.exercises.consecutiveEightNotes.items : [];
+  var consecEightFit = consecEightItems.length === 48;
+  for (k = 0; k < consecEightItems.length; k++) {
+    var eightParts = w.staffExampleParts(consecEightItems[k]);
+    var eightAst = w.parseMusicNotation(eightParts.music);
+    var eightTotal = 0;
+    var eightBars = 1;
+    if (!eightAst || !eightParts.caption) {
+      consecEightFit = false;
+      break;
+    }
+    for (e = 0; e < eightAst.events.length; e++) {
+      if (eightAst.events[e].type === "barline") {
+        eightBars++;
+      }
+      eightTotal += w.staffEventQuarters(eightAst.events[e]);
+    }
+    if (eightBars !== 1 || Math.abs(eightTotal - 4) > 1e-9 || !w.renderMusicStaff(eightParts.music, "current")) {
+      consecEightFit = false;
+      break;
+    }
+  }
+  check("every consecutive eight-notes example fills one bar of 4/4", consecEightFit);
+
+  var consecTripItems = w.exercises.consecutiveTripletEightNotes
+    ? w.exercises.consecutiveTripletEightNotes.items
+    : [];
+  var consecTripFit = consecTripItems.length === 72;
+  for (k = 0; k < consecTripItems.length; k++) {
+    var tripParts = w.staffExampleParts(consecTripItems[k]);
+    var tripAst = w.parseMusicNotation(tripParts.music);
+    var tripTotal = 0;
+    var tripBars = 1;
+    if (!tripAst || !tripParts.caption) {
+      consecTripFit = false;
+      break;
+    }
+    for (e = 0; e < tripAst.events.length; e++) {
+      if (tripAst.events[e].type === "barline") {
+        tripBars++;
+      }
+      tripTotal += w.staffEventQuarters(tripAst.events[e]);
+    }
+    if (tripBars !== 1 || Math.abs(tripTotal - 4) > 1e-9 || !w.renderMusicStaff(tripParts.music, "current")) {
+      consecTripFit = false;
+      break;
+    }
+  }
+  check("every consecutive triplet-eight-notes example fills one bar of 4/4", consecTripFit);
 
   var tieItems = w.exercises.ties ? w.exercises.ties.items : [];
   var tiesFit = tieItems.length === 27;
@@ -750,7 +809,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 119 share links", keys.length === 119);
+  check("more catalog has 121 share links", keys.length === 121);
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -773,7 +832,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 119 share links", esHashes.length === 119);
+  check("spanish more catalog has 121 share links", esHashes.length === 121);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
