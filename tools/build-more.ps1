@@ -37,6 +37,13 @@ function Html-Escape([string]$s) {
 }
 
 foreach ($ex in $exercises) {
+  $names = @($ex.PSObject.Properties.Name)
+  if ($names -contains 'exercise' -and $ex.exercise) {
+    $hash = '?exercise=' + [string]$ex.exercise
+    $ex | Add-Member -NotePropertyName hash -NotePropertyValue $hash -Force
+    Write-Host ("{0} catalog {1}" -f $ex.id, $ex.exercise)
+    continue
+  }
   $hash = Share-Hash $ex.id $ex.nameEn ([int]$ex.bars) $ex.lines
   $ex | Add-Member -NotePropertyName hash -NotePropertyValue $hash -Force
   $len = ('https://eization.com/' + $hash).Length

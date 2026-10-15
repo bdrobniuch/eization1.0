@@ -6344,5 +6344,67 @@
                       "re /q. {/e~/e /e~/e}~ | /e rh. re · 21 · delayed 1/2",
                       "rq {/e /e /e} re /q~ | /e rh. re · 22 · delayed 1/2"
                   ]
+    },
+    {
+        "id":  "more0130",
+        "slug":  "comping-rhythm-motifs",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "exercise":  "compingRhythm",
+        "nameEn":  "Comping Rhythm Motifs",
+        "nameEs":  "Motivos rítmicos de acompañamiento",
+        "descEn":  "Seventy short and sustained slash-rhythm motifs for comping. Examples 1–56; set the meter to 4/4.",
+        "descEs":  "Setenta motivos rítmicos cortos y sostenidos para acompañar. Ejemplos 1–56; pon el metro en 4/4.",
+        "books":  [
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#comping-rhythm-motifs-34",
+                          "en":  "Comping Rhythm Motifs 3/4",
+                          "es":  "Motivos rítmicos de acompañamiento 3/4"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                  ]
+    },
+    {
+        "id":  "more0131",
+        "slug":  "comping-rhythm-motifs-34",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "exercise":  "compingRhythm34",
+        "nameEn":  "Comping Rhythm Motifs 3/4",
+        "nameEs":  "Motivos rítmicos de acompañamiento 3/4",
+        "descEn":  "The same short and sustained motifs in 3/4. Examples 57–70; set the meter to 3/4.",
+        "descEs":  "Los mismos motivos cortos y sostenidos en 3/4. Ejemplos 57–70; pon el metro en 3/4.",
+        "books":  [
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#comping-rhythm-motifs",
+                          "en":  "Comping Rhythm Motifs",
+                          "es":  "Motivos rítmicos de acompañamiento"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                  ]
     }
 ]
