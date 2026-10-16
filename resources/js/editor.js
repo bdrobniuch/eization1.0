@@ -2016,11 +2016,17 @@ function editorDelete() {
 }
 
 function ToggleEdit() {
+  var bar;
   if (editorIsOpen()) {
     editorUpdate();
-  } else {
-    editorOpen();
+    return;
   }
+  bar = document.getElementById("shareAsk");
+  if (typeof shareLooking !== "undefined" && shareLooking && bar && !bar.hidden && typeof previewShareExercise === "function") {
+    previewShareExercise();
+    return;
+  }
+  editorOpen();
 }
 
 function editorAddNoteButton(row, text, attrs) {

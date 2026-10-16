@@ -97,6 +97,7 @@ function bindExercisePanel() {
       panel.hidden = true;
       face.setAttribute("aria-expanded", "false");
       exerciseFaceFocus = null;
+      closeShareQuestion(true);
       if (typeof editorOpenNew === "function") {
         editorOpenNew();
       }
@@ -107,6 +108,7 @@ function bindExercisePanel() {
       panel.hidden = true;
       face.setAttribute("aria-expanded", "false");
       exerciseFaceFocus = null;
+      closeShareQuestion(false);
       window.location.href = "./more.html";
       return;
     }
@@ -114,6 +116,7 @@ function bindExercisePanel() {
     if (!item) {
       return;
     }
+    closeShareQuestion(false);
     var choices = menu.querySelectorAll("[data-value]");
     for (var i = 0; i < choices.length; i++) {
       if (choices[i] === item) {
@@ -182,10 +185,17 @@ function buildExerciseMenu() {
   more.title = t("menu.moreTitle");
   menu.appendChild(more);
   var current = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
-  setComboLabel(face, current ? exerciseDisplayName(current) : "");
+  if (shareLookHolds()) {
+    setComboLabel(face, shareOffer.name || "");
+  } else {
+    setComboLabel(face, current ? exerciseDisplayName(current) : "");
+  }
 }
 
 function SelectExercise() {
+  if (shareLookHolds()) {
+    return;
+  }
   if (typeof editorIsOpen === "function" && editorIsOpen()) {
     if (typeof editorIsDirty === "function" && editorIsDirty()) {
       if (typeof editorNotice === "function") {
@@ -490,6 +500,8 @@ function clearExerciseQuery() {
 
 var shareOffer = null;
 var sharePreview = null;
+var shareLooking = false;
+var shareReturnId = "";
 
 function shareBlocksHello() {
   var bar = document.getElementById("shareAsk");
@@ -521,7 +533,112 @@ function hideShareAsk() {
   }
 }
 
+function shareLookHolds() {
+  var bar = document.getElementById("shareAsk");
+  return !!(shareLooking && shareOffer && bar && !bar.hidden);
+}
+
+function beginShareLook() {
+  if (shareLooking) {
+    return;
+  }
+  shareReturnId = typeof currentExerciseId === "string" ? currentExerciseId : "";
+  shareLooking = true;
+}
+
+function endShareLook() {
+  shareLooking = false;
+  shareReturnId = "";
+}
+
+function shareOfferItems(lines) {
+  var items = [];
+  var i;
+  var item;
+  if (!lines || typeof lineToItem !== "function") {
+    return items;
+  }
+  for (i = 0; i < lines.length && items.length < 500; i++) {
+    item = lineToItem(lines[i]);
+    if (item) {
+      items.push(item);
+    }
+  }
+  return items;
+}
+
+function sameExerciseItems(a, b) {
+  var i;
+  if (!a || !b || a.length !== b.length) {
+    return false;
+  }
+  for (i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function shareOfferOnScreen() {
+  var items;
+  var bars;
+  if (!shareOffer || typeof chromaticScale === "undefined" || typeof exerciseBars !== "number") {
+    return false;
+  }
+  items = shareOfferItems(shareOffer.lines);
+  bars = parseInt(shareOffer.bars, 10) || 1;
+  return items.length > 0 && sameExerciseItems(chromaticScale, items) && exerciseBars === bars;
+}
+
+function paintShareOffer() {
+  var items;
+  var face;
+  var bars;
+  if (!shareOffer || typeof newExercise !== "function") {
+    return;
+  }
+  items = shareOfferItems(shareOffer.lines);
+  if (!items.length) {
+    return;
+  }
+  face = document.getElementById("exerciseFace");
+  if (face && typeof setComboLabel === "function") {
+    setComboLabel(face, shareOffer.name || "");
+  }
+  if (shareOfferOnScreen()) {
+    return;
+  }
+  bars = parseInt(shareOffer.bars, 10) || 1;
+  newExercise(items, bars);
+  if (typeof layoutFrame === "function") {
+    layoutFrame();
+  }
+}
+
+function closeShareQuestion(restore) {
+  var back = shareReturnId;
+  var was = shareLooking;
+  if (!was && !shareOffer) {
+    return;
+  }
+  endShareLook();
+  clearShareHash();
+  hideShareAsk();
+  shareOffer = null;
+  if (restore && was) {
+    currentExerciseId = back;
+    if (typeof buildExerciseMenu === "function") {
+      buildExerciseMenu();
+    }
+    if (typeof SelectExercise === "function") {
+      SelectExercise();
+    }
+  }
+}
+
 function showShareAsk(kind, full, snap) {
+  beginShareLook();
   shareOffer = snap;
   var bar = document.getElementById("shareAsk");
   if (!bar) {
@@ -557,9 +674,12 @@ function showShareAsk(kind, full, snap) {
     note.textContent = full ? t("edit.removeFirst") : "";
   }
   bar.hidden = false;
+  paintShareOffer();
 }
 
 function finishShareSelect(id, message) {
+  var keep = shareLooking && shareOfferOnScreen();
+  endShareLook();
   clearShareHash();
   hideShareAsk();
   shareOffer = null;
@@ -570,7 +690,11 @@ function finishShareSelect(id, message) {
   if (typeof buildExerciseMenu === "function") {
     buildExerciseMenu();
   }
-  if (typeof SelectExercise === "function") {
+  if (keep) {
+    if (typeof rememberSetup === "function") {
+      rememberSetup();
+    }
+  } else if (typeof SelectExercise === "function") {
     SelectExercise();
   }
   if (message && typeof showDeskNote === "function") {
@@ -643,6 +767,7 @@ function confirmShareUpdate() {
 
 function finishShareEdit() {
   sharePreview = null;
+  endShareLook();
   clearShareHash();
   hideShareAsk();
   shareOffer = null;
@@ -707,9 +832,7 @@ function previewShareExercise() {
 }
 
 function dismissShareAsk() {
-  clearShareHash();
-  hideShareAsk();
-  shareOffer = null;
+  closeShareQuestion(true);
   offerHelloAfterShare();
 }
 

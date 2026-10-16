@@ -925,6 +925,27 @@ function helloStaffTour(w) {
   );
 }
 
+function poolHasLine(w, line) {
+  var i;
+  for (i = 0; i < w.chromaticScale.length; i++) {
+    if (w.itemToLine(w.chromaticScale[i]) === line) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function lineShown(w, lines) {
+  var shown = w.itemToLine(w.currentNoteSource);
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    if (w.itemToLine(lines[i]) === shown) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function shareCase(w) {
   var base = "https://eization.com/";
   var week = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"] };
@@ -946,21 +967,51 @@ function shareCase(w) {
   editedLines[0] = editedLines[0] + " x";
   w.updateDeskExercise("ex:allNotes", { lines: editedLines });
   var editedUrl = w.shareExerciseUrl({ v: 1, id: "fact0002", name: "All Notes", bars: notes.bars, lines: factoryLines }, base);
+  var returnId = w.currentExerciseId;
   w.location.hash = editedUrl.slice(editedUrl.indexOf("#"));
   w.offerSharedExercise();
   check("edited factory exercise stays a new link", w.document.getElementById("shareAsk").hidden === false && w.document.getElementById("shareAdd").hidden === false && w.listDeskExercises().length === factoryCount);
+  check(
+    "share question draws the linked examples",
+    w.currentExerciseId === returnId && w.shareOfferOnScreen() && lineShown(w, factoryLines) && !poolHasLine(w, editedLines[0])
+  );
   w.dismissShareAsk();
+  check(
+    "not now restores the open exercise",
+    w.currentExerciseId === returnId && w.document.getElementById("shareAsk").hidden === true && !w.shareLooking && poolHasLine(w, editedLines[0])
+  );
   w.updateDeskExercise("ex:allNotes", { lines: factoryLines });
   var before = w.listDeskExercises().length;
+  var savedId = w.currentExerciseId;
   w.location.hash = url.slice(url.indexOf("#"));
   w.offerSharedExercise();
   check("share prompt is up", w.document.getElementById("shareAsk").hidden === false);
   check("share add is the action", w.document.getElementById("shareAdd").hidden === false && w.document.getElementById("sharePreview").hidden === false && w.document.getElementById("shareUpdate").hidden === true);
+  check(
+    "share look keeps the saved exercise and draws the new one",
+    w.currentExerciseId === savedId &&
+      w.listDeskExercises().length === before &&
+      w.shareOfferOnScreen() &&
+      w.exerciseBars === 4 &&
+      w.document.getElementById("exerciseFace").querySelector(".combo-value").textContent === "Week" &&
+      lineShown(w, week.lines)
+  );
+  w.advanceNote();
+  check("share look can step through examples", w.currentExerciseId === savedId && lineShown(w, week.lines));
+  w.buildExerciseMenu();
+  check(
+    "menu rebuild keeps the incoming name",
+    w.document.getElementById("exerciseFace").querySelector(".combo-value").textContent === "Week" && w.shareOfferOnScreen()
+  );
   localStorage.removeItem("eization-hello");
   w.helloTouched = true;
   var added = w.confirmShareAdd();
   var rows = shareRows(w, "teach001");
   check("add keeps the other exercises", added === true && w.listDeskExercises().length === before + 1 && rows.length === 1);
+  check(
+    "add leaves the example on screen",
+    w.currentExerciseId === rows[0].id && !w.shareLooking && lineShown(w, week.lines)
+  );
   check("add drops the hash", w.location.hash.indexOf("#s=") < 0);
   check("add leaves the prompt", w.document.getElementById("shareAsk").hidden === true);
   check("add offers the intro", w.shareBlocksHello() === false && w.document.body.classList.contains("is-hello"));
@@ -1004,6 +1055,12 @@ function shareCase(w) {
   check("preview fills edit", w.document.body.classList.contains("is-editing") && w.document.getElementById("allEdit").value.indexOf("Fmaj7") >= 0 && w.document.getElementById("shareAsk").hidden === true && w.location.hash.indexOf("#s=") === 0 && w.document.getElementById("editDelete").hidden === true && !w.document.body.classList.contains("is-hello"));
   w.editorCancel();
   check("preview cancel restores the question", !w.document.body.classList.contains("is-editing") && w.document.getElementById("shareAsk").hidden === false && w.location.hash.indexOf("#s=") === 0 && !w.document.body.classList.contains("is-hello"));
+  check(
+    "preview cancel shows the incoming example",
+    w.document.getElementById("exerciseFace").querySelector(".combo-value").textContent === "Preview" &&
+      w.itemToLine(w.currentNoteSource) === "Fmaj7" &&
+      w.shareOfferOnScreen()
+  );
   w.dismissShareAsk();
   check("update keeps shareId", w.getDeskExercise(kept.id).shareId === "teach001");
   var parsed = w.parseDeskExercisesBackup(JSON.stringify(w.packDeskExercises()));
