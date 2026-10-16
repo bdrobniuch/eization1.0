@@ -607,6 +607,52 @@ body.article figure.figure.figure-phone img {
     color: #111;
 }
 
+.more-exercise {
+    margin: 0 0 16px;
+    padding: 16px 16px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.more-exercise h2 {
+    margin-top: 0;
+}
+
+.more-example {
+    position: relative;
+    margin: 0 0 16px;
+}
+
+.more-example pre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.more-example .music-staff {
+    max-width: none;
+}
+
+.more-example .notation-staff.is-text,
+.more-example-text p {
+    min-width: 0;
+    margin: 0;
+    font-family: var(--face-font), Georgia, serif;
+    font-size: 1.25rem;
+    line-height: 1.35;
+    text-align: center;
+    color: #111;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .notation-caption {
     margin: 10px 0 0;
     text-align: center;

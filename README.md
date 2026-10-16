@@ -43,7 +43,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `notation.html` | How to write an example as staff notation. Each sample is the line, then the staff that line parses into. Try a line edits live and samples load into that box |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
 | `for-teachers.html` | Hub for teacher articles. Pieces live under `for-teachers/` and `es/for-teachers/` |
-| `more.html` | Extra exercises as share links. Open one to Add or Preview in eization. Not in the default menu. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
+| `more.html` | Extra exercises as share links. Each article shows the first example: a staff for a staff exercise, the line itself for a text exercise. Open one to Add or Preview in eization. Not in the default menu. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
 | `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html`, `free-play.html` | How to practice that kind of line with the metronome |
 | `resources/css/guide.css` | Layout for `practice.html`, exercise pages, and teacher articles |
@@ -94,7 +94,7 @@ When the new id is in `menuOrder`, add a page at the site root, link it from `pr
 
 Share sits on the Exercise row in Edit (always visible). It copies a link to the open exercise and shows Link copied in Edit when the clipboard is ready. On a phone, Download, Upload, Ask AI, Clear, and Delete sit under More; on a wider screen those actions sit beside Share. The link is a `#s=` hash on that page (`https://eization.com/` or `https://eization.com/es/`). Opening it can add that exercise on this device. While that question is open, the practice screen shows the incoming exercise, and Next still steps through it. Not now returns to the exercise that was already open. An exact match opens the stored exercise and says nothing. A link whose examples match a factory exercise already on this device opens that exercise the same way, even when the title is in the other language. A different exercise can replace the stored one or be added beside it. On a first visit the intro waits while that question or Preview is open, then plays once the exercise is on screen. An exercise that does not fit in the link stays on this device, and Download still writes the `.eiz` file.
 
-`more.html` (and `es/more.html`) is a catalog of extra exercises that use those share links. They are not seeded into the menu. Each Open in eization link lands on the practice screen with Add / Preview (or Update when the same share id is already on the device).
+`more.html` (and `es/more.html`) is a catalog of extra exercises that use those share links. They are not seeded into the menu. Each article shows the first example under the description: staff exercises draw that line, text exercises show the line as text. Each Open in eization link lands on the practice screen with Add / Preview (or Update when the same share id is already on the device).
 
 Ask AI opens the open exercise in ChatGPT, Claude, or Gemini. The chat coaches the exercise. When the open lines are staff notation, the question includes that spelling. When it is ready, the reply is a block of examples to paste into the box. The site does not call a model.
 

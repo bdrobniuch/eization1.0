@@ -126,6 +126,11 @@ function Is-Staff($ex) {
   return ([string]$ex.slug) -eq 'held-rhythm'
 }
 
+function Sample-Meter($ex) {
+  if ([string]$ex.slug -eq 'comping-rhythm-motifs-34') { return '3/4' }
+  return ''
+}
+
 function Book-Links($books, $lang) {
   $dot = ' ' + [string][char]0x00B7 + ' '
   $parts = @()
@@ -141,7 +146,8 @@ function Build-Page([string]$lang) {
   $n = $exercises.Count
   $css = if ($isEs) { '../resources/css/guide.css' } else { './resources/css/guide.css' }
   $icons = if ($isEs) { '../resources/icons/' } else { './resources/icons/' }
-  $js = if ($isEs) { '../resources/js/lang-link.js' } else { './resources/js/lang-link.js' }
+  $jsDir = if ($isEs) { '../resources/js/' } else { './resources/js/' }
+  $js = $jsDir + 'lang-link.js'
   $canon = if ($isEs) { 'https://eization.com/es/more.html' } else { 'https://eization.com/more.html' }
   $chA = [char]0x00E1; $chE = [char]0x00E9; $chI = [char]0x00ED; $chO = [char]0x00F3; $chU = [char]0x00FA; $chN = [char]0x00F1
   if ($isEs) {
@@ -232,9 +238,26 @@ function Build-Page([string]$lang) {
     $d = if ($isEs) { $ex.descEs } else { $ex.descEn }
     $href = './' + $ex.hash
     $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
-    [void]$bodySb.AppendLine('        <article id="' + (Html-Escape $ex.slug) + '">')
+    [void]$bodySb.AppendLine('        <article class="more-exercise" id="' + (Html-Escape $ex.slug) + '">')
     [void]$bodySb.AppendLine('            <h2>' + (Html-Escape $name) + ' <span class="kind">' + (Html-Escape $kind) + '</span></h2>')
     [void]$bodySb.AppendLine('            <p>' + (Html-Escape $d) + '</p>')
+    $sampleLines = @($ex.lines)
+    if ($sampleLines.Count -gt 0 -and [string]$sampleLines[0]) {
+      $sample = Html-Escape ([string]$sampleLines[0])
+      if (Is-Staff $ex) {
+        $meterAttr = ''
+        $meter = Sample-Meter $ex
+        if ($meter) { $meterAttr = ' data-meter="' + $meter + '"' }
+        [void]$bodySb.AppendLine('            <figure class="notation-sample more-example"' + $meterAttr + '>')
+        [void]$bodySb.AppendLine('                <pre>' + $sample + '</pre>')
+        [void]$bodySb.AppendLine('                <div class="notation-staff"></div>')
+        [void]$bodySb.AppendLine('            </figure>')
+      } else {
+        [void]$bodySb.AppendLine('            <figure class="notation-sample more-example more-example-text">')
+        [void]$bodySb.AppendLine('                <p>' + $sample + '</p>')
+        [void]$bodySb.AppendLine('            </figure>')
+      }
+    }
     [void]$bodySb.AppendLine('            <p>' + (Html-Escape $barsLabel) + ': ' + $ex.bars + '. ' + (Html-Escape $related) + ': ' + (Book-Links $ex.books $lang) + '.</p>')
     [void]$bodySb.AppendLine('            <p><a class="open" href="' + (Html-Escape $href) + '">' + (Html-Escape $openLabel) + '</a></p>')
     [void]$bodySb.AppendLine('        </article>')
@@ -327,6 +350,9 @@ function Build-Page([string]$lang) {
   [void]$sb.Append($bodySb.ToString())
   [void]$sb.AppendLine($foot.TrimEnd())
   [void]$sb.AppendLine('    </main>')
+  [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff-glyphs.js"></script>')
+  [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff.js"></script>')
+  [void]$sb.AppendLine('    <script src="' + $jsDir + 'notation-page.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $js + '"></script>')
   [void]$sb.AppendLine('</body>')
   [void]$sb.AppendLine('')
