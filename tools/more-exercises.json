@@ -5897,9 +5897,14 @@
         "bars":  2,
         "nameEn":  "22 Rhythm Motifs",
         "nameEs":  "22 motivos rítmicos",
-        "descEn":  "Twenty-two one-bar slash rhythms in 4/4. Displacements of the same set are the cards that follow: early 1, early 2, delayed 1, early 1/2, early 1 1/2, early 2 1/2, and delayed 1/2.",
-        "descEs":  "Veintidós ritmos de un compás con barras en 4/4. Los desplazamientos del mismo conjunto son las tarjetas que siguen: 1 antes, 2 antes, 1 retrasado, 1/2 antes, 1 1/2 antes, 2 1/2 antes y 1/2 retrasado.",
+        "descEn":  "Twenty-two one-bar slash rhythms in 4/4. Displacements are separate cards; open all for every original plus every move in one shuffle.",
+        "descEs":  "Veintidós ritmos de un compás con barras en 4/4. Los desplazamientos son tarjetas aparte; abre todos para cada original y cada movimiento en un solo barajado.",
         "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs-all",
+                          "en":  "all",
+                          "es":  "todos"
+                      },
                       {
                           "href":  "./more.html#rhythm-motifs-early-1",
                           "en":  "early 1",
@@ -6343,6 +6348,43 @@
                       "| {/e /e /e} re /e re {/e /e} | · 20 · delayed 1/2",
                       "/e~ | /e /q. /q /q~| · 21 · delayed 1/2",
                       "/q~ | /e re {/e /e /e} re /q~| · 22 · delayed 1/2"
+                  ]
+    },
+    {
+        "id":  "more0132",
+        "slug":  "rhythm-motifs-all",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  2,
+        "exercise":  "rhythmMotifs",
+        "nameEn":  "22 Rhythm Motifs · all",
+        "nameEs":  "22 motivos rítmicos · todos",
+        "descEn":  "All 176 lines in one shuffle: the 22 originals, then one beat early, two early, one delayed, anticipated by 1/2, 1 1/2, and 2 1/2, and delayed by 1/2.",
+        "descEs":  "Las 176 líneas en un solo barajado: los 22 originales, luego un tiempo antes, dos antes, uno retrasado, anticipados 1/2, 1 1/2 y 2 1/2, y retrasados 1/2.",
+        "books":  [
+                      {
+                          "href":  "./more.html#rhythm-motifs",
+                          "en":  "22 Rhythm Motifs",
+                          "es":  "22 motivos rítmicos"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      },
+                      {
+                          "href":  "./more.html#held-rhythm",
+                          "en":  "Held rhythm",
+                          "es":  "Ritmo sostenido"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "re /q /e /q rq · 1"
                   ]
     },
     {
