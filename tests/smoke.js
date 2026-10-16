@@ -185,6 +185,12 @@ function staffNotation(w) {
   check("a tie onto a different pitch is rejected", !w.parseMusicNotation("C4q~D4q"));
   check("a tie from a rest is rejected", !w.parseMusicNotation("rq~/q"));
   check("a dangling tie is rejected", !w.parseMusicNotation("C4q~"));
+  check("a tie over a final barline parses", !!w.parseMusicNotation("/e~|"));
+  var hangSvg = w.renderMusicStaff("/e~|", "current");
+  check(
+    "a tie over a final barline draws",
+    !!(hangSvg && hangSvg.querySelector("path.staff-tie"))
+  );
   var tiedSvg = w.renderMusicStaff("/q~/q", "current");
   check(
     "a tie draws a curve",

@@ -758,11 +758,28 @@ function staffMatchTie(fromEv, toEv) {
   return { keys: [outKeys[0]] };
 }
 
-/* Resolve each ~ onto the following attack. A barline may sit in between. */
+/* True when only barlines remain after index (tie may hang over a final barline). */
+function staffOnlyBarlinesAfter(events, from) {
+  var j;
+  var sawBar = false;
+  for (j = from; j < events.length; j++) {
+    if (events[j].type === "barline") {
+      sawBar = true;
+      continue;
+    }
+    return false;
+  }
+  return sawBar;
+}
+
+/* Resolve each ~ onto the following attack. A barline may sit in between.
+ * A tie with only a barline after it (e.g. /e~|) hangs over that barline. */
 function staffBindTies(events) {
   var i;
   var open = null;
+  var openAt = -1;
   var matched;
+  var hangKeys;
   for (i = 0; i < events.length; i++) {
     if (events[i].type === "tuplet") {
       matched = staffBindTies(events[i].events);
@@ -789,13 +806,23 @@ function staffBindTies(events) {
       }
       open.tieOutKeys = matched.keys;
       open = null;
+      openAt = -1;
     }
     if (ev.tieToNext) {
       open = ev;
+      openAt = i;
     }
   }
   if (open) {
-    return { error: "tie needs a note after it", tok: "~" };
+    if (openAt < 0 || !staffOnlyBarlinesAfter(events, openAt + 1)) {
+      return { error: "tie needs a note after it", tok: "~" };
+    }
+    hangKeys = staffOutgoingKeys(open);
+    if (!hangKeys.length) {
+      return { error: "tie needs a note after it", tok: "~" };
+    }
+    open.tieOutKeys = hangKeys;
+    open.tieHang = true;
   }
   return { ok: true };
 }
@@ -1769,7 +1796,7 @@ function renderMusicStaff(source, role) {
     return edges;
   }
 
-  function staffArmOutgoing(ev, first, last, keys) {
+  function staffArmOutgoing(ev, first, last, keys, hang) {
     var edges = staffEdgeColumns(ev, first, last, "out");
     var sources = [];
     var i;
@@ -1779,8 +1806,21 @@ function renderMusicStaff(source, role) {
       }
     }
     if (sources.length) {
-      openTie = { sources: sources };
+      openTie = { sources: sources, hang: !!hang };
     }
+  }
+
+  function staffCloseHangTie(barCol) {
+    var i;
+    var src;
+    if (!openTie || !openTie.hang) {
+      return;
+    }
+    for (i = 0; i < openTie.sources.length; i++) {
+      src = openTie.sources[i];
+      drawTies.push({ from: src.index, to: barCol, step: src.step, hang: true });
+    }
+    openTie = null;
   }
 
   function staffRememberTies(ev, first, last) {
@@ -1790,24 +1830,29 @@ function renderMusicStaff(source, role) {
     var src;
     var hit;
     if (openTie) {
-      incoming = staffEdgeColumns(ev, first, last, "in");
-      for (i = 0; i < openTie.sources.length; i++) {
-        src = openTie.sources[i];
-        hit = null;
-        for (j = 0; j < incoming.length; j++) {
-          if (incoming[j].key === src.key) {
-            hit = incoming[j];
-            break;
+      if (openTie.hang) {
+        /* A note after a hanging open tie should not happen after bind. */
+        openTie = null;
+      } else {
+        incoming = staffEdgeColumns(ev, first, last, "in");
+        for (i = 0; i < openTie.sources.length; i++) {
+          src = openTie.sources[i];
+          hit = null;
+          for (j = 0; j < incoming.length; j++) {
+            if (incoming[j].key === src.key) {
+              hit = incoming[j];
+              break;
+            }
+          }
+          if (hit) {
+            drawTies.push({ from: src.index, to: hit.index, step: src.step });
           }
         }
-        if (hit) {
-          drawTies.push({ from: src.index, to: hit.index, step: src.step });
-        }
+        openTie = null;
       }
-      openTie = null;
     }
     if (ev.tieOutKeys && ev.tieOutKeys.length) {
-      staffArmOutgoing(ev, first, last, ev.tieOutKeys);
+      staffArmOutgoing(ev, first, last, ev.tieOutKeys, ev.tieHang);
     }
   }
 
@@ -1847,6 +1892,7 @@ function renderMusicStaff(source, role) {
     var col = null;
     var scale = tup ? tup.scale : 1;
     if (ev.type === "barline") {
+      staffCloseHangTie(columns.length);
       columns.push({ type: "barline" });
       similePosQ = 0;
       return;
@@ -3314,22 +3360,49 @@ function renderMusicStaff(source, role) {
     var tie = drawTies[tieN];
     var fromHeads = headInk[tie.from];
     var toHeads = headInk[tie.to];
-    if (!fromHeads || !toHeads || !fromHeads[tie.step] || !toHeads[tie.step]) {
-      continue;
-    }
-    var fromBox = fromHeads[tie.step];
-    var toBox = toHeads[tie.step];
-    var above = staffTieAbove(tie.from, tie.to, tie.step);
-    var slashTie = fromBox.slash || toBox.slash;
+    var fromBox;
+    var toBox;
+    var above;
+    var slashTie;
     var x1;
     var x2;
-    if (slashTie) {
-      /* Slash glyphs are wide diagonals. A tie from the outer tips is a nub. Span the heads. */
-      x1 = fromBox.left + (fromBox.right - fromBox.left) * 0.62;
-      x2 = toBox.left + (toBox.right - toBox.left) * 0.28;
+    if (tie.hang) {
+      if (!fromHeads || !fromHeads[tie.step]) {
+        continue;
+      }
+      fromBox = fromHeads[tie.step];
+      toBox = {
+        left: colX[tie.to],
+        right: colX[tie.to],
+        y: fromBox.y,
+        slash: fromBox.slash,
+        onLine: fromBox.onLine
+      };
+      above = staffTieAbove(tie.from, tie.from, tie.step);
+      slashTie = !!fromBox.slash;
+      if (slashTie) {
+        x1 = fromBox.left + (fromBox.right - fromBox.left) * 0.62;
+        x2 = colX[tie.to] + lineGap * 0.55;
+      } else {
+        x1 = fromBox.right + lineGap * 0.16;
+        x2 = colX[tie.to] + lineGap * 0.45;
+      }
     } else {
-      x1 = fromBox.right + lineGap * 0.16;
-      x2 = toBox.left - lineGap * 0.12;
+      if (!fromHeads || !toHeads || !fromHeads[tie.step] || !toHeads[tie.step]) {
+        continue;
+      }
+      fromBox = fromHeads[tie.step];
+      toBox = toHeads[tie.step];
+      above = staffTieAbove(tie.from, tie.to, tie.step);
+      slashTie = fromBox.slash || toBox.slash;
+      if (slashTie) {
+        /* Slash glyphs are wide diagonals. A tie from the outer tips is a nub. Span the heads. */
+        x1 = fromBox.left + (fromBox.right - fromBox.left) * 0.62;
+        x2 = toBox.left + (toBox.right - toBox.left) * 0.28;
+      } else {
+        x1 = fromBox.right + lineGap * 0.16;
+        x2 = toBox.left - lineGap * 0.12;
+      }
     }
     /*
      * A dot in a space sits beside the note. On a line it sits above, so a

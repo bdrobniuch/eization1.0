@@ -285,53 +285,124 @@
     return out;
   }
 
-  function rmEmitBeam(run) {
-    var beamStr = "{";
-    var r;
-    for (r = 0; r < run.length; r++) {
-      if (r) {
-        beamStr += " ";
+  /* Tied eighths inside one beam become a quarter; keep barline ties as /e~. */
+  function rmCollapseTiedEighths(run) {
+    var out = [];
+    var i = 0;
+    while (i < run.length) {
+      if (
+        run[i].tieOut &&
+        i + 1 < run.length &&
+        Math.abs(run[i].quarters - 0.5) < EPS &&
+        Math.abs(run[i + 1].quarters - 0.5) < EPS
+      ) {
+        out.push({
+          type: "note",
+          dur: "q",
+          quarters: 1,
+          tieOut: run[i + 1].tieOut
+        });
+        i += 2;
+        continue;
       }
-      beamStr += "/e";
-      if (run[r].tieOut && r < run.length - 1) {
-        beamStr += "~";
-      }
+      out.push(run[i]);
+      i++;
     }
-    beamStr = beamStr.replace(/\/e~ \/e/g, "/e~/e");
-    beamStr += "}";
-    if (run[run.length - 1].tieOut) {
-      beamStr += "~";
-    }
-    return beamStr;
+    return out;
   }
 
-  function rmMergeRests(pieces) {
+  function rmEmitBeam(run) {
+    var parts = [];
+    var i = 0;
+    var collapsed = rmCollapseTiedEighths(run);
+    while (i < collapsed.length) {
+      var ev = collapsed[i];
+      if (ev.type === "note" && Math.abs(ev.quarters - 0.5) < EPS) {
+        var beam = [ev];
+        var k = i + 1;
+        while (
+          k < collapsed.length &&
+          collapsed[k].type === "note" &&
+          Math.abs(collapsed[k].quarters - 0.5) < EPS
+        ) {
+          beam.push(collapsed[k]);
+          k++;
+        }
+        if (beam.length >= 2) {
+          var beamStr = "{";
+          var r;
+          for (r = 0; r < beam.length; r++) {
+            if (r) {
+              beamStr += " ";
+            }
+            beamStr += "/e";
+            if (beam[r].tieOut && r < beam.length - 1) {
+              beamStr += "~";
+            }
+          }
+          beamStr = beamStr.replace(/\/e~ \/e/g, "/e~/e");
+          beamStr += "}";
+          if (beam[beam.length - 1].tieOut) {
+            beamStr += "~";
+          }
+          parts.push(beamStr);
+          i = k;
+          continue;
+        }
+      }
+      parts.push("/" + ev.dur + (ev.tieOut ? "~" : ""));
+      i++;
+    }
+    return parts.join(" ");
+  }
+
+  function rmOnBeat(start) {
+    return Math.abs(rmSnap(start) - Math.round(rmSnap(start))) < EPS;
+  }
+
+  /*
+   * Merge re re → rq only when the first rest is on a downbeat (fills one beat).
+   * Keep re re when the first sits on an upbeat (e.g. /e re re /e).
+   */
+  function rmMergeBeatRests(pieces) {
     var out = [];
-    var i;
-    for (i = 0; i < pieces.length; i++) {
+    var i = 0;
+    while (i < pieces.length) {
       var p = pieces[i];
+      var next = i + 1 < pieces.length ? pieces[i + 1] : null;
       if (
         p.type === "rest" &&
-        out.length &&
-        out[out.length - 1].type === "rest"
+        next &&
+        next.type === "rest" &&
+        Math.abs(p.quarters - 0.5) < EPS &&
+        Math.abs(next.quarters - 0.5) < EPS &&
+        rmOnBeat(p.start) &&
+        Math.abs(next.start - rmSnap(p.start + 0.5)) < EPS
       ) {
-        out[out.length - 1].quarters = rmSnap(
-          out[out.length - 1].quarters + p.quarters
-        );
-      } else {
         out.push({
-          type: p.type,
+          type: "rest",
           start: p.start,
-          quarters: p.quarters,
-          tieOut: p.tieOut
+          quarters: 1,
+          tieOut: false
         });
+        i += 2;
+        continue;
       }
+      out.push({
+        type: p.type,
+        start: p.start,
+        quarters: p.quarters,
+        tieOut: p.tieOut,
+        wrapEnd: p.wrapEnd,
+        wrapStart: p.wrapStart
+      });
+      i++;
     }
     return out;
   }
 
   function rmEmit(pieces, lo, hi) {
-    var filled = rmMergeRests(rmFillGaps(pieces, lo, hi));
+    var filled = rmMergeBeatRests(rmFillGaps(pieces, lo, hi));
     var flat = [];
     var i;
     for (i = 0; i < filled.length; i++) {
@@ -375,61 +446,123 @@
     return parts.join(" ").replace(/~ /g, "~").replace(/ ~\{/g, "~{");
   }
 
+  /* Place one event into [0, 4) with circular wrap; split and tie across 0. */
+  function rmCircularPlace(ev, shift, out) {
+    var a = rmSnap(ev.start + shift);
+    var b = rmSnap(a + ev.quarters);
+    while (a >= 4 - EPS) {
+      a = rmSnap(a - 4);
+      b = rmSnap(b - 4);
+    }
+    while (b <= EPS) {
+      a = rmSnap(a + 4);
+      b = rmSnap(b + 4);
+    }
+    if (a < -EPS && b > EPS) {
+      var before = rmSnap(-a);
+      var after = rmSnap(Math.min(b, 4));
+      out.push({
+        type: ev.type,
+        start: rmSnap(4 + a),
+        quarters: before,
+        tieOut: ev.type === "note" && after > EPS,
+        wrapEnd: true
+      });
+      if (after > EPS) {
+        out.push({
+          type: ev.type,
+          start: 0,
+          quarters: after,
+          tieOut: !!ev.tieOut,
+          wrapStart: true
+        });
+      }
+      return;
+    }
+    if (a >= -EPS && b > 4 + EPS) {
+      var left = rmSnap(4 - a);
+      var right = rmSnap(b - 4);
+      out.push({
+        type: ev.type,
+        start: a,
+        quarters: left,
+        tieOut: ev.type === "note",
+        wrapEnd: true
+      });
+      out.push({
+        type: ev.type,
+        start: 0,
+        quarters: right,
+        tieOut: !!ev.tieOut,
+        wrapStart: true
+      });
+      return;
+    }
+    if (a < -EPS && b <= EPS) {
+      out.push({
+        type: ev.type,
+        start: rmSnap(4 + a),
+        quarters: rmSnap(b - a),
+        tieOut: !!ev.tieOut,
+        wrapEnd: true
+      });
+      return;
+    }
+    out.push({
+      type: ev.type,
+      start: a < 0 ? 0 : a,
+      quarters: rmSnap(b - a),
+      tieOut: !!ev.tieOut
+    });
+  }
+
+  function rmCircularPieces(notation, shift) {
+    var events = rmParse(notation);
+    var placed = [];
+    var i;
+    for (i = 0; i < events.length; i++) {
+      rmCircularPlace(events[i], shift, placed);
+    }
+    placed.sort(function (x, y) {
+      return x.start - y.start;
+    });
+    return placed;
+  }
+
   function rmShiftNotation(notation, shift) {
     shift = rmSnap(shift);
     if (Math.abs(shift) < EPS) {
       return notation;
     }
-    var events = rmParse(notation).map(function (ev) {
-      return {
-        type: ev.type,
-        start: rmSnap(ev.start + shift),
-        quarters: ev.quarters,
-        tieOut: ev.tieOut
-      };
-    });
-
-    if (shift < 0) {
-      var pickup = rmClip(events, shift, 0);
-      var main = rmClip(events, 0, 4);
-      var mainStr = rmEmit(main, 0, 4);
-      var pickHasNote = false;
-      var pi;
-      for (pi = 0; pi < pickup.length; pi++) {
-        if (pickup[pi].type === "note") {
-          pickHasNote = true;
-          break;
+    var placed = rmCircularPieces(notation, shift);
+    var wrapEnds = [];
+    var hasWrapStart = false;
+    var i;
+    for (i = 0; i < placed.length; i++) {
+      if (placed[i].wrapEnd && placed[i].type === "note") {
+        wrapEnds.push({
+          type: placed[i].type,
+          start: placed[i].start,
+          quarters: placed[i].quarters,
+          tieOut: true
+        });
+      }
+      if (placed[i].wrapStart && placed[i].type === "note") {
+        hasWrapStart = true;
+      }
+    }
+    var mainStr = rmEmit(placed, 0, 4);
+    if (wrapEnds.length && hasWrapStart) {
+      var pickLo = wrapEnds[0].start;
+      for (i = 1; i < wrapEnds.length; i++) {
+        if (wrapEnds[i].start < pickLo) {
+          pickLo = wrapEnds[i].start;
         }
       }
-      if (!pickHasNote) {
-        return mainStr;
-      }
-      return rmEmit(pickup, shift, 0) + " | " + mainStr;
+      var pickStr = rmEmit(wrapEnds, pickLo, 4);
+      return pickStr + " | " + mainStr + "|";
     }
-
-    var bar1 = rmClip(events, 0, 4);
-    var spillRaw = rmClip(events, 4, 4 + shift);
-    var s1 = rmEmit(bar1, 0, 4);
-    var hasNote = false;
-    var si;
-    for (si = 0; si < spillRaw.length; si++) {
-      if (spillRaw[si].type === "note") {
-        hasNote = true;
-        break;
-      }
-    }
-    if (!hasNote) {
-      return s1;
-    }
-    var spillPieces = spillRaw.map(function (p) {
-      return {
-        type: p.type,
-        start: rmSnap(p.start - 4),
-        quarters: p.quarters,
-        tieOut: p.tieOut
-      };
-    });
-    return s1 + " | " + rmEmit(spillPieces, 0, 4);
+    return "| " + mainStr + " |";
   }
 
   function rmItem(notation, caption) {
