@@ -43,7 +43,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/css/style.css` | Practice screen layout |
 | `notation.html` | How to write an example as staff notation. Each sample is the line, then the staff that line parses into. Try a line edits live and samples load into that box |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
-| `for-teachers.html` | Hub for teacher articles. Pieces live under `for-teachers/` and `es/for-teachers/` |
+| `for-teachers.html` | Hub for teacher articles. Menu links here. Pieces live under `for-teachers/` and `es/for-teachers/` |
 | `more.html` | Extra exercises as share links. Each article shows the first example: a staff for a staff exercise, the line itself for a text exercise. Open one to Add or Edit in eization. Not in the default menu. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
 | `books.html` | Jazz books you already own, grouped by the kind of line you type. The pages do not reprint those books |
 | `melodic-lines.html`, `scales-and-sets.html`, `changes.html`, `time.html`, `free-play.html` | How to practice that kind of line with the metronome |

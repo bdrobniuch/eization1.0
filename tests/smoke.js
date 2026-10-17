@@ -162,6 +162,7 @@ function exerciseMenu(w) {
   check("address ignores a hidden exercise", w.exerciseIdFromQuery("?exercise=licks") === "");
   check("address ignores other queries", w.exerciseIdFromQuery("?smoke=1") === "");
   check("practice page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
+  check("teacher hub is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./for-teachers.html']"));
   check("books page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
   check("more page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./more.html']"));
   check("menu can buy a coffee", !!w.document.getElementById("aboutCoffee"));
