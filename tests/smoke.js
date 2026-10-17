@@ -65,6 +65,7 @@ function run() {
     editorFile(w);
     deskRoundTrip(w);
     moreCatalog(w);
+    guideDoors(w);
     shareCase(w);
     helloStaffTour(w);
     notationGuide(w);
@@ -131,6 +132,30 @@ function exerciseMenu(w) {
   check("menu has More exercises", !!w.document.querySelector("#exerciseMenu [data-more-exercises]"));
   var special = w.document.querySelectorAll("#exerciseMenu button.menu-special");
   check("special menu buttons stay distinguished", special.length === 2);
+  check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
+  check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
+  check("day list stays pinned", !!(w.dayExercises && w.dayExercises.length === 11));
+  var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
+  var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
+  var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));
+  check("day pick is stable", day === dayAgain && w.dayExercises.indexOf(day) >= 0);
+  check("next utc day picks another exercise", nextUtcDay !== day && w.dayExercises.indexOf(nextUtcDay) >= 0);
+  check("a day before the epoch stays in the list", w.dayExercises.indexOf(w.exerciseOfDay(new Date(Date.UTC(2026, 9, 16)))) >= 0);
+  var seededLeft = ["a", "b", "c", "d", "e"];
+  var seededRight = ["a", "b", "c", "d", "e"];
+  w.shuffleArray(seededLeft, 7);
+  w.shuffleArray(seededRight, 7);
+  check("seeded shuffle repeats", seededLeft.join("|") === seededRight.join("|"));
+  var unseeded = ["a", "b", "c", "d", "e"];
+  w.shuffleArray(unseeded);
+  check("unseeded shuffle runs", unseeded.slice().sort().join("|") === "a|b|c|d|e");
+  check("contribute page exists", !!w.document.getElementById("aboutContribute"));
+  check("send this exercise exists", !!w.document.getElementById("sendExercise"));
+  check("report a correction exists", !!w.document.getElementById("reportCorrection"));
+  var playButton = w.document.getElementById("tempoToggle");
+  w.beginShareLook();
+  check("play is allowed during the share question", w.shareBlocksPlay() === false && !!(playButton && playButton.disabled === false));
+  w.endShareLook();
   check("address opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address opens rhythms", w.exerciseIdFromQuery("?exercise=limbs") === "ex:limbs");
   check("address opens play/rest", w.exerciseIdFromQuery("?exercise=playRest") === "ex:playRest");
@@ -921,6 +946,24 @@ function editorLines(w) {
   check("a comparison stays", w.itemToLine("ii < V") === "ii < V");
 }
 
+function guideDoors(w) {
+  var req = new XMLHttpRequest();
+  var html;
+  var shareJs;
+  req.open("GET", "../for-teachers.html", false);
+  req.send(null);
+  html = req.responseText || "";
+  check("teacher hub links the band room", html.indexOf("for-teachers/band-room.html") >= 0);
+  check("teacher hub links parents", html.indexOf("for-parents.html") >= 0);
+  check("teacher hub links today", html.indexOf("today.html") >= 0);
+  req = new XMLHttpRequest();
+  req.open("GET", "../resources/js/guide-share.js", false);
+  req.send(null);
+  shareJs = req.responseText || "";
+  check("embed uses embed=1", shareJs.indexOf('set("embed", "1")') >= 0);
+  check("play is not refused by the share question", w.shareBlocksPlay() === false && w.paused === true);
+}
+
 function shareHashLive(w) {
   return typeof w.isShareHash === "function" && w.isShareHash(w.location.hash || "");
 }
@@ -950,7 +993,14 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 130 share links", keys.length === 130);
+  check("more catalog has 177 share links", keys.length === 177);
+  check("more article offers share and embed", html.indexOf("data-share") >= 0 && html.indexOf("data-embed") >= 0);
+  check("more page offers today and a correction", html.indexOf('href="./?today=1"') >= 0 && html.indexOf('href="./?contribute=1"') >= 0);
+  var hashUrl = new URL("./#s2=abc", "https://eization.com/more.html").href;
+  var exerciseUrl = new URL("./?exercise=scales", "https://eization.com/scales.html");
+  exerciseUrl.searchParams.set("embed", "1");
+  check("catalog hash resolves to the practice screen", hashUrl === "https://eization.com/#s2=abc");
+  check("embed flag stays on the exercise query", exerciseUrl.href === "https://eization.com/?exercise=scales&embed=1");
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0 || html.indexOf('href="./#s2=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -973,7 +1023,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 130 share links", esHashes.length === 130);
+  check("spanish more catalog has 177 share links", esHashes.length === 177);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -1188,11 +1238,9 @@ function shareCase(w) {
   w.advanceNote();
   check("share look can step through examples", w.currentExerciseId === savedId && lineShown(w, week.lines));
   check(
-    "share look holds play",
-    w.document.getElementById("tempoToggle").disabled === true && w.paused === true && w.document.getElementById("sharePreview").textContent === w.t("share.preview")
+    "share look allows play",
+    w.document.getElementById("tempoToggle").disabled === false && w.paused === true && w.shareBlocksPlay() === false && w.document.getElementById("sharePreview").textContent === w.t("share.preview")
   );
-  w.document.getElementById("tempoToggle").click();
-  check("share look ignores play", w.paused === true);
   w.buildExerciseMenu();
   check(
     "menu rebuild keeps the incoming name",

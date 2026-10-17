@@ -546,6 +546,9 @@ function showHelloPart(part) {
 }
 
 function maybeHello() {
+  if (typeof embedded !== "undefined" && embedded) {
+    return;
+  }
   if (document.body.classList.contains("is-hello")) {
     return;
   }

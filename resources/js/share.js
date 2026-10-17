@@ -2188,3 +2188,75 @@ function readShareHash(hash) {
     lines: json.lines
   });
 }
+
+function practiceLinkUrl(href, base) {
+  return new URL(href, base || window.location.href).href;
+}
+
+function practiceEmbedUrl(href, base) {
+  var url = new URL(href, base || window.location.href);
+  url.searchParams.set("embed", "1");
+  return url.href;
+}
+
+function exerciseShareUrl(row) {
+  var href;
+  var shareId;
+  var snap;
+  if (!row || !row.lines || !row.lines.length) {
+    return "";
+  }
+  if (typeof shareCatalogHref === "function") {
+    href = shareCatalogHref(row);
+    if (href) {
+      return href;
+    }
+  }
+  shareId = row.shareId;
+  if (!shareId && typeof newShareId === "function") {
+    shareId = newShareId();
+    if (row.id && typeof updateDeskExercise === "function") {
+      updateDeskExercise(row.id, { shareId: shareId });
+    }
+  }
+  if (!shareId || typeof shareSnapshot !== "function") {
+    return "";
+  }
+  snap = shareSnapshot({
+    id: shareId,
+    name: row.name,
+    bars: row.bars,
+    lines: row.lines
+  });
+  if (!snap) {
+    return "";
+  }
+  return shareExerciseUrl({
+    v: 1,
+    id: snap.shareId,
+    name: snap.name,
+    bars: snap.bars,
+    lines: snap.lines
+  });
+}
+
+function downloadExerciseFile(row) {
+  var blob;
+  var url;
+  var link;
+  if (!row || !row.lines || !row.lines.length || typeof editorFileText !== "function") {
+    return false;
+  }
+  blob = new Blob([editorFileText(row.lines, row.bars, row.name)], { type: "text/plain;charset=utf-8" });
+  url = URL.createObjectURL(blob);
+  link = document.createElement("a");
+  link.href = url;
+  link.download = "eization.eiz";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+  }, 1500);
+  return true;
+}

@@ -8,10 +8,20 @@ $exercises = Get-Content -LiteralPath $dataPath -Encoding UTF8 -Raw | ConvertFro
 
 $hashMap = $null
 $hashFile = Join-Path $PSScriptRoot 'share-hashes.json'
-if (Get-Command node -ErrorAction SilentlyContinue) {
-  $rawMap = & node (Join-Path $PSScriptRoot 'share-url.js')
-  if ($LASTEXITCODE -ne 0) { throw 'share pack failed' }
-  $hashMap = $rawMap | ConvertFrom-Json
+$nodeExe = $null
+$nodeCmd = Get-Command node -ErrorAction SilentlyContinue
+if ($nodeCmd) { $nodeExe = $nodeCmd.Source }
+if (-not $nodeExe) {
+  $helper = Join-Path $env:LOCALAPPDATA 'Programs\cursor\resources\app\resources\helpers\node.exe'
+  if (Test-Path -LiteralPath $helper) { $nodeExe = $helper }
+}
+if ($nodeExe) {
+  $hashOut = Join-Path $PSScriptRoot '_hashes.json'
+  $hashErr = Join-Path $PSScriptRoot '_hashes.err'
+  $proc = Start-Process -FilePath $nodeExe -ArgumentList @((Join-Path $PSScriptRoot 'share-url.js')) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $hashOut -RedirectStandardError $hashErr
+  if ($proc.ExitCode -ne 0) { throw 'share pack failed' }
+  $hashMap = Get-Content -LiteralPath $hashOut -Encoding UTF8 -Raw | ConvertFrom-Json
+  Remove-Item -LiteralPath $hashOut, $hashErr -ErrorAction SilentlyContinue
 } elseif (Test-Path -LiteralPath $hashFile) {
   $hashMap = Get-Content -LiteralPath $hashFile -Encoding UTF8 -Raw | ConvertFrom-Json
 }
@@ -172,7 +182,10 @@ function Build-Page([string]$lang) {
     $h1 = "M${chA}s ejercicios"
     $lead1 = "Lo que ya sabes es lo que m${chA}s suena. El resto espera. Estos ejercicios extra no est${chA}n en el men${chU} por defecto. Abre uno: eization pregunta A${chN}adir o Editar."
     $lead2 = "Cada ejemplo sale una vez, con el metr${chO}nomo. Luego cambia el orden. Los libros de abajo siguen siendo los libros: practican una l${chI}nea que ya tienes, no la reimprimen."
-    $lead3 = "Si armaste un ejercicio que cubre un hueco, abre eization, ve a Acerca de y m${chA}ndalo. Los fuertes pueden entrar en esta lista."
+    $lead3 = "Si armaste un ejercicio, o encontraste una l${chI}nea para corregir,"
+    $lead4 = 'Los fuertes pueden entrar en esta lista.'
+    $todayLabel = 'El ejercicio de hoy'
+    $sendLabel = "env${chI}a un ejercicio o una correcci${chO}n"
     $openLabel = 'Abrir en eization'
     $navLabel = "En esta p${chA}gina"
     $groupLabels = @{ pitch = 'Alturas'; changes = 'Cambios'; rhythm = 'Ritmo'; sound = 'Sonido'; language = 'Lenguaje' }
@@ -202,7 +215,10 @@ function Build-Page([string]$lang) {
     $h1 = 'More exercises'
     $lead1 = 'What you already know gets played the most. The rest waits. These extra exercises are not in the default menu. Open one: eization asks Add or Edit.'
     $lead2 = 'Each example comes up once, with the metronome. Then the order changes. The books linked below stay the books: practice a line you already have; they do not reprint it.'
-    $lead3 = 'Built an exercise that fills a gap? Open eization, go to About, and send it. Strong ones can join this list.'
+    $lead3 = 'Built an exercise, or found a line to correct?'
+    $lead4 = 'Strong ones can join this list.'
+    $todayLabel = "Today's exercise"
+    $sendLabel = 'Send an exercise or a correction'
     $openLabel = 'Open in eization'
     $navLabel = 'On this page'
     $groupLabels = @{ pitch = 'Pitch'; changes = 'Changes'; rhythm = 'Rhythm'; sound = 'Sound'; language = 'Language' }
@@ -275,7 +291,13 @@ function Build-Page([string]$lang) {
       }
     }
     [void]$bodySb.AppendLine('            <p>' + (Html-Escape $barsLabel) + ': ' + $ex.bars + '. ' + (Html-Escape $related) + ': ' + (Book-Links $ex.books $lang) + '.</p>')
-    [void]$bodySb.AppendLine('            <p><a class="open" href="' + (Html-Escape $href) + '">' + (Html-Escape $openLabel) + '</a></p>')
+    $shareLabel = if ($isEs) { 'Compartir' } else { 'Share' }
+    $embedLabel = if ($isEs) { 'Insertar' } else { 'Embed' }
+    $copiedLabel = if ($isEs) { 'Enlace copiado' } else { 'Link copied' }
+    $codeLabel = if ($isEs) { 'C' + [char]0x00F3 + 'digo copiado' } else { 'Code copied' }
+    $failLabel = if ($isEs) { 'No se pudo copiar' } else { 'Could not copy' }
+    $blurb = if ($isEs) { 'Saca un ejemplo cada vez de tu biblioteca, a tiempo con el metr' + [char]0x00F3 + 'nomo.' } else { 'Draw one example at a time from your library, in time with the metronome.' }
+    [void]$bodySb.AppendLine('            <p class="opens"><a class="open" href="' + (Html-Escape $href) + '">' + (Html-Escape $openLabel) + '</a> <button type="button" class="open" data-share data-copied="' + (Html-Escape $copiedLabel) + '" data-fail="' + (Html-Escape $failLabel) + '" data-blurb="' + (Html-Escape $blurb) + '">' + (Html-Escape $shareLabel) + '</button> <button type="button" class="open" data-embed data-code="' + (Html-Escape $codeLabel) + '" data-fail="' + (Html-Escape $failLabel) + '">' + (Html-Escape $embedLabel) + '</button></p>')
     [void]$bodySb.AppendLine('        </article>')
     [void]$schemaItems.Add([ordered]@{
       '@type' = 'ListItem'
@@ -361,7 +383,8 @@ function Build-Page([string]$lang) {
   [void]$sb.AppendLine('        <h1>' + (Html-Escape $h1) + '</h1>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead1) + '</p>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead2) + '</p>')
-  [void]$sb.AppendLine('        <p>' + (Html-Escape $lead3) + ' <a href="' + $homeHref + '">' + $(if ($isEs) { 'Abrir eization' } else { 'Open eization' }) + '</a>.</p>')
+  [void]$sb.AppendLine('        <p><a class="open" href="' + $homeHref + '?today=1">' + (Html-Escape $todayLabel) + '</a></p>')
+  [void]$sb.AppendLine('        <p>' + (Html-Escape $lead3) + ' <a href="' + $homeHref + '?contribute=1">' + (Html-Escape $sendLabel) + '</a>. ' + (Html-Escape $lead4) + '</p>')
   [void]$sb.Append($navSb.ToString())
   [void]$sb.Append($bodySb.ToString())
   [void]$sb.AppendLine($foot.TrimEnd())
@@ -369,6 +392,7 @@ function Build-Page([string]$lang) {
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff-glyphs.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'notation-page.js"></script>')
+  [void]$sb.AppendLine('    <script src="' + $jsDir + 'guide-share.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $js + '"></script>')
   [void]$sb.AppendLine('</body>')
   [void]$sb.AppendLine('')

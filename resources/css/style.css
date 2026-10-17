@@ -614,6 +614,11 @@ footer {
     margin-top: 0.4vmin;
 }
 
+#deskNote[data-pass-share] {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
 #deskNote {
     position: fixed;
     left: 50%;
@@ -2439,6 +2444,8 @@ body.is-about #counter {
 #supportReveal,
 #sendPractice,
 #shareFeedback,
+#sendExercise,
+#reportCorrection,
 .support-path,
 .support-copy,
 #aboutLinks button {
@@ -2623,7 +2630,9 @@ body.is-about #counter {
 
 #supportReveal,
 #sendPractice,
-#shareFeedback {
+#shareFeedback,
+#sendExercise,
+#reportCorrection {
   padding: 0 16px;
 }
 

@@ -126,6 +126,12 @@ a:focus-visible {
     text-decoration: none;
 }
 
+button.open {
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
+
 .exercises {
     list-style: none;
     margin: 0 0 8px;

@@ -25,10 +25,75 @@ var sheetToken = 0;
 var sheetFontPx = 48;
 var sheetRowPx = 0;
 
-function shuffleArray(array) {
-  for (var i = array.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var tmp = array[i];
+var DAY_EPOCH = Date.UTC(2026, 9, 17);
+var DAY_SHUFFLE_SEED = 0xE12A710;
+
+function mulberry32(seed) {
+  var a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function dayNumber(date) {
+  var when = date || new Date();
+  var utc = Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate());
+  return Math.floor((utc - DAY_EPOCH) / 86400000);
+}
+
+function dayOrder() {
+  var source = typeof dayExercises !== "undefined" ? dayExercises : [];
+  var order = source.slice();
+  var rng = mulberry32(DAY_SHUFFLE_SEED);
+  var i;
+  var j;
+  var tmp;
+  for (i = order.length - 1; i > 0; i--) {
+    j = Math.floor(rng() * (i + 1));
+    tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+  }
+  return order;
+}
+
+function exerciseOfDay(date) {
+  var order = dayOrder();
+  var n;
+  var i;
+  if (!order.length) {
+    return "";
+  }
+  n = dayNumber(date);
+  i = ((n % order.length) + order.length) % order.length;
+  return order[i];
+}
+
+function dayDealSeed() {
+  var row;
+  var today;
+  if (typeof getDeskExercise !== "function" || typeof currentExerciseId === "undefined") {
+    return null;
+  }
+  row = getDeskExercise(currentExerciseId);
+  today = exerciseOfDay();
+  if (!row || row.touched || !row.seedId || row.seedId !== today) {
+    return null;
+  }
+  return (dayNumber() ^ 0x5EED) >>> 0;
+}
+
+function shuffleArray(array, seed) {
+  var rng = seed == null ? null : mulberry32(seed >>> 0);
+  var i;
+  var j;
+  var tmp;
+  for (i = array.length - 1; i > 0; i--) {
+    j = Math.floor((rng ? rng() : Math.random()) * (i + 1));
+    tmp = array[i];
     array[i] = array[j];
     array[j] = tmp;
   }
@@ -44,7 +109,7 @@ function pickANote() {
       nextCycle = null;
     } else {
       notePool = chromaticScale.slice();
-      shuffleArray(notePool);
+      shuffleArray(notePool, dayDealSeed());
     }
     countexercise++;
   }
@@ -70,7 +135,7 @@ function prepareNextCycle() {
     return;
   }
   nextCycle = chromaticScale.slice();
-  shuffleArray(nextCycle);
+  shuffleArray(nextCycle, dayDealSeed());
 }
 
 function reelOuterReach(sizePx) {
@@ -711,6 +776,9 @@ function advanceNote() {
     prepareNextCycle();
     cycleGap = true;
     showCurrentNote("");
+    if (typeof offerPassShare === "function") {
+      offerPassShare();
+    }
     return;
   }
   if (countnotes > 0) {

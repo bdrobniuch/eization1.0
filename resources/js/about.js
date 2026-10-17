@@ -81,7 +81,8 @@ var ABOUT_PAGES = {
   home: { titleKey: "about.title", id: "aboutHome" },
   how: { titleKey: "about.howTitle", id: "aboutHow", from: "aboutGoHow" },
   author: { titleKey: "about.authorTitle", id: "aboutAuthor", from: "aboutGoAuthor" },
-  device: { titleKey: "about.deviceTitle", id: "aboutDevice", from: "aboutGoDevice" }
+  device: { titleKey: "about.deviceTitle", id: "aboutDevice", from: "aboutGoDevice" },
+  contribute: { titleKey: "about.contributeTitle", id: "aboutContribute" }
 };
 
 var aboutPage = "home";
@@ -124,7 +125,10 @@ function backAbout() {
   var from = ABOUT_PAGES[aboutPage] && ABOUT_PAGES[aboutPage].from;
   setAboutPage("home");
   if (from) {
-    document.getElementById(from).focus();
+    var backTo = document.getElementById(from);
+    if (backTo) {
+      backTo.focus();
+    }
   }
 }
 
@@ -471,6 +475,56 @@ function writeFeedback() {
   openMailDraft("eization", t("mail.feedbackBody"));
 }
 
+function currentDeskRow() {
+  if (typeof getDeskExercise !== "function" || typeof currentExerciseId === "undefined") {
+    return null;
+  }
+  return getDeskExercise(currentExerciseId);
+}
+
+function sendThisExercise() {
+  var row = currentDeskRow();
+  var url;
+  var body;
+  if (!row) {
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("contribute.none"));
+    }
+    return;
+  }
+  url = typeof exerciseShareUrl === "function" ? exerciseShareUrl(row) : "";
+  if (url) {
+    body = tr("mail.exerciseBody", { url: url });
+  } else if (typeof downloadExerciseFile === "function" && downloadExerciseFile(row)) {
+    body = t("mail.exerciseFile");
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("mail.exerciseSaved"));
+    }
+  } else {
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("contribute.none"));
+    }
+    return;
+  }
+  openMailDraft(t("mail.exerciseSubject"), body);
+  if (typeof track === "function") {
+    track("contribute_send", { exercise_id: row.seedId || "custom" });
+  }
+}
+
+function reportCorrection() {
+  var row = currentDeskRow();
+  var name = row && typeof exerciseDisplayName === "function" ? exerciseDisplayName(row) : "";
+  var url = row && typeof exerciseShareUrl === "function" ? exerciseShareUrl(row) : "";
+  var body = url
+    ? tr("mail.correctionBody", { name: name, url: url })
+    : tr("mail.correctionPlain", { name: name });
+  openMailDraft(t("mail.correctionSubject"), body);
+  if (typeof track === "function") {
+    track("contribute_correction", { exercise_id: row && row.seedId ? row.seedId : "custom" });
+  }
+}
+
 function initAbout() {
   var brand = document.getElementById("brand");
   brand.addEventListener("click", function () {
@@ -493,6 +547,22 @@ function initAbout() {
     openAboutPage(button.getAttribute("data-about"));
   });
   document.getElementById("aboutShare").addEventListener("click", shareAbout);
+  var aboutToday = document.getElementById("aboutToday");
+  if (aboutToday) {
+    aboutToday.addEventListener("click", function () {
+      if (typeof openTodayExercise === "function") {
+        openTodayExercise();
+      }
+    });
+  }
+  var sendExercise = document.getElementById("sendExercise");
+  if (sendExercise) {
+    sendExercise.addEventListener("click", sendThisExercise);
+  }
+  var reportFix = document.getElementById("reportCorrection");
+  if (reportFix) {
+    reportFix.addEventListener("click", reportCorrection);
+  }
   document.getElementById("aboutHow").addEventListener("click", function (event) {
     var button = event.target.closest("[data-hello]");
     if (!button || typeof showHelloPart !== "function") {

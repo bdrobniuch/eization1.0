@@ -4,6 +4,8 @@ var exerciseFaceFocus = null;
 var grooveFocus = null;
 var analyticsOff = false;
 var nextExampleSeen = {};
+var embedded = false;
+var passShareSeen = {};
 
 try {
   analyticsOff = String(window.location.search || "").indexOf("smoke=1") !== -1;
@@ -101,6 +103,14 @@ function bindExercisePanel() {
       if (typeof editorOpenNew === "function") {
         editorOpenNew();
       }
+      layoutFrame();
+      return;
+    }
+    if (event.target.closest("[data-today]")) {
+      panel.hidden = true;
+      face.setAttribute("aria-expanded", "false");
+      exerciseFaceFocus = null;
+      openTodayExercise();
       layoutFrame();
       return;
     }
@@ -473,6 +483,76 @@ function exerciseSeedFromQuery(search) {
   }
 }
 
+function queryFlag(search, key) {
+  try {
+    return new URLSearchParams(search || "").get(key) || "";
+  } catch (err) {
+    return "";
+  }
+}
+
+function todayExerciseName() {
+  var seed = typeof exerciseOfDay === "function" ? exerciseOfDay() : "";
+  var list;
+  var i;
+  if (!seed) {
+    return "";
+  }
+  list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  for (i = 0; i < list.length; i++) {
+    if (list[i].seedId === seed) {
+      return exerciseDisplayName(list[i]);
+    }
+  }
+  return t("seed." + seed);
+}
+
+function deskIdForToday(seed) {
+  var list;
+  var i;
+  var added;
+  list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
+  for (i = 0; i < list.length; i++) {
+    if (list[i].seedId === seed) {
+      return list[i].id;
+    }
+  }
+  if (typeof addCatalogExercise !== "function") {
+    return "";
+  }
+  added = addCatalogExercise(seed);
+  return added ? added.id : "";
+}
+
+function openTodayExercise() {
+  var seed;
+  var id;
+  if (typeof editorLeaveIfClean === "function" && !editorLeaveIfClean()) {
+    return;
+  }
+  seed = typeof exerciseOfDay === "function" ? exerciseOfDay() : "";
+  if (!seed) {
+    return;
+  }
+  id = deskIdForToday(seed);
+  if (!id) {
+    return;
+  }
+  if (typeof closeAbout === "function") {
+    closeAbout();
+  }
+  closeExercisePanel();
+  closeShareQuestion(false);
+  currentExerciseId = id;
+  buildExerciseMenu();
+  SelectExercise();
+  track("today_exercise", { exercise_id: seed });
+}
+
+function shareBlocksPlay() {
+  return false;
+}
+
 function exerciseIdFromQuery(search) {
   var seed = exerciseSeedFromQuery(search);
   if (!seed || typeof exercises === "undefined" || !exercises[seed]) {
@@ -490,11 +570,17 @@ function exerciseIdFromQuery(search) {
 }
 
 function clearExerciseQuery() {
+  var next;
   if (!window.history || typeof window.history.replaceState !== "function") {
     return;
   }
+  next = window.location.pathname;
+  if (embedded) {
+    next += "?embed=1";
+  }
+  next += window.location.hash;
   try {
-    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    window.history.replaceState(null, "", next);
   } catch (err) {}
 }
 
@@ -511,6 +597,9 @@ function shareBlocksHello() {
 var helloStartTimer = null;
 
 function scheduleHello() {
+  if (embedded) {
+    return;
+  }
   if (helloStartTimer) {
     clearTimeout(helloStartTimer);
   }
@@ -523,6 +612,9 @@ function scheduleHello() {
 }
 
 function offerHelloAfterShare() {
+  if (embedded) {
+    return;
+  }
   if (helloStartTimer) {
     clearTimeout(helloStartTimer);
     helloStartTimer = null;
@@ -557,7 +649,6 @@ function shareLookHolds() {
 }
 
 function holdShareTempo() {
-  var btn = document.getElementById("tempoToggle");
   if (typeof paused !== "undefined" && !paused && currentBpm > 0) {
     if (typeof stopScheduler === "function") {
       stopScheduler();
@@ -569,9 +660,6 @@ function holdShareTempo() {
     if (typeof renderTempoToggle === "function") {
       renderTempoToggle();
     }
-  }
-  if (btn) {
-    btn.disabled = true;
   }
 }
 
@@ -878,16 +966,21 @@ function previewShareExercise() {
 }
 
 function dismissShareAsk() {
+  if (typeof paused !== "undefined" && !paused && currentBpm > 0 && typeof toggleTempo === "function") {
+    toggleTempo();
+  }
   closeShareQuestion(true);
   offerHelloAfterShare();
 }
 
 function offerSharedExercise() {
   var hash = window.location.hash || "";
+  var snap;
+  var offer;
   if (typeof isShareHash !== "function" || !isShareHash(hash)) {
     return;
   }
-  var snap = typeof readShareHash === "function" ? readShareHash(hash) : null;
+  snap = typeof readShareHash === "function" ? readShareHash(hash) : null;
   if (!snap || typeof deskShareOffer !== "function") {
     clearShareHash();
     if (typeof showDeskNote === "function") {
@@ -895,7 +988,7 @@ function offerSharedExercise() {
     }
     return;
   }
-  var offer = deskShareOffer(snap);
+  offer = deskShareOffer(snap);
   if (offer.kind === "bad") {
     clearShareHash();
     if (typeof showDeskNote === "function") {
@@ -907,12 +1000,29 @@ function offerSharedExercise() {
     finishShareSelect(offer.exact.id, "");
     return;
   }
+  if (embedded) {
+    shareOffer = snap;
+    if (offer.kind === "changed") {
+      confirmShareUpdate();
+    } else {
+      confirmShareAdd();
+    }
+    return;
+  }
   showShareAsk(offer.kind, offer.full, snap);
 }
 
 function openExerciseFromAddress() {
   var seed = exerciseSeedFromQuery(window.location.search);
-  var added;
+  var fromToday = false;
+  var id;
+  if (queryFlag(window.location.search, "embed") === "1") {
+    embedded = true;
+  }
+  if (!seed && queryFlag(window.location.search, "today") === "1") {
+    seed = typeof exerciseOfDay === "function" ? exerciseOfDay() : "";
+    fromToday = true;
+  }
   if (!seed) {
     return;
   }
@@ -923,15 +1033,17 @@ function openExerciseFromAddress() {
     }
     return;
   }
-  var id = exerciseIdFromQuery(window.location.search);
-  if (!id && typeof addCatalogExercise === "function") {
-    added = addCatalogExercise(seed);
-    id = added ? added.id : "";
+  id = fromToday ? deskIdForToday(seed) : exerciseIdFromQuery(window.location.search);
+  if (!id) {
+    id = deskIdForToday(seed);
   }
   clearExerciseQuery();
   if (id) {
     currentExerciseId = id;
     openedExerciseFromAddress = true;
+    if (fromToday) {
+      track("today_exercise", { exercise_id: seed });
+    }
     return;
   }
   if (typeof showDeskNote === "function") {
@@ -948,17 +1060,106 @@ function restoreApplyLanguage() {
   button.setAttribute("aria-label", t("device.clearAsk"));
 }
 
+function offerPassShare() {
+  var skip = document.getElementById("helloSkip");
+  var note;
+  var row;
+  if (skip && !skip.hidden) {
+    return;
+  }
+  if (typeof shareLooking !== "undefined" && shareLooking) {
+    return;
+  }
+  if (!currentExerciseId || passShareSeen[currentExerciseId]) {
+    return;
+  }
+  row = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
+  note = document.getElementById("deskNote");
+  if (!row || !note) {
+    return;
+  }
+  passShareSeen[currentExerciseId] = true;
+  if (typeof deskNoteTimer !== "undefined" && deskNoteTimer) {
+    clearTimeout(deskNoteTimer);
+    deskNoteTimer = null;
+  }
+  note.textContent = t("pass.share");
+  note.hidden = false;
+  note.setAttribute("data-pass-share", "1");
+  deskNoteTimer = setTimeout(function () {
+    note.hidden = true;
+    note.removeAttribute("data-pass-share");
+    deskNoteTimer = null;
+  }, 8000);
+}
+
+function sendOpenExercise() {
+  var row = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
+  var url;
+  var name;
+  if (!row) {
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("contribute.none"));
+    }
+    return;
+  }
+  url = typeof exerciseShareUrl === "function" ? exerciseShareUrl(row) : "";
+  name = typeof exerciseDisplayName === "function" ? exerciseDisplayName(row) : row.name;
+  track("pass_share", { exercise_id: row.seedId || "custom" });
+  if (url && navigator.share) {
+    navigator.share({
+      title: name || "eization",
+      text: t("share.text"),
+      url: url
+    }).catch(function (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+    });
+  }
+  if (url && typeof copySupportText === "function") {
+    copySupportText(url).then(function () {
+      showDeskNote(t("share.copied"));
+    }, function () {
+      showDeskNote(t("share.fail"));
+    });
+    return;
+  }
+  if (typeof downloadExerciseFile === "function" && downloadExerciseFile(row)) {
+    showDeskNote(t("mail.exerciseSaved"));
+  }
+}
+
+function openContributeFromAddress(wanted) {
+  if (!wanted || embedded) {
+    return;
+  }
+  if (typeof isShareHash === "function" && isShareHash(window.location.hash || "")) {
+    return;
+  }
+  clearExerciseQuery();
+  if (typeof openAbout === "function") {
+    openAbout();
+  }
+  if (typeof openAboutPage === "function") {
+    openAboutPage("contribute");
+  }
+}
+
 function init() {
+  var wantContribute = queryFlag(window.location.search, "contribute") === "1";
+  if (queryFlag(window.location.search, "embed") === "1") {
+    embedded = true;
+  }
   if (typeof applyDesk === "function") {
     applyDesk();
   }
   if (typeof isShareHash === "function" && isShareHash(window.location.hash || "")) {
-    if (exerciseSeedFromQuery(window.location.search)) {
-      clearExerciseQuery();
-    }
+    clearExerciseQuery();
   } else {
     openExerciseFromAddress();
   }
+  openContributeFromAddress(wantContribute);
   buildExerciseMenu();
   bindExercisePanel();
   document.getElementById("meterTop").addEventListener("input", function () {
@@ -1107,13 +1308,20 @@ function init() {
   });
   document.getElementById("tempoToggle").addEventListener("click", function () {
     var starting;
-    if (shareLooking) {
-      return;
-    }
     starting = paused || !(currentBpm > 0);
     toggleTempo();
     track(starting ? "tempo_start" : "tempo_stop", { exercise_id: analyticsExerciseId() });
   });
+  var deskNote = document.getElementById("deskNote");
+  if (deskNote) {
+    deskNote.addEventListener("click", function () {
+      if (!deskNote.getAttribute("data-pass-share")) {
+        return;
+      }
+      deskNote.removeAttribute("data-pass-share");
+      sendOpenExercise();
+    });
+  }
   document.getElementById("resetExercise").addEventListener("click", function () {
     resetExercise();
     track("reset_exercise", { exercise_id: analyticsExerciseId() });

@@ -1119,6 +1119,7 @@ function showDeskNote(message) {
   }
   note.textContent = message;
   note.hidden = false;
+  note.removeAttribute("data-pass-share");
   if (deskNoteTimer) {
     clearTimeout(deskNoteTimer);
   }
