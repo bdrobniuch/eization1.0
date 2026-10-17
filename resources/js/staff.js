@@ -124,16 +124,22 @@ function staffDurationDotted(dur) {
   return typeof dur === "string" && dur.length > 1 && dur.charAt(dur.length - 1) === ".";
 }
 
-/* Combine base letter + optional trailing ".". Rejects dotted whole. */
+/* Combine base letter + optional trailing ".". Rejects dotted whole and dotted stemless. */
 function staffMakeDuration(base, dotted) {
   var b = base || "q";
   if (dotted) {
-    if (b === "w") {
+    if (b === "w" || b === "n") {
       return null;
     }
     return b + ".";
   }
   return b;
+}
+
+/* Whole notes and stemless quarters (n) draw a head only. n lasts one beat. */
+function staffHasStem(dur) {
+  var base = staffDurationBase(dur);
+  return base !== "w" && base !== "n";
 }
 
 function staffDurationGlyph(dur) {
@@ -186,8 +192,10 @@ function staffDurationQuarters(dur) {
     q = 2;
   } else if (base === "e") {
     q = 0.5;
-  } else if (base === "s") {
+  } else   if (base === "s") {
     q = 0.25;
+  } else if (base === "n") {
+    q = 1;
   } else {
     q = 1;
   }
@@ -448,7 +456,7 @@ function staffParseAffixes(tail) {
 
 function staffParsePitchToken(token) {
   var m =
-    /^([A-Ga-g])(##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whqes]?)(\.?)(!?)(.*)$/.exec(
+    /^([A-Ga-g])(##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whqesn]?)(\.?)(!?)(.*)$/.exec(
       token
     );
   var aff;
@@ -1842,9 +1850,9 @@ function renderMusicStaff(source, role) {
       for (bn = 0; bn < ev.notes.length; bn++) {
         staffTipExtra(ev.notes[bn].pitch.step, beamUp);
       }
-    } else if (ev.type === "note" && staffDurationBase(ev.duration) !== "w") {
+    } else if (ev.type === "note" && staffHasStem(ev.duration)) {
       staffTipExtra(ev.pitch.step, ev.pitch.step <= midStep);
-    } else if (ev.type === "stack" && ev.pitches.length && staffDurationBase(ev.duration) !== "w") {
+    } else if (ev.type === "stack" && ev.pitches.length && staffHasStem(ev.duration)) {
       var stSum = 0;
       for (p = 0; p < ev.pitches.length; p++) {
         stSum += ev.pitches[p].step;
@@ -2692,7 +2700,7 @@ function renderMusicStaff(source, role) {
     }
   }
   for (e = 0; e < columns.length; e++) {
-    if (columns[e].type !== "note" || staffDurationBase(columns[e].duration) === "w") {
+    if (columns[e].type !== "note" || !staffHasStem(columns[e].duration)) {
       continue;
     }
     var inkG = colGroup[e];
@@ -2720,7 +2728,7 @@ function renderMusicStaff(source, role) {
     if (
       inkStack.type !== "stack" ||
       !inkStack.pitches.length ||
-      staffDurationBase(inkStack.duration) === "w"
+      !staffHasStem(inkStack.duration)
     ) {
       continue;
     }
@@ -3162,8 +3170,8 @@ function renderMusicStaff(source, role) {
       var g = colGroup[e];
       var beamed =
         g >= 0 && beamGroups[g] && beamGroups[g].indices.length >= 2;
-      if (isBeat || staffDurationBase(ev.duration || "q") === "w") {
-        /* play-anything and whole notes have no stem */
+      if (isBeat || !staffHasStem(ev.duration || "q")) {
+        /* play-anything, whole notes, and stemless quarters have no stem */
       } else if (beamed) {
         /* stems + beams drawn after all heads */
       } else {
@@ -3242,7 +3250,7 @@ function renderMusicStaff(source, role) {
           accCols[p].acc
         );
       }
-      if (staffDurationBase(stackDur) !== "w" && stemYs.length) {
+      if (staffHasStem(stackDur) && stemYs.length) {
         var hiY = Math.min.apply(null, stemYs);
         var loY = Math.max.apply(null, stemYs);
         /* Stem on the main column; cover all head centers vertically. */

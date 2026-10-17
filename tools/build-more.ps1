@@ -80,8 +80,6 @@ $groupOf = @{
   'major-pentatonics-on-chords' = 'pitch'
   'triad-coupling-relationships' = 'pitch'
   'major-2nd-triad-couplings' = 'pitch'
-  'tritonic-7sus4-pentatonic' = 'pitch'
-  'add2-add4-madd4' = 'pitch'
   'one-two-three-five-perms' = 'pitch'
   'alt-four-note-cells' = 'pitch'
   'dom-pentatonic-grid' = 'pitch'
@@ -145,6 +143,8 @@ function Is-Staff($ex) {
 }
 
 function Sample-Meter($ex) {
+  $names = @($ex.PSObject.Properties.Name)
+  if ($names -contains 'meter' -and $ex.meter) { return [string]$ex.meter }
   if ([string]$ex.slug -eq 'comping-rhythm-motifs-34') { return '3/4' }
   return ''
 }

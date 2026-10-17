@@ -14,7 +14,7 @@ var SHARE_KEYS = [
   "Dm", "Gm", "Cm", "Fm", "Bbm", "Ebm", "Abm"
 ];
 
-var SHARE_DURS = ["w", "h", "q", "e", "s", "h.", "q.", "e.", "s."];
+var SHARE_DURS = ["w", "h", "q", "e", "s", "h.", "q.", "e.", "s.", "n"];
 var SHARE_ACCS = ["", "#", "b", "n", "##", "bb"];
 var SHARE_DYN = ["pp", "p", "mp", "mf", "f", "ff", "sfz"];
 var SHARE_ART_NAME = ["staccato", "accent", "tenuto", "marcato"];
@@ -412,7 +412,7 @@ function sharePitchFromWord(word) {
   acc = (word >> 3) & 7;
   oct = (word >> 6) & 15;
   dur = (word >> 10) & 15;
-  if (letter > 6 || acc > 5 || oct > 9 || dur > 8) {
+  if (letter > 6 || acc > 5 || oct > 9 || dur < 0 || dur >= SHARE_DURS.length) {
     return null;
   }
   return {

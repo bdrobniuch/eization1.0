@@ -107,6 +107,21 @@ if (process.argv.indexOf("--selftest") >= 0) {
   if (am.indexOf("@key=Am") !== 0) {
     fail("minor key became " + am);
   }
+  var stemlessLine = "^C\u22067 C4n_1 F4n_11 G4n_5 C5n_1 \u00B7 I \u00B7 11";
+  if (!context.staffNotationStatus(stemlessLine).ok || context.staffNotationStatus("C4n.").ok) {
+    fail("stemless quarter did not parse");
+  }
+  var stemlessHash = context.shareHashFromPayload({
+    v: 1,
+    id: "n0001",
+    name: "Stemless",
+    bars: 1,
+    lines: [stemlessLine]
+  });
+  var stemlessRead = context.readShareHash(stemlessHash);
+  if (!stemlessRead || stemlessRead.lines.length !== 1 || stemlessRead.lines[0].indexOf("C4n_1") < 0) {
+    fail("stemless quarter did not pack: " + (stemlessRead && stemlessRead.lines[0]));
+  }
   console.error("selftest ok");
   process.exit(0);
 }
