@@ -921,6 +921,15 @@ function helloStaffTour(w) {
   check("tour can leave the open exercise", w.currentExerciseId !== "ex:allNotes");
   w.endHello();
   check("tour returns to the exercise you had", w.currentExerciseId === "ex:allNotes" && !w.document.body.classList.contains("is-hello"));
+  localStorage.removeItem("eization-hello");
+  w.helloTouched = false;
+  w.beginHello(0, w.HELLO_LAUNCH_END);
+  w.maybeHello();
+  check(
+    "a second intro check leaves the first one",
+    w.document.body.classList.contains("is-hello") && localStorage.getItem("eization-hello") !== "1" && w.helloStepIndex === 0
+  );
+  w.endHello();
   if (savedHello == null) {
     localStorage.removeItem("eization-hello");
   } else {
@@ -1027,7 +1036,7 @@ function shareCase(w) {
   w.dismissShareAsk();
   check(
     "not now restores the open exercise",
-    w.currentExerciseId === returnId && w.document.getElementById("shareAsk").hidden === true && !w.shareLooking && poolHasLine(w, editedLines[0])
+    w.currentExerciseId === returnId && w.document.getElementById("shareAsk").hidden === true && !w.shareLooking && poolHasLine(w, editedLines[0]) && w.document.getElementById("tempoToggle").disabled === false
   );
   w.updateDeskExercise("ex:allNotes", { lines: factoryLines });
   var before = w.listDeskExercises().length;
@@ -1047,6 +1056,12 @@ function shareCase(w) {
   );
   w.advanceNote();
   check("share look can step through examples", w.currentExerciseId === savedId && lineShown(w, week.lines));
+  check(
+    "share look holds play",
+    w.document.getElementById("tempoToggle").disabled === true && w.paused === true && w.document.getElementById("sharePreview").textContent === w.t("share.preview")
+  );
+  w.document.getElementById("tempoToggle").click();
+  check("share look ignores play", w.paused === true);
   w.buildExerciseMenu();
   check(
     "menu rebuild keeps the incoming name",
@@ -1239,7 +1254,7 @@ function chatCase(w) {
       ? w.getComputedStyle(moreButton).display === "none" && w.getComputedStyle(moreMenu).display !== "none"
       : w.getComputedStyle(moreButton).display !== "none" && moreMenu.hidden === true
   );
-  check("download and clear drop the extra word", w.document.querySelector("#editSave .btn-label").textContent === w.t("edit.download") && w.document.getElementById("editClearList").textContent === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Vista previa");
+  check("download and clear drop the extra word", w.document.querySelector("#editSave .btn-label").textContent === w.t("edit.download") && w.document.getElementById("editClearList").textContent === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Editar" && w.I18N.en["share.preview"] === "Edit");
   check("exercise actions keep a mark", ["editMore", "editSave", "editOpen", "editShare", "editAsk", "editDelete"].every(function (id) {
     var button = w.document.getElementById(id);
     return !!(button && button.querySelector("svg.chrome-icon") && button.querySelector(".btn-label"));

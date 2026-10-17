@@ -508,7 +508,25 @@ function shareBlocksHello() {
   return !!(bar && !bar.hidden);
 }
 
+var helloStartTimer = null;
+
+function scheduleHello() {
+  if (helloStartTimer) {
+    clearTimeout(helloStartTimer);
+  }
+  helloStartTimer = setTimeout(function () {
+    helloStartTimer = null;
+    if (typeof maybeHello === "function") {
+      maybeHello();
+    }
+  }, 400);
+}
+
 function offerHelloAfterShare() {
+  if (helloStartTimer) {
+    clearTimeout(helloStartTimer);
+    helloStartTimer = null;
+  }
   if (typeof helloTouched !== "undefined") {
     helloTouched = false;
   }
@@ -538,17 +556,45 @@ function shareLookHolds() {
   return !!(shareLooking && shareOffer && bar && !bar.hidden);
 }
 
+function holdShareTempo() {
+  var btn = document.getElementById("tempoToggle");
+  if (typeof paused !== "undefined" && !paused && currentBpm > 0) {
+    if (typeof stopScheduler === "function") {
+      stopScheduler();
+    }
+    paused = true;
+    if (typeof setAudioSession === "function") {
+      setAudioSession("auto");
+    }
+    if (typeof renderTempoToggle === "function") {
+      renderTempoToggle();
+    }
+  }
+  if (btn) {
+    btn.disabled = true;
+  }
+}
+
+function releaseShareTempo() {
+  var btn = document.getElementById("tempoToggle");
+  if (btn) {
+    btn.disabled = false;
+  }
+}
+
 function beginShareLook() {
   if (shareLooking) {
     return;
   }
   shareReturnId = typeof currentExerciseId === "string" ? currentExerciseId : "";
   shareLooking = true;
+  holdShareTempo();
 }
 
 function endShareLook() {
   shareLooking = false;
   shareReturnId = "";
+  releaseShareTempo();
 }
 
 function shareOfferItems(lines) {
@@ -1060,7 +1106,11 @@ function init() {
     setSwingMode("neo");
   });
   document.getElementById("tempoToggle").addEventListener("click", function () {
-    var starting = paused || !(currentBpm > 0);
+    var starting;
+    if (shareLooking) {
+      return;
+    }
+    starting = paused || !(currentBpm > 0);
     toggleTempo();
     track(starting ? "tempo_start" : "tempo_stop", { exercise_id: analyticsExerciseId() });
   });
@@ -1159,7 +1209,7 @@ function init() {
     rememberSetup();
   }
   if (typeof maybeHello === "function") {
-    setTimeout(maybeHello, 400);
+    scheduleHello();
   }
 }
 

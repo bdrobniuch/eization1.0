@@ -1468,6 +1468,11 @@ body.is-hello[data-hello="edit"] #edit {
     opacity: 1;
 }
 
+#bpmStepper.is-paused #tempoToggle:disabled {
+    opacity: 0.38;
+    cursor: default;
+}
+
 .click-pad {
     position: relative;
     width: clamp(40px, 9vmin, 64px);

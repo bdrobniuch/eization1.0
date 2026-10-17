@@ -546,6 +546,9 @@ function showHelloPart(part) {
 }
 
 function maybeHello() {
+  if (document.body.classList.contains("is-hello")) {
+    return;
+  }
   if (typeof shareBlocksHello === "function" && shareBlocksHello()) {
     return;
   }
