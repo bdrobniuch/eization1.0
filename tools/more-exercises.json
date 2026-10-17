@@ -1864,9 +1864,134 @@
                       "B4q_7 E4q_3 G4q_5 C4q_1 · +7"
                   ]
     },
-    
-    
-    
+    {
+        "id":  "more0133",
+        "slug":  "minor-scales",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  1,
+        "exercise":  "minorScales",
+        "nameEn":  "Minor Scales",
+        "nameEs":  "Escalas menores",
+        "descEn":  "Harmonic minor, melodic minor, and harmonic major, in all twelve keys. You see one scale. Each scale comes up once.",
+        "descEs":  "Menor armónica, menor melódica y mayor armónica, en las doce tonalidades. Ves una escala. Cada escala sale una vez.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#melodic-minor-modes",
+                          "en":  "Melodic Minor Modes",
+                          "es":  "Modos de la menor melódica"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "@treble @key=Cm ^C_Harmonic-minor {C4e_1 D4e_2 Eb4e_b3 F4e_4} {G4e_5 Ab4e_b6 B4e_7 C5e_1}"
+                  ]
+    },
+    {
+        "id":  "more0134",
+        "slug":  "melodic-minor-modes",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  1,
+        "exercise":  "melodicMinorModes",
+        "nameEn":  "Melodic Minor Modes",
+        "nameEs":  "Modos de la menor melódica",
+        "descEn":  "Dorian ♭2, Lydian augmented, Lydian dominant, Mixolydian ♭6, Locrian ♮2, the altered scale, and Phrygian dominant, in all twelve keys. You see one scale. Each scale comes up once.",
+        "descEs":  "Dórica ♭2, lidia aumentada, lidia dominante, mixolidia ♭6, locria ♮2, la escala alterada y la frigia dominante, en las doce tonalidades. Ves una escala. Cada escala sale una vez.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#minor-scales",
+                          "en":  "Minor Scales",
+                          "es":  "Escalas menores"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "@treble @key=Bbm ^C_Dorian-♭2 {C4e_1 Db4e_b2 Eb4e_b3 F4e_4} {G4e_5 A4e_6 Bb4e_b7 C5e_1}"
+                  ]
+    },
+    {
+        "id":  "more0135",
+        "slug":  "pentatonic-blues",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  1,
+        "exercise":  "pentatonicBlues",
+        "nameEn":  "Pentatonic and Blues",
+        "nameEs":  "Pentatónica y blues",
+        "descEn":  "Major pentatonic, minor pentatonic, blues, and major blues, in all twelve keys. You see one scale. Each scale comes up once.",
+        "descEs":  "Pentatónica mayor, pentatónica menor, blues y blues mayor, en las doce tonalidades. Ves una escala. Cada escala sale una vez.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#symmetric-bebop",
+                          "en":  "Symmetric and Bebop",
+                          "es":  "Simétricas y bebop"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "@treble @key=C ^C_Major-pentatonic {C4e_1 D4e_2 E4e_3 G4e_5} {A4e_6 C5e_1}"
+                  ]
+    },
+    {
+        "id":  "more0136",
+        "slug":  "symmetric-bebop",
+        "group":  "pitch",
+        "staff":  true,
+        "bars":  1,
+        "exercise":  "symmetricBebop",
+        "nameEn":  "Symmetric and Bebop",
+        "nameEs":  "Simétricas y bebop",
+        "descEn":  "Whole tone, half-whole and whole-half diminished, and the three bebop scales, in all twelve keys. You see one scale. Each scale comes up once.",
+        "descEs":  "Tonos enteros, disminuida semitono-tono y tono-semitono, y las tres escalas bebop, en las doce tonalidades. Ves una escala. Cada escala sale una vez.",
+        "books":  [
+                      {
+                          "href":  "./scales.html",
+                          "en":  "Scales",
+                          "es":  "Escalas"
+                      },
+                      {
+                          "href":  "./more.html#pentatonic-blues",
+                          "en":  "Pentatonic and Blues",
+                          "es":  "Pentatónica y blues"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      }
+                  ],
+        "lines":  [
+                      "@treble @key=C ^C_Whole-tone {C4e_1 D4e_2 E4e_3 F#4e_#4} {G#4e_#5 A#4e_b7 C5e_1}"
+                  ]
+    },
     {
         "id":  "more0025",
         "slug":  "lower-structure-triads",

@@ -110,7 +110,17 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 21);
+  check("hidden exercises still registered", hidden === 25);
+  check(
+    "scales is the seven modes",
+    w.exercises.scales.items.length === 84 &&
+      w.exercises.scales.rev === 3 &&
+      w.exercises.minorScales.items.length === 36 &&
+      w.exercises.melodicMinorModes.items.length === 84 &&
+      w.exercises.pentatonicBlues.items.length === 48 &&
+      w.exercises.symmetricBebop.items.length === 72 &&
+      !w.exercises.minorScales.inMenu
+  );
   check("address finds a seeded exercise", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address waits to add a library exercise", w.exerciseIdFromQuery("?exercise=intervals") === "");
   var deskList = w.listDeskExercises();
@@ -1626,7 +1636,7 @@ function storageMigration(w) {
   editedNotes[0] = editedNotes[0] + " edited";
   check("older scales spelling differs", oldScaleLines[0] !== freshScales.lines[0]);
   check("older progressions spelling differs", oldProgLines[0] !== freshProg.lines[0]);
-  check("catalog birthdays", w.exercises.scales.rev === 2 && w.exercises.essentialProgressions.rev === 2 && w.exercises.allNotes.rev === 1);
+  check("catalog birthdays", w.exercises.scales.rev === 3 && w.exercises.essentialProgressions.rev === 2 && w.exercises.allNotes.rev === 1);
   localStorage.setItem("eization-hello", "1");
   localStorage.setItem("eization-desk", JSON.stringify({
     bpm: 132,

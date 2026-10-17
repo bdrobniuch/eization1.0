@@ -70,6 +70,7 @@ if (process.argv.indexOf("--selftest") >= 0) {
     "resources/js/exercises/consecutive-eight-notes.js",
     "resources/js/exercises/consecutive-triplet-eight-notes.js",
     "resources/js/exercises/left-hand-rootless.js",
+    "resources/js/exercises/scale-catalog.js",
     "resources/js/exercises/scales.js"
   ].forEach(function (file) {
     load(context, file);
