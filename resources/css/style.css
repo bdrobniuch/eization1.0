@@ -880,17 +880,26 @@ body.is-hello #counter,
 body.is-hello #divfooter > .checkbox-label,
 body.is-hello #grooveButton,
 body.is-hello #next,
-body.is-hello #tempoToggle,
-body.is-hello #bpmStepper .step-label,
-body.is-hello #bpmStepper .step-down,
-body.is-hello #bpmStepper .step-up,
-body.is-hello #bpmStepper input {
+body.is-hello #bpmStepper {
   opacity: 0.38;
   pointer-events: none;
 }
 
+body.is-hello #bpmStepper .step-label,
+body.is-hello #bpmStepper .step-down,
+body.is-hello #bpmStepper .step-up,
+body.is-hello #bpmStepper input,
+body.is-hello #bpmStepper #tempoToggle {
+  opacity: 1;
+}
+
 body.is-hello[data-hello="note"] #note,
 body.is-hello[data-hello="counter"] #counter {
+  opacity: 1;
+}
+
+body.is-hello[data-hello="bpm"] #bpmStepper,
+body.is-hello[data-hello="tempoToggle"] #bpmStepper {
   opacity: 1;
 }
 
