@@ -529,6 +529,11 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/band-room.html"/>
   </url>
   <url>
+    <loc>https://eization.com/for-teachers/studio-link.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-teachers/studio-link.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/for-teachers/studio-link.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/for-parents.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/for-parents.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/for-parents.html"/>

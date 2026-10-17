@@ -956,6 +956,15 @@ function guideDoors(w) {
   check("teacher hub links the band room", html.indexOf("for-teachers/band-room.html") >= 0);
   check("teacher hub links parents", html.indexOf("for-parents.html") >= 0);
   check("teacher hub links today", html.indexOf("today.html") >= 0);
+  check("teacher hub links the studio offer", html.indexOf("for-teachers/studio-link.html") >= 0);
+  check("article bar names eization studio", html.indexOf('class="studio-link"') >= 0 && html.indexOf("eization studio") >= 0);
+  req = new XMLHttpRequest();
+  req.open("GET", "../for-teachers/studio-link.html", false);
+  req.send(null);
+  html = req.responseText || "";
+  check("studio offer shows the practice screen", html.indexOf("look=1") >= 0 && html.indexOf("Wednesday Room") >= 0 && html.indexOf("200 euros") < 0);
+  check("studio offer writes through the practice screen", html.indexOf('href="../?offer=1"') >= 0);
+  check("studio offer can arm the mail button", typeof w.armStudioOffer === "function");
   req = new XMLHttpRequest();
   req.open("GET", "../resources/js/guide-share.js", false);
   req.send(null);

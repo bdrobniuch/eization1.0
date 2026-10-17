@@ -571,12 +571,19 @@ function exerciseIdFromQuery(search) {
 
 function clearExerciseQuery() {
   var next;
+  var flags = [];
   if (!window.history || typeof window.history.replaceState !== "function") {
     return;
   }
   next = window.location.pathname;
   if (embedded) {
-    next += "?embed=1";
+    flags.push("embed=1");
+  }
+  if (queryFlag(window.location.search, "look") === "1" || document.documentElement.classList.contains("is-look")) {
+    flags.push("look=1");
+  }
+  if (flags.length) {
+    next += "?" + flags.join("&");
   }
   next += window.location.hash;
   try {
@@ -1146,8 +1153,59 @@ function openContributeFromAddress(wanted) {
   }
 }
 
+function openOfferFromAddress(wanted) {
+  var button;
+  if (!wanted || embedded) {
+    return;
+  }
+  if (typeof isShareHash === "function" && isShareHash(window.location.hash || "")) {
+    return;
+  }
+  if (typeof openAbout !== "function" || typeof openAboutPage !== "function" || typeof armStudioOffer !== "function") {
+    return;
+  }
+  openAbout();
+  openAboutPage("author");
+  armStudioOffer();
+  button = document.getElementById("shareFeedback");
+  if (button) {
+    button.scrollIntoView({ block: "center" });
+    button.focus();
+  }
+}
+
+function applyLook() {
+  var mark;
+  var word;
+  var lockup;
+  if (queryFlag(window.location.search, "look") !== "1") {
+    return;
+  }
+  document.documentElement.classList.add("is-look");
+  document.body.classList.add("is-look");
+  mark = '<circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="3"/><text x="32" y="41" text-anchor="middle" font-size="26" font-weight="600" fill="currentColor">W</text>';
+  var brand = document.querySelector("#brand .brand-mark");
+  if (brand) {
+    brand.innerHTML = mark;
+  }
+  var about = document.querySelector("#aboutLockup .about-mark");
+  if (about) {
+    about.innerHTML = mark;
+  }
+  word = document.querySelector("#brand .brand-word");
+  if (word) {
+    word.textContent = "Wednesday Room";
+  }
+  lockup = document.querySelector("#aboutLockup span");
+  if (lockup) {
+    lockup.textContent = "Wednesday Room";
+  }
+}
+
 function init() {
   var wantContribute = queryFlag(window.location.search, "contribute") === "1";
+  var wantOffer = queryFlag(window.location.search, "offer") === "1";
+  applyLook();
   if (queryFlag(window.location.search, "embed") === "1") {
     embedded = true;
   }
@@ -1160,6 +1218,7 @@ function init() {
     openExerciseFromAddress();
   }
   openContributeFromAddress(wantContribute);
+  openOfferFromAddress(wantOffer);
   buildExerciseMenu();
   bindExercisePanel();
   document.getElementById("meterTop").addEventListener("input", function () {

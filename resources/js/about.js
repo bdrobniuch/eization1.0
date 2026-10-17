@@ -471,7 +471,37 @@ function sendPractice() {
   sendPracticeByMail();
 }
 
+var studioOfferOpen = false;
+
+function armStudioOffer() {
+  var button = document.getElementById("shareFeedback");
+  studioOfferOpen = true;
+  if (!button) {
+    return;
+  }
+  button.setAttribute("data-i18n", "offer.write");
+  button.setAttribute("data-i18n-title", "offer.writeTitle");
+  button.textContent = t("offer.write");
+  button.setAttribute("title", t("offer.writeTitle"));
+}
+
 function writeFeedback() {
+  var button;
+  if (studioOfferOpen) {
+    studioOfferOpen = false;
+    openMailDraft(t("offer.subject"), t("offer.body"));
+    if (typeof clearExerciseQuery === "function") {
+      clearExerciseQuery();
+    }
+    button = document.getElementById("shareFeedback");
+    if (button) {
+      button.setAttribute("data-i18n", "author.feedback");
+      button.setAttribute("data-i18n-title", "author.feedbackTitle");
+      button.textContent = t("author.feedback");
+      button.setAttribute("title", t("author.feedbackTitle"));
+    }
+    return;
+  }
   openMailDraft("eization", t("mail.feedbackBody"));
 }
 

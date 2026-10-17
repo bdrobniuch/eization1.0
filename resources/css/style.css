@@ -2697,4 +2697,25 @@ body.is-about #counter {
   padding: 0 10px;
 }
 
+html.is-look,
+html.is-look body,
+html.is-look body.is-stopped,
+html.is-look body.is-count-in {
+  background-color: #7A2F45;
+  background-image: linear-gradient(to bottom, #7A2F45, #C46B2C);
+}
+
+html.is-look body.bar-rest {
+  background-color: #C46B2C;
+  background-image: none;
+}
+
+html.is-look #brand[aria-expanded="true"] {
+  color: #7A2F45;
+}
+
+html.is-look .brand-word {
+  display: inline;
+}
+
 
