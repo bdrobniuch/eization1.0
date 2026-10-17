@@ -1,7 +1,8 @@
 var DESK_KEY = "eization-desk";
 /* schema 1 (2026-10-15): stock rows record seedRev and touched.
-   schema 2 (2026-10-15): one launch drops saved exercises, re-seeds the stock list, and clears the intro. */
-var DESK_SCHEMA = 2;
+   schema 2 (2026-10-15): one launch drops saved exercises, re-seeds the stock list, and clears the intro.
+   schema 3 (2026-10-17): ]_ after a stack becomes ]^, so a saved chord name stays above the staff. */
+var DESK_SCHEMA = 3;
 var DESK_EXERCISE_CAP = 40;
 var deskReady = false;
 var deskTimer = null;
@@ -222,6 +223,10 @@ function catalogLines(ex) {
     }
   }
   return lines;
+}
+
+function rewriteStackChordLine(line) {
+  return String(line || "").replace(/\]_/g, "]^");
 }
 
 function normalizeDeskExercise(raw) {
@@ -616,6 +621,24 @@ function ensureDeskExercises() {
   }
   if (!ahead && schema < 1) {
     classifySchema0(list);
+  }
+  if (!ahead && schema < 3) {
+    var si;
+    var sj;
+    for (si = 0; si < list.length; si++) {
+      var stackLines = [];
+      var stackChanged = false;
+      for (sj = 0; sj < list[si].lines.length; sj++) {
+        var stackLine = rewriteStackChordLine(list[si].lines[sj]);
+        if (stackLine !== list[si].lines[sj]) {
+          stackChanged = true;
+        }
+        stackLines.push(stackLine);
+      }
+      if (stackChanged) {
+        list[si].lines = stackLines;
+      }
+    }
   }
   data.exercises = list;
   data.deletedSeeds = deleted;

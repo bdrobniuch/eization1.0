@@ -323,6 +323,23 @@ function staffFormatChordText(raw) {
     return "";
   }
   var s = String(raw);
+  var lead = "";
+  /* A numeral can start with the accidental: bVII, #IV, bbVII, ##IV. */
+  if (s.indexOf("bb") === 0 || s.indexOf("\u266D\u266D") === 0) {
+    lead = "\uD834\uDD2B";
+    s = s.replace(/^(bb|\u266D\u266D)/, "");
+  } else if (s.indexOf("##") === 0 || s.indexOf("\u266F\u266F") === 0) {
+    lead = "\uD834\uDD2A";
+    s = s.replace(/^(##|\u266F\u266F)/, "");
+  } else if (/^[b#\u266D\u266F]/.test(s)) {
+    var first = s.charAt(0);
+    s = s.slice(1);
+    if (first === "b" || first === "\u266D") {
+      lead = "\u266D";
+    } else if (first === "#" || first === "\u266F") {
+      lead = "\u266F";
+    }
+  }
   s = s.replace(/maj7/gi, "\u22067");
   s = s.replace(/\u25B37/g, "\u22067");
   s = s.replace(/dim7/gi, "\u00B07");
@@ -338,38 +355,103 @@ function staffFormatChordText(raw) {
     /([A-Ga-g])b(?=[0-9A-Za-z\u2206\u00B0\u00F8+\-\u266F]|$)/g,
     "$1\u266D"
   );
-  return s;
+  return lead + s;
 }
 
+/* Above and under use the same spelling, so ^bVII and _bVII both print ♭VII. */
 function staffFormatDegreeLabel(raw) {
-  if (!raw) {
-    return "";
-  }
-  var s = String(raw);
-  if (s.indexOf("bb") === 0 || s.indexOf("\u266D\u266D") === 0) {
-    return "\u266D\u266D" + s.replace(/^(bb|\u266D\u266D)/, "");
-  }
-  if (s.indexOf("##") === 0 || s.indexOf("\u266F\u266F") === 0) {
-    return "\u266F\u266F" + s.replace(/^(##|\u266F\u266F)/, "");
-  }
-  if (/^[b#\u266D\u266F]/.test(s)) {
-    var first = s.charAt(0);
-    var rest = s.slice(1);
-    if (first === "b" || first === "\u266D") {
-      return "\u266D" + rest;
+  return staffFormatChordText(raw);
+}
+
+/*
+ * Tail after a pitch, slash, rest, or ]. ' > - are articulations.
+ * _text is under the staff. ^text is above it. Either order.
+ * A ^ with no text, or a ^ before _ or another articulation, is marcato.
+ */
+function staffParseAffixes(tail) {
+  var artic = "";
+  var label = "";
+  var above = "";
+  var mode = "";
+  var i = 0;
+  var ch;
+  function staffAffixBoundary(idx) {
+    var next;
+    if (idx >= tail.length) {
+      return true;
     }
-    if (first === "#" || first === "\u266F") {
-      return "\u266F" + rest;
-    }
+    next = tail.charAt(idx);
+    return next === "_" || next === "^" || next === "'" || next === ">" || next === "-";
   }
-  return staffFormatChordText(s);
+  while (i < tail.length) {
+    ch = tail.charAt(i);
+    if (mode === "_" || mode === "^") {
+      if (ch === "_" || ch === "^") {
+        if (mode === "_" && !label) {
+          return null;
+        }
+        if (mode === "^" && !above) {
+          return null;
+        }
+        if (ch === "^" && staffAffixBoundary(i + 1)) {
+          artic += "^";
+          mode = "";
+          i++;
+          continue;
+        }
+        if (ch === mode) {
+          return null;
+        }
+        mode = ch === "_" ? "_" : "^";
+        i++;
+        continue;
+      }
+      if (mode === "_") {
+        label += ch;
+      } else {
+        above += ch;
+      }
+      i++;
+      continue;
+    }
+    if (ch === "'" || ch === ">" || ch === "-") {
+      artic += ch;
+      i++;
+      continue;
+    }
+    if (ch === "^") {
+      if (staffAffixBoundary(i + 1)) {
+        artic += "^";
+        i++;
+        continue;
+      }
+      mode = "^";
+      i++;
+      continue;
+    }
+    if (ch === "_") {
+      mode = "_";
+      i++;
+      continue;
+    }
+    return null;
+  }
+  if ((mode === "_" && !label) || (mode === "^" && !above)) {
+    return null;
+  }
+  return {
+    articulations: staffArticulationList(artic),
+    label: label,
+    above: above
+  };
 }
 
 function staffParsePitchToken(token) {
   var m =
-    /^([A-Ga-g])(##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whqes]?)(\.?)(!?)(['>\-^]*)(?:_(.+))?$/.exec(
+    /^([A-Ga-g])(##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whqes]?)(\.?)(!?)(.*)$/.exec(
       token
     );
+  var aff;
   if (!m) {
     return null;
   }
@@ -383,6 +465,10 @@ function staffParsePitchToken(token) {
   if (!dur) {
     return null;
   }
+  aff = staffParseAffixes(m[7] || "");
+  if (!aff) {
+    return null;
+  }
   var force = m[6] === "!";
   return {
     letter: letter,
@@ -390,8 +476,9 @@ function staffParsePitchToken(token) {
     octave: octave,
     duration: dur,
     force: force,
-    label: m[8] || "",
-    articulations: staffArticulationList(m[7] || ""),
+    label: aff.label,
+    above: aff.above,
+    articulations: aff.articulations,
     step: STAFF_LETTER_STEPS[letter] + octave * 7
   };
 }
@@ -420,7 +507,8 @@ function staffIsHairpin(tok) {
 }
 
 function staffParseRestToken(token) {
-  var m = /^r([whqes]?)(\.?)$/i.exec(token);
+  var m = /^r([whqes]?)(\.?)(.*)$/i.exec(token);
+  var aff;
   if (!m) {
     return null;
   }
@@ -428,18 +516,33 @@ function staffParseRestToken(token) {
   if (!dur) {
     return null;
   }
-  return { type: "rest", duration: dur };
+  aff = staffParseAffixes(m[3] || "");
+  if (!aff) {
+    return null;
+  }
+  return {
+    type: "rest",
+    duration: dur,
+    label: aff.label,
+    above: aff.above,
+    articulations: aff.articulations
+  };
 }
 
 /* Pitchless rhythmic slash on the middle staff line. */
 function staffParseSlashToken(token, clef) {
-  var m = /^\/([whqes]?)(\.?)(['>\-^]*)(?:_(.+))?$/.exec(token);
+  var m = /^\/([whqes]?)(\.?)(.*)$/.exec(token);
+  var aff;
   if (!m) {
     return null;
   }
   var rhythmic = !!(m[1] || m[2]);
   var dur = staffMakeDuration(rhythmic ? m[1] || "q" : "q", m[2] === ".");
   if (!dur) {
+    return null;
+  }
+  aff = staffParseAffixes(m[3] || "");
+  if (!aff) {
     return null;
   }
   var step = staffBottomLineStep(clef) + 4;
@@ -451,8 +554,9 @@ function staffParseSlashToken(token, clef) {
     octave: octave,
     duration: dur,
     force: false,
-    label: m[4] || "",
-    articulations: staffArticulationList(m[3] || ""),
+    label: aff.label,
+    above: aff.above,
+    articulations: aff.articulations,
     step: step,
     /* Bare / is play-anything: the slash, no stem. /q and the rest stay rhythm. */
     head: rhythmic ? "slash" : "beat"
@@ -473,7 +577,7 @@ function staffLooksNotationIsh(tokens) {
       t === "%" ||
       staffIsDynamic(t) ||
       staffIsHairpin(t) ||
-      /^r([whqes]?)(\.?)$/i.test(t) ||
+      /^r([whqes]?)(\.?)/i.test(t) ||
       /^\/([whqes]?)(\.?)(?:['>\-^]|_|$)/.test(t) ||
       /* Pitch-like (letter + octave), not prose like "Major". */
       /^[A-Ga-g](##|bb|x|X|#|b|n|\u266F|\u266D|\u266E)?\d/.test(t)
@@ -888,11 +992,13 @@ function staffParseBeamInner(inner, clef) {
       type: "note",
       pitch: p,
       label: p.label || "",
+      above: p.above || "",
       duration: p.duration || "q",
       head: p.head || "",
       articulations: p.articulations || []
     });
     p.label = "";
+    p.above = "";
   }
   /* A trailing ~ leaves the group and ties into whatever follows the brace. */
   return { notes: notes, tieToNext: hangTie };
@@ -906,7 +1012,7 @@ function staffParseStackInner(inner) {
   var pitches = [];
   for (var i = 0; i < parts.length; i++) {
     var p = staffParsePitchToken(parts[i]);
-    if (!p || p.label) {
+    if (!p) {
       return null;
     }
     pitches.push(p);
@@ -1051,12 +1157,9 @@ function staffParseEventAt(tokens, i, clef) {
       return { error: "unclosed stack", tok: tok };
     }
     var after = buf.slice(close + 1);
-    var label = "";
-    if (after) {
-      if (after.charAt(0) !== "_") {
-        return { error: "stack label must use _", tok: after };
-      }
-      label = after.slice(1);
+    var stackAff = staffParseAffixes(after);
+    if (!stackAff || stackAff.articulations.length) {
+      return { error: "stack label must use _ or ^", tok: after || tok };
     }
     var inner = buf.slice(1, close);
     var pitches = staffParseStackInner(inner);
@@ -1067,7 +1170,8 @@ function staffParseEventAt(tokens, i, clef) {
       event: {
         type: "stack",
         pitches: pitches,
-        label: label,
+        label: stackAff.label,
+        above: stackAff.above,
         duration: pitches[0].duration || "q"
       },
       next: i + 1
@@ -1081,11 +1185,13 @@ function staffParseEventAt(tokens, i, clef) {
     type: "note",
     pitch: pitch,
     label: pitch.label || "",
+    above: pitch.above || "",
     duration: pitch.duration || "q",
     head: pitch.head || "",
     articulations: pitch.articulations || []
   };
   pitch.label = "";
+  pitch.above = "";
   return { event: ev, next: i + 1 };
 }
 
@@ -1616,12 +1722,13 @@ function renderMusicStaff(source, role) {
   var topStep = bottomStep + 8;
   var minStep = bottomStep;
   var maxStep = topStep;
-  /* Stack `_Dm9` labels are chord symbols (above). Note `_1` labels stay below. */
+  /* ^text sits above (chord name). _text sits under (degree, sticking). */
   var hasStackChordLabels = false;
   var hasEventChords = false;
   var hasDynamics = false;
   var hasHairpin = false;
   var hasBelowLabels = false;
+  var hasAboveLabels = false;
   var e;
   function staffTouchStep(step) {
     if (step < minStep) {
@@ -1655,19 +1762,41 @@ function renderMusicStaff(source, role) {
       if (ev.label) {
         hasBelowLabels = true;
       }
+      if (ev.above) {
+        hasAboveLabels = true;
+      }
+    } else if (ev.type === "rest") {
+      if (ev.label) {
+        hasBelowLabels = true;
+      }
+      if (ev.above) {
+        hasAboveLabels = true;
+      }
     } else if (ev.type === "beam") {
       for (var bn = 0; bn < ev.notes.length; bn++) {
         staffTouchStep(ev.notes[bn].pitch.step);
         if (ev.notes[bn].label) {
           hasBelowLabels = true;
         }
+        if (ev.notes[bn].above) {
+          hasAboveLabels = true;
+        }
       }
     } else if (ev.type === "stack") {
       for (var p = 0; p < ev.pitches.length; p++) {
         staffTouchStep(ev.pitches[p].step);
+        if (ev.pitches[p].label) {
+          hasBelowLabels = true;
+        }
+        if (ev.pitches[p].above) {
+          hasAboveLabels = true;
+        }
+      }
+      if (ev.above) {
+        hasStackChordLabels = true;
       }
       if (ev.label) {
-        hasStackChordLabels = true;
+        hasBelowLabels = true;
       }
     }
   }
@@ -1677,7 +1806,7 @@ function renderMusicStaff(source, role) {
   var dropBelow = Math.max(0, bottomStep - minStep) * half + noteHeadRy;
   var chordSize = role === "reel" ? 14 : 18;
   var labelSize = role === "reel" ? 11 : 13;
-  var hasChordText = !!(ast.chordSymbol || hasStackChordLabels || hasEventChords);
+  var hasChordText = !!(ast.chordSymbol || hasStackChordLabels || hasEventChords || hasAboveLabels);
   var chordBand = hasChordText ? chordSize + 14 : 0;
   var labelBand = hasBelowLabels ? labelSize + 14 : 10;
   var dynBand = hasDynamics || hasHairpin ? chordSize + 12 : 0;
@@ -1916,7 +2045,13 @@ function renderMusicStaff(source, role) {
       staffAdvanceSimile(remain);
       tupRunId = 0;
     } else if (ev.type === "rest") {
-      col = { type: "rest", duration: ev.duration || "q" };
+      col = {
+        type: "rest",
+        duration: ev.duration || "q",
+        label: ev.label || "",
+        above: ev.above || "",
+        articulations: ev.articulations || []
+      };
       tupRunId = 0;
     } else if (ev.type === "note") {
       var bidNote = 0;
@@ -1936,6 +2071,7 @@ function renderMusicStaff(source, role) {
         type: "note",
         pitch: ev.pitch,
         label: ev.label || "",
+        above: ev.above || "",
         duration: ev.duration || "q",
         head: ev.head || ev.pitch.head || "",
         beamId: bidNote,
@@ -1948,6 +2084,7 @@ function renderMusicStaff(source, role) {
         type: "stack",
         pitches: ev.pitches,
         label: ev.label || "",
+        above: ev.above || "",
         duration: ev.duration || "q"
       };
     } else if (ev.type === "beam") {
@@ -1962,6 +2099,7 @@ function renderMusicStaff(source, role) {
           type: "note",
           pitch: ev.notes[bi].pitch,
           label: ev.notes[bi].label || "",
+          above: ev.notes[bi].above || "",
           duration: ev.notes[bi].duration || "q",
           head: ev.notes[bi].head || (ev.notes[bi].pitch && ev.notes[bi].pitch.head) || "",
           beamId: bid,
@@ -2333,7 +2471,8 @@ function renderMusicStaff(source, role) {
   }
 
   /*
-   * Chord symbols (^… and stack _Dm9) above; degree labels below.
+   * Chord symbols (^…) and glued ^text share the band above the staff.
+   * Glued _text sits under it.
    * Final Y is set after beam groups so text only moves when stems/beams collide.
    */
   var highestNoteY = staffPitchY(maxStep, ast.clef, staffTop, lineGap);
@@ -2946,6 +3085,30 @@ function renderMusicStaff(source, role) {
     };
   }
 
+  function staffDrawBelowText(x, text) {
+    var node = staffSvgEl("text", {
+      x: String(x),
+      y: String(labelY),
+      "font-size": String(labelSize),
+      fill: "currentColor",
+      "text-anchor": "middle"
+    });
+    node.textContent = staffFormatDegreeLabel(text);
+    svg.appendChild(node);
+  }
+
+  function staffDrawAboveText(x, text) {
+    var node = staffSvgEl("text", {
+      x: String(x),
+      y: String(chordY),
+      "font-size": String(chordSize),
+      fill: "currentColor",
+      "text-anchor": "middle"
+    });
+    node.textContent = staffFormatChordText(text);
+    svg.appendChild(node);
+  }
+
   for (e = 0; e < columns.length; e++) {
     ev = columns[e];
     if (ev.type === "barline") {
@@ -2982,6 +3145,12 @@ function renderMusicStaff(source, role) {
         /* Rest dots sit in the third space (or beside the rest). */
         drawAugmentationDot(cx + restAdv / 2 + lineGap * 0.12, restY, bottomStep + 5);
       }
+      if (ev.label) {
+        staffDrawBelowText(cx, ev.label);
+      }
+      if (ev.above) {
+        staffDrawAboveText(cx, ev.above);
+      }
     } else if (ev.type === "note") {
       var isSlash = ev.head === "slash";
       var isBeat = ev.head === "beat";
@@ -3015,15 +3184,10 @@ function renderMusicStaff(source, role) {
         }
       }
       if (ev.label) {
-        var lt = staffSvgEl("text", {
-          x: String(cx),
-          y: String(labelY),
-          "font-size": String(labelSize),
-          fill: "currentColor",
-          "text-anchor": "middle"
-        });
-        lt.textContent = staffFormatDegreeLabel(ev.label);
-        svg.appendChild(lt);
+        staffDrawBelowText(cx, ev.label);
+      }
+      if (ev.above) {
+        staffDrawAboveText(cx, ev.above);
       }
     } else if (ev.type === "stack") {
       var stackDur = ev.duration || ev.pitches[0].duration || "q";
@@ -3115,16 +3279,19 @@ function renderMusicStaff(source, role) {
           );
         }
       }
+      if (ev.above) {
+        staffDrawAboveText(cx, ev.above);
+      }
       if (ev.label) {
-        var sl = staffSvgEl("text", {
-          x: String(cx),
-          y: String(chordY),
-          "font-size": String(chordSize),
-          fill: "currentColor",
-          "text-anchor": "middle"
-        });
-        sl.textContent = staffFormatChordText(ev.label);
-        svg.appendChild(sl);
+        staffDrawBelowText(cx, ev.label);
+      }
+      for (p = 0; p < ev.pitches.length; p++) {
+        if (ev.pitches[p].above) {
+          staffDrawAboveText(cx + offsets[p], ev.pitches[p].above);
+        }
+        if (ev.pitches[p].label) {
+          staffDrawBelowText(cx + offsets[p], ev.pitches[p].label);
+        }
       }
     }
   }

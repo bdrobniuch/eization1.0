@@ -5039,9 +5039,52 @@
                       "^C7 E4q G4q Bb4q E5q | E4q G4q Bb4q E5q · IIIÂ°"
                   ]
     },
-    
-    
-    
+    {
+        "id":  "more0137",
+        "slug":  "whole-play-rest",
+        "group":  "rhythm",
+        "staff":  true,
+        "bars":  4,
+        "nameEn":  "Whole-bar Play/Rest",
+        "nameEs":  "Tocar/Silencio por compases",
+        "descEn":  "Four bars. Each bar is a whole-note slash with P above it, or a whole rest with R above it. Every combination of play and rest, once.",
+        "descEs":  "Cuatro compases. Cada compás es un slash de redonda con P encima, o un silencio de redonda con R encima. Cada combinación de tocar y silencio, una vez.",
+        "books":  [
+                      {
+                          "href":  "./play-rest.html",
+                          "en":  "Play/Rest",
+                          "es":  "Tocar/Silencio"
+                      },
+                      {
+                          "href":  "./notation.html",
+                          "en":  "How to write on the staff",
+                          "es":  "Cómo escribir en el pentagrama"
+                      },
+                      {
+                          "href":  "./rhythms.html",
+                          "en":  "Rhythms",
+                          "es":  "Ritmos"
+                      }
+                  ],
+        "lines":  [
+                      "/w^P | /w^P | /w^P | /w^P",
+                      "/w^P | /w^P | /w^P | rw^R",
+                      "/w^P | /w^P | rw^R | /w^P",
+                      "/w^P | /w^P | rw^R | rw^R",
+                      "/w^P | rw^R | /w^P | /w^P",
+                      "/w^P | rw^R | /w^P | rw^R",
+                      "/w^P | rw^R | rw^R | /w^P",
+                      "/w^P | rw^R | rw^R | rw^R",
+                      "rw^R | /w^P | /w^P | /w^P",
+                      "rw^R | /w^P | /w^P | rw^R",
+                      "rw^R | /w^P | rw^R | /w^P",
+                      "rw^R | /w^P | rw^R | rw^R",
+                      "rw^R | rw^R | /w^P | /w^P",
+                      "rw^R | rw^R | /w^P | rw^R",
+                      "rw^R | rw^R | rw^R | /w^P",
+                      "rw^R | rw^R | rw^R | rw^R"
+                  ]
+    },
     {
         "id":  "more0057",
         "slug":  "held-rhythm",

@@ -240,8 +240,72 @@ function staffNotation(w) {
       beamed.events.length === 1 &&
       beamed.events[0].type === "beam" &&
       beamed.events[0].notes.length === 4 &&
-      beamed.events[0].notes[0].label === "R"
+      beamed.events[0].notes[0].label === "R" &&
+      !beamed.events[0].notes[0].above
     )
+  );
+  var wholePlay = w.parseMusicNotation("/w^P | rw^R | /w^P | /w^P");
+  check(
+    "play and rest letters sit above",
+    !!(
+      wholePlay &&
+      wholePlay.events[0].above === "P" &&
+      !wholePlay.events[0].label &&
+      wholePlay.events[2].type === "rest" &&
+      wholePlay.events[2].above === "R"
+    )
+  );
+  var marcato = w.parseMusicNotation("/q^");
+  check(
+    "a bare caret is still marcato",
+    !!(
+      marcato &&
+      marcato.events[0].articulations &&
+      marcato.events[0].articulations[0] === "marcato" &&
+      !marcato.events[0].above
+    )
+  );
+  check("flat under a label", w.staffFormatDegreeLabel("bVII") === "\u266DVII");
+  check("sharp under a label", w.staffFormatDegreeLabel("#IV") === "\u266FIV");
+  check("double flat under a label", w.staffFormatDegreeLabel("bbVII") === "\uD834\uDD2BVII");
+  check("flat above a label", w.staffFormatChordText("bVII") === "\u266DVII" && w.staffFormatChordText("bbVII") === "\uD834\uDD2BVII");
+  check("a chord name still spells Eb and maj7", w.staffFormatChordText("Ebmaj7") === "E\u266D\u22067");
+  var numeral = w.parseMusicNotation("[Eb3h G3h Bb3h]^Eb_bVII");
+  check(
+    "a chord can carry a name above and a numeral under",
+    !!(
+      numeral &&
+      numeral.events[0].type === "stack" &&
+      numeral.events[0].above === "Eb" &&
+      numeral.events[0].label === "bVII"
+    )
+  );
+  var playSvg = w.renderMusicStaff("/w^P | rw^R", "current");
+  var playTop = staffTopLineY(playSvg);
+  var playP = staffTextY(playSvg, "P");
+  var playR = staffTextY(playSvg, "R");
+  check(
+    "P and R render above the staff",
+    playTop < Infinity && playP < playTop && playR < playTop
+  );
+  var stickSvg = w.renderMusicStaff("/e_R", "current");
+  var stickBottom = staffBottomLineY(stickSvg);
+  var stickR = staffTextY(stickSvg, "R");
+  check("sticking R stays under the staff", stickR > stickBottom);
+  var numeralSvg = w.renderMusicStaff("/w^bVII", "current");
+  var numeralTop = staffTopLineY(numeralSvg);
+  var numeralFlat = staffTextY(numeralSvg, "\u266DVII");
+  check("a numeral above prints the flat", numeralFlat < numeralTop);
+  var playCanon = w.staffShareCanonical("/w^P | rw^R");
+  check(
+    "play/rest labels round-trip",
+    !!(playCanon && w.staffShareCanonical(playCanon) === playCanon && playCanon.indexOf("^P") >= 0 && playCanon.indexOf("^R") >= 0)
+  );
+  var chordCanon = w.staffShareCanonical("[E3q G3q B3q D4q]^C7(b9)_3");
+  var chordBack = chordCanon && w.parseMusicNotation(chordCanon);
+  check(
+    "a chord name and under-text round-trip",
+    !!(chordBack && chordBack.events[0].above === "C7(b9)" && chordBack.events[0].label === "3")
   );
   check(
     "captioned slash is music notation",
@@ -431,7 +495,23 @@ function staffTuplets(w) {
   check("septuplet defaults to 7:4", !!(septDefault && septDefault.events[0].m === 4));
   check("standalone close parses", !!w.parseMusicNotation("(3 C4e D4e E4e )"));
   check("braces and stacks parse inside", !!w.parseMusicNotation("(3 {C4e D4e} [E4e G4e])"));
-  check("a stack label keeps its parentheses", !!w.parseMusicNotation("(3 C4q D4q [E4q G4q]_C7(b9))"));
+  check("a stack label keeps its parentheses", !!w.parseMusicNotation("(3 C4q D4q [E4q G4q]^C7(b9))"));
+  var named = w.parseMusicNotation("[E4q G4q]^C7(b9)");
+  check(
+    "a caret stack name stays above",
+    !!(named && named.events[0].above === "C7(b9)" && !named.events[0].label)
+  );
+  check(
+    "schema 3 lifts a saved stack name",
+    w.rewriteStackChordLine("[F3 A3 C4 E4]_Dm9") === "[F3 A3 C4 E4]^Dm9" &&
+      w.rewriteStackChordLine("C4_1 /e_R") === "C4_1 /e_R"
+  );
+  var oldStack = w.staffShareCanonical("[F3h A3h C4h E4h]^Dm9");
+  var oldBack = oldStack && w.parseMusicNotation(oldStack);
+  check(
+    "an old stack name reprints above",
+    !!(oldBack && oldBack.events[0].above === "Dm9" && !oldBack.events[0].label && oldStack.indexOf("]^Dm9") >= 0)
+  );
   check("nested tuplet is rejected", !w.parseMusicNotation("(3 C4e (3 D4e E4e) F4e)"));
   check("unclosed tuplet is rejected", !w.parseMusicNotation("(3 C4e D4e E4e"));
   check("barline inside a tuplet is rejected", !w.parseMusicNotation("(3 C4q | D4q E4q)"));
@@ -628,6 +708,47 @@ function staffBracketClearsStems(w, source, above) {
     checked++;
   }
   return checked === 3;
+}
+
+function staffStaffLineYs(svg) {
+  var lines = svg ? svg.querySelectorAll("line") : [];
+  var ys = [];
+  var i;
+  var y;
+  for (i = 0; i < lines.length; i++) {
+    if (lines[i].getAttribute("y1") !== lines[i].getAttribute("y2")) {
+      continue;
+    }
+    y = parseFloat(lines[i].getAttribute("y1"));
+    if (ys.indexOf(y) < 0) {
+      ys.push(y);
+    }
+  }
+  ys.sort(function (a, b) {
+    return a - b;
+  });
+  return ys;
+}
+
+function staffTopLineY(svg) {
+  var ys = staffStaffLineYs(svg);
+  return ys.length ? ys[0] : Infinity;
+}
+
+function staffBottomLineY(svg) {
+  var ys = staffStaffLineYs(svg);
+  return ys.length ? ys[ys.length - 1] : -Infinity;
+}
+
+function staffTextY(svg, content) {
+  var nodes = svg ? svg.querySelectorAll("text") : [];
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i].textContent === content) {
+      return parseFloat(nodes[i].getAttribute("y"));
+    }
+  }
+  return NaN;
 }
 
 function staffStemLengths(svg) {
@@ -829,7 +950,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 129 share links", keys.length === 129);
+  check("more catalog has 130 share links", keys.length === 130);
   check("more catalog points at practice", html.indexOf('href="./#s=') >= 0 || html.indexOf('href="./#s2=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
@@ -852,7 +973,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 129 share links", esHashes.length === 129);
+  check("spanish more catalog has 130 share links", esHashes.length === 130);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -1596,7 +1717,7 @@ function deskRoundTrip(w) {
   check("restore re-seeds the desk", !!(after && after.exercises && after.exercises.length === w.menuOrder.length));
   check("restore clears deleted seeds", !!(after && (!after.deletedSeeds || !after.deletedSeeds.length)));
   check("restore clears the intro flag", helloGone);
-  check("restore stamps the schema", !!(after && after.schema === 2 && after.exercises[0].seedId === "allNotes" && after.exercises[0].seedRev === 1 && after.exercises[0].touched === false));
+  check("restore stamps the schema", !!(after && after.schema === w.DESK_SCHEMA && after.exercises[0].seedId === "allNotes" && after.exercises[0].seedRev === 1 && after.exercises[0].touched === false));
   check("restore leaves the metronome paused", w.paused === true);
   if (beforeHello) {
     try {
@@ -1658,7 +1779,7 @@ function storageMigration(w) {
   check("one launch re-seeds the stock list", !!(scales && scales.lines[0] === freshScales.lines[0] && scales.touched === false && stored.exercises.length === w.menuOrder.length));
   check("one launch drops saved exercises", !w.getDeskExercise("ex:keepme") && notes && notes.lines[0] === freshNotes.lines[0]);
   check("one launch brings back a deleted stock exercise", !!w.getDeskExercise("ex:freePlay") && (!stored.deletedSeeds || stored.deletedSeeds.indexOf("freePlay") < 0));
-  check("one launch keeps tempo", stored.schema === 2 && stored.bpm === 132 && stored.beats === 3);
+  check("one launch keeps tempo", stored.schema === w.DESK_SCHEMA && stored.bpm === 132 && stored.beats === 3);
   check("one launch clears the intro", localStorage.getItem("eization-hello") === null);
   if (w.editorIsOpen()) {
     w.editorCancel();
@@ -1724,6 +1845,28 @@ function storageMigration(w) {
       afterDesk.schema === beforeDesk.schema
   );
   check("intro again is announced", w.document.getElementById("deskNote").textContent === w.t("device.introQueued"));
+  localStorage.setItem("eization-desk", JSON.stringify({
+    schema: 2,
+    bpm: 100,
+    beats: 4,
+    exercises: [
+      { id: "ex:stackkeep", name: "Kept", bars: 1, lines: ["[F3 A3 C4 E4]_Dm9", "C4_1"] }
+    ]
+  }));
+  w.ensureDeskExercises();
+  var stackKept = w.getDeskExercise("ex:stackkeep");
+  var stackStored = JSON.parse(localStorage.getItem("eization-desk"));
+  check(
+    "schema 3 rewrites a saved stack without resetting",
+    !!(
+      stackKept &&
+      stackKept.lines[0] === "[F3 A3 C4 E4]^Dm9" &&
+      stackKept.lines[1] === "C4_1" &&
+      stackStored.schema === w.DESK_SCHEMA &&
+      stackStored.bpm === 100 &&
+      stackStored.exercises.length > 1
+    )
+  );
   w.restoreDefaults();
   restored = JSON.parse(localStorage.getItem("eization-desk"));
   check(

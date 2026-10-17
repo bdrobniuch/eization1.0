@@ -43,7 +43,7 @@ var editorNote = {
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
   "@treble @key=Eb Eb4 F4 G4 Ab4 Bb4",
-  "[E3h G3h B3h D4h]_C\u22067",
+  "[E3h G3h B3h D4h]^C\u22067_3",
   "/q /e rq",
   "C4q~ | C4q",
   "(3 C4e D4e E4e)",
@@ -2189,9 +2189,9 @@ function editorLinesUseStaff(lines) {
 
 function chatStaffSpelling(lang) {
   if (lang === "es") {
-    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s y un puntillo opcional. C4 es una negra. C#4, Db4, Cn4. @treble o @bass y @key=Eb van primero. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. _1 es el grado bajo la nota. {C4e D4e} barrado. [E3h G3h B3h D4h]_C∆7 es un acorde. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
+    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s y un puntillo opcional. C4 es una negra. C#4, Db4, Cn4. @treble o @bass y @key=Eb van primero. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
   }
-  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s and an optional dot. C4 is a quarter. C#4, Db4, Cn4. @treble or @bass and @key=Eb come first. ^Name sits on the next note or slash and can change: ^G / ^D /. _1 is the degree under the note. {C4e D4e} beams. [E3h G3h B3h D4h]_C∆7 is a chord. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
+  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s and an optional dot. C4 is a quarter. C#4, Db4, Cn4. @treble or @bass and @key=Eb come first. ^Name sits on the next note or slash and can change: ^G / ^D /. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
 }
 
 function chatPromptRules(lang, staff) {

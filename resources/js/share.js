@@ -350,7 +350,7 @@ function shareFlagByte(ev, articCount, tie, withLabel) {
   if (ev.hairpin) {
     f |= 4;
   }
-  if (withLabel && ev.label) {
+  if (withLabel && (ev.label || ev.above)) {
     f |= 8;
   }
   f |= (articCount & 7) << 4;
@@ -358,6 +358,23 @@ function shareFlagByte(ev, articCount, tie, withLabel) {
     f |= 128;
   }
   return f;
+}
+
+/* Below then above, in one stored string. No separator means the old single label. */
+function sharePackLabels(below, above) {
+  if (above) {
+    return (below || "") + "\u0001" + above;
+  }
+  return below || "";
+}
+
+function shareUnpackLabels(packed) {
+  var s = packed || "";
+  var at = s.indexOf("\u0001");
+  if (at < 0) {
+    return { below: s, above: "" };
+  }
+  return { below: s.slice(0, at), above: s.slice(at + 1) };
 }
 
 function sharePitchWord(pitch) {
@@ -441,7 +458,8 @@ function shareWriteMarks(out, ev, flags) {
     out.push(ev.hairpin === "dim" ? 1 : 0);
   }
   if (flags & 8) {
-    if (!ev.label || !shareWriteU8Str(out, ev.label)) {
+    var packedLabel = sharePackLabels(ev.label, ev.above);
+    if (!packedLabel || !shareWriteU8Str(out, packedLabel)) {
       return false;
     }
   }
@@ -510,7 +528,13 @@ function shareApplyMarks(ev, marks) {
     ev.hairpin = marks.hairpin;
   }
   if (marks.label) {
-    ev.label = marks.label;
+    var unpacked = shareUnpackLabels(marks.label);
+    if (unpacked.below) {
+      ev.label = unpacked.below;
+    }
+    if (unpacked.above) {
+      ev.above = unpacked.above;
+    }
   }
   if (marks.articulations && marks.articulations.length) {
     ev.articulations = marks.articulations;
@@ -550,7 +574,7 @@ function shareWriteEvent(out, ev, inTuplet) {
     if (dur < 0) {
       return false;
     }
-    flags = shareFlagByte(ev, 0, false, false);
+    flags = shareFlagByte(ev, (ev.articulations || []).length, false, true);
     out.push(2, flags, dur);
     return shareWriteMarks(out, ev, flags);
   }
@@ -604,7 +628,7 @@ function shareWriteEvent(out, ev, inTuplet) {
         nflags |= 2;
       }
       nflags |= (count & 7) << 2;
-      if (note.label) {
+      if (note.label || note.above) {
         nflags |= 32;
       }
       out.push(nflags);
@@ -632,7 +656,7 @@ function shareWriteEvent(out, ev, inTuplet) {
         }
         out.push(inner);
       }
-      if (note.label && !shareWriteU8Str(out, note.label)) {
+      if ((note.label || note.above) && !shareWriteU8Str(out, sharePackLabels(note.label, note.above))) {
         return false;
       }
     }
@@ -642,9 +666,19 @@ function shareWriteEvent(out, ev, inTuplet) {
     if (!ev.pitches || !ev.pitches.length || ev.pitches.length > 255) {
       return false;
     }
+    var pitchMarks = false;
     flags = shareFlagByte(ev, 0, !!ev.tieToNext, true);
+    for (i = 0; i < ev.pitches.length; i++) {
+      if (ev.pitches[i].label || ev.pitches[i].above) {
+        pitchMarks = true;
+        break;
+      }
+    }
+    if (pitchMarks) {
+      flags |= 16;
+    }
     out.push(8, flags);
-    if (!shareWriteMarks(out, ev, flags & ~8)) {
+    if (!shareWriteMarks(out, ev, flags & ~8 & ~16)) {
       return false;
     }
     out.push(ev.pitches.length);
@@ -655,8 +689,26 @@ function shareWriteEvent(out, ev, inTuplet) {
       }
       sharePushU16(out, word);
     }
-    if ((flags & 8) && !shareWriteU8Str(out, ev.label)) {
-      return false;
+    if (pitchMarks) {
+      for (i = 0; i < ev.pitches.length; i++) {
+        pitch = ev.pitches[i];
+        word = sharePackLabels(pitch.label, pitch.above);
+        if (word) {
+          out.push(1);
+          if (!shareWriteU8Str(out, word)) {
+            return false;
+          }
+        } else {
+          out.push(0);
+        }
+      }
+    }
+    if (flags & 8) {
+      /* First slot is the chord name. Old links stored only that name. */
+      word = sharePackLabels(ev.above, ev.label);
+      if (!word || !shareWriteU8Str(out, word)) {
+        return false;
+      }
     }
     return true;
   }
@@ -756,7 +808,7 @@ function shareReadEvent(cur, tag, inTuplet) {
   if (tag === 2) {
     flags = cur.u8();
     dur = cur.u8();
-    if (flags < 0 || dur < 0 || dur > 8 || (flags & (8 | 112 | 128))) {
+    if (flags < 0 || dur < 0 || dur > 8 || (flags & 128)) {
       return null;
     }
     marks = shareReadMarks(cur, flags);
@@ -862,7 +914,11 @@ function shareReadEvent(cur, tag, inTuplet) {
         if (text == null) {
           return null;
         }
-        note.label = text;
+        var noteLabels = shareUnpackLabels(text);
+        note.label = noteLabels.below;
+        if (noteLabels.above) {
+          note.above = noteLabels.above;
+        }
       }
       ev.notes.push(note);
     }
@@ -870,15 +926,15 @@ function shareReadEvent(cur, tag, inTuplet) {
   }
   if (tag === 8) {
     flags = cur.u8();
-    if (flags < 0 || ((flags >> 4) & 7)) {
+    if (flags < 0 || (flags & (32 | 64))) {
       return null;
     }
-    marks = shareReadMarks(cur, flags & ~8);
+    marks = shareReadMarks(cur, flags & ~8 & ~16);
     count = cur.u8();
     if (!marks || count <= 0) {
       return null;
     }
-    ev = { type: "stack", pitches: [], tieToNext: (flags & 128) !== 0, label: "" };
+    ev = { type: "stack", pitches: [], tieToNext: (flags & 128) !== 0, label: "", above: "" };
     shareApplyMarks(ev, marks);
     for (i = 0; i < count; i++) {
       word = cur.u16();
@@ -888,12 +944,41 @@ function shareReadEvent(cur, tag, inTuplet) {
       }
       ev.pitches.push(pitch);
     }
+    if (flags & 16) {
+      for (i = 0; i < count; i++) {
+        dur = cur.u8();
+        if (dur === 0) {
+          continue;
+        }
+        if (dur !== 1) {
+          return null;
+        }
+        text = shareReadU8Str(cur);
+        if (text == null) {
+          return null;
+        }
+        var toneLabels = shareUnpackLabels(text);
+        if (toneLabels.below) {
+          ev.pitches[i].label = toneLabels.below;
+        }
+        if (toneLabels.above) {
+          ev.pitches[i].above = toneLabels.above;
+        }
+      }
+    }
     if (flags & 8) {
       text = shareReadU8Str(cur);
       if (text == null) {
         return null;
       }
-      ev.label = text;
+      /* Old links stored the chord name alone, so the first slot stays above. */
+      var stackLabels = shareUnpackLabels(text);
+      if (stackLabels.below) {
+        ev.above = stackLabels.below;
+      }
+      if (stackLabels.above) {
+        ev.label = stackLabels.above;
+      }
     }
     ev.duration = ev.pitches[0].duration;
     return ev;
@@ -978,7 +1063,7 @@ function shareReadEvents(cur, nested, depth) {
   }
 }
 
-function sharePrintPitch(p, artic, label, tie) {
+function sharePrintPitch(p, artic, label, tie, above) {
   var arts = shareArtString(artic);
   var s;
   if (!p || arts == null) {
@@ -992,13 +1077,16 @@ function sharePrintPitch(p, artic, label, tie) {
   if (label) {
     s += "_" + label;
   }
+  if (above) {
+    s += "^" + above;
+  }
   if (tie) {
     s += "~";
   }
   return s;
 }
 
-function sharePrintSlash(beat, dur, artic, label, tie) {
+function sharePrintSlash(beat, dur, artic, label, tie, above) {
   var arts = shareArtString(artic);
   var s = "/";
   if (arts == null) {
@@ -1011,6 +1099,9 @@ function sharePrintSlash(beat, dur, artic, label, tie) {
   if (label) {
     s += "_" + label;
   }
+  if (above) {
+    s += "^" + above;
+  }
   if (tie) {
     s += "~";
   }
@@ -1019,12 +1110,12 @@ function sharePrintSlash(beat, dur, artic, label, tie) {
 
 function sharePrintNote(ev) {
   if (ev.head === "beat") {
-    return sharePrintSlash(true, "q", ev.articulations, ev.label, ev.tieToNext);
+    return sharePrintSlash(true, "q", ev.articulations, ev.label, ev.tieToNext, ev.above);
   }
   if (ev.head === "slash") {
-    return sharePrintSlash(false, (ev.pitch && ev.pitch.duration) || ev.duration, ev.articulations, ev.label, ev.tieToNext);
+    return sharePrintSlash(false, (ev.pitch && ev.pitch.duration) || ev.duration, ev.articulations, ev.label, ev.tieToNext, ev.above);
   }
-  return sharePrintPitch(ev.pitch, ev.articulations, ev.label, ev.tieToNext);
+  return sharePrintPitch(ev.pitch, ev.articulations, ev.label, ev.tieToNext, ev.above);
 }
 
 function sharePrintEvents(events) {
@@ -1054,7 +1145,17 @@ function sharePrintEvents(events) {
     } else if (events[i].type === "simile") {
       core = "%";
     } else if (events[i].type === "rest") {
-      core = "r" + (events[i].duration || "q");
+      var restArts = shareArtString(events[i].articulations);
+      if (restArts == null) {
+        return null;
+      }
+      core = "r" + (events[i].duration || "q") + restArts;
+      if (events[i].label) {
+        core += "_" + events[i].label;
+      }
+      if (events[i].above) {
+        core += "^" + events[i].above;
+      }
     } else if (events[i].type === "note") {
       core = sharePrintNote(events[i]);
     } else if (events[i].type === "beam") {
@@ -1096,13 +1197,20 @@ function sharePrintStack(ev) {
   var i;
   var tok;
   for (i = 0; i < ev.pitches.length; i++) {
-    tok = sharePrintPitch(ev.pitches[i], [], "", false);
+    tok = sharePrintPitch(ev.pitches[i], [], ev.pitches[i].label, false, ev.pitches[i].above);
     if (!tok) {
       return null;
     }
     inner.push(tok);
   }
-  return "[" + inner.join(" ") + "]" + (ev.label ? "_" + ev.label : "") + (ev.tieToNext ? "~" : "");
+  var tail = "";
+  if (ev.above) {
+    tail += "^" + ev.above;
+  }
+  if (ev.label) {
+    tail += "_" + ev.label;
+  }
+  return "[" + inner.join(" ") + "]" + tail + (ev.tieToNext ? "~" : "");
 }
 
 function sharePrintTuplet(ev) {
@@ -1211,13 +1319,13 @@ function shareSigEvent(ev) {
     return "|";
   }
   if (ev.type === "rest") {
-    return "r" + shareSigMark(ev) + shareSigStr(ev.duration);
+    return "r" + shareSigMark(ev) + shareSigStr(ev.duration) + shareSigArts(ev.articulations) + shareSigStr(ev.label) + shareSigStr(ev.above);
   }
   if (ev.type === "simile") {
     return "%" + shareSigMark(ev);
   }
   if (ev.type === "note") {
-    return "n" + shareSigMark(ev) + shareSigStr(ev.head) + shareSigPitch(ev.pitch) + shareSigArts(ev.articulations) + shareSigStr(ev.label);
+    return "n" + shareSigMark(ev) + shareSigStr(ev.head) + shareSigPitch(ev.pitch) + shareSigArts(ev.articulations) + shareSigStr(ev.label) + shareSigStr(ev.above);
   }
   if (ev.type === "beam") {
     s = "B" + shareSigMark(ev);
@@ -1227,9 +1335,9 @@ function shareSigEvent(ev) {
     return s;
   }
   if (ev.type === "stack") {
-    s = "S" + shareSigMark(ev) + shareSigStr(ev.label);
+    s = "S" + shareSigMark(ev) + shareSigStr(ev.above) + shareSigStr(ev.label);
     for (i = 0; i < ev.pitches.length; i++) {
-      s += "[" + shareSigPitch(ev.pitches[i]);
+      s += "[" + shareSigPitch(ev.pitches[i]) + shareSigStr(ev.pitches[i].label) + shareSigStr(ev.pitches[i].above);
     }
     return s;
   }

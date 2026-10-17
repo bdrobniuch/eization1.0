@@ -103,20 +103,24 @@
         </figure>
 
         <h2>A chord</h2>
-        <p>Brackets stack a chord. The same duration on every pitch is the clear way to write it. <code>_</code> after the closing bracket is the chord symbol. The symbol can use ∆.</p>
+        <p>Brackets stack a chord. The same duration on every pitch is the clear way to write it. <code>^</code> after the closing bracket is the chord name above the stack. <code>_</code> is text under it. A chord can carry both. The name can use ∆. <code>^bVII</code> and <code>_bVII</code> both print as ♭VII. <code>_bbVII</code> prints as 𝄫VII.</p>
         <figure class="notation-sample">
-            <pre>@bass @key=C [E3h G3h B3h D4h]_C∆7</pre>
+            <pre>@bass @key=C [E3h G3h B3h D4h]^C∆7_3</pre>
             <div class="notation-staff"></div>
         </figure>
 
         <h2>Rhythm</h2>
-        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. A rest can take a dot: <code>re.</code> <code>rq.</code>. A dotted whole (<code>w.</code>) does not parse. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> and <code>_L</code> label a slash.</p>
+        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. A rest can take a dot: <code>re.</code> <code>rq.</code>. A dotted whole (<code>w.</code>) does not parse. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> is text under a slash or a rest. <code>^P</code> is text above it. The same pair works on a note.</p>
         <figure class="notation-sample">
             <pre>/q. /e rh | rq /q · Charleston</pre>
             <div class="notation-staff"></div>
         </figure>
         <figure class="notation-sample">
             <pre>{/e_R /e_L /e_R /e_L} · Singles</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>/w^P | rw^R | /w^P | /w^P</pre>
             <div class="notation-staff"></div>
         </figure>
 
@@ -178,7 +182,7 @@
         </figure>
 
         <h2>Dynamics and articulation</h2>
-        <p><code>pp</code> <code>p</code> <code>mp</code> <code>mf</code> <code>f</code> <code>ff</code> <code>sfz</code> sit under the next note. <code>cresc</code> and <code>dim</code> draw a hairpin from that note through the note that carries the next dynamic, or through the last note. On the note itself: <code>'</code> staccato, <code>&gt;</code> accent, <code>-</code> tenuto, and a final <code>^</code> for marcato (<code>C4e'&gt;</code>, <code>/q&gt;</code>).</p>
+        <p><code>pp</code> <code>p</code> <code>mp</code> <code>mf</code> <code>f</code> <code>ff</code> <code>sfz</code> sit under the next note. <code>cresc</code> and <code>dim</code> draw a hairpin from that note through the note that carries the next dynamic, or through the last note. On the note itself: <code>'</code> staccato, <code>&gt;</code> accent, <code>-</code> tenuto, and a bare <code>^</code> for marcato (<code>C4e'&gt;</code>, <code>/q^</code>). A <code>^</code> followed by text sits above that symbol (<code>/q^P</code>). A <code>^</code> at the start of a word is a chord symbol.</p>
         <figure class="notation-sample">
             <pre>mf C4q C4q f C4q C4q</pre>
             <div class="notation-staff"></div>
