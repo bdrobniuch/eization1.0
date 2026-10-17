@@ -262,6 +262,7 @@
                     <a href="./more.html" data-i18n="about.more">More exercises</a>
                     <button type="button" id="aboutGoAuthor" data-about="author" data-i18n="about.author">About the author</button>
                     <button type="button" id="aboutGoDevice" data-about="device" data-i18n="about.device">This device</button>
+                    <button type="button" id="aboutCoffee" data-i18n="author.coffee">Buy me a coffee</button>
                 </nav>
             </div>
             <div id="aboutHow" hidden>
@@ -305,7 +306,9 @@
                 <h2 data-i18n="author.support">Support</h2>
                 <p data-i18n="author.free">eization is free. If it helps you practice, you can buy me a coffee.</p>
                 <button type="button" id="supportReveal" data-i18n="author.coffee">Buy me a coffee</button>
-                <div id="supportCard" hidden></div>
+                <p class="support-tip"><span data-i18n="support.tip">In the 'Add a note' field, please enter:</span> <span class="support-word">Coffee</span></p>
+                <img class="support-qr" src="./resources/icons/support.svg" width="180" height="180" alt="QR code to pay with Revolut">
+                <p class="support-note" data-i18n="support.note">Payment through Revolut. Pick any amount and pay with Apple Pay, Google Pay on Android, or a bank card.</p>
             </div>
             <div id="aboutDevice" hidden>
                 <p data-i18n="device.body">Download backup copies every exercise on this device to a JSON file. Upload backup replaces the exercises from that kind of backup (tempo and meter stay). Restore defaults resets tempo and meter, brings back the stock exercises, and clears exercises you saved on this device. The intro may play the next time you open eization.</p>

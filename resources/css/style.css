@@ -2446,7 +2446,6 @@ body.is-about #counter {
 #shareFeedback,
 #sendExercise,
 #reportCorrection,
-.support-path,
 .support-copy,
 #aboutLinks button {
   min-height: 44px;
@@ -2583,12 +2582,6 @@ body.is-about #counter {
   display: none !important;
 }
 
-.support-paths {
-  display: flex;
-  gap: 8px;
-  padding-top: 12px;
-}
-
 #langSwitch {
   display: flex;
   flex-wrap: wrap;
@@ -2613,21 +2606,6 @@ body.is-about #counter {
   color: #0C8A50;
 }
 
-.support-path {
-  flex: 1 1 0;
-  padding: 0 8px;
-}
-
-.support-path.is-on {
-  background: #ffffff;
-  color: #0C8A50;
-}
-
-#supportEurope[hidden],
-#supportWorld[hidden] {
-  display: none !important;
-}
-
 #supportReveal,
 #sendPractice,
 #shareFeedback,
@@ -2636,59 +2614,43 @@ body.is-about #counter {
   padding: 0 16px;
 }
 
-#supportCard {
-  margin-top: 12px;
-  padding: 0 12px;
-  border: 2px solid rgba(255, 255, 255, 0.85);
+.support-qr {
+  display: none;
 }
 
-#supportCard[hidden] {
-  display: none !important;
-}
-
-#supportCard.is-shown {
-  animation: supportIn 220ms ease;
-}
-
-@keyframes supportIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+@media (min-width: 841px) {
+  .support-qr {
+    display: block;
+    width: 180px;
+    height: 180px;
+    margin: 12px 0 0;
   }
 }
 
-.support-note {
-  margin: 12px 0 4px;
+#aboutBody p.support-tip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
   font-size: 14px;
   line-height: 1.4;
 }
 
-.support-row {
-  display: flex;
+.support-word {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  min-height: 28px;
+  padding: 0 10px;
+  background: #ffffff;
+  color: #0C8A50;
+  font-weight: 600;
 }
 
-.support-label {
-  margin: 0 0 2px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.72;
-}
-
-.support-value {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+#aboutBody p.support-note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .support-copy {

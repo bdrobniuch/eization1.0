@@ -1,15 +1,10 @@
 var SEALED = {
-  name: [24, 293, 21, 509, 235, 241, 136, 30, 21, 27, 227, 224, 242, 221, 57, 15],
-  iban: [22, 51, 66, 179, 189, 169, 157, 106, 87, 77, 176, 189, 175, 145, 106, 84, 69, 181, 186, 175],
-  bic: [8, 34, 34, 206, 194, 207, 154, 107],
-  bank: [8, 2, 2, 238, 226, 238, 220, 122, 37, 21, 239, 229, 187, 253, 27, 37, 88, 161, 197, 244, 198, 41, 19, 29, 245, 251, 248, 193, 48, 8, 7, 161, 254, 233, 134, 122, 85, 69, 195, 162, 187, 152, 98, 86, 71, 177, 174, 205, 193, 54, 9, 29, 244, 253, 183, 136, 22, 14, 0, 233, 251, 250, 198, 51, 6],
-  corr: [25, 47, 53, 210, 202, 222, 238, 2],
-  title: [30, 6, 6, 238, 249, 242, 210, 52, 6, 84, 239, 239, 187, 218, 53, 29, 3, 114, 228, 187, 201, 42, 11, 29, 234, 239, 248, 194, 51],
   mail: [56, 11, 21, 251, 235, 241, 134, 62, 21, 27, 227, 224, 242, 221, 57, 15, 52, 230, 227, 250, 193, 54, 73, 23, 238, 227],
   site: [50, 19, 0, 241, 253, 161, 135, 117, 16, 3, 246, 160, 249, 196, 59, 29, 17, 235, 234, 233, 199, 56, 9, 29, 244, 237, 243, 217, 47, 6, 6, 245, 235, 239, 134, 42, 11],
   linkedin: [50, 19, 0, 241, 253, 161, 135, 117, 2, 7, 175, 226, 242, 198, 49, 2, 16, 232, 224, 181, 203, 53, 10, 91, 232, 224, 180, 202, 62, 21, 27, 227, 224, 242, 221, 57, 15],
   instagram: [50, 19, 0, 241, 253, 161, 135, 117, 16, 3, 246, 160, 242, 198, 41, 19, 21, 230, 252, 250, 197, 116, 4, 27, 236, 161, 249, 204, 40, 8, 22, 239, 231, 238, 203, 50, 72],
-  github: [50, 19, 0, 241, 253, 161, 135, 117, 0, 29, 245, 230, 238, 202, 116, 4, 27, 236, 161, 249, 204, 40, 8, 22, 239, 231, 238, 203, 50]
+  github: [50, 19, 0, 241, 253, 161, 135, 117, 0, 29, 245, 230, 238, 202, 116, 4, 27, 236, 161, 249, 204, 40, 8, 22, 239, 231, 238, 203, 50],
+  coffee: [50, 19, 0, 241, 253, 161, 135, 117, 21, 17, 247, 225, 247, 221, 46, 73, 25, 228, 161, 249, 204, 40, 8, 22, 239, 231, 238, 203, 50]
 };
 
 function openSeal(codes) {
@@ -19,38 +14,6 @@ function openSeal(codes) {
   }
   return text;
 }
-
-function groupIban(iban) {
-  var text = "";
-  for (var i = 0; i < iban.length; i++) {
-    if (i > 0 && i % 4 === 0) {
-      text += " ";
-    }
-    text += iban.charAt(i);
-  }
-  return text;
-}
-
-function paymentFields(world) {
-  var name = openSeal(SEALED.name);
-  var iban = openSeal(SEALED.iban);
-  var bic = openSeal(SEALED.bic);
-  var title = openSeal(SEALED.title);
-  var fields = [
-    { label: t("support.recipient"), value: name, copy: name },
-    { label: "IBAN", value: groupIban(iban), copy: iban },
-    { label: world ? "BIC / SWIFT" : "BIC", value: bic, copy: bic }
-  ];
-  if (world) {
-    var bank = openSeal(SEALED.bank);
-    var corr = openSeal(SEALED.corr);
-    fields.push({ label: t("support.bank"), value: bank, copy: bank });
-    fields.push({ label: t("support.corr"), value: corr, copy: corr });
-  }
-  fields.push({ label: t("support.reference"), value: title, copy: title });
-  return fields;
-}
-
 
 function aboutIsOpen() {
   var sheet = document.getElementById("about");
@@ -130,6 +93,13 @@ function backAbout() {
       backTo.focus();
     }
   }
+}
+
+function openCoffeePay() {
+  if (typeof track === "function") {
+    track("about_coffee");
+  }
+  window.open(openSeal(SEALED.coffee), "_blank", "noopener,noreferrer");
 }
 
 function openAbout() {
@@ -215,92 +185,10 @@ function copySupportText(text) {
   return Promise.reject(new Error("copy"));
 }
 
-function supportFields(fields) {
-  var box = document.createElement("div");
-  for (var i = 0; i < fields.length; i++) {
-    var field = fields[i];
-    var row = document.createElement("div");
-    row.className = "support-row";
-    var text = document.createElement("div");
-    var name = document.createElement("p");
-    name.className = "support-label";
-    name.textContent = field.label;
-    var value = document.createElement("p");
-    value.className = "support-value";
-    value.textContent = field.value;
-    text.appendChild(name);
-    text.appendChild(value);
-    row.appendChild(text);
-    var copy = document.createElement("button");
-    copy.type = "button";
-    copy.className = "support-copy";
-    copy.textContent = t("support.copy");
-    copy.setAttribute("data-copy", field.copy);
-    row.appendChild(copy);
-    box.appendChild(row);
-  }
-  return box;
-}
-
-function showSupportPath(path) {
-  var europe = path === "europe";
-  document.getElementById("supportEurope").hidden = !europe;
-  document.getElementById("supportWorld").hidden = europe;
-  document.getElementById("pathEurope").classList.toggle("is-on", europe);
-  document.getElementById("pathWorld").classList.toggle("is-on", !europe);
-  document.getElementById("pathEurope").setAttribute("aria-pressed", europe ? "true" : "false");
-  document.getElementById("pathWorld").setAttribute("aria-pressed", europe ? "false" : "true");
-}
-
-function fillSupportCard(card) {
-  var paths = document.createElement("div");
-  var europe = document.createElement("div");
-  var europeNote = document.createElement("p");
-  var world = document.createElement("div");
-  var worldNote = document.createElement("p");
-  paths.className = "support-paths";
-  paths.innerHTML = '<button type="button" id="pathEurope" class="support-path is-on" data-path="europe" aria-pressed="true">' + t("support.europeBtn") + '</button><button type="button" id="pathWorld" class="support-path" data-path="world" aria-pressed="false">' + t("support.worldBtn") + '</button>';
-  card.appendChild(paths);
-  europe.id = "supportEurope";
-  europeNote.className = "support-note";
-  europeNote.textContent = t("support.europe");
-  europe.appendChild(europeNote);
-  europe.appendChild(supportFields(paymentFields(false)));
-  card.appendChild(europe);
-  world.id = "supportWorld";
-  world.hidden = true;
-  worldNote.className = "support-note";
-  worldNote.textContent = t("support.world");
-  world.appendChild(worldNote);
-  world.appendChild(supportFields(paymentFields(true)));
-  card.appendChild(world);
-}
-
-function revealSupport() {
-  var card = document.getElementById("supportCard");
-  var button = document.getElementById("supportReveal");
-  var sheet;
-  var top;
-  if (!card || card.childNodes.length) {
-    card.hidden = false;
-    button.hidden = true;
-    return;
-  }
-  fillSupportCard(card);
-  card.hidden = false;
-  card.classList.add("is-shown");
-  button.hidden = true;
-  sheet = document.getElementById("about");
-  top = card.getBoundingClientRect().top - sheet.getBoundingClientRect().top + sheet.scrollTop;
-  sheet.scrollTop = Math.max(0, top - 8);
-}
-
 function aboutApplyLanguage() {
   var title = document.getElementById("aboutTitle");
   var upload = document.getElementById("uploadAllExercises");
-  var card = document.getElementById("supportCard");
   var emailCopy = document.querySelector("#emailLine .support-copy");
-  var europeOn = true;
   if (title && ABOUT_PAGES[aboutPage]) {
     title.textContent = t(ABOUT_PAGES[aboutPage].titleKey);
   }
@@ -310,15 +198,6 @@ function aboutApplyLanguage() {
   if (emailCopy && !emailCopy._copyTimer) {
     emailCopy.textContent = t("support.copy");
   }
-  if (!card || !card.childNodes.length) {
-    return;
-  }
-  if (document.getElementById("pathEurope")) {
-    europeOn = document.getElementById("pathEurope").classList.contains("is-on");
-  }
-  card.innerHTML = "";
-  fillSupportCard(card);
-  showSupportPath(europeOn ? "europe" : "world");
 }
 
 function markCopied(button) {
@@ -640,24 +519,8 @@ function initAbout() {
     }
     markCopied(button);
   });
-  document.getElementById("supportReveal").addEventListener("click", function () {
-    if (typeof track === "function") {
-      track("about_coffee");
-    }
-    revealSupport();
-  });
-  document.getElementById("supportCard").addEventListener("click", function (event) {
-    var path = event.target.closest("[data-path]");
-    if (path) {
-      showSupportPath(path.getAttribute("data-path"));
-      return;
-    }
-    var button = event.target.closest(".support-copy");
-    if (!button) {
-      return;
-    }
-    markCopied(button);
-  });
+  document.getElementById("aboutCoffee").addEventListener("click", openCoffeePay);
+  document.getElementById("supportReveal").addEventListener("click", openCoffeePay);
   document.getElementById("downloadAllExercises").addEventListener("click", function () {
     if (typeof downloadAllDeskExercises === "function" && downloadAllDeskExercises()) {
       if (typeof track === "function") {

@@ -1153,6 +1153,27 @@ function openContributeFromAddress(wanted) {
   }
 }
 
+function openCoffeeFromAddress(wanted) {
+  var button;
+  if (!wanted || embedded) {
+    return;
+  }
+  if (typeof isShareHash === "function" && isShareHash(window.location.hash || "")) {
+    return;
+  }
+  clearExerciseQuery();
+  if (typeof openAbout !== "function" || typeof openAboutPage !== "function") {
+    return;
+  }
+  openAbout();
+  openAboutPage("author");
+  button = document.getElementById("supportReveal");
+  if (button) {
+    button.scrollIntoView({ block: "center" });
+    button.focus();
+  }
+}
+
 function openOfferFromAddress(wanted) {
   var button;
   if (!wanted || embedded) {
@@ -1205,6 +1226,7 @@ function applyLook() {
 function init() {
   var wantContribute = queryFlag(window.location.search, "contribute") === "1";
   var wantOffer = queryFlag(window.location.search, "offer") === "1";
+  var wantCoffee = queryFlag(window.location.search, "coffee") === "1";
   applyLook();
   if (queryFlag(window.location.search, "embed") === "1") {
     embedded = true;
@@ -1219,6 +1241,7 @@ function init() {
   }
   openContributeFromAddress(wantContribute);
   openOfferFromAddress(wantOffer);
+  openCoffeeFromAddress(wantCoffee);
   buildExerciseMenu();
   bindExercisePanel();
   document.getElementById("meterTop").addEventListener("input", function () {

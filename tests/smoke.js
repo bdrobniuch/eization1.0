@@ -164,6 +164,7 @@ function exerciseMenu(w) {
   check("practice page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./practice.html']"));
   check("books page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
   check("more page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./more.html']"));
+  check("menu can buy a coffee", !!w.document.getElementById("aboutCoffee"));
   check("restore defaults lives in Menu", !!w.document.querySelector("#about #restoreDefaults"));
   check("download all lives in Menu", !!w.document.querySelector("#about #downloadAllExercises"));
   var packed = w.packDeskExercises();
@@ -1005,6 +1006,7 @@ function moreCatalog(w) {
   check("more catalog has 177 share links", keys.length === 177);
   check("more article offers share and embed", html.indexOf("data-share") >= 0 && html.indexOf("data-embed") >= 0);
   check("more page offers today and a correction", html.indexOf('href="./?today=1"') >= 0 && html.indexOf('href="./?contribute=1"') >= 0);
+  check("more page offers coffee", html.indexOf('href="./?coffee=1"') >= 0);
   var hashUrl = new URL("./#s2=abc", "https://eization.com/more.html").href;
   var exerciseUrl = new URL("./?exercise=scales", "https://eization.com/scales.html");
   exerciseUrl.searchParams.set("embed", "1");
