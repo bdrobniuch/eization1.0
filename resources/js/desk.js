@@ -282,6 +282,29 @@ function shareLinesMatch(a, b) {
   return true;
 }
 
+function shareLinesSame(a, b) {
+  var i;
+  var left;
+  var right;
+  if (shareLinesMatch(a, b)) {
+    return true;
+  }
+  if (!a || !b || a.length !== b.length || typeof staffShareCanonical !== "function") {
+    return false;
+  }
+  for (i = 0; i < a.length; i++) {
+    if (a[i] === b[i]) {
+      continue;
+    }
+    left = staffShareCanonical(a[i]);
+    right = staffShareCanonical(b[i]);
+    if (!left || left !== right) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function shareSnapshot(part) {
   if (!part) {
     return null;
@@ -316,7 +339,7 @@ function findDeskShare(part) {
     if (!out.related) {
       out.related = row;
     }
-    if (row.bars === snap.bars && shareLinesMatch(row.lines, snap.lines) && (row.name === snap.name || row.seedId)) {
+    if (row.bars === snap.bars && shareLinesSame(row.lines, snap.lines) && (row.name === snap.name || row.seedId)) {
       out.exact = row;
       break;
     }
@@ -329,7 +352,7 @@ function findDeskShare(part) {
     if (!row.seedId) {
       continue;
     }
-    if (row.bars === snap.bars && shareLinesMatch(row.lines, snap.lines)) {
+    if (row.bars === snap.bars && shareLinesSame(row.lines, snap.lines)) {
       out.exact = row;
       break;
     }
@@ -384,6 +407,21 @@ function exerciseRev(seedId) {
     return 1;
   }
   return rev;
+}
+
+function shareCatalogHref(saved) {
+  var fresh;
+  if (!saved || saved.touched !== false || !saved.seedId || typeof sharePageBase !== "function") {
+    return "";
+  }
+  fresh = catalogExerciseRecord(saved.seedId);
+  if (!fresh || fresh.bars !== saved.bars || !shareLinesMatch(saved.lines, fresh.lines)) {
+    return "";
+  }
+  if (typeof stockNameIsCatalog === "function" && !stockNameIsCatalog(saved.seedId, saved.name)) {
+    return "";
+  }
+  return sharePageBase() + "?exercise=" + saved.seedId;
 }
 
 function seedFromCatalog(seedId) {

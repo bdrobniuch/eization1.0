@@ -110,7 +110,7 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 20);
+  check("hidden exercises still registered", hidden === 21);
   check("address finds a seeded exercise", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
   check("address waits to add a library exercise", w.exerciseIdFromQuery("?exercise=intervals") === "");
   var deskList = w.listDeskExercises();
@@ -790,6 +790,10 @@ function editorLines(w) {
   check("a comparison stays", w.itemToLine("ii < V") === "ii < V");
 }
 
+function shareHashLive(w) {
+  return typeof w.isShareHash === "function" && w.isShareHash(w.location.hash || "");
+}
+
 function shareRows(w, shareId) {
   var list = w.listDeskExercises();
   var rows = [];
@@ -808,15 +812,15 @@ function moreCatalog(w) {
   req.send(null);
   check("more catalog loads", req.status === 0 || (req.status >= 200 && req.status < 300));
   var html = req.responseText || "";
-  var hashes = html.match(/#s=[A-Za-z0-9_-]+/g) || [];
+  var hashes = html.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
   var uniq = {};
   var i;
   for (i = 0; i < hashes.length; i++) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 121 share links", keys.length === 121);
-  check("more catalog points at practice", html.indexOf('href="./#s=') >= 0);
+  check("more catalog has 129 share links", keys.length === 129);
+  check("more catalog points at practice", html.indexOf('href="./#s=') >= 0 || html.indexOf('href="./#s2=') >= 0);
   check("more catalog links books", html.indexOf("books.html") >= 0 || html.indexOf("changes.html") >= 0);
   if (!keys.length) {
     return;
@@ -832,13 +836,13 @@ function moreCatalog(w) {
   w.editorCancel();
   var added = w.confirmShareAdd();
   check("more add keeps the exercise", added === true && w.listDeskExercises().length === before + 1);
-  check("more add drops the hash", w.location.hash.indexOf("#s=") < 0);
+  check("more add drops the hash", !shareHashLive(w));
   var esReq = new XMLHttpRequest();
   esReq.open("GET", "../es/more.html", false);
   esReq.send(null);
   var esHtml = esReq.responseText || "";
-  var esHashes = esHtml.match(/#s=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 121 share links", esHashes.length === 121);
+  var esHashes = esHtml.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
+  check("spanish more catalog has 129 share links", esHashes.length === 129);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -954,6 +958,42 @@ function lineShown(w, lines) {
 
 function shareCase(w) {
   var base = "https://eization.com/";
+  var packedIds = ["dynamics", "ties", "tuplets", "playRest", "consecutiveEightNotes", "leftHandRootless", "scales"];
+  var packedOk = w.shareCodecOk();
+  var pi;
+  var plines;
+  var pj;
+  var canon;
+  var minorKey;
+  var mixedUrl;
+  var mixedRead;
+  var rootless;
+  var rootUrl;
+  for (pi = 0; pi < packedIds.length; pi++) {
+    plines = w.exercises[packedIds[pi]] ? w.exercises[packedIds[pi]].items : [];
+    for (pj = 0; pj < plines.length; pj++) {
+      if (!w.staffNotationStatus(plines[pj]).ok || !w.staffShareCanonical(plines[pj])) {
+        packedOk = false;
+      }
+    }
+  }
+  check("staff lines pack", packedOk);
+  minorKey = w.staffShareCanonical("@key=Am C4e D4e E4e F4e G4e A4e B4e C5e");
+  check("minor key name stays", minorKey.indexOf("@key=Am") === 0 && w.staffShareCanonical(minorKey) === minorKey);
+  check(
+    "spaced staff is the same exercise",
+    w.shareLinesSame(["C4e  D4e | E4q"], [w.staffShareCanonical("C4e  D4e | E4q")])
+  );
+  mixedUrl = w.shareExerciseUrl({ v: 1, id: "mix00001", name: "Mix", bars: 1, lines: ["C4e  D4e", "not notation"] }, base);
+  mixedRead = mixedUrl ? w.readShareHash(mixedUrl.slice(mixedUrl.indexOf("#"))) : null;
+  check(
+    "a prose line stays in the link",
+    !!(mixedRead && mixedRead.lines[1] === "not notation" && w.shareLinesSame(["C4e  D4e"], [mixedRead.lines[0]]))
+  );
+  rootless = w.getDeskExercise("ex:leftHandRootless");
+  rootUrl = w.shareExerciseUrl({ v: 1, id: "fact0003", name: rootless.name, bars: rootless.bars, lines: rootless.lines.slice() }, base);
+  check("a long staff link is packed", rootUrl.indexOf("#s2=") > 0 && rootUrl.length <= 8000);
+  check("stock exercise uses its id", w.shareCatalogHref(w.getDeskExercise("ex:scales")) === "https://eization.com/?exercise=scales");
   var week = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"] };
   var url = w.shareExerciseUrl(week, base);
   var read = url ? w.readShareHash(url.slice(url.indexOf("#"))) : null;
@@ -964,11 +1004,14 @@ function shareCase(w) {
   var notes = w.getDeskExercise("ex:allNotes");
   var factoryCount = w.listDeskExercises().length;
   var factoryLines = notes.lines.slice();
-  check("scales do not fit in a share link", w.shareExerciseUrl({ v: 1, id: "fact0001", name: "Escalas", bars: w.getDeskExercise("ex:scales").bars, lines: w.getDeskExercise("ex:scales").lines.slice() }, base) === "");
+  var scaleRow = w.getDeskExercise("ex:scales");
+  var scaleUrl = w.shareExerciseUrl({ v: 1, id: "fact0001", name: "Escalas", bars: scaleRow.bars, lines: scaleRow.lines.slice() }, base);
+  var scaleRead = scaleUrl ? w.readShareHash(scaleUrl.slice(scaleUrl.indexOf("#"))) : null;
+  check("scales share round trip", !!scaleUrl && scaleUrl.length <= 8000 && !!scaleRead && scaleRead.lines.length === scaleRow.lines.length && w.shareLinesSame(scaleRow.lines, scaleRead.lines));
   var factoryUrl = w.shareExerciseUrl({ v: 1, id: "fact0001", name: "Todas las notas", bars: notes.bars, lines: factoryLines }, base);
   w.location.hash = factoryUrl.slice(factoryUrl.indexOf("#"));
   w.offerSharedExercise();
-  check("factory exercise opens quietly", w.currentExerciseId === "ex:allNotes" && w.listDeskExercises().length === factoryCount && w.document.getElementById("shareAsk").hidden === true && w.location.hash.indexOf("#s=") < 0 && !w.getDeskExercise("ex:allNotes").shareId);
+  check("factory exercise opens quietly", w.currentExerciseId === "ex:allNotes" && w.listDeskExercises().length === factoryCount && w.document.getElementById("shareAsk").hidden === true && !shareHashLive(w) && !w.getDeskExercise("ex:allNotes").shareId);
   var editedLines = factoryLines.slice();
   editedLines[0] = editedLines[0] + " x";
   w.updateDeskExercise("ex:allNotes", { lines: editedLines });
@@ -1018,7 +1061,7 @@ function shareCase(w) {
     "add leaves the example on screen",
     w.currentExerciseId === rows[0].id && !w.shareLooking && lineShown(w, week.lines)
   );
-  check("add drops the hash", w.location.hash.indexOf("#s=") < 0);
+  check("add drops the hash", !shareHashLive(w));
   check("add leaves the prompt", w.document.getElementById("shareAsk").hidden === true);
   check("add offers the intro", w.shareBlocksHello() === false && w.document.body.classList.contains("is-hello"));
   w.endHello();
@@ -1027,27 +1070,27 @@ function shareCase(w) {
   w.location.hash = url.slice(url.indexOf("#"));
   w.offerSharedExercise();
   check("exact match does not add", w.listDeskExercises().length === count && w.document.getElementById("shareAsk").hidden === true);
-  check("exact match drops the hash", w.location.hash.indexOf("#s=") < 0);
-  var changed = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "C6"] };
+  check("exact match drops the hash", !shareHashLive(w));
+  var changed = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "C6sus"] };
   var url2 = w.shareExerciseUrl(changed, base);
   w.location.hash = url2.slice(url2.indexOf("#"));
   w.offerSharedExercise();
   check("changed exercise offers update", w.document.getElementById("shareUpdate").hidden === false && w.document.getElementById("shareAddNew").hidden === false && w.document.getElementById("sharePreview").hidden === false && w.document.getElementById("shareAdd").hidden === true && w.document.getElementById("shareAskLead").textContent === w.t("share.differ"));
   w.previewShareExercise();
-  check("changed preview hides delete", w.document.getElementById("editDelete").hidden === true && w.document.getElementById("editHint").textContent === w.t("edit.hintShare") && w.document.getElementById("allEdit").value.indexOf("C6") >= 0 && w.document.getElementById("editSaveAs").hidden === false && !w.document.body.classList.contains("is-hello"));
+  check("changed preview hides delete", w.document.getElementById("editDelete").hidden === true && w.document.getElementById("editHint").textContent === w.t("edit.hintShare") && w.document.getElementById("allEdit").value.indexOf("C6sus") >= 0 && w.document.getElementById("editSaveAs").hidden === false && !w.document.body.classList.contains("is-hello"));
   w.editorCancel();
   check("preview cancel keeps the intro waiting", w.document.getElementById("shareAsk").hidden === false && !w.document.body.classList.contains("is-hello"));
   w.confirmShareUpdate();
   rows = shareRows(w, "teach001");
-  check("update replaces the exercise", rows.length === 1 && rows[0].lines[1] === "C6" && rows[0].shareId === "teach001");
-  check("update drops the hash", w.location.hash.indexOf("#s=") < 0);
+  check("update replaces the exercise", rows.length === 1 && rows[0].lines[1] === "C6sus" && rows[0].shareId === "teach001");
+  check("update drops the hash", !shareHashLive(w));
   w.location.hash = url.slice(url.indexOf("#"));
   w.offerSharedExercise();
   w.confirmShareAdd();
   rows = shareRows(w, "teach001");
-  var kept = rows[0].lines[1] === "C6" ? rows[0] : rows[1];
+  var kept = rows[0].lines[1] === "C6sus" ? rows[0] : rows[1];
   var addedRow = kept === rows[0] ? rows[1] : rows[0];
-  check("add as new keeps both", rows.length === 2 && kept.lines[1] === "C6" && addedRow.lines[1] === "Cmaj7" && kept.shareId === "teach001" && addedRow.shareId === "teach001");
+  check("add as new keeps both", rows.length === 2 && kept.lines[1] === "C6sus" && addedRow.lines[1] === "Cmaj7" && kept.shareId === "teach001" && addedRow.shareId === "teach001");
   w.location.hash = url.slice(url.indexOf("#"));
   w.offerSharedExercise();
   check("old link selects the old row", w.currentExerciseId === addedRow.id);
@@ -1058,9 +1101,9 @@ function shareCase(w) {
   w.location.hash = previewUrl.slice(previewUrl.indexOf("#"));
   w.offerSharedExercise();
   w.previewShareExercise();
-  check("preview fills edit", w.document.body.classList.contains("is-editing") && w.document.getElementById("allEdit").value.indexOf("Fmaj7") >= 0 && w.document.getElementById("shareAsk").hidden === true && w.location.hash.indexOf("#s=") === 0 && w.document.getElementById("editDelete").hidden === true && !w.document.body.classList.contains("is-hello"));
+  check("preview fills edit", w.document.body.classList.contains("is-editing") && w.document.getElementById("allEdit").value.indexOf("Fmaj7") >= 0 && w.document.getElementById("shareAsk").hidden === true && shareHashLive(w) && w.document.getElementById("editDelete").hidden === true && !w.document.body.classList.contains("is-hello"));
   w.editorCancel();
-  check("preview cancel restores the question", !w.document.body.classList.contains("is-editing") && w.document.getElementById("shareAsk").hidden === false && w.location.hash.indexOf("#s=") === 0 && !w.document.body.classList.contains("is-hello"));
+  check("preview cancel restores the question", !w.document.body.classList.contains("is-editing") && w.document.getElementById("shareAsk").hidden === false && shareHashLive(w) && !w.document.body.classList.contains("is-hello"));
   check(
     "preview cancel shows the incoming example",
     w.document.getElementById("exerciseFace").querySelector(".combo-value").textContent === "Preview" &&
@@ -1079,8 +1122,16 @@ function shareCase(w) {
   }
   check("backup keeps both versions", kept === 2);
   var many = [];
-  for (i = 0; i < 200; i++) {
-    many.push("Cmaj7 Dm7 G7 Cmaj7 line " + i + " extra words to grow the link");
+  var junk;
+  var nch;
+  var state = 1;
+  for (i = 0; i < 500; i++) {
+    junk = "";
+    for (nch = 0; nch < 240; nch++) {
+      state = (state * 1103515245 + 12345) & 0x7fffffff;
+      junk += String.fromCharCode(32 + (state % 95));
+    }
+    many.push(junk);
   }
   check("a long list is not a link", w.shareExerciseUrl({ v: 1, id: "teach001", name: "Scales", bars: 1, lines: many }, base) === "");
   var guard = 0;
@@ -1095,20 +1146,20 @@ function shareCase(w) {
   w.offerSharedExercise();
   var hashBefore = w.location.hash;
   check("a full menu refuses", w.confirmShareAdd() === false);
-  check("a full menu keeps the hash", w.location.hash === hashBefore && w.location.hash.indexOf("#s=") === 0);
+  check("a full menu keeps the hash", w.location.hash === hashBefore && shareHashLive(w));
   check("a full menu keeps the prompt", w.document.getElementById("shareAsk").hidden === false && w.document.getElementById("shareAskNote").hidden === false);
   w.dismissShareAsk();
-  check("not now drops the hash", w.location.hash.indexOf("#s=") < 0);
-  var revise = w.shareExerciseUrl({ v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "C9"] }, base);
+  check("not now drops the hash", !shareHashLive(w));
+  var revise = w.shareExerciseUrl({ v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "C9sus"] }, base);
   var fullCount = w.listDeskExercises().length;
   w.location.hash = revise.slice(revise.indexOf("#"));
   w.offerSharedExercise();
   w.confirmShareUpdate();
   rows = shareRows(w, "teach001");
-  check("a full menu still updates", w.listDeskExercises().length === fullCount && rows.length === 2 && (rows[0].lines[1] === "C9" || rows[1].lines[1] === "C9") && w.location.hash.indexOf("#s=") < 0);
+  check("a full menu still updates", w.listDeskExercises().length === fullCount && rows.length === 2 && (rows[0].lines[1] === "C9sus" || rows[1].lines[1] === "C9sus") && !shareHashLive(w));
   w.location.hash = "#s=not-valid";
   w.offerSharedExercise();
-  check("a bad hash is dropped", w.location.hash.indexOf("#s=") < 0);
+  check("a bad hash is dropped", !shareHashLive(w));
   check("a bad hash says so", w.document.getElementById("deskNote").hidden === false && w.document.getElementById("deskNote").textContent === w.t("share.bad"));
   check("address still opens scales", w.exerciseIdFromQuery("?exercise=scales") === "ex:scales");
 }

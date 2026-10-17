@@ -1,8 +1,20 @@
-# Reads tools/more-exercises.json, writes more.html and es/more.html with #s= share links.
+# Reads tools/more-exercises.json, writes more.html and es/more.html.
+# Packed hashes come from node tools/share-url.js when node is available,
+# otherwise from tools/share-hashes.json. Without either, the page keeps #s=.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $dataPath = Join-Path $PSScriptRoot 'more-exercises.json'
 $exercises = Get-Content -LiteralPath $dataPath -Encoding UTF8 -Raw | ConvertFrom-Json
+
+$hashMap = $null
+$hashFile = Join-Path $PSScriptRoot 'share-hashes.json'
+if (Get-Command node -ErrorAction SilentlyContinue) {
+  $rawMap = & node (Join-Path $PSScriptRoot 'share-url.js')
+  if ($LASTEXITCODE -ne 0) { throw 'share pack failed' }
+  $hashMap = $rawMap | ConvertFrom-Json
+} elseif (Test-Path -LiteralPath $hashFile) {
+  $hashMap = Get-Content -LiteralPath $hashFile -Encoding UTF8 -Raw | ConvertFrom-Json
+}
 
 function Share-Encode([string]$text) {
   $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
@@ -44,7 +56,13 @@ foreach ($ex in $exercises) {
     Write-Host ("{0} catalog {1}" -f $ex.id, $ex.exercise)
     continue
   }
-  $hash = Share-Hash $ex.id $ex.nameEn ([int]$ex.bars) $ex.lines
+  if ($hashMap) {
+    $packed = $hashMap.PSObject.Properties[$ex.id]
+    if (-not $packed) { throw "missing packed hash for $($ex.id)" }
+    $hash = [string]$packed.Value
+  } else {
+    $hash = Share-Hash $ex.id $ex.nameEn ([int]$ex.bars) $ex.lines
+  }
   $ex | Add-Member -NotePropertyName hash -NotePropertyValue $hash -Force
   $len = ('https://eization.com/' + $hash).Length
   if ($len -gt 8000) { throw "URL too long for $($ex.id): $len" }

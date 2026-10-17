@@ -2147,8 +2147,6 @@ function buildEditorSymbols() {
   }
 }
 
-var SHARE_URL_MAX = 8000;
-
 function newShareId() {
   var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
   var out = "";
@@ -2165,84 +2163,6 @@ function newShareId() {
     out += alphabet[Math.floor(Math.random() * 36)];
   }
   return out;
-}
-
-function shareEncode(text) {
-  return btoa(unescape(encodeURIComponent(text))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function shareDecode(text) {
-  var pad = String(text || "").replace(/-/g, "+").replace(/_/g, "/");
-  while (pad.length % 4) {
-    pad += "=";
-  }
-  return decodeURIComponent(escape(atob(pad)));
-}
-
-function shareHashFromPayload(payload) {
-  if (!payload || payload.v !== 1 || typeof shareSnapshot !== "function") {
-    return "";
-  }
-  var snap = shareSnapshot({
-    id: payload.id,
-    name: payload.name,
-    bars: payload.bars,
-    lines: payload.lines
-  });
-  if (!snap) {
-    return "";
-  }
-  return "#s=" + shareEncode(JSON.stringify({
-    v: 1,
-    id: snap.shareId,
-    name: snap.name,
-    bars: snap.bars,
-    lines: snap.lines
-  }));
-}
-
-function sharePageBase() {
-  var link = document.querySelector("link[rel='canonical']");
-  var url = link && link.href ? link.href : window.location.href;
-  return String(url).split("#")[0].split("?")[0];
-}
-
-function shareExerciseUrl(payload, base) {
-  var hash = shareHashFromPayload(payload);
-  if (!hash) {
-    return "";
-  }
-  var root = base == null ? sharePageBase() : String(base);
-  var url = root + hash;
-  if (url.length > SHARE_URL_MAX) {
-    return "";
-  }
-  return url;
-}
-
-function readShareHash(hash) {
-  var text = String(hash || "");
-  if (text.charAt(0) === "#") {
-    text = text.slice(1);
-  }
-  if (text.indexOf("s=") !== 0) {
-    return null;
-  }
-  var json;
-  try {
-    json = JSON.parse(shareDecode(text.slice(2)));
-  } catch (err) {
-    return null;
-  }
-  if (!json || json.v !== 1 || typeof shareSnapshot !== "function") {
-    return null;
-  }
-  return shareSnapshot({
-    id: json.id,
-    name: json.name,
-    bars: json.bars,
-    lines: json.lines
-  });
 }
 
 var CHAT_URL_MAX = 2000;
@@ -2278,7 +2198,7 @@ function chatPromptRules(lang, staff) {
   if (lang === "es") {
     return [
       "Ayúdame con un ejercicio de eization. Un ejemplo a la vez, con el metrónomo. Cada uno sale una vez y luego cambia el orden.",
-      "Un ejemplo por línea. Sin título, sin # eization, sin #s=. Signos, no palabras ni HTML. \" · \" separa lo que se toca de un texto.",
+      "Un ejemplo por línea. Sin título, sin # eization, sin #s= ni #s2=. Signos, no palabras ni HTML. \" · \" separa lo que se toca de un texto.",
       staff
         ? chatStaffSpelling("es")
         : "Añade notas: una línea por escritura. Naturales una vez (C D E F G A B). El resto en sostenido y bemol. Ejemplo: B♭ · ♭7 de C y A♯ · ♭7 de C. Cada grado del recuadro, sobre la fundamental. Si no hay, pregunta una vez y sugiere C.",
@@ -2288,7 +2208,7 @@ function chatPromptRules(lang, staff) {
   }
   return [
     "Help me write an eization exercise. One example shows at a time, with the metronome. Each comes up once, then the order changes.",
-    "Write one example per line. No title, no # eization header, no #s= link. Signs, not words or HTML. \" · \" splits play from a caption.",
+    "Write one example per line. No title, no # eization header, no #s= or #s2= link. Signs, not words or HTML. \" · \" splits play from a caption.",
     staff
       ? chatStaffSpelling("en")
       : "Add notes: one line per spelling. Naturals once (C D E F G A B). Other pitches sharp and flat. Example: B♭ · ♭7 of C and A♯ · ♭7 of C. Every degree in the box, on the named root. No root: ask once, suggest C.",
@@ -2412,7 +2332,19 @@ function editorShare() {
   var snap = typeof shareSnapshot === "function"
     ? shareSnapshot({ id: shareId, name: editorNameValue(), bars: bars, lines: lines })
     : null;
-  var url = snap ? shareExerciseUrl({ v: 1, id: snap.shareId, name: snap.name, bars: snap.bars, lines: snap.lines }) : "";
+  var catalogHref = "";
+  if (
+    saved &&
+    snap &&
+    saved.bars === snap.bars &&
+    saved.name === snap.name &&
+    typeof shareLinesMatch === "function" &&
+    shareLinesMatch(saved.lines, snap.lines) &&
+    typeof shareCatalogHref === "function"
+  ) {
+    catalogHref = shareCatalogHref(saved);
+  }
+  var url = catalogHref || (snap ? shareExerciseUrl({ v: 1, id: snap.shareId, name: snap.name, bars: snap.bars, lines: snap.lines }) : "");
   if (!url) {
     editorNotice(t("edit.shareLong"));
     return;
@@ -2420,7 +2352,7 @@ function editorShare() {
   if (typeof track === "function") {
     track("edit_share");
   }
-  if (saved && !saved.shareId && typeof updateDeskExercise === "function") {
+  if (!catalogHref && saved && !saved.shareId && typeof updateDeskExercise === "function") {
     updateDeskExercise(saved.id, { shareId: shareId });
   }
   clearEditorNotice();
@@ -2429,7 +2361,7 @@ function editorShare() {
   if (navigator.share) {
     sheet = true;
     navigator.share({
-      title: snap.name || "eization",
+      title: (snap && snap.name) || "eization",
       text: t("share.text"),
       url: url
     }).catch(function (error) {

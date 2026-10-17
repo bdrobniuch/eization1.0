@@ -838,7 +838,7 @@ function dismissShareAsk() {
 
 function offerSharedExercise() {
   var hash = window.location.hash || "";
-  if (hash.indexOf("#s=") !== 0) {
+  if (typeof isShareHash !== "function" || !isShareHash(hash)) {
     return;
   }
   var snap = typeof readShareHash === "function" ? readShareHash(hash) : null;
@@ -906,7 +906,7 @@ function init() {
   if (typeof applyDesk === "function") {
     applyDesk();
   }
-  if ((window.location.hash || "").indexOf("#s=") === 0) {
+  if (typeof isShareHash === "function" && isShareHash(window.location.hash || "")) {
     if (exerciseSeedFromQuery(window.location.search)) {
       clearExerciseQuery();
     }
