@@ -157,12 +157,13 @@ function fillExampleFace(el, source, role) {
     el.classList.remove("is-staff");
     return;
   }
+  var playable = typeof notationSource === "function" ? notationSource(source) : source;
   var parts =
     typeof staffExampleParts === "function"
-      ? staffExampleParts(source)
-      : { music: source, caption: "" };
-  var music = parts.music || source;
-  if (typeof isMusicNotation === "function" && isMusicNotation(source)) {
+      ? staffExampleParts(playable)
+      : { music: playable, caption: "" };
+  var music = parts.music || playable;
+  if (typeof isMusicNotation === "function" && isMusicNotation(playable)) {
     el.classList.add("is-staff");
     var staffRole = "current";
     if (role === "reel" || (role === "sheet" && lookAhead)) {

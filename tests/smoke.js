@@ -338,6 +338,16 @@ function staffNotation(w) {
     "captioned slash is music notation",
     w.isMusicNotation("rq /q rq /q \u00B7 Backbeat")
   );
+  var accentLine = "/e /e> /e /e /e> /e /e /e | /e> /e /e /e> /e /e /e /e>";
+  var accentItem = w.lineToItem(accentLine);
+  check(
+    "an accented slash still draws after it is stored",
+    !!(
+      accentItem.indexOf("&gt;") >= 0 &&
+      w.isMusicNotation(accentItem) &&
+      w.renderMusicStaff(w.notationSource(accentItem), "current")
+    )
+  );
   var dyn = w.parseMusicNotation("mf C4q cresc D4q f E4q");
   check(
     "a dynamic and a hairpin attach to notes",

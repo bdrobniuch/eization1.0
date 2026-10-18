@@ -1606,8 +1606,18 @@ function staffExampleParts(source) {
   };
 }
 
+/* Live examples are HTML. An accent slash is stored as /e&gt;, which the parser rejects. */
+function notationSource(source) {
+  var raw = String(source || "");
+  if (!raw || typeof itemToLine !== "function" || typeof document === "undefined") {
+    return raw;
+  }
+  var line = itemToLine(raw);
+  return line || raw;
+}
+
 function isMusicNotation(source) {
-  var parts = staffExampleParts(source);
+  var parts = staffExampleParts(notationSource(source));
   return !!parseMusicNotation(parts.music);
 }
 
