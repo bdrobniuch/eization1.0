@@ -965,6 +965,7 @@ function guideDoors(w) {
   req.send(null);
   html = req.responseText || "";
   check("studio offer shows the practice screen", html.indexOf("look=1") >= 0 && html.indexOf("Wednesday Room") >= 0 && html.indexOf("200 euros") < 0);
+  check("studio offer names a school, an orchestra, and YouTube", html.indexOf("school") >= 0 && html.indexOf("orchestra") >= 0 && html.indexOf("YouTube") >= 0);
   check("studio offer writes through the practice screen", html.indexOf('href="../?offer=1"') >= 0);
   check("studio offer can arm the mail button", typeof w.armStudioOffer === "function");
   req = new XMLHttpRequest();
