@@ -191,7 +191,14 @@ function fillExampleFace(el, source, role) {
     }
   }
   el.classList.remove("is-staff");
-  el.innerHTML = source;
+  if (role === "sheet") {
+    var line = document.createElement("span");
+    line.className = "score-line";
+    line.innerHTML = source;
+    el.appendChild(line);
+  } else {
+    el.innerHTML = source;
+  }
   var size = exerciseFontPx;
   if (role === "sheet") {
     size = sheetFontPx || exerciseFontPx;

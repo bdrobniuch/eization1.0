@@ -232,6 +232,13 @@ body.is-count-in {
     overflow: hidden;
 }
 
+#noteStack.sheet-on #scoreSheet .score-line {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    text-align: center;
+}
+
 #noteStack.sheet-on #scoreSheet > .is-staff {
     align-items: stretch;
     justify-content: center;
