@@ -61,7 +61,7 @@ function deskExerciseStamp(data) {
       continue;
     }
     lines = row.lines && row.lines.length ? row.lines.join("\n") : "";
-    parts.push(row.id + "\n" + (row.name || "") + "\n" + (row.bars || "") + "\n" + (row.seedId || "") + "\n" + (row.seedRev || "") + "\n" + (row.touched ? "1" : "0") + "\n" + (row.shareId || "") + "\n" + lines);
+    parts.push(row.id + "\n" + (row.name || "") + "\n" + (row.bars || "") + "\n" + (row.staff ? "1" : "0") + "\n" + (row.seedId || "") + "\n" + (row.seedRev || "") + "\n" + (row.touched ? "1" : "0") + "\n" + (row.shareId || "") + "\n" + lines);
   }
   deleted = data && data.deletedSeeds && data.deletedSeeds.length ? data.deletedSeeds.join("\n") : "";
   return parts.join("\n\n") + "\n---\n" + deleted;
@@ -211,18 +211,65 @@ function deskIdForSeed(seedId) {
   return "ex:" + seedId;
 }
 
-function catalogLines(ex) {
+function exerciseUsesStaff(ex) {
+  if (!ex) {
+    return false;
+  }
+  if (ex.staff === true) {
+    return true;
+  }
+  if (ex.staff === false) {
+    return false;
+  }
+  return linesLookLikeStaff(catalogPlainLines(ex));
+}
+
+function catalogPlainLines(ex) {
   var lines = [];
+  var i;
+  var line;
   if (!ex || !ex.items) {
     return lines;
   }
-  for (var i = 0; i < ex.items.length; i++) {
-    var line = typeof itemToLine === "function" ? itemToLine(ex.items[i]) : String(ex.items[i] || "");
+  for (i = 0; i < ex.items.length; i++) {
+    line = typeof itemToLine === "function" ? itemToLine(ex.items[i]) : String(ex.items[i] || "");
     if (line) {
       lines.push(line.length > 240 ? line.slice(0, 240) : line);
     }
   }
   return lines;
+}
+
+function linesLookLikeStaff(lines) {
+  var i;
+  var line;
+  var parts;
+  if (!lines || !lines.length || typeof parseMusicNotation !== "function") {
+    return false;
+  }
+  for (i = 0; i < lines.length; i++) {
+    line = typeof itemToLine === "function" ? itemToLine(lines[i]) : String(lines[i] || "");
+    if (!line) {
+      return false;
+    }
+    parts = typeof staffExampleParts === "function" ? staffExampleParts(line) : { music: line };
+    if (!parseMusicNotation(parts.music || line)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function catalogLines(ex) {
+  return catalogPlainLines(ex);
+}
+
+function deskDisplayItem(line, staff) {
+  var raw = String(line || "");
+  if (staff) {
+    return typeof itemToLine === "function" ? itemToLine(raw) : raw;
+  }
+  return typeof lineToItem === "function" ? lineToItem(raw) : raw;
 }
 
 function rewriteStackChordLine(line) {
@@ -245,6 +292,7 @@ function normalizeDeskExercise(raw) {
     id: id,
     name: cleanDeskName(raw.name, t("menu.kicker")),
     bars: clampDeskInt(raw.bars, 1, 16, 1),
+    staff: deskStaffValue(raw, lines),
     lines: lines
   };
   if (typeof raw.seedId === "string" && raw.seedId) {
@@ -264,6 +312,19 @@ function normalizeDeskExercise(raw) {
     record.shareId = shareId;
   }
   return record;
+}
+
+function deskStaffValue(raw, lines) {
+  if (raw && raw.staff === true) {
+    return true;
+  }
+  if (raw && raw.staff === false) {
+    return false;
+  }
+  if (raw && typeof raw.seedId === "string" && raw.seedId && typeof exercises !== "undefined" && exercises[raw.seedId]) {
+    return exerciseUsesStaff(exercises[raw.seedId]);
+  }
+  return linesLookLikeStaff(lines);
 }
 
 function cleanShareId(value) {
@@ -323,6 +384,7 @@ function shareSnapshot(part) {
     shareId: shareId,
     name: cleanDeskName(part.name, t("edit.defaultName")),
     bars: clampDeskInt(part.bars, 1, 16, 1),
+    staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
 }
@@ -344,7 +406,7 @@ function findDeskShare(part) {
     if (!out.related) {
       out.related = row;
     }
-    if (row.bars === snap.bars && shareLinesSame(row.lines, snap.lines) && (row.name === snap.name || row.seedId)) {
+    if (row.bars === snap.bars && !!row.staff === !!snap.staff && shareLinesSame(row.lines, snap.lines) && (row.name === snap.name || row.seedId)) {
       out.exact = row;
       break;
     }
@@ -357,7 +419,7 @@ function findDeskShare(part) {
     if (!row.seedId) {
       continue;
     }
-    if (row.bars === snap.bars && shareLinesSame(row.lines, snap.lines)) {
+    if (row.bars === snap.bars && !!row.staff === !!snap.staff && shareLinesSame(row.lines, snap.lines)) {
       out.exact = row;
       break;
     }
@@ -401,6 +463,7 @@ function catalogExerciseRecord(seedId) {
     touched: false,
     name: cleanDeskName(ex.label, seedId),
     bars: clampDeskInt(ex.bars, 1, 16, 1),
+    staff: exerciseUsesStaff(ex),
     lines: lines
   };
 }
@@ -420,7 +483,7 @@ function shareCatalogHref(saved) {
     return "";
   }
   fresh = catalogExerciseRecord(saved.seedId);
-  if (!fresh || fresh.bars !== saved.bars || !shareLinesMatch(saved.lines, fresh.lines)) {
+  if (!fresh || fresh.bars !== saved.bars || !!fresh.staff !== !!saved.staff || !shareLinesMatch(saved.lines, fresh.lines)) {
     return "";
   }
   if (typeof stockNameIsCatalog === "function" && !stockNameIsCatalog(saved.seedId, saved.name)) {
@@ -490,6 +553,7 @@ function legacyCustomRecord(data) {
     id: "ex:legacy-custom",
     name: t("edit.defaultName"),
     bars: clampDeskInt(custom.bars, 1, 16, 1),
+    staff: linesLookLikeStaff(lines),
     lines: lines
   };
 }
@@ -709,7 +773,7 @@ function stockRowIsPristine(row) {
     return false;
   }
   fresh = catalogExerciseRecord(row.seedId);
-  if (!fresh || !stockNameIsCatalog(row.seedId, row.name) || row.bars !== fresh.bars) {
+  if (!fresh || !stockNameIsCatalog(row.seedId, row.name) || row.bars !== fresh.bars || !!row.staff !== !!fresh.staff) {
     return false;
   }
   if (shareLinesMatch(row.lines, fresh.lines)) {
@@ -760,9 +824,10 @@ function mirrorUntouchedSeeds(list, openId) {
     if (!fresh) {
       continue;
     }
-    changed = !shareLinesMatch(row.lines, fresh.lines) || row.bars !== fresh.bars || row.name !== fresh.name;
+    changed = !shareLinesMatch(row.lines, fresh.lines) || row.bars !== fresh.bars || row.name !== fresh.name || !!row.staff !== !!fresh.staff;
     row.lines = fresh.lines.slice();
     row.bars = fresh.bars;
+    row.staff = fresh.staff;
     row.name = fresh.name;
     row.seedRev = fresh.seedRev;
     row.touched = false;
@@ -818,8 +883,8 @@ function deskExerciseItems(id) {
     return null;
   }
   var items = [];
-  for (var i = 0; i < record.lines.length; i++) {
-    var item = lineToItem(record.lines[i]);
+  for (var i = 0; i < record.lines.length && items.length < 500; i++) {
+    var item = deskDisplayItem(record.lines[i], record.staff);
     if (item) {
       items.push(item);
     }
@@ -827,7 +892,7 @@ function deskExerciseItems(id) {
   if (!items.length) {
     return null;
   }
-  return { items: items, bars: record.bars, name: record.name };
+  return { items: items, bars: record.bars, name: record.name, staff: !!record.staff };
 }
 
 function newDeskExerciseId() {
@@ -848,6 +913,7 @@ function updateDeskExercise(id, part) {
       id: id,
       name: cleanDeskName(part.name != null ? part.name : list[i].name, list[i].name),
       bars: clampDeskInt(part.bars != null ? part.bars : list[i].bars, 1, 16, 1),
+      staff: part.staff === true || part.staff === false ? part.staff : !!list[i].staff,
       lines: part.lines != null ? cleanDeskLines(part.lines) : list[i].lines.slice()
     };
     if (!next.lines.length) {
@@ -868,7 +934,7 @@ function updateDeskExercise(id, part) {
     }
     if (next.seedId) {
       var freshSeed = catalogExerciseRecord(next.seedId);
-      if (freshSeed && next.bars === freshSeed.bars && shareLinesMatch(next.lines, freshSeed.lines) && stockNameIsCatalog(next.seedId, next.name)) {
+      if (freshSeed && next.bars === freshSeed.bars && !!next.staff === !!freshSeed.staff && shareLinesMatch(next.lines, freshSeed.lines) && stockNameIsCatalog(next.seedId, next.name)) {
         next.touched = false;
         next.seedRev = freshSeed.seedRev;
         next.name = freshSeed.name;
@@ -909,6 +975,7 @@ function createDeskExercise(part) {
     id: newDeskExerciseId(),
     name: cleanDeskName(part.name, t("edit.defaultName")),
     bars: clampDeskInt(part.bars, 1, 16, 1),
+    staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
   var shareId = cleanShareId(part.shareId);
@@ -933,6 +1000,7 @@ function packDeskExercises() {
     var row = {
       name: list[i].name,
       bars: list[i].bars,
+      staff: !!list[i].staff,
       lines: list[i].lines.slice()
     };
     if (list[i].seedId) {
@@ -1010,6 +1078,7 @@ function parseDeskExercisesBackup(text) {
       bars: clampDeskInt(raw.bars, 1, 16, 1),
       lines: lines
     };
+    row.staff = deskStaffValue(raw, lines);
     if (typeof raw.seedId === "string" && raw.seedId && !seenSeed[raw.seedId]) {
       row.seedId = raw.seedId;
       row.id = deskIdForSeed(raw.seedId);

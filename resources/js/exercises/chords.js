@@ -1,6 +1,7 @@
 registerExercise({
   id: "allChords",
   label: "All Chords",
+  staff: false,
   inMenu: true,
   rev: 1,
   items: [

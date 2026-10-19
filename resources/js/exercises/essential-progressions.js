@@ -63,6 +63,7 @@ registerExercise({
   id: "essentialProgressions",
   label: "Essential Progressions",
   bars: 4,
+  staff: true,
   inMenu: true,
   /* 2026-10-15: / is play anything. Older copies wrote /q. */
   rev: 2,

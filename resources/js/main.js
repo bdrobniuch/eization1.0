@@ -231,7 +231,7 @@ function SelectExercise() {
   if (!loaded) {
     return;
   }
-  newExercise(loaded.items, loaded.bars);
+  newExercise(loaded.items, loaded.bars, !!loaded.staff);
   if (typeof rememberSetup === "function") {
     rememberSetup();
   }
@@ -696,11 +696,12 @@ function shareOfferItems(lines) {
   var items = [];
   var i;
   var item;
-  if (!lines || typeof lineToItem !== "function") {
+  var staff = !!(typeof shareOffer !== "undefined" && shareOffer && shareOffer.staff);
+  if (!lines) {
     return items;
   }
   for (i = 0; i < lines.length && items.length < 500; i++) {
-    item = lineToItem(lines[i]);
+    item = typeof deskDisplayItem === "function" ? deskDisplayItem(lines[i], staff) : (typeof lineToItem === "function" ? lineToItem(lines[i]) : "");
     if (item) {
       items.push(item);
     }
@@ -751,7 +752,7 @@ function paintShareOffer() {
     return;
   }
   bars = parseInt(shareOffer.bars, 10) || 1;
-  newExercise(items, bars);
+  newExercise(items, bars, !!shareOffer.staff);
   if (typeof layoutFrame === "function") {
     layoutFrame();
   }
@@ -864,6 +865,7 @@ function confirmShareAdd() {
   var created = createDeskExercise({
     name: shareOffer.name,
     bars: shareOffer.bars,
+    staff: !!shareOffer.staff,
     lines: shareOffer.lines,
     shareId: shareOffer.shareId
   });
@@ -896,6 +898,7 @@ function confirmShareUpdate() {
   var saved = updateDeskExercise(found.related.id, {
     name: shareOffer.name,
     bars: shareOffer.bars,
+    staff: !!shareOffer.staff,
     lines: shareOffer.lines
   });
   if (!saved) {
@@ -967,6 +970,7 @@ function previewShareExercise() {
     target: found.related,
     name: shareOffer.name,
     bars: shareOffer.bars,
+    staff: !!shareOffer.staff,
     lines: shareOffer.lines
   });
   return true;

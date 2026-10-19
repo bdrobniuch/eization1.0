@@ -3,6 +3,7 @@ var notePool = [];
 var countexercise = 0;
 var countnotes = 0;
 var exerciseBars = 1;
+var exerciseStaff = false;
 var exerciseFontPx = 48;
 var lookAhead = true;
 var nextCycle = null;
@@ -157,14 +158,13 @@ function fillExampleFace(el, source, role) {
     el.classList.remove("is-staff");
     return;
   }
-  var playable = typeof notationSource === "function" ? notationSource(source) : source;
-  var parts =
-    typeof staffExampleParts === "function"
-      ? staffExampleParts(playable)
-      : { music: playable, caption: "" };
-  var music = parts.music || playable;
-  if (typeof isMusicNotation === "function" && isMusicNotation(playable)) {
-    el.classList.add("is-staff");
+  if (exerciseStaff) {
+    var playable = typeof notationSource === "function" ? notationSource(source) : source;
+    var parts =
+      typeof staffExampleParts === "function"
+        ? staffExampleParts(playable)
+        : { music: playable, caption: "" };
+    var music = parts.music || playable;
     var staffRole = "current";
     if (role === "reel" || (role === "sheet" && lookAhead)) {
       staffRole = "reel";
@@ -173,19 +173,22 @@ function fillExampleFace(el, source, role) {
       typeof renderMusicStaff === "function"
         ? renderMusicStaff(music, staffRole)
         : null;
-    if (svg) {
-      var wrap = document.createElement("span");
-      wrap.className = "prog-changes";
-      wrap.appendChild(svg);
-      el.appendChild(wrap);
+    if (svg || parts.caption) {
+      el.classList.add("is-staff");
+      if (svg) {
+        var wrap = document.createElement("span");
+        wrap.className = "prog-changes";
+        wrap.appendChild(svg);
+        el.appendChild(wrap);
+      }
+      if (parts.caption) {
+        var capEl = document.createElement("span");
+        capEl.className = "prog-name";
+        capEl.textContent = parts.caption;
+        el.appendChild(capEl);
+      }
+      return;
     }
-    if (parts.caption) {
-      var capEl = document.createElement("span");
-      capEl.className = "prog-name";
-      capEl.textContent = parts.caption;
-      el.appendChild(capEl);
-    }
-    return;
   }
   el.classList.remove("is-staff");
   el.innerHTML = source;
@@ -823,7 +826,7 @@ function chooseExerciseFont() {
   var ranked = [];
   var textItems = [];
   for (var i = 0; i < items.length; i++) {
-    if (typeof isMusicNotation === "function" && isMusicNotation(items[i])) {
+    if (exerciseStaff) {
       continue;
     }
     textItems.push(items[i]);
@@ -910,7 +913,7 @@ function chooseExerciseFont() {
   renderPreview();
 }
 
-function newExercise(items, bars) {
+function newExercise(items, bars, staff) {
   chromaticScale = items || [];
   countexercise = 0;
   countnotes = 0;
@@ -921,6 +924,9 @@ function newExercise(items, bars) {
   cycleGap = false;
   if (bars) {
     exerciseBars = parseInt(bars, 10) || 1;
+  }
+  if (staff === true || staff === false) {
+    exerciseStaff = staff;
   }
   if (typeof editorCloseQuiet === "function") {
     editorCloseQuiet();

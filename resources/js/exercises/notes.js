@@ -1,6 +1,7 @@
 registerExercise({
   id: "allNotes",
   label: "All Notes",
+  staff: false,
   inMenu: true,
   rev: 1,
   items: [

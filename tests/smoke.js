@@ -348,6 +348,24 @@ function staffNotation(w) {
       w.renderMusicStaff(w.notationSource(accentItem), "current")
     )
   );
+  var textFace = w.document.createElement("div");
+  var staffFace = w.document.createElement("div");
+  var staffWas = w.exerciseStaff;
+  w.exerciseStaff = false;
+  w.fillExampleFace(textFace, w.lineToItem("B7"), "current");
+  w.exerciseStaff = true;
+  w.fillExampleFace(staffFace, accentItem, "current");
+  w.exerciseStaff = staffWas;
+  check(
+    "a text exercise keeps B7 as a word",
+    !textFace.classList.contains("is-staff") && textFace.textContent === "B7" && !!textFace.querySelector("sup")
+  );
+  check(
+    "a staff exercise draws the accented line",
+    staffFace.classList.contains("is-staff") && !!staffFace.querySelector("svg")
+  );
+  check("All Chords is text", w.exerciseUsesStaff(w.exercises.allChords) === false);
+  check("Play/Rest is staff", w.exerciseUsesStaff(w.exercises.playRest) === true);
   var dyn = w.parseMusicNotation("mf C4q cresc D4q f E4q");
   check(
     "a dynamic and a hairpin attach to notes",

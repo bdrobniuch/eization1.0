@@ -2,6 +2,7 @@ registerExercise({
   id: "playRest",
   label: "Play/Rest",
   bars: 2,
+  staff: true,
   inMenu: true,
   rev: 1,
   items: [

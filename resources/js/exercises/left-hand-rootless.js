@@ -300,6 +300,7 @@
   registerExercise({
     id: "leftHandRootless",
     label: "Left Hand Rootless Voicings",
+    staff: true,
     inMenu: true,
     /* 2026-10-17: each tone uses the root's letter, so F# is not written Gb beside G.
        2026-10-17: chord name is ^ above the stack. _ under a stack is text, not the name. */

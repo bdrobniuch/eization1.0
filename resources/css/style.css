@@ -1810,6 +1810,32 @@ body.is-editing #counter {
   opacity: 0.9;
 }
 
+#editKind {
+  display: flex;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#editKind button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 16px;
+}
+
+#editKind button + button {
+  border-left: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+#editKind button[aria-pressed="true"] {
+  background: #ffffff;
+  color: #111111;
+}
+
 #editName {
   flex: 1 1 160px;
   min-height: 44px;

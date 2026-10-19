@@ -6,6 +6,7 @@ registerExercise({
   id: "texture",
   label: "Rhythmic Devices",
   bars: 8,
+  staff: false,
   inMenu: true,
   rev: 1,
   items: [

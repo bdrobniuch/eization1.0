@@ -8,6 +8,7 @@ registerExercise({
   id: "dynamics",
   label: "Dynamics",
   bars: 4,
+  staff: true,
   inMenu: false,
   items: [
     dynamicItem("pp " + dynamicCell, "pianissimo"),

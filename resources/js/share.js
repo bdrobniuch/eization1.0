@@ -1927,10 +1927,16 @@ function sharePackExercise(snap) {
   }
   sharePushU16(raw, nameBytes.length);
   sharePush(raw, nameBytes);
-  raw.push(snap.bars & 255);
+  var barsByte = snap.bars & 31;
+  if (snap.staff === true) {
+    barsByte |= 64;
+  } else if (snap.staff === false) {
+    barsByte |= 128;
+  }
+  raw.push(barsByte);
   sharePushU16(raw, snap.lines.length);
   for (i = 0; i < snap.lines.length; i++) {
-    canon = staffShareCanonical(snap.lines[i]);
+    canon = snap.staff === false ? "" : staffShareCanonical(snap.lines[i]);
     staffBytes = canon ? shareEncodeStaffLine(canon) : null;
     if (staffBytes) {
       raw.push(1);
@@ -1956,6 +1962,9 @@ function sharePackExercise(snap) {
   if (!unpacked || unpacked.id !== snap.shareId || unpacked.name !== snap.name || unpacked.bars !== snap.bars) {
     return null;
   }
+  if ((snap.staff === true || snap.staff === false) && unpacked.staff !== snap.staff) {
+    return null;
+  }
   if (unpacked.lines.length !== stored.length) {
     return null;
   }
@@ -1973,6 +1982,7 @@ function shareUnpackExercise(bytes) {
   var id = "";
   var name;
   var bars;
+  var barsByte;
   var count;
   var lines = [];
   var i;
@@ -1981,6 +1991,9 @@ function shareUnpackExercise(bytes) {
   var text;
   var line;
   var start;
+  var sawStaff = false;
+  var sawText = false;
+  var staff;
   idBytes = cur.take(8);
   if (!idBytes) {
     return null;
@@ -1992,7 +2005,8 @@ function shareUnpackExercise(bytes) {
     return null;
   }
   name = shareReadU16Str(cur);
-  bars = cur.u8();
+  barsByte = cur.u8();
+  bars = barsByte & 31;
   count = cur.u16();
   if (name == null || bars < 1 || bars > 16 || count < 1 || count > 500) {
     return null;
@@ -2000,6 +2014,7 @@ function shareUnpackExercise(bytes) {
   for (i = 0; i < count; i++) {
     kind = cur.u8();
     if (kind === 1) {
+      sawStaff = true;
       start = cur.i;
       line = shareUnpackStaffBytes(cur);
       if (!line || cur.i === start) {
@@ -2007,6 +2022,7 @@ function shareUnpackExercise(bytes) {
       }
       lines.push(line);
     } else if (kind === 0) {
+      sawText = true;
       textBytes = cur.take(cur.u16());
       if (!textBytes) {
         return null;
@@ -2023,7 +2039,14 @@ function shareUnpackExercise(bytes) {
   if (cur.i !== bytes.length || !lines.length) {
     return null;
   }
-  return { id: id, name: name, bars: bars, lines: lines };
+  if ((barsByte & 64) && !(barsByte & 128)) {
+    staff = true;
+  } else if (barsByte & 128) {
+    staff = false;
+  } else {
+    staff = sawStaff && !sawText;
+  }
+  return { id: id, name: name, bars: bars, staff: staff, lines: lines };
 }
 
 function shareEncode(text) {
@@ -2083,6 +2106,7 @@ function shareJsonHash(snap) {
     id: snap.shareId,
     name: snap.name,
     bars: snap.bars,
+    staff: !!snap.staff,
     lines: snap.lines
   }));
 }
@@ -2099,6 +2123,7 @@ function shareHashFromPayload(payload) {
     id: payload.id,
     name: payload.name,
     bars: payload.bars,
+    staff: payload.staff,
     lines: payload.lines
   });
   if (!snap) {
@@ -2157,6 +2182,7 @@ function shareReadV2(payload) {
     id: snap.id,
     name: snap.name,
     bars: snap.bars,
+    staff: snap.staff,
     lines: snap.lines
   });
 }
@@ -2185,6 +2211,7 @@ function readShareHash(hash) {
     id: json.id,
     name: json.name,
     bars: json.bars,
+    staff: json.staff,
     lines: json.lines
   });
 }
@@ -2226,6 +2253,7 @@ function exerciseShareUrl(row) {
     id: shareId,
     name: row.name,
     bars: row.bars,
+    staff: row.staff,
     lines: row.lines
   });
   if (!snap) {
@@ -2236,6 +2264,7 @@ function exerciseShareUrl(row) {
     id: snap.shareId,
     name: snap.name,
     bars: snap.bars,
+    staff: snap.staff,
     lines: snap.lines
   });
 }
@@ -2247,7 +2276,7 @@ function downloadExerciseFile(row) {
   if (!row || !row.lines || !row.lines.length || typeof editorFileText !== "function") {
     return false;
   }
-  blob = new Blob([editorFileText(row.lines, row.bars, row.name)], { type: "text/plain;charset=utf-8" });
+  blob = new Blob([editorFileText(row.lines, row.bars, row.name, row.staff)], { type: "text/plain;charset=utf-8" });
   url = URL.createObjectURL(blob);
   link = document.createElement("a");
   link.href = url;

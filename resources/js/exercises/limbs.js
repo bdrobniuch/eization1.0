@@ -10,6 +10,7 @@ registerExercise({
   id: "limbs",
   label: "Rhythms",
   bars: 2,
+  staff: true,
   inMenu: true,
   rev: 1,
   items: [
