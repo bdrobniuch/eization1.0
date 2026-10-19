@@ -107,7 +107,6 @@ $groupOf = @{
   'two-five-one-clock' = 'changes'
   'guide-tones' = 'changes'
   'outline-changes' = 'changes'
-  'enclosures' = 'changes'
   'minor-two-five' = 'changes'
   'turnarounds' = 'changes'
   'blues-forms' = 'changes'

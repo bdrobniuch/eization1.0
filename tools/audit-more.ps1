@@ -100,40 +100,6 @@ Set-Props (Get-Ex 'more0004') @{
   lines = $outl.ToArray()
 }
 
-# --- more0005 enclosures: 4 shapes x 4 C7 chord tones + 4 Dm chord tones ---
-# Shapes: above-below, below-above, double-above, double-below
-$enc = @(
-  "D B C $dot above below -> C",
-  "B D C $dot below above -> C",
-  "Eb D Db C $dot double above -> C",
-  "A Bb B C $dot double below -> C",
-  "F D# E $dot above below -> E",
-  "D# F E $dot below above -> E",
-  "G F# F E $dot double above -> E",
-  "C# D D# E $dot double below -> E",
-  "A F# G $dot above below -> G",
-  "F# A G $dot below above -> G",
-  "Bb A Ab G $dot double above -> G",
-  "E F F# G $dot double below -> G",
-  "C A Bb $dot above below -> Bb",
-  "A C Bb $dot below above -> Bb",
-  "Db C B Bb $dot double above -> Bb",
-  "G Ab A Bb $dot double below -> Bb",
-  "E C# D $dot above below -> D",
-  "C# E D $dot below above -> D",
-  "F E Eb D $dot double above -> D",
-  "B C C# D $dot double below -> D",
-  "G E F $dot above below -> F",
-  "E G F $dot below above -> F",
-  "Ab G Gb F $dot double above -> F",
-  "D Eb E F $dot double below -> F"
-)
-Set-Props (Get-Ex 'more0005') @{
-  descEn = 'Four enclosure shapes into chord-tone targets on C7 (C E G Bb) and Dm (D F). Above-below, below-above, double above, double below. Each target gets every shape.'
-  descEs = "Cuatro formas de envolvente hacia objetivos en C7 (C E G Bb) y Dm (D F). Arriba-abajo, abajo-arriba, doble arriba, doble abajo. Cada objetivo recibe cada forma."
-  lines = $enc
-}
-
 # --- more0007 interval families (complete) ---
 Set-Props (Get-Ex 'more0007') @{
   nameEn = 'Interval families'
@@ -360,7 +326,7 @@ Add-Ex @{
   descEs="Aterriza notas del acorde en 1 y 3. El contratiempo antes de cada objetivo es siempre medio tono desde abajo. Rotan 1, 3, 5 y 7."
   books=@(
     @{href='./approach-notes.html'; en='Approach Notes'; es="Notas de aproximaci$([char]0x00F3)n"},
-    @{href='./more.html#enclosures'; en='Enclosures'; es='Envolventes'},
+    @{href='./more.html#two-note-enclosures'; en="Two-note enclosures $([char]0x2206)7"; es="Cercamientos de dos notas $([char]0x2206)7"},
     @{href='./melodic-lines.html#baker-bebop'; en='How to Play Bebop'; es='How to Play Bebop'}
   )
   lines=@(
