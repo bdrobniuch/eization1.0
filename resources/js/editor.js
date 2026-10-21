@@ -3341,6 +3341,102 @@ function applyEditorToReel(lines, bars, staff) {
   }
 }
 
+function editorBrokenStaffReport() {
+  var raw;
+  var i;
+  var line;
+  var status;
+  var exampleNo;
+  var firstRaw;
+  var firstExample;
+  var total;
+  if (!editorStaffOn() || typeof staffNotationStatus !== "function") {
+    return null;
+  }
+  raw = editorRawLines();
+  exampleNo = 0;
+  firstRaw = -1;
+  firstExample = 0;
+  total = 0;
+  for (i = 0; i < raw.length; i++) {
+    line = itemToLine(raw[i]);
+    if (!line) {
+      continue;
+    }
+    exampleNo += 1;
+    status = staffNotationStatus(line);
+    if (!status || !status.ok) {
+      total += 1;
+      if (firstRaw < 0) {
+        firstRaw = i;
+        firstExample = exampleNo;
+      }
+    }
+  }
+  if (!total) {
+    return null;
+  }
+  return { rawIndex: firstRaw, example: firstExample, more: total - 1, total: total };
+}
+
+function editorGoToRawLine(rawIndex) {
+  var area;
+  var lines;
+  var start;
+  var end;
+  var i;
+  var field;
+  if (typeof rawIndex !== "number" || rawIndex < 0) {
+    return;
+  }
+  if (editorIsFocusMode()) {
+    editorFocusIndex = rawIndex;
+    editorClampFocusIndex(editorRawLines().length);
+    editorSyncFocusFromArea();
+    refreshEditor();
+    field = document.getElementById("editFocusLine");
+    if (field) {
+      field.focus();
+      try {
+        field.select();
+      } catch (errFocus) {}
+    }
+    return;
+  }
+  area = document.getElementById("allEdit");
+  lines = editorRawLines();
+  editorFocusIndex = rawIndex;
+  editorClampFocusIndex(lines.length);
+  if (!area) {
+    return;
+  }
+  start = 0;
+  for (i = 0; i < editorFocusIndex; i++) {
+    start += (lines[i] || "").length + 1;
+  }
+  end = start + (lines[editorFocusIndex] || "").length;
+  area.focus();
+  try {
+    area.setSelectionRange(start, end);
+  } catch (errList) {}
+  refreshEditor();
+}
+
+function editorRejectBrokenStaff() {
+  var report = editorBrokenStaffReport();
+  var message;
+  if (!report) {
+    return false;
+  }
+  message =
+    report.more > 0
+      ? tr("edit.staffBrokenMore", { n: report.example, more: report.more })
+      : tr("edit.staffBrokenOne", { n: report.example });
+  editorNotice(message);
+  editorGoToRawLine(report.rawIndex);
+  return true;
+}
+
 function editorUpdate() {
   if (!editorIsOpen()) {
     return;
@@ -3361,6 +3457,9 @@ function editorUpdate() {
   }
   if (lines.length > 500) {
     editorNotice(t("edit.tooMany"));
+    return;
+  }
+  if (editorRejectBrokenStaff()) {
     return;
   }
   var bars = clampEditorBars(document.getElementById("editBars").value);
@@ -3412,6 +3511,9 @@ function editorSaveAsNew() {
   }
   if (lines.length > 500) {
     editorNotice(t("edit.tooMany"));
+    return;
+  }
+  if (editorRejectBrokenStaff()) {
     return;
   }
   var list = typeof listDeskExercises === "function" ? listDeskExercises() : [];

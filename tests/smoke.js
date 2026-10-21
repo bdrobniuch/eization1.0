@@ -1973,6 +1973,27 @@ function chatCase(w) {
       "undo restores the last valid staff line",
       focusLine.value === "C4q D4q" && !w.editorCanUndoStaffTyping()
     );
+    w.setEditorStaff(true);
+    placeCaret("C4q~");
+    w.editorSyncFocusToArea();
+    var areaBroken = w.document.getElementById("allEdit");
+    areaBroken.value = "C4q~\nD4q~\nE4q";
+    areaBroken.dispatchEvent(new w.Event("input", { bubbles: true }));
+    check(
+      "broken staff report names the first bad example",
+      !!(
+        w.editorBrokenStaffReport &&
+        w.editorBrokenStaffReport() &&
+        w.editorBrokenStaffReport().example === 1 &&
+        w.editorBrokenStaffReport().more === 1
+      )
+    );
+    check("update refuses broken staff lines", !!w.editorRejectBrokenStaff());
+    check(
+      "broken staff notice points at the first example",
+      w.document.getElementById("editError").textContent.indexOf("1") >= 0 &&
+        w.document.getElementById("editError").hidden === false
+    );
     w.editorCancel();
   }
 }
