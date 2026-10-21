@@ -605,8 +605,6 @@ function refreshEditorHint() {
       setEditorAskHint(true);
       if (typeof sharePreview !== "undefined" && sharePreview && sharePreview.mode === "changed") {
         hint.textContent = t("edit.hintShare");
-      } else if (!editorIsCreateMode() && editorIsDirty()) {
-        hint.textContent = t("edit.hintDirty");
       } else {
         hint.textContent = "";
       }
@@ -629,11 +627,8 @@ function refreshEditorHint() {
     hint.textContent = phone ? "" : t("edit.hintCreate");
     return;
   }
-  if (editorIsDirty()) {
-    hint.textContent = t("edit.hintDirty");
-    return;
-  }
-  hint.textContent = phone ? "" : t("edit.hintUpdate");
+  /* Dirty and clean edit: Update / Save as new labels are enough. */
+  hint.textContent = "";
 }
 
 function selectExerciseChip(id) {
