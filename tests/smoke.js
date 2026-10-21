@@ -1602,7 +1602,9 @@ function chatCase(w) {
       symbolsPanel.hidden === true &&
       symbolsToggle.getAttribute("aria-expanded") === "false" &&
       w.I18N.en["edit.symbols"] === "Symbols" &&
-      w.I18N.es["edit.symbols"] === "S\u00EDmbolos"
+      w.I18N.es["edit.symbols"] === "S\u00EDmbolos" &&
+      w.I18N.en["edit.notes"] === "Notes" &&
+      w.I18N.es["edit.notes"] === "Notas"
     )
   );
   symbolsToggle.click();
@@ -1625,11 +1627,19 @@ function chatCase(w) {
       w.getComputedStyle(notePad).display === "none" &&
       w.getComputedStyle(chartArrow).display !== "none" &&
       !symbolsPanel.querySelector("[data-symbol='\uD834\uDD00']") &&
+      symbolsToggle.querySelector(".btn-label").textContent === w.t("edit.symbols") &&
+      symbolsToggle.querySelector(".btn-mark").textContent === "\u266F" &&
       w.I18N.en["edit.noteNone"] === "No sign" &&
       w.I18N.es["edit.noteNone"] === "Sin alteraci\u00F3n"
     )
   );
   w.setEditorStaff(true);
+  check(
+    "staff mode names the notes button",
+    symbolsToggle.querySelector(".btn-label").textContent === w.t("edit.notes") &&
+      symbolsToggle.querySelector(".btn-mark").textContent === "\u2669" &&
+      symbolsToggle.getAttribute("aria-label") === w.t("edit.notesTitle")
+  );
   check(
     "staff symbols walk a note",
     !!(

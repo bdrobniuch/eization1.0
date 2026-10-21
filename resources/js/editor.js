@@ -1213,6 +1213,10 @@ function editorRestToken() {
 
 function editorSyncSymbolKind() {
   var panel = document.getElementById("editSymbols");
+  var button = document.getElementById("editSymbolsToggle");
+  var mark;
+  var label;
+  var titleKey;
   var staff;
   if (!panel) {
     return;
@@ -1220,6 +1224,21 @@ function editorSyncSymbolKind() {
   staff = editorStaffOn();
   panel.classList.toggle("is-staff", staff);
   panel.classList.toggle("is-text", !staff);
+  if (button) {
+    mark = button.querySelector(".btn-mark");
+    label = button.querySelector(".btn-label");
+    titleKey = staff ? "edit.notesTitle" : "edit.symbolsTitle";
+    button.classList.toggle("is-staff", staff);
+    button.classList.toggle("is-text", !staff);
+    button.setAttribute("title", t(titleKey));
+    button.setAttribute("aria-label", t(titleKey));
+    if (mark) {
+      mark.textContent = staff ? "\u2669" : "\u266F";
+    }
+    if (label) {
+      label.textContent = t(staff ? "edit.notes" : "edit.symbols");
+    }
+  }
   if (!staff) {
     editorNote.acc = "";
     editorNote.oct = null;
