@@ -924,6 +924,7 @@ function editorUpdateFocusChrome() {
   var next = document.getElementById("editFocusNext");
   var remove = document.getElementById("editFocusRemove");
   var lines = editorRawLines();
+  var removeIndex;
   editorClampFocusIndex(lines.length);
   if (indexEl) {
     indexEl.textContent = tr("edit.focusIndex", { n: editorFocusIndex + 1, total: lines.length });
@@ -935,7 +936,14 @@ function editorUpdateFocusChrome() {
     next.disabled = editorFocusIndex >= lines.length - 1;
   }
   if (remove) {
-    remove.disabled = lines.length <= 1 && !collapseEditorSpaces(lines[0] || "");
+    removeIndex = editorIsFocusMode() ? editorFocusIndex : editorCaretLineIndex();
+    if (removeIndex < 0) {
+      removeIndex = 0;
+    }
+    if (removeIndex >= lines.length) {
+      removeIndex = lines.length - 1;
+    }
+    remove.disabled = lines.length <= 1 && !collapseEditorSpaces(lines[removeIndex] || "");
   }
 }
 
@@ -1062,53 +1070,126 @@ function editorFocusGo(delta) {
   }
 }
 
+function editorLineStartOffset(lines, index) {
+  var i;
+  var offset = 0;
+  for (i = 0; i < index && i < lines.length; i++) {
+    offset += String(lines[i] || "").length + 1;
+  }
+  return offset;
+}
+
 function editorFocusAdd() {
-  if (!editorIsFocusMode()) {
+  var lines;
+  var area;
+  var caret;
+  var index;
+  var field;
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+    lines = editorRawLines();
+    if (lines.length >= 500) {
+      editorNotice(t("edit.tooMany"));
+      return;
+    }
+    editorClampFocusIndex(lines.length);
+    lines.splice(editorFocusIndex + 1, 0, "");
+    editorSetRawLines(lines);
+    editorFocusIndex += 1;
+    editorSyncFocusFromArea();
+    clearEditorNotice();
+    refreshEditor();
+    field = document.getElementById("editFocusLine");
+    if (field) {
+      field.focus();
+    }
     return;
   }
-  editorSyncFocusToArea();
-  var lines = editorRawLines();
+  area = document.getElementById("allEdit");
+  if (!area) {
+    return;
+  }
+  lines = editorRawLines();
   if (lines.length >= 500) {
     editorNotice(t("edit.tooMany"));
     return;
   }
-  editorClampFocusIndex(lines.length);
-  lines.splice(editorFocusIndex + 1, 0, "");
+  index = editorCaretLineIndex();
+  if (index < 0) {
+    index = 0;
+  }
+  if (index >= lines.length) {
+    index = lines.length - 1;
+  }
+  lines.splice(index + 1, 0, "");
   editorSetRawLines(lines);
-  editorFocusIndex += 1;
-  editorSyncFocusFromArea();
+  caret = editorLineStartOffset(lines, index + 1);
+  try {
+    area.focus();
+    area.setSelectionRange(caret, caret);
+  } catch (errAdd) {}
   clearEditorNotice();
   refreshEditor();
-  var field = document.getElementById("editFocusLine");
-  if (field) {
-    field.focus();
-  }
 }
 
 function editorFocusRemove() {
-  if (!editorIsFocusMode()) {
+  var lines;
+  var area;
+  var index;
+  var caret;
+  var field;
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+    lines = editorRawLines();
+    editorClampFocusIndex(lines.length);
+    if (lines.length <= 1) {
+      editorSetRawLines([""]);
+      editorFocusIndex = 0;
+    } else {
+      lines.splice(editorFocusIndex, 1);
+      editorSetRawLines(lines);
+      if (editorFocusIndex >= lines.length) {
+        editorFocusIndex = lines.length - 1;
+      }
+    }
+    editorSyncFocusFromArea();
+    clearEditorNotice();
+    refreshEditor();
+    field = document.getElementById("editFocusLine");
+    if (field) {
+      field.focus();
+    }
     return;
   }
-  editorSyncFocusToArea();
-  var lines = editorRawLines();
-  editorClampFocusIndex(lines.length);
+  area = document.getElementById("allEdit");
+  if (!area) {
+    return;
+  }
+  lines = editorRawLines();
+  index = editorCaretLineIndex();
+  if (index < 0) {
+    index = 0;
+  }
+  if (index >= lines.length) {
+    index = lines.length - 1;
+  }
   if (lines.length <= 1) {
     editorSetRawLines([""]);
-    editorFocusIndex = 0;
+    caret = 0;
   } else {
-    lines.splice(editorFocusIndex, 1);
+    lines.splice(index, 1);
     editorSetRawLines(lines);
-    if (editorFocusIndex >= lines.length) {
-      editorFocusIndex = lines.length - 1;
+    if (index >= lines.length) {
+      index = lines.length - 1;
     }
+    caret = editorLineStartOffset(lines, index);
   }
-  editorSyncFocusFromArea();
+  try {
+    area.focus();
+    area.setSelectionRange(caret, caret);
+  } catch (errRemove) {}
   clearEditorNotice();
   refreshEditor();
-  var field = document.getElementById("editFocusLine");
-  if (field) {
-    field.focus();
-  }
 }
 
 function currentEditorLine() {
@@ -1144,8 +1225,8 @@ function refreshEditor() {
   var preview = document.getElementById("editPreview");
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
-    editorUpdateFocusChrome();
   }
+  editorUpdateFocusChrome();
   editorSyncSymbolKind();
   var total = visibleLineCount(area.value);
   if (count) {

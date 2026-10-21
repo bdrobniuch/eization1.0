@@ -1869,12 +1869,6 @@ body.is-editing #counter {
   display: contents;
 }
 
-#editViewToggle .chrome-icon,
-#editFocusAdd .chrome-icon,
-#editFocusRemove .chrome-icon {
-  display: none;
-}
-
 #editMoreMenu {
   flex: 1 0 100%;
   display: flex;
@@ -1979,14 +1973,7 @@ body.is-editing #counter {
 #editSaveAs,
 #editUpdate,
 #editClearList,
-#editStaffHelp,
-#editMore,
-#editSymbolsToggle,
-#editViewToggle,
-#editFocusAdd,
-#editFocusRemove,
 #editSave,
-#editShare,
 #editAsk,
 #editAskChatgpt,
 #editAskClaude,
@@ -2005,6 +1992,54 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
+/* Compact chrome: Share / More / Staff / view / Symbols / Add / Remove stay icon-only. */
+#editShare,
+#editMore,
+#editStaffHelp,
+#editSymbolsToggle,
+#editViewToggle,
+#editFocusAdd,
+#editFocusRemove {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#editShare .btn-label,
+#editMore .btn-label,
+#editStaffHelp .btn-label,
+#editSymbolsToggle .btn-label,
+#editViewToggle .btn-label,
+#editFocusAdd .btn-label,
+#editFocusRemove .btn-label {
+  display: none;
+}
+
+#editShare .chrome-icon,
+#editMore .chrome-icon,
+#editStaffHelp .chrome-icon,
+#editViewToggle .chrome-icon,
+#editFocusAdd .chrome-icon,
+#editFocusRemove .chrome-icon {
+  display: block;
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+}
+
 #editStaffHelp[aria-expanded="true"],
 #editMore[aria-expanded="true"],
 #editSymbolsToggle[aria-expanded="true"] {
@@ -2012,25 +2047,20 @@ body.is-editing #counter {
   color: #0C8A50;
 }
 
-#editStaffHelp,
-#editMore,
-#editSymbolsToggle,
 #editSave,
 #editOpen,
-#editShare,
 #editAsk,
+#editClearList,
 #editDelete {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-#editStaffHelp .chrome-icon,
-#editMore .chrome-icon,
 #editSave .chrome-icon,
 #editOpen .chrome-icon,
-#editShare .chrome-icon,
 #editAsk .chrome-icon,
+#editClearList .chrome-icon,
 #editDelete .chrome-icon {
   width: 1.05em;
   height: 1.05em;
@@ -2383,9 +2413,13 @@ body.is-editing #counter {
   flex: 0 0 0;
 }
 
-#textdiv.is-edit-list #editFocusBar > :not(#editNoteHistory),
+#textdiv.is-edit-list #editFocusBar > :not(#editFocusAdd):not(#editFocusRemove):not(#editNoteHistory),
 #textdiv.is-edit-list #editFocusLine {
   display: none !important;
+}
+
+#textdiv.is-edit-list #editFocusAdd {
+  margin-left: auto;
 }
 
 #textdiv.is-edit-list #editNoteHistory {
@@ -2901,42 +2935,6 @@ body.is-about #counter {
 
   #editMore {
     grid-area: more;
-  }
-
-  #editShare,
-  #editMore,
-  #editStaffHelp,
-  #editSymbolsToggle,
-  #editViewToggle,
-  #editFocusAdd,
-  #editFocusRemove {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    gap: 0;
-  }
-
-  #editShare .btn-label,
-  #editMore .btn-label,
-  #editStaffHelp .btn-label,
-  #editSymbolsToggle .btn-label,
-  #editViewToggle .btn-label,
-  #editFocusAdd .btn-label,
-  #editFocusRemove .btn-label {
-    display: none;
-  }
-
-  #editViewToggle .chrome-icon,
-  #editFocusAdd .chrome-icon,
-  #editFocusRemove .chrome-icon {
-    display: block;
-    width: 1.15em;
-    height: 1.15em;
   }
 
   #editMoreMenu {
