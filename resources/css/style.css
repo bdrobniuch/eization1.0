@@ -2431,11 +2431,11 @@ body.is-editing #counter {
   max-width: 100%;
   min-height: 0;
   height: fit-content;
-  max-height: min(36vh, 14rem);
+  max-height: none;
   padding: 8px 10px;
   overflow-x: auto;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow-y: visible;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   background: #fff;
@@ -2771,7 +2771,7 @@ body.is-about #counter {
   }
 
   #editPreview.is-staff {
-    max-height: min(28vh, 9rem);
+    max-height: none;
   }
 
   #editExercise,
