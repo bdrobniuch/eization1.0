@@ -1951,11 +1951,13 @@ function editorPaintClefToggle(row) {
 }
 
 function editorPaintModifiers(row) {
+  var hit = editorPitchAtCaret();
+  var litAcc = hit ? hit.acc || "" : editorNote.acc || "";
   var octaveGroup = document.createElement("div");
   octaveGroup.className = "edit-note-octave-group";
-  editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), editorNote.acc === "b");
-  editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), editorNote.acc === "#");
-  editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), editorNote.acc === "n");
+  editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), litAcc === "b");
+  editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), litAcc === "#");
+  editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), litAcc === "n");
   editorPadButton(octaveGroup, { "data-shift": "-1" }, "\u2193", t("edit.noteLower"));
   editorPaintOctave(octaveGroup);
   editorPadButton(octaveGroup, { "data-shift": "1" }, "\u2191", t("edit.noteHigher"));

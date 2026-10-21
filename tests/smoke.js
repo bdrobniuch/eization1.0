@@ -1792,15 +1792,21 @@ function chatCase(w) {
     check(
       "a sign rewrites the note at the caret",
       focusLine.value === "C4 Db4" &&
-        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false" &&
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
         octaveNow() === "4"
+    );
+    poke(symbolsPanel.querySelector("[data-acc='b']"));
+    check(
+      "a sign toggles off on the note at the caret",
+      focusLine.value === "C4 D4" &&
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false"
     );
     placeCaret("C4 D4 |");
     poke(symbolsPanel.querySelector("[data-acc='b']"));
     check(
       "a sign writes C when the caret is not on a note",
       focusLine.value === "C4 D4 | Cb4" &&
-        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false" &&
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
         octaveNow() === "4"
     );
     placeCaret("C4 D4 |");
