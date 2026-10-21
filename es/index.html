@@ -204,13 +204,19 @@
                     <svg class="chrome-icon icon-one is-hidden" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 12h14"/></svg>
                     <span class="btn-label" data-i18n="edit.allExamples">All examples</span>
                 </button>
+                <button type="button" id="editSymbolsToggle" class="is-text" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert chart symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert chart symbols">
+                    <span class="btn-mark" aria-hidden="true">♯</span>
+                    <span class="btn-label" data-i18n="edit.symbols">Symbols</span>
+                </button>
             </div>
         </div>
         <div id="editFocusChrome">
             <div id="editFocusBar">
-                <button type="button" id="editFocusPrev" data-i18n-aria="edit.focusPrev" aria-label="Previous example" data-i18n-title="edit.focusPrev" title="Previous example">‹</button>
-                <p id="editFocusIndex" aria-live="polite">1 / 1</p>
-                <button type="button" id="editFocusNext" data-i18n-aria="edit.focusNext" aria-label="Next example" data-i18n-title="edit.focusNext" title="Next example">›</button>
+                <div id="editFocusPager">
+                    <button type="button" id="editFocusPrev" data-i18n-aria="edit.focusPrev" aria-label="Previous example" data-i18n-title="edit.focusPrev" title="Previous example">‹</button>
+                    <p id="editFocusIndex" aria-live="polite">1 / 1</p>
+                    <button type="button" id="editFocusNext" data-i18n-aria="edit.focusNext" aria-label="Next example" data-i18n-title="edit.focusNext" title="Next example">›</button>
+                </div>
                 <button type="button" id="editFocusAdd" data-i18n-aria="edit.focusAdd" aria-label="Add" data-i18n-title="edit.focusAddTitle" title="Add an example after this one">
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
                     <span class="btn-label" data-i18n="edit.focusAdd">Add</span>
@@ -219,6 +225,7 @@
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4.5h6V7M7 7l.8 13h8.4L17 7"/></svg>
                     <span class="btn-label" data-i18n="edit.focusRemove">Remove</span>
                 </button>
+                <div id="editNoteHistory" class="edit-note-row"></div>
             </div>
             <input id="editFocusLine" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.focusLineAria" aria-label="Current example" data-i18n-placeholder="edit.focusPlaceholder" placeholder="One example">
         </div>
@@ -226,10 +233,6 @@
         <div id="editPreview" class="is-empty" data-i18n-empty="edit.preview" data-empty="One example per line. A staff line draws here."></div>
         <p id="editStaffNote" hidden role="status" aria-live="polite"></p>
         <div id="editSymbolsRow">
-                <button type="button" id="editSymbolsToggle" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert notes and music symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert notes and music symbols">
-                <span class="btn-mark" aria-hidden="true">♯</span>
-                <span class="btn-label" data-i18n="edit.symbols">Symbols</span>
-            </button>
             <div id="editSymbols" hidden></div>
         </div>
         <div id="editStaffPanel" hidden>

@@ -1497,6 +1497,10 @@ function chatCase(w) {
   check("share sits on the exercise row", !!(share && send && share.parentNode === send));
   check("staff sits beside bars", !!(staffHelp && writeRow && writeRow.contains(staffHelp)));
   check(
+    "symbols toggle sits on the write row",
+    !!(w.document.getElementById("editSymbolsToggle") && writeRow && writeRow.contains(w.document.getElementById("editSymbolsToggle")))
+  );
+  check(
     "empty preview coaches one example",
     w.I18N.en["edit.preview"].indexOf("One example per line") === 0 &&
       w.I18N.es["edit.preview"].indexOf("Un ejemplo por l\u00EDnea") === 0 &&
