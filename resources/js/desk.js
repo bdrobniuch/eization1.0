@@ -1282,6 +1282,9 @@ function restoreDefaults() {
   if (typeof forgetHello === "function") {
     forgetHello();
   }
+  if (typeof forgetInstall === "function") {
+    forgetInstall();
+  }
   clickPattern = [];
   restClickPattern = [];
   swingLitOffbeats = false;

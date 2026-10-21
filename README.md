@@ -37,6 +37,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/about.js` | Menu sheet. Payment and profile strings are sealed in this file |
 | `resources/js/desk.js` | `localStorage` key `eization-desk` (setup + live exercise list) |
 | `resources/js/hello.js` | First-run tour (exercise → Scales on a staff → Left Hand Rootless Voicings → example → Next → Setup → Play → Edit). Show me also points at how many examples are left, Reset, and BPM. Separate key `eization-hello` |
+| `resources/js/install.js` | Install as app. Separate key `eization-install` |
 | `resources/js/awake.js` | Keeps the practice display on while that page is in front. Screen wake lock, then a muted looping clip with a silent audio track if the device refuses the lock |
 | `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/js/guide-share.js` | Share and Embed on More and the exercise pages |
@@ -124,7 +125,9 @@ The practice screen keeps the display on while that page is in front, so a phone
 
 `eization-hello` is the intro generation, a string. `"1"` means generation 1 has played or been skipped. A missing key plays the full intro. The schema 2 launch clears this key, so the full intro plays on that open. When the tour grows later, bump `HELLO_GEN` in `hello.js` and set `HELLO_RETURN` to the new step range. People already on the previous generation see only that slice, once, on the next launch. Skip stores the new generation. Play the intro again (in Menu → This device) clears only `eization-hello`. Tempo, meter, and exercises stay. The intro plays on the next launch, not on that click.
 
-Restore defaults (in Menu) still clears both keys, then re-seeds the stock exercises. The intro plays on the next launch, not on that click.
+Install as app sits under the top bar on the practice screen, in English and Spanish. The icon is the point: next time it opens from the home screen or the Dock, with the other music apps, without typing the address. Exercises already stay in the browser through `eization-desk`. The chip does not say that installing saves them. In Chrome and Edge the button opens the browser's install dialog when that browser offers one. On iPhone, iPad, and Safari on Mac it opens the one set of steps for that device. Not now stores `eization-install` and leaves the same item at the top of the menu. Until then the chip is there from the first paint, including during the intro and while the metronome runs. The intro caption moves aside so it does not cover the chip. `?embed=1`, `?look=1`, `?smoke=1`, a frame, and an installed window hide it. Safari on Mac keeps a Dock app's saved exercises apart from the browser tab.
+
+Restore defaults (in Menu) still clears `eization-desk`, `eization-hello`, and `eization-install`, then re-seeds the stock exercises. The intro plays on the next launch, not on that click. The chip can return on that next launch too.
 
 ## Analytics
 

@@ -693,6 +693,79 @@ footer {
     cursor: pointer;
 }
 
+#installAsk {
+    position: fixed;
+    left: 50%;
+    top: calc(var(--chrome) + 2.4rem);
+    z-index: 16;
+    width: min(92vw, 720px);
+    margin: 0;
+    padding: 0.7vmin 1.2vmin;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    font-size: clamp(14px, 2.6vmin, 18px);
+    pointer-events: auto;
+}
+
+#installAsk[hidden],
+#installAsk [hidden],
+#aboutInstall[hidden] {
+    display: none !important;
+}
+
+#installAsk p {
+    margin: 0;
+    flex: 1 1 220px;
+}
+
+#installActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#installAsk button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+#installGo {
+    background: #ffffff;
+    color: #0C8A50;
+    font-weight: 600;
+}
+
+#installSteps {
+    flex: 1 1 100%;
+}
+
+#installHelp {
+    flex: 1 1 100%;
+}
+
+#installHelp a:link,
+#installHelp a:visited,
+#installHelp a:hover,
+#installHelp a:active {
+    color: #ffffff;
+    font-size: 14px;
+}
+
 #status {
   display: flex;
   align-items: center;

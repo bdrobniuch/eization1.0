@@ -113,6 +113,17 @@ var I18N = {
     "share.updated": "Updated on this device.",
     "share.notNow": "Not now",
     "share.bad": "That link could not be opened.",
+    "install.action": "Install as app",
+    "install.lead": "The icon sits with your other music apps. Next time you open it there, not in the browser.",
+    "install.notNow": "Not now",
+    "install.ios": "Tap Share, then Add to Home Screen, then Add.",
+    "install.android": "Tap More beside the address bar, then Install. If you see Add to Home screen, tap that, then Install.",
+    "install.mac": "Choose File, then Add to Dock.",
+    "install.chrome": "Click Install in the address bar. Or open More, then Cast, save, and share, then Install page as app.",
+    "install.edge": "Click the install icon in the address bar. Or open the menu, then Apps, then Install this site as an app.",
+    "install.other": "Open this page in Chrome, Edge, or Safari, then install it there.",
+    "install.helpApple": "Apple's steps",
+    "install.helpChrome": "Chrome's steps",
     "mail.practiceSubject": "How I practice",
     "mail.practiceBody": "Hi Błażej,\n\nHere is how I practice.\n\nAttach eization-exercises.json from your downloads.\n",
     "mail.practiceShare": "Hi Błażej, here is how I practice.",
@@ -538,6 +549,17 @@ var I18N = {
     "share.updated": "Actualizado en este dispositivo.",
     "share.notNow": "Ahora no",
     "share.bad": "No se pudo abrir ese enlace.",
+    "install.action": "Instalar como app",
+    "install.lead": "El icono queda junto a tus otras apps de música. La próxima vez la abres ahí, no en el navegador.",
+    "install.notNow": "Ahora no",
+    "install.ios": "Toca Compartir, luego Agregar a Inicio, luego Agregar.",
+    "install.android": "Toca Más, junto a la barra de direcciones, y luego Instalar. Si ves Agregar a la pantalla principal, tócalo y luego Instalar.",
+    "install.mac": "Elige Archivo y luego Añadir al Dock.",
+    "install.chrome": "Pulsa Instalar en la barra de direcciones. O abre Más, luego Enviar, guardar y compartir, luego Instalar página como aplicación.",
+    "install.edge": "Pulsa el icono de instalar en la barra de direcciones. O abre el menú, luego Aplicaciones, luego Instalar este sitio como aplicación.",
+    "install.other": "Abre esta página en Chrome, Edge o Safari y luego instálala ahí.",
+    "install.helpApple": "Pasos de Apple",
+    "install.helpChrome": "Pasos de Chrome",
     "mail.practiceSubject": "Cómo practico",
     "mail.practiceBody": "Hola Błażej,\n\nAsí practico.\n\nAdjunta eization-exercises.json desde tus descargas.\n",
     "mail.practiceShare": "Hola Błażej, así practico.",
@@ -1026,6 +1048,9 @@ function refreshLocalizedUi() {
   }
   if (typeof restoreApplyLanguage === "function") {
     restoreApplyLanguage();
+  }
+  if (typeof installApplyLanguage === "function") {
+    installApplyLanguage();
   }
   if (typeof placeHelloCaption === "function") {
     placeHelloCaption();

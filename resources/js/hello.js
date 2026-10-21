@@ -235,6 +235,13 @@ function placeHelloCaption() {
   if (!preferBelow && top + height > arrowTop - 4) {
     top = clampHello(arrowTop + 22, HELLO_MARGIN, maxTop);
   }
+  var install = document.getElementById("installAsk");
+  if (install && !install.hidden) {
+    var installBox = install.getBoundingClientRect();
+    if (top < installBox.bottom + HELLO_MARGIN && top + height > installBox.top) {
+      top = clampHello(installBox.bottom + HELLO_MARGIN, HELLO_MARGIN, maxTop);
+    }
+  }
   caption.style.left = left + "px";
   caption.style.top = top + "px";
 }

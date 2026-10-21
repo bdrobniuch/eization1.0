@@ -19,6 +19,11 @@ function finish() {
     } else {
       localStorage.setItem("eization-desk", savedDesk);
     }
+    if (savedInstall === null) {
+      localStorage.removeItem("eization-install");
+    } else {
+      localStorage.setItem("eization-install", savedInstall);
+    }
   } catch (err) {}
   lines.push(failed ? failed + " failed" : "all passed");
   document.getElementById("out").textContent = lines.join("\n");
@@ -26,8 +31,10 @@ function finish() {
 }
 
 var savedDesk = null;
+var savedInstall = null;
 try {
   savedDesk = localStorage.getItem("eization-desk");
+  savedInstall = localStorage.getItem("eization-install");
   localStorage.removeItem("eization-desk");
   localStorage.setItem("eization-hello", "1");
 } catch (err) {}
@@ -41,6 +48,23 @@ document.body.appendChild(frame);
 frame.addEventListener("load", function () {
   window.setTimeout(run, 80);
 });
+
+function installCase(w) {
+  var chip = w.document.getElementById("installAsk");
+  var menu = w.document.getElementById("aboutInstall");
+  check("install chip is in the page", !!chip);
+  check("install chip stays hidden in smoke", !!(chip && chip.hidden));
+  check("install menu is in the page", !!menu && menu.textContent === w.t("install.action"));
+  check("install profile iphone", w.installProfile({ ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1", platform: "iPhone", brands: "", touch: 5 }) === "ios");
+  check("install profile ipad", w.installProfile({ ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15", platform: "MacIntel", brands: "", touch: 5 }) === "ios");
+  check("install profile android", w.installProfile({ ua: "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36", platform: "Android", brands: "Google Chrome Chromium", touch: 5 }) === "android");
+  check("install profile mac safari", w.installProfile({ ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15", platform: "macOS", brands: "", touch: 0 }) === "mac-safari");
+  check("install profile chrome", w.installProfile({ ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36", platform: "Windows", brands: "Google Chrome Chromium", touch: 0 }) === "chrome");
+  check("install profile edge", w.installProfile({ ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0", platform: "Windows", brands: "Microsoft Edge Chromium", touch: 0 }) === "edge");
+  check("install profile firefox", w.installProfile({ ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0", platform: "Windows", brands: "", touch: 0 }) === "other");
+  check("install profile in-app", w.installProfile({ ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 320.0.0.0.0", platform: "iPhone", brands: "", touch: 5 }) === "other");
+  check("install copy", w.I18N.en["install.action"] === "Install as app" && w.I18N.es["install.action"] === "Instalar como app" && w.I18N.en["install.ios"].indexOf("Add to Home Screen") > 0 && w.I18N.es["install.ios"].indexOf("Agregar a Inicio") > 0);
+}
 
 function run() {
   var w;
@@ -56,6 +80,7 @@ function run() {
     return;
   }
   try {
+    installCase(w);
     exerciseMenu(w);
     staffNotation(w);
     clock(w);
