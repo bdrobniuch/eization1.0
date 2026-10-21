@@ -44,6 +44,9 @@ var editorNote = {
 
 var editorNotePadStamp = "";
 var editorIconCache = {};
+var editorSymbolUndo = [];
+var editorSymbolRedo = [];
+var EDITOR_SYMBOL_HISTORY = 50;
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
@@ -645,6 +648,7 @@ function editorCloseQuiet() {
   editorCloseMore();
   editorCloseSymbols();
   clearEditStaffNote();
+  editorClearSymbolHistory();
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
   sheet.style.display = "";
@@ -1139,7 +1143,17 @@ function editorInsertSymbol(text, caretBack) {
   var before = editorTextBeforeCaret();
   var first = body.charAt(0);
   var prev = before ? before.charAt(before.length - 1) : "";
-  if (body && !/^\s/.test(body) && prev && !/\s/.test(prev) && first !== "'" && first !== ">" && first !== "-" && first !== "~") {
+  if (
+    body &&
+    !/^\s/.test(body) &&
+    prev &&
+    !/\s/.test(prev) &&
+    first !== "'" &&
+    first !== ">" &&
+    first !== "-" &&
+    first !== "~" &&
+    first !== "^"
+  ) {
     body = " " + body;
   }
   insertEditorText(body, caretBack);
@@ -1266,11 +1280,12 @@ function editorLineSpan() {
 }
 
 function editorSetClef(clef) {
-  var token = clef === "bass" ? "@bass" : "@treble";
   var span = editorLineSpan();
   var line;
   var found;
   var nextLine;
+  var after;
+  var removed;
   var rel;
   var caret;
   if (!span) {
@@ -1278,32 +1293,49 @@ function editorSetClef(clef) {
   }
   line = span.value.slice(span.lineStart, span.lineEnd);
   found = /@bass|@treble/.exec(line);
-  if (found && found[0] === token) {
-    return;
-  }
-  if (!found && token === "@treble") {
-    return;
-  }
-  if (found) {
-    nextLine = line.slice(0, found.index) + token + line.slice(found.index + found[0].length);
-  } else if (!line) {
-    nextLine = token + " ";
-  } else if (line.charAt(0) === " ") {
-    nextLine = token + line;
+  if (clef === "bass") {
+    if (found && found[0] === "@bass") {
+      return;
+    }
+    editorPushSymbolUndo();
+    if (found) {
+      nextLine = line.slice(0, found.index) + "@bass" + line.slice(found.index + found[0].length);
+    } else if (!line) {
+      nextLine = "@bass ";
+    } else if (line.charAt(0) === " ") {
+      nextLine = "@bass" + line;
+    } else {
+      nextLine = "@bass " + line;
+    }
   } else {
-    nextLine = token + " " + line;
+    if (!found) {
+      return;
+    }
+    editorPushSymbolUndo();
+    after = line.slice(found.index + found[0].length);
+    if (after.charAt(0) === " ") {
+      after = after.slice(1);
+    }
+    nextLine = line.slice(0, found.index) + after;
   }
   span.field.value = span.value.slice(0, span.lineStart) + nextLine + span.value.slice(span.lineEnd);
   rel = span.caret - span.lineStart;
   if (rel < 0) {
     rel = 0;
   }
-  if (found) {
-    if (rel >= found.index) {
-      rel += token.length - found[0].length;
+  if (clef === "bass") {
+    if (found) {
+      if (rel >= found.index) {
+        rel += 5 - found[0].length;
+      }
+    } else {
+      rel += nextLine.length - line.length;
     }
   } else {
-    rel += nextLine.length - line.length;
+    removed = found[0].length + (line.charAt(found.index + found[0].length) === " " ? 1 : 0);
+    if (rel > found.index) {
+      rel -= Math.min(rel - found.index, removed);
+    }
   }
   if (rel < 0) {
     rel = 0;
@@ -1368,7 +1400,114 @@ function editorPitchAtCaret() {
   hit.start = before.replace(/\s+$/, "").length - hit.token.length;
   hit.end = hit.start + hit.token.length;
   hit.caret = caret;
+  hit.kind = "pitch";
   return hit;
+}
+
+function editorParseRhythmToken(token) {
+  var slash = /^\/([whqes]?)(\.?)$/.exec(token || "");
+  var rest = /^r([whqes]?)(\.?)$/i.exec(token || "");
+  if (slash) {
+    return {
+      token: token,
+      kind: "slash",
+      dur: slash[1] || "",
+      dot: slash[2] === "."
+    };
+  }
+  if (rest) {
+    return {
+      token: token,
+      kind: "rest",
+      dur: rest[1] || "",
+      dot: rest[2] === "."
+    };
+  }
+  return null;
+}
+
+function editorRhythmTail(text) {
+  var trimmed = String(text || "").replace(/\s+$/, "");
+  var m = trimmed.match(/(\/[whqes]?\.?|r[whqes]?\.?)$/i);
+  var prev;
+  if (!m) {
+    return null;
+  }
+  if (m.index > 0) {
+    prev = trimmed.charAt(m.index - 1);
+    if (prev !== " " && prev !== "\n" && prev !== "\t" && prev !== "|" && prev !== "~" && prev !== "{") {
+      return null;
+    }
+  }
+  return editorParseRhythmToken(m[1]);
+}
+
+function editorRhythmAtCaret() {
+  var field = editorActiveField();
+  var value;
+  var caret;
+  var before;
+  var hit;
+  if (!field || (field.selectionStart || 0) !== (field.selectionEnd || 0)) {
+    return null;
+  }
+  value = String(field.value || "");
+  caret = field.selectionStart || 0;
+  before = value.slice(0, caret);
+  hit = editorRhythmTail(before);
+  if (!hit) {
+    return null;
+  }
+  hit.field = field;
+  hit.start = before.replace(/\s+$/, "").length - hit.token.length;
+  hit.end = hit.start + hit.token.length;
+  hit.caret = caret;
+  return hit;
+}
+
+function editorReplaceCaretToken(hit, next) {
+  var value;
+  var caret;
+  if (!hit || !hit.field) {
+    return false;
+  }
+  next = String(next || "");
+  if (next === hit.token) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  value = String(hit.field.value || "");
+  hit.field.value = value.slice(0, hit.start) + next + value.slice(hit.end);
+  caret = hit.caret + (next.length - hit.token.length);
+  if (caret < hit.start) {
+    caret = hit.start;
+  }
+  try {
+    hit.field.setSelectionRange(caret, caret);
+  } catch (errReplace) {}
+  clearEditorNotice();
+  refreshEditor();
+  return true;
+}
+
+function editorPitchTokenWith(hit, acc, dur, dot) {
+  var suffix;
+  var useDot = typeof dot === "boolean" ? dot : !!editorNote.dot;
+  var useDur = dur === undefined ? editorNote.dur : dur;
+  var code = editorDurCode(useDur);
+  if (useDot) {
+    suffix = (code || "q") + ".";
+  } else {
+    suffix = code;
+  }
+  return hit.letter + (acc === undefined ? hit.acc || "" : acc) + String(hit.oct) + suffix;
+}
+
+function editorRhythmTokenWith(hit, dur, dot) {
+  var useDot = typeof dot === "boolean" ? dot : !!editorNote.dot;
+  var useDur = dur === undefined ? editorNote.dur : dur;
+  var suffix = (editorDurCode(useDur) || "q") + (useDot ? "." : "");
+  return (hit.kind === "rest" ? "r" : "/") + suffix;
 }
 
 function editorEarlierPitch() {
@@ -1496,6 +1635,12 @@ function editorBuildIcon(kind) {
     var accName = kind === "acc-b" ? "accidentalFlat" : kind === "acc-#" ? "accidentalSharp" : "accidentalNatural";
     if (typeof staffPlaceGlyph === "function") {
       staffPlaceGlyph(svg, accName, 0, 0, space);
+    }
+    return editorFitIcon(svg);
+  }
+  if (kind === "clef-treble" || kind === "clef-bass") {
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, kind === "clef-bass" ? "fClef" : "gClef", 0, 0, space);
     }
     return editorFitIcon(svg);
   }
@@ -1701,14 +1846,114 @@ function editorPaintOctave(row) {
 
 function editorPaintModifiers(row) {
   var clef = editorClefName();
-  editorPadButton(row, { "data-clef": "treble" }, t("edit.clefTreble"), t("edit.clefTreble"), clef !== "bass");
-  editorPadButton(row, { "data-clef": "bass" }, t("edit.clefBass"), t("edit.clefBass"), clef === "bass");
+  editorPadButton(row, { "data-clef": "treble" }, editorMusicIcon("clef-treble"), t("edit.clefTreble"), clef !== "bass");
+  editorPadButton(row, { "data-clef": "bass" }, editorMusicIcon("clef-bass"), t("edit.clefBass"), clef === "bass");
   editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), editorNote.acc === "b");
   editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), editorNote.acc === "#");
   editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), editorNote.acc === "n");
   editorPadButton(row, { "data-shift": "-1" }, "\u2193", t("edit.noteLower"));
   editorPaintOctave(row);
   editorPadButton(row, { "data-shift": "1" }, "\u2191", t("edit.noteHigher"));
+}
+
+function editorClearSymbolHistory() {
+  editorSymbolUndo = [];
+  editorSymbolRedo = [];
+  editorPaintUndoRedo();
+}
+
+function editorSymbolSnapshot() {
+  var field = editorActiveField();
+  return {
+    value: field ? String(field.value || "") : "",
+    caret: field ? field.selectionStart || 0 : 0,
+    focusIndex: editorFocusIndex,
+    note: {
+      acc: editorNote.acc || "",
+      dur: editorNote.dur || "",
+      dot: !!editorNote.dot,
+      oct: editorNote.oct === null || editorNote.oct === undefined ? null : editorNote.oct
+    }
+  };
+}
+
+function editorPushSymbolUndo() {
+  editorSymbolUndo.push(editorSymbolSnapshot());
+  if (editorSymbolUndo.length > EDITOR_SYMBOL_HISTORY) {
+    editorSymbolUndo.shift();
+  }
+  editorSymbolRedo = [];
+  editorPaintUndoRedo();
+}
+
+function editorApplySymbolSnapshot(snap) {
+  var field;
+  var lines;
+  if (!snap) {
+    return;
+  }
+  if (editorIsFocusMode()) {
+    editorFocusIndex = typeof snap.focusIndex === "number" ? snap.focusIndex : editorFocusIndex;
+    field = document.getElementById("editFocusLine");
+    if (field) {
+      field.value = snap.value || "";
+      editorSyncFocusToArea();
+      try {
+        field.setSelectionRange(snap.caret || 0, snap.caret || 0);
+      } catch (errFocusSnap) {}
+    }
+  } else {
+    field = document.getElementById("allEdit");
+    if (field) {
+      field.value = snap.value || "";
+      try {
+        field.setSelectionRange(snap.caret || 0, snap.caret || 0);
+      } catch (errListSnap) {}
+    }
+  }
+  editorNote.acc = snap.note && snap.note.acc ? snap.note.acc : "";
+  editorNote.dur = snap.note && snap.note.dur ? snap.note.dur : "";
+  editorNote.dot = !!(snap.note && snap.note.dot);
+  editorNote.oct = snap.note && (snap.note.oct === 0 || snap.note.oct) ? snap.note.oct : null;
+  lines = editorRawLines();
+  editorClampFocusIndex(lines.length);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintUndoRedo();
+}
+
+function editorSymbolUndoStep() {
+  var current;
+  if (!editorSymbolUndo.length) {
+    return;
+  }
+  current = editorSymbolSnapshot();
+  editorSymbolRedo.push(current);
+  editorApplySymbolSnapshot(editorSymbolUndo.pop());
+}
+
+function editorSymbolRedoStep() {
+  var current;
+  if (!editorSymbolRedo.length) {
+    return;
+  }
+  current = editorSymbolSnapshot();
+  editorSymbolUndo.push(current);
+  editorApplySymbolSnapshot(editorSymbolRedo.pop());
+}
+
+function editorPaintUndoRedo() {
+  var host = document.getElementById("editNoteHistory");
+  var undoBtn;
+  var redoBtn;
+  if (!host) {
+    return;
+  }
+  host.innerHTML = "";
+  undoBtn = editorPadButton(host, { "data-undo": "1" }, t("edit.undo"), t("edit.undo"));
+  redoBtn = editorPadButton(host, { "data-redo": "1" }, t("edit.redo"), t("edit.redo"));
+  undoBtn.disabled = !editorSymbolUndo.length;
+  redoBtn.disabled = !editorSymbolRedo.length;
 }
 
 function editorPaintDurations(row) {
@@ -1743,11 +1988,12 @@ function editorPaintNotePad() {
   var chipsHost = document.getElementById("editNoteChips");
   var durHost = document.getElementById("editNoteDurations");
   var eventsHost = document.getElementById("editNoteEvents");
+  var historyHost = document.getElementById("editNoteHistory");
   var stamp;
-  if (!stepHost || !chipsHost || !durHost || !eventsHost) {
+  if (!stepHost || !chipsHost || !durHost || !eventsHost || !historyHost) {
     return;
   }
-  stamp = editorNotePadStampNow();
+  stamp = editorNotePadStampNow() + "~" + editorSymbolUndo.length + "~" + editorSymbolRedo.length;
   if (stamp === editorNotePadStamp) {
     return;
   }
@@ -1759,29 +2005,67 @@ function editorPaintNotePad() {
   editorPaintModifiers(chipsHost);
   editorPaintDurations(durHost);
   editorPaintNoteEvents(eventsHost);
+  editorPaintUndoRedo();
   editorNotePadStamp = stamp;
 }
 
 function editorWriteLetter(letter) {
   var token = editorLetterToken(letter);
+  editorPushSymbolUndo();
   editorNote.acc = "";
   editorNote.oct = null;
-  editorInsertSymbol(token + " ");
+  editorInsertSymbol(token);
 }
 
 function editorArmAcc(acc) {
+  var hit;
+  var nextAcc;
+  var suffix;
+  var next;
   acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
+  hit = editorPitchAtCaret();
+  if (hit) {
+    nextAcc = (hit.acc || "") === acc ? "" : acc;
+    suffix = hit.token.slice((hit.letter + (hit.acc || "") + String(hit.oct)).length);
+    next = hit.letter + nextAcc + String(hit.oct) + suffix;
+    if (editorReplaceCaretToken(hit, next)) {
+      editorNote.acc = "";
+      return;
+    }
+  }
   editorNote.acc = editorNote.acc === acc ? "" : acc;
   editorPaintNotePad();
 }
 
 function editorSetDuration(dur) {
-  editorNote.dur = editorDurCode(dur);
+  var next = editorDurCode(dur);
+  var hit = editorPitchAtCaret() || editorRhythmAtCaret();
+  editorNote.dur = next;
+  if (hit && hit.kind === "pitch") {
+    if (editorReplaceCaretToken(hit, editorPitchTokenWith(hit, hit.acc || "", next, editorNote.dot))) {
+      return;
+    }
+  } else if (hit) {
+    if (editorReplaceCaretToken(hit, editorRhythmTokenWith(hit, next, editorNote.dot))) {
+      return;
+    }
+  }
   editorPaintNotePad();
 }
 
 function editorToggleDot() {
-  editorNote.dot = !editorNote.dot;
+  var next = !editorNote.dot;
+  var hit = editorPitchAtCaret() || editorRhythmAtCaret();
+  editorNote.dot = next;
+  if (hit && hit.kind === "pitch") {
+    if (editorReplaceCaretToken(hit, editorPitchTokenWith(hit, hit.acc || "", editorNote.dur, next))) {
+      return;
+    }
+  } else if (hit) {
+    if (editorReplaceCaretToken(hit, editorRhythmTokenWith(hit, editorNote.dur, next))) {
+      return;
+    }
+  }
   editorPaintNotePad();
 }
 
@@ -1790,8 +2074,6 @@ function editorShiftOctave(dir) {
   var oct;
   var suffix;
   var next;
-  var value;
-  var caret;
   dir = dir < 0 ? -1 : 1;
   hit = editorNote.acc ? null : editorPitchAtCaret();
   if (!hit) {
@@ -1806,20 +2088,23 @@ function editorShiftOctave(dir) {
   }
   suffix = hit.token.slice((hit.letter + (hit.acc || "") + String(hit.oct)).length);
   next = hit.letter + (hit.acc || "") + String(oct) + suffix;
-  value = String(hit.field.value || "");
-  hit.field.value = value.slice(0, hit.start) + next + value.slice(hit.end);
-  caret = hit.caret + (next.length - hit.token.length);
-  try {
-    hit.field.setSelectionRange(caret, caret);
-  } catch (errShift) {}
+  if (!editorReplaceCaretToken(hit, next)) {
+    return;
+  }
   editorNote.oct = null;
-  clearEditorNotice();
-  refreshEditor();
 }
 
 function editorActivateSymbol(button) {
   var eventName;
   if (!button) {
+    return;
+  }
+  if (button.hasAttribute("data-undo")) {
+    editorSymbolUndoStep();
+    return;
+  }
+  if (button.hasAttribute("data-redo")) {
+    editorSymbolRedoStep();
     return;
   }
   if (button.hasAttribute("data-note")) {
@@ -1849,18 +2134,22 @@ function editorActivateSymbol(button) {
   eventName = button.getAttribute("data-event");
   if (eventName) {
     if (eventName === "slash") {
-      editorInsertSymbol(editorSlashToken() + " ");
+      editorPushSymbolUndo();
+      editorInsertSymbol(editorSlashToken());
       return;
     }
     if (eventName === "rest") {
-      editorInsertSymbol(editorRestToken() + " ");
+      editorPushSymbolUndo();
+      editorInsertSymbol(editorRestToken());
       return;
     }
     if (eventName === "bar") {
+      editorPushSymbolUndo();
       editorInsertSymbol("| ");
       return;
     }
     if (eventName === "tie") {
+      editorPushSymbolUndo();
       editorInsertSymbol("~");
       return;
     }
@@ -1869,20 +2158,24 @@ function editorActivateSymbol(button) {
       if (editorNote.dur !== "e" && editorNote.dur !== "s") {
         editorNote.dur = "e";
       }
+      editorPushSymbolUndo();
       editorInsertSymbol("{ }", 2);
       return;
     }
     if (eventName === "chord") {
+      editorPushSymbolUndo();
       editorInsertSymbol("^");
       return;
     }
     if (eventName === "stack") {
+      editorPushSymbolUndo();
       editorInsertSymbol("[ ]", 2);
       return;
     }
   }
   if (button.hasAttribute("data-symbol")) {
     editorDropNoteFlow();
+    editorPushSymbolUndo();
     insertEditorText(button.getAttribute("data-symbol") || "", parseInt(button.getAttribute("data-caret") || "0", 10) || 0);
   }
 }
@@ -2049,6 +2342,7 @@ function editorOpenSheet(options) {
   if (typeof closeGroovePanel === "function") {
     closeGroovePanel();
   }
+  editorClearSymbolHistory();
   var face = document.getElementById("exerciseFace");
   var shown = face ? face.querySelector(".combo-value") : null;
   var desk = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
@@ -2197,6 +2491,7 @@ function editorOpenSharePreview(spec) {
   editorDraft.storedLines = editorDraft.mode === "create" || !target ? null : editorPlainLines(target.lines);
   editorViewOverride = null;
   editorFocusIndex = 0;
+  editorClearSymbolHistory();
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
   document.getElementById("editBars").value = String(spec.bars || 1);
@@ -2804,6 +3099,7 @@ function buildEditorNotePad(host) {
   var modifiers = document.createElement("div");
   var durations = document.createElement("div");
   var events = document.createElement("div");
+  var history = document.createElement("div");
   pad.id = "editNotePad";
   flow.id = "editNoteFlow";
   main.id = "editNoteMain";
@@ -2815,12 +3111,15 @@ function buildEditorNotePad(host) {
   durations.className = "edit-note-row";
   events.id = "editNoteEvents";
   events.className = "edit-note-row";
+  history.id = "editNoteHistory";
+  history.className = "edit-note-row";
   main.appendChild(letters);
   main.appendChild(modifiers);
   main.appendChild(durations);
   flow.appendChild(main);
   pad.appendChild(flow);
   pad.appendChild(events);
+  pad.appendChild(history);
   host.appendChild(pad);
 }
 
@@ -3200,6 +3499,29 @@ function initEditor() {
     }
     event.preventDefault();
     editorActivateSymbol(button);
+  });
+  document.addEventListener("keydown", function (event) {
+    var key;
+    var undoKey;
+    var redoKey;
+    if (!editorIsOpen()) {
+      return;
+    }
+    key = String(event.key || "").toLowerCase();
+    undoKey = (event.ctrlKey || event.metaKey) && !event.altKey && key === "z" && !event.shiftKey;
+    redoKey =
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      (key === "y" || (key === "z" && event.shiftKey));
+    if (undoKey && editorSymbolUndo.length) {
+      event.preventDefault();
+      editorSymbolUndoStep();
+      return;
+    }
+    if (redoKey && editorSymbolRedo.length) {
+      event.preventDefault();
+      editorSymbolRedoStep();
+    }
   });
   var viewToggle = document.getElementById("editViewToggle");
   if (viewToggle) {

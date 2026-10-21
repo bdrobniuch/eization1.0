@@ -1768,66 +1768,85 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-note='C']"));
     check(
       "a letter writes the note",
-      focusLine.value === "C5 " &&
+      focusLine.value === "C5" &&
         octaveNow() === "5" &&
         !w.document.getElementById("editNotePreview") &&
         !!symbolsPanel.querySelector("[data-dur='w']") &&
         !!symbolsPanel.querySelector("[data-note='C']") &&
+        !!symbolsPanel.querySelector("[data-undo]") &&
+        !!symbolsPanel.querySelector("[data-redo]") &&
         w.I18N.en["edit.noteHigher"] === "Higher" &&
         w.I18N.es["edit.noteHigher"] === "M\u00E1s aguda" &&
         w.I18N.en["edit.noteLower"] === "Lower" &&
         w.I18N.es["edit.noteLower"] === "M\u00E1s grave" &&
         w.I18N.en["edit.noteDotted"] === "Dot" &&
-        w.I18N.es["edit.noteDotted"] === "Puntillo"
+        w.I18N.es["edit.noteDotted"] === "Puntillo" &&
+        w.I18N.en["edit.undo"] === "Undo" &&
+        w.I18N.es["edit.undo"] === "Deshacer"
     );
     poke(symbolsPanel.querySelector("[data-shift='-1']"));
-    check("down moves the note just written", focusLine.value === "C4 " && octaveNow() === "4");
+    check("down moves the note just written", focusLine.value === "C4" && octaveNow() === "4");
     poke(symbolsPanel.querySelector("[data-note='D']"));
-    check("the next letter stays close", focusLine.value === "C4 D4 ");
+    check("the next letter stays close", focusLine.value === "C4 D4");
     poke(symbolsPanel.querySelector("[data-acc='b']"));
     check(
-      "a sign waits for the next letter",
-      focusLine.value === "C4 D4 " &&
+      "a sign rewrites the note at the caret",
+      focusLine.value === "C4 Db4" &&
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false" &&
+        octaveNow() === "4"
+    );
+    placeCaret("C4 D4 |");
+    poke(symbolsPanel.querySelector("[data-acc='b']"));
+    check(
+      "a sign waits when the caret is not on a note",
+      focusLine.value === "C4 D4 |" &&
         symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
         octaveNow() === "4"
     );
     poke(symbolsPanel.querySelector("[data-shift='1']"));
-    check("up aims the next note while a sign is lit", focusLine.value === "C4 D4 " && octaveNow() === "5");
+    check("up aims the next note while a sign is lit", focusLine.value === "C4 D4 |" && octaveNow() === "5");
     poke(symbolsPanel.querySelector("[data-note='E']"));
     check(
       "the sign and the aim write once",
-      focusLine.value === "C4 D4 Eb5 " && symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false"
+      focusLine.value === "C4 D4 | Eb5" && symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false"
     );
     poke(symbolsPanel.querySelector("[data-dur='e']"));
     check(
-      "a duration stays lit without writing",
-      focusLine.value === "C4 D4 Eb5 " && symbolsPanel.querySelector("[data-dur='e']").getAttribute("aria-pressed") === "true"
+      "a duration rewrites the note at the caret",
+      focusLine.value === "C4 D4 | Eb5e" && symbolsPanel.querySelector("[data-dur='e']").getAttribute("aria-pressed") === "true"
     );
     poke(symbolsPanel.querySelector("[data-note='F']"));
-    check("the lit duration writes with the letter", focusLine.value === "C4 D4 Eb5 F5e ");
+    check("the lit duration writes with the letter", focusLine.value === "C4 D4 | Eb5e F5e");
     poke(symbolsPanel.querySelector("[data-event='slash']"));
-    check("a slash uses the lit duration", focusLine.value === "C4 D4 Eb5 F5e /e ");
+    check("a slash uses the lit duration", focusLine.value === "C4 D4 | Eb5e F5e /e");
     poke(symbolsPanel.querySelector("[data-dur='']"));
+    check("a duration rewrites the slash at the caret", focusLine.value === "C4 D4 | Eb5e F5e /q");
     poke(symbolsPanel.querySelector("[data-event='rest']"));
-    check("a rest uses the lit duration", focusLine.value === "C4 D4 Eb5 F5e /e rq ");
-    poke(symbolsPanel.querySelector("[data-dur='w']"));
+    check("a rest uses the lit duration", focusLine.value === "C4 D4 | Eb5e F5e /q rq");
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    check("a duration rewrites the rest at the caret", focusLine.value === "C4 D4 | Eb5e F5e /q re");
     poke(symbolsPanel.querySelector("[data-dot]"));
     check(
-      "a dot waits on the lit duration",
-      focusLine.value === "C4 D4 Eb5 F5e /e rq " &&
-        symbolsPanel.querySelector("[data-dot]").getAttribute("aria-pressed") === "true" &&
-        symbolsPanel.querySelector("[data-dur='w']").getAttribute("aria-pressed") === "true"
+      "a dot rewrites the rest at the caret",
+      focusLine.value === "C4 D4 | Eb5e F5e /q re." &&
+        symbolsPanel.querySelector("[data-dot]").getAttribute("aria-pressed") === "true"
     );
+    placeCaret("C4 D4 | Eb5e F5e /q re.");
+    focusLine.setSelectionRange(0, 0);
+    poke(symbolsPanel.querySelector("[data-dot]"));
+    poke(symbolsPanel.querySelector("[data-dur='w']"));
+    poke(symbolsPanel.querySelector("[data-dot]"));
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
     poke(symbolsPanel.querySelector("[data-note='B']"));
-    check("a dot can sit on a whole note", focusLine.value === "C4 D4 Eb5 F5e /e rq B5w. ");
+    check("a dot can sit on a whole note", focusLine.value === "C4 D4 | Eb5e F5e /q re. B5w.");
     poke(symbolsPanel.querySelector("[data-dot]"));
     poke(symbolsPanel.querySelector("[data-dur='']"));
     placeCaret("Eb4");
     poke(symbolsPanel.querySelector("[data-note='C']"));
-    check("a note takes a space when it would stick", focusLine.value === "Eb4 C4 ");
+    check("a note takes a space when it would stick", focusLine.value === "Eb4 C4");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='chord']"));
-    check("a chord mark takes a space and stays open", focusLine.value === "C4 ^");
+    check("a chord mark stays glued", focusLine.value === "C4^");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='tie']"));
     check("a tie stays glued", focusLine.value === "C4~");
@@ -1850,13 +1869,17 @@ function chatCase(w) {
     );
     poke(symbolsPanel.querySelector("[data-dur='']"));
     poke(symbolsPanel.querySelector("[data-note='C']"));
-    check("a bass letter uses that octave", focusLine.value === "@bass C3 ");
+    check("a bass letter uses that octave", focusLine.value === "@bass C3");
     poke(symbolsPanel.querySelector("[data-clef='treble']"));
     check(
-      "treble replaces the clef",
-      focusLine.value === "@treble C3 " &&
+      "treble clears the clef",
+      focusLine.value === "C3" &&
         symbolsPanel.querySelector("[data-clef='treble']").getAttribute("aria-pressed") === "true"
     );
+    poke(symbolsPanel.querySelector("[data-undo]"));
+    check("undo restores the bass clef", focusLine.value === "@bass C3");
+    poke(symbolsPanel.querySelector("[data-redo]"));
+    check("redo clears the clef again", focusLine.value === "C3");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(

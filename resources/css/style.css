@@ -2079,6 +2079,27 @@ body.is-editing #counter {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  order: 40;
+}
+
+#editPreview {
+  order: 41;
+}
+
+#editStaffNote {
+  order: 42;
+}
+
+#editFocusChrome {
+  order: 43;
+}
+
+#allEdit {
+  order: 44;
+}
+
+#editStaffPanel {
+  order: 50;
 }
 
 #editSymbolsToggle .btn-mark {
@@ -2306,13 +2327,20 @@ body.is-editing #counter {
 
 #editPreview {
   flex: 0 0 auto;
-  min-height: 2.4em;
+  align-self: stretch;
+  width: 100%;
+  min-height: 0;
+  height: fit-content;
   margin: 0;
   overflow: hidden;
   text-align: center;
   font-family: var(--face-font);
   font-size: 22px;
   line-height: 1.15;
+}
+
+#editPreview.is-empty {
+  min-height: 2.4em;
 }
 
 #editPreview.is-empty::before {
@@ -2337,13 +2365,14 @@ body.is-editing #counter {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   max-width: 100%;
   min-height: 0;
+  height: fit-content;
   padding: 8px 10px;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   box-sizing: border-box;
   background: #fff;
   color: #111;
@@ -2372,10 +2401,22 @@ body.is-editing #counter {
 
 #editPreview.is-staff .music-staff {
   display: block;
+  width: auto;
   max-width: none;
   height: auto;
   overflow: visible;
   color: #111;
+}
+
+#editNoteHistory {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+#editNoteHistory button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 #editStaffNote {
@@ -2589,17 +2630,17 @@ body.is-about #counter {
       "sym view share more glyphend"
       "menu menu menu menu menu"
       "sympanel sympanel sympanel sympanel sympanel"
+      "prev prev prev prev prev"
+      "note note note note note"
       "focus focus focus focus focus"
       "count count count count count"
       "area area area area area"
-      "prev prev prev prev prev"
-      "note note note note note"
       "staff staff staff staff staff";
     align-content: start;
   }
 
   #textdiv.is-edit-list.is-open {
-    grid-template-rows: auto auto auto auto auto auto auto auto auto minmax(120px, 1fr) auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto auto auto auto auto auto minmax(120px, 1fr) auto;
   }
 
   #editExercise,
