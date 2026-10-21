@@ -2229,15 +2229,13 @@ body.is-editing #counter {
   border: 0;
 }
 
-/* Wide edit: one horizontal symbols toolbar, scroll if needed. */
+/* Wide edit: one flowing notes toolbar that wraps like the text symbols pad. */
 @media (min-width: 841px) {
   #editNotePad {
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
   }
 
   #editNoteFlow,
@@ -2246,7 +2244,7 @@ body.is-editing #counter {
   }
 
   #editNotePad .edit-note-row {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 
   #editNoteMain {
