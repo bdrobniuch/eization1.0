@@ -2175,6 +2175,26 @@ body.is-editing #counter {
   line-height: 1;
 }
 
+#editSymbolsToggle .icon-staff-notes {
+  width: 2.05em;
+  height: 1.25em;
+  flex: 0 0 auto;
+}
+
+#editSymbolsToggle.is-text .icon-staff-notes,
+#editSymbolsToggle.is-staff .btn-mark {
+  display: none !important;
+}
+
+#editSymbolsToggle.is-staff {
+  width: 60px;
+  min-width: 60px;
+}
+
+#editSymbolsToggle.is-staff .icon-staff-notes {
+  display: block !important;
+}
+
 #editSymbols {
   position: relative;
   z-index: 3;
@@ -2795,7 +2815,7 @@ body.is-about #counter {
 @media (max-width: 640px), (orientation: landscape) and (max-height: 520px) {
   #textdiv.is-open {
     display: grid;
-    grid-template-columns: 44px 44px 44px 44px minmax(0, 1fr);
+    grid-template-columns: auto 44px 44px 44px minmax(0, 1fr);
     grid-template-areas:
       "head head head head head"
       "name name name name name"

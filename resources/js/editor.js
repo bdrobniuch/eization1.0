@@ -1491,7 +1491,7 @@ function editorSyncSymbolKind() {
     button.setAttribute("title", t(titleKey));
     button.setAttribute("aria-label", t(titleKey));
     if (mark) {
-      mark.textContent = staff ? "\u2669" : "\u266F";
+      mark.textContent = "\u266F";
     }
     if (label) {
       label.textContent = t(staff ? "edit.notes" : "edit.symbols");
