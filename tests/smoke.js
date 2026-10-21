@@ -1956,6 +1956,11 @@ function chatCase(w) {
     w.setEditorStaff(true);
     placeCaret("C4q");
     var undoBefore = w.editorSymbolUndo ? w.editorSymbolUndo.length : 0;
+    placeCaret("C4q ");
+    check(
+      "spaces that do not change the staff skip undo",
+      !!(w.editorSymbolUndo && w.editorSymbolUndo.length === undoBefore)
+    );
     placeCaret("C4q D4q");
     check(
       "each valid keyboard staff step is undoable",

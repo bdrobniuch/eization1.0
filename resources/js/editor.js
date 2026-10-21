@@ -49,6 +49,8 @@ var editorSymbolRedo = [];
 var EDITOR_SYMBOL_HISTORY = 50;
 /* Last keyboard/pad state that drew a valid staff; used for typing undo. */
 var editorLastValidSnap = null;
+/* Preview HTML of that valid draw — undo steps only when this changes, not for spaces-only edits. */
+var editorLastValidRenderKey = null;
 var editorStaffTypingDirty = false;
 /* True only while handling a real field input/paste (not pad / selection refresh). */
 var editorKeyboardStaffEdit = false;
@@ -2170,6 +2172,7 @@ function editorClearSymbolHistory() {
   editorSymbolUndo = [];
   editorSymbolRedo = [];
   editorLastValidSnap = null;
+  editorLastValidRenderKey = null;
   editorStaffTypingDirty = false;
   editorPaintUndoRedo();
 }
@@ -2230,9 +2233,11 @@ function editorSyncStaffHistoryAfterRefresh(line, status) {
   var valid;
   var pushed;
   var wasDirty;
+  var renderKey;
   if (!editorStaffOn()) {
-    if (editorLastValidSnap || editorStaffTypingDirty) {
+    if (editorLastValidSnap || editorStaffTypingDirty || editorLastValidRenderKey !== null) {
       editorLastValidSnap = null;
+      editorLastValidRenderKey = null;
       editorStaffTypingDirty = false;
       editorPaintUndoRedo();
     }
@@ -2243,10 +2248,12 @@ function editorSyncStaffHistoryAfterRefresh(line, status) {
   if (valid) {
     pushed = false;
     wasDirty = editorStaffTypingDirty;
+    /* Prefer drawn SVG HTML so trailing spaces / no-op text do not create undo steps. */
+    renderKey = editorLastGoodStaffHtml || "";
     if (
       editorKeyboardStaffEdit &&
-      editorLastValidSnap &&
-      String(editorLastValidSnap.value || "") !== String(snap.value || "")
+      editorLastValidRenderKey !== null &&
+      renderKey !== editorLastValidRenderKey
     ) {
       editorSymbolUndo.push(editorCloneSymbolSnap(editorLastValidSnap));
       if (editorSymbolUndo.length > EDITOR_SYMBOL_HISTORY) {
@@ -2256,6 +2263,7 @@ function editorSyncStaffHistoryAfterRefresh(line, status) {
       pushed = true;
     }
     editorLastValidSnap = editorCloneSymbolSnap(snap);
+    editorLastValidRenderKey = renderKey;
     editorStaffTypingDirty = false;
     if (pushed || wasDirty) {
       editorPaintUndoRedo();
