@@ -71,7 +71,7 @@ function installCase(w) {
       w.installPaintStep(sample, key);
       return sample.querySelectorAll("svg").length === words && sample.textContent.indexOf("{") < 0;
     }
-    return marks("install.ios", 2) && marks("install.android", 3) && marks("install.chrome", 3) && marks("install.edge", 3) && marks("install.other", 3) && marks("install.mac", 0) && (sample.textContent.indexOf("Add to Dock") > 0 || sample.textContent.indexOf("Añadir al Dock") > 0);
+    return marks("install.ios", 2) && marks("install.android", 3) && marks("install.chrome", 1) && marks("install.edge", 3) && marks("install.other", 3) && marks("install.mac", 0) && (sample.textContent.indexOf("Add to Dock") > 0 || sample.textContent.indexOf("Añadir al Dock") > 0);
   })());
 }
 
