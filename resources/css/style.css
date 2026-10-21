@@ -754,6 +754,20 @@ footer {
     flex: 1 1 100%;
 }
 
+#installStep .installIcon {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    margin: 0 0.22em 0 0.08em;
+    vertical-align: -0.22em;
+}
+
+#installStep .installIcon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 #installHelp {
     flex: 1 1 100%;
 }

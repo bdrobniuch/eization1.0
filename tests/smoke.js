@@ -64,6 +64,15 @@ function installCase(w) {
   check("install profile firefox", w.installProfile({ ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0", platform: "Windows", brands: "", touch: 0 }) === "other");
   check("install profile in-app", w.installProfile({ ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 320.0.0.0.0", platform: "iPhone", brands: "", touch: 5 }) === "other");
   check("install copy", w.I18N.en["install.action"] === "Install as app" && w.I18N.es["install.action"] === "Instalar como app" && w.I18N.en["install.ios"].indexOf("Add to Home Screen") > 0 && w.I18N.es["install.ios"].indexOf("Agregar a Inicio") > 0);
+  check("install auto count", w.installAutoDone("shown:3") === true && w.installAutoDone("1") === true && w.installAutoDone("shown:1") === false && w.installAutoDone("shown:2") === false && w.installAutoDone("") === false);
+  check("install step icons", (function () {
+    var sample = w.document.createElement("p");
+    function marks(key, words) {
+      w.installPaintStep(sample, key);
+      return sample.querySelectorAll("svg").length === words && sample.textContent.indexOf("{") < 0;
+    }
+    return marks("install.ios", 2) && marks("install.android", 3) && marks("install.chrome", 3) && marks("install.edge", 3) && marks("install.other", 3) && marks("install.mac", 0) && (sample.textContent.indexOf("Add to Dock") > 0 || sample.textContent.indexOf("Añadir al Dock") > 0);
+  })());
 }
 
 function run() {
