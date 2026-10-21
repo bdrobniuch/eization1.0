@@ -1769,6 +1769,7 @@ function chatCase(w) {
     function placeCaret(text) {
       focusLine.value = text;
       focusLine.dispatchEvent(new w.Event("input", { bubbles: true }));
+      focusLine.focus();
       focusLine.setSelectionRange(text.length, text.length);
     }
     function octaveNow() {
@@ -1780,6 +1781,7 @@ function chatCase(w) {
       "a letter writes the note",
       focusLine.value === "C5" &&
         octaveNow() === "5" &&
+        w.document.activeElement !== focusLine &&
         !w.document.getElementById("editNotePreview") &&
         !!symbolsPanel.querySelector("[data-dur='w']") &&
         !!symbolsPanel.querySelector("[data-note='C']") &&
@@ -1848,10 +1850,12 @@ function chatCase(w) {
         symbolsPanel.querySelector("[data-dot]").getAttribute("aria-pressed") === "true"
     );
     placeCaret("C4 D4 | Eb5e F5e /q re.");
+    focusLine.focus();
     focusLine.setSelectionRange(0, 0);
     poke(symbolsPanel.querySelector("[data-dot]"));
     poke(symbolsPanel.querySelector("[data-dur='w']"));
     poke(symbolsPanel.querySelector("[data-dot]"));
+    focusLine.focus();
     focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
     poke(symbolsPanel.querySelector("[data-note='B']"));
     check("a dot can sit on a whole note", focusLine.value === "C4 D4 | Eb5e F5e /q re. B5w.");

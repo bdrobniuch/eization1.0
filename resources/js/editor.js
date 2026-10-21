@@ -47,6 +47,8 @@ var editorIconCache = {};
 var editorSymbolUndo = [];
 var editorSymbolRedo = [];
 var EDITOR_SYMBOL_HISTORY = 50;
+/* While Symbols/Notes is open, keep caret here and avoid focusing the field (no soft keyboard). */
+var editorPadCaret = null;
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
@@ -393,19 +395,158 @@ function editorCloseSymbols() {
   if (button) {
     button.setAttribute("aria-expanded", "false");
   }
+  editorPadCaret = null;
+  editorSetPadInputMode(false);
   editorDropNoteFlow();
   return true;
+}
+
+function editorCapturePadCaret() {
+  var field = editorActiveField();
+  var start;
+  var end;
+  var len;
+  if (!field) {
+    editorPadCaret = { start: 0, end: 0 };
+    return;
+  }
+  len = String(field.value || "").length;
+  start = typeof field.selectionStart === "number" ? field.selectionStart : len;
+  end = typeof field.selectionEnd === "number" ? field.selectionEnd : start;
+  if (start < 0) {
+    start = 0;
+  }
+  if (end < 0) {
+    end = 0;
+  }
+  if (start > len) {
+    start = len;
+  }
+  if (end > len) {
+    end = len;
+  }
+  editorPadCaret = { start: start, end: end };
+}
+
+function editorReadSelection(field) {
+  var len;
+  var start;
+  var end;
+  if (!field) {
+    return { start: 0, end: 0 };
+  }
+  len = String(field.value || "").length;
+  if (editorPadCaret && editorSymbolsIsOpen() && document.activeElement !== field) {
+    start = editorPadCaret.start;
+    end = editorPadCaret.end;
+    if (start < 0) {
+      start = 0;
+    }
+    if (end < 0) {
+      end = 0;
+    }
+    if (start > len) {
+      start = len;
+    }
+    if (end > len) {
+      end = len;
+    }
+    return { start: start, end: end };
+  }
+  return {
+    start: field.selectionStart || 0,
+    end: field.selectionEnd || 0
+  };
+}
+
+function editorPlaceCaret(field, start, end, silent) {
+  var len;
+  if (!field) {
+    return;
+  }
+  len = String(field.value || "").length;
+  if (typeof end !== "number") {
+    end = start;
+  }
+  if (start < 0) {
+    start = 0;
+  }
+  if (end < 0) {
+    end = 0;
+  }
+  if (start > len) {
+    start = len;
+  }
+  if (end > len) {
+    end = len;
+  }
+  if (silent || (editorPadCaret && editorSymbolsIsOpen())) {
+    editorPadCaret = { start: start, end: end };
+    try {
+      field.setSelectionRange(start, end);
+    } catch (errSilentCaret) {}
+    return;
+  }
+  field.focus();
+  try {
+    field.setSelectionRange(start, end);
+  } catch (errFocusCaret) {}
+}
+
+function editorSetPadInputMode(off) {
+  var focusField = document.getElementById("editFocusLine");
+  var area = document.getElementById("allEdit");
+  if (off) {
+    if (focusField) {
+      focusField.setAttribute("inputmode", "none");
+    }
+    if (area) {
+      area.setAttribute("inputmode", "none");
+    }
+  } else {
+    if (focusField) {
+      focusField.removeAttribute("inputmode");
+    }
+    if (area) {
+      area.removeAttribute("inputmode");
+    }
+  }
+}
+
+function editorBeginPadInput() {
+  var field;
+  if (!editorSymbolsIsOpen()) {
+    return;
+  }
+  field = editorActiveField();
+  if (!field) {
+    return;
+  }
+  if (document.activeElement === field || !editorPadCaret) {
+    editorCapturePadCaret();
+  }
+  editorSetPadInputMode(true);
+  if (document.activeElement === field) {
+    field.blur();
+  }
 }
 
 function editorOpenSymbols() {
   var panel = document.getElementById("editSymbols");
   var button = document.getElementById("editSymbolsToggle");
+  var field;
   if (!panel) {
     return;
   }
   panel.hidden = false;
   if (button) {
     button.setAttribute("aria-expanded", "true");
+  }
+  editorCapturePadCaret();
+  editorSetPadInputMode(true);
+  field = editorActiveField();
+  if (field && document.activeElement === field) {
+    field.blur();
   }
 }
 
@@ -1072,13 +1213,15 @@ function editorScrollPreviewToEnd(preview) {
 }
 
 function insertEditorText(text, caretBack) {
+  var silent = !!(editorPadCaret && editorSymbolsIsOpen());
   if (editorIsFocusMode()) {
     var field = document.getElementById("editFocusLine");
     if (!field) {
       return;
     }
-    var start = field.selectionStart || 0;
-    var end = field.selectionEnd || 0;
+    var sel = editorReadSelection(field);
+    var start = sel.start;
+    var end = sel.end;
     var single = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     if (single.indexOf("\n") >= 0) {
       editorSyncFocusToArea();
@@ -1102,14 +1245,11 @@ function insertEditorText(text, caretBack) {
       editorSetRawLines(next);
       editorFocusIndex = before.length + inserted.length - 1;
       editorSyncFocusFromArea();
-      field.focus();
       var caret = (inserted[inserted.length - 1] || "").length - tail.length;
       if (caret < 0) {
         caret = 0;
       }
-      try {
-        field.setSelectionRange(caret, caret);
-      } catch (err) {}
+      editorPlaceCaret(field, caret, caret, silent);
     } else {
       var value = field.value || "";
       field.value = value.slice(0, start) + single + value.slice(end);
@@ -1118,48 +1258,43 @@ function insertEditorText(text, caretBack) {
       if (pos < start) {
         pos = start;
       }
-      field.focus();
-      try {
-        field.setSelectionRange(pos, pos);
-      } catch (err2) {}
+      editorPlaceCaret(field, pos, pos, silent);
     }
     clearEditorNotice();
     refreshEditor();
     return;
   }
   var area = document.getElementById("allEdit");
-  var areaStart = area.selectionStart || 0;
-  var areaEnd = area.selectionEnd || 0;
+  var areaSel = editorReadSelection(area);
+  var areaStart = areaSel.start;
+  var areaEnd = areaSel.end;
   if (areaStart > area.value.length) {
     areaStart = area.value.length;
     areaEnd = areaStart;
   }
-  var back = caretBack > 0 ? caretBack : 0;
-  area.focus();
+  var areaBack = caretBack > 0 ? caretBack : 0;
   if (typeof area.setRangeText === "function") {
     area.setRangeText(text, areaStart, areaEnd, "end");
   } else {
     area.value = area.value.slice(0, areaStart) + text + area.value.slice(areaEnd);
   }
-  var caret = areaStart + String(text || "").length - back;
-  if (caret < areaStart) {
-    caret = areaStart;
+  var areaCaret = areaStart + String(text || "").length - areaBack;
+  if (areaCaret < areaStart) {
+    areaCaret = areaStart;
   }
-  try {
-    area.setSelectionRange(caret, caret);
-  } catch (errCaret) {}
+  editorPlaceCaret(area, areaCaret, areaCaret, silent);
   clearEditorNotice();
   refreshEditor();
 }
 
 function editorTextBeforeCaret() {
   var field = document.getElementById(editorIsFocusMode() ? "editFocusLine" : "allEdit");
-  var start;
+  var sel;
   if (!field) {
     return "";
   }
-  start = field.selectionStart || 0;
-  return String(field.value || "").slice(0, start);
+  sel = editorReadSelection(field);
+  return String(field.value || "").slice(0, sel.start);
 }
 
 /* A pitch, slash, rest, bar, beam, or chord glued to the previous word is one token and fails. */
@@ -1307,11 +1442,13 @@ function editorLineSpan() {
   var caret;
   var lineStart;
   var lineEnd;
+  var sel;
   if (!field) {
     return null;
   }
   value = String(field.value || "");
-  caret = field.selectionStart || 0;
+  sel = editorReadSelection(field);
+  caret = sel.start;
   if (editorIsFocusMode()) {
     return { field: field, value: value, lineStart: 0, lineEnd: value.length, caret: caret };
   }
@@ -1388,9 +1525,7 @@ function editorSetClef(clef) {
     rel = nextLine.length;
   }
   caret = span.lineStart + rel;
-  try {
-    span.field.setSelectionRange(caret, caret);
-  } catch (errClef) {}
+  editorPlaceCaret(span.field, caret, caret, !!(editorPadCaret && editorSymbolsIsOpen()));
   clearEditorNotice();
   refreshEditor();
 }
@@ -1430,11 +1565,16 @@ function editorPitchAtCaret() {
   var caret;
   var before;
   var hit;
-  if (!field || (field.selectionStart || 0) !== (field.selectionEnd || 0)) {
+  var sel;
+  if (!field) {
+    return null;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start !== sel.end) {
     return null;
   }
   value = String(field.value || "");
-  caret = field.selectionStart || 0;
+  caret = sel.start;
   before = value.slice(0, caret);
   hit = editorPitchTail(before);
   if (!hit) {
@@ -1492,11 +1632,16 @@ function editorRhythmAtCaret() {
   var caret;
   var before;
   var hit;
-  if (!field || (field.selectionStart || 0) !== (field.selectionEnd || 0)) {
+  var sel;
+  if (!field) {
+    return null;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start !== sel.end) {
     return null;
   }
   value = String(field.value || "");
-  caret = field.selectionStart || 0;
+  caret = sel.start;
   before = value.slice(0, caret);
   hit = editorRhythmTail(before);
   if (!hit) {
@@ -1526,9 +1671,7 @@ function editorReplaceCaretToken(hit, next) {
   if (caret < hit.start) {
     caret = hit.start;
   }
-  try {
-    hit.field.setSelectionRange(caret, caret);
-  } catch (errReplace) {}
+  editorPlaceCaret(hit.field, caret, caret, !!(editorPadCaret && editorSymbolsIsOpen()));
   clearEditorNotice();
   refreshEditor();
   return true;
@@ -1564,7 +1707,7 @@ function editorEarlierPitch() {
   if (!field) {
     return null;
   }
-  before = String(field.value || "").slice(0, field.selectionStart || 0);
+  before = String(field.value || "").slice(0, editorReadSelection(field).start);
   re = /[A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?/g;
   last = null;
   while ((m = re.exec(before))) {
@@ -1594,7 +1737,7 @@ function editorNotePadStampNow() {
     String(editorWorkingOctave()),
     editorClefName(),
     currentEditorLine(),
-    field ? String(field.selectionStart || 0) : "0",
+    field ? String(editorReadSelection(field).start) : "0",
     typeof eizationLang === "string" ? eizationLang : "",
     t("edit.noteHigher")
   ].join("~");
@@ -1993,7 +2136,7 @@ function editorSymbolSnapshot() {
   var field = editorActiveField();
   return {
     value: field ? String(field.value || "") : "",
-    caret: field ? field.selectionStart || 0 : 0,
+    caret: field ? editorReadSelection(field).start : 0,
     focusIndex: editorFocusIndex,
     note: {
       acc: editorNote.acc || "",
@@ -2025,17 +2168,13 @@ function editorApplySymbolSnapshot(snap) {
     if (field) {
       field.value = snap.value || "";
       editorSyncFocusToArea();
-      try {
-        field.setSelectionRange(snap.caret || 0, snap.caret || 0);
-      } catch (errFocusSnap) {}
+      editorPlaceCaret(field, snap.caret || 0, snap.caret || 0, !!(editorPadCaret && editorSymbolsIsOpen()));
     }
   } else {
     field = document.getElementById("allEdit");
     if (field) {
       field.value = snap.value || "";
-      try {
-        field.setSelectionRange(snap.caret || 0, snap.caret || 0);
-      } catch (errListSnap) {}
+      editorPlaceCaret(field, snap.caret || 0, snap.caret || 0, !!(editorPadCaret && editorSymbolsIsOpen()));
     }
   }
   editorNote.acc = snap.note && snap.note.acc ? snap.note.acc : "";
@@ -3638,6 +3777,7 @@ function initEditor() {
       /* Pad rebuild destroys the button mid-gesture; iOS then retargets click to Share under the finger. */
       event.preventDefault();
       event.stopPropagation();
+      editorBeginPadInput();
       swallowClick = function (clickEvent) {
         clickEvent.preventDefault();
         clickEvent.stopPropagation();
@@ -3652,6 +3792,17 @@ function initEditor() {
   }
   editorBindPadPointer(symbols);
   editorBindPadPointer(document.getElementById("editNoteHistory"));
+  function editorOnFieldFocusForPad(event) {
+    var target = event && event.target;
+    if (!target) {
+      return;
+    }
+    if (target.id === "editFocusLine" || target.id === "allEdit") {
+      editorPadCaret = null;
+      editorSetPadInputMode(false);
+    }
+  }
+  document.addEventListener("focusin", editorOnFieldFocusForPad);
   document.addEventListener("keydown", function (event) {
     var key;
     var undoKey;
