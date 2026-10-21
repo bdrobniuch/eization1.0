@@ -819,26 +819,29 @@ function editorCloseQuiet() {
 function placeEditor() {
   var sheet = document.getElementById("textdiv");
   var top = 0;
-  var bottom = 0;
+  var height;
   var viewport;
   if (!sheet || !sheet.classList.contains("is-open")) {
     return;
   }
   viewport = window.visualViewport;
-  if (viewport) {
+  if (viewport && viewport.height > 0) {
+    /* Fit the sheet to the visible viewport so the soft keyboard does not cover controls. */
     top = viewport.offsetTop;
-    bottom = window.innerHeight - (viewport.offsetTop + viewport.height);
+    if (top < 0) {
+      top = 0;
+    }
+    height = viewport.height;
+    sheet.style.top = top + "px";
+    sheet.style.bottom = "auto";
+    sheet.style.height = height + "px";
+    sheet.style.maxHeight = height + "px";
+  } else {
+    sheet.style.top = "";
+    sheet.style.bottom = "";
+    sheet.style.height = "";
+    sheet.style.maxHeight = "";
   }
-  if (top < 0) {
-    top = 0;
-  }
-  if (bottom < 0) {
-    bottom = 0;
-  }
-  sheet.style.top = top + "px";
-  sheet.style.bottom = bottom + "px";
-  sheet.style.height = "";
-  sheet.style.maxHeight = "";
 }
 
 function editorClearSheetPlacement() {
@@ -858,13 +861,13 @@ function editorEnsureFieldVisible(field) {
   }
   placeEditor();
   window.requestAnimationFrame(function () {
-    if (typeof field.scrollIntoView !== "function") {
-      return;
-    }
-    try {
-      field.scrollIntoView({ block: "nearest", inline: "nearest" });
-    } catch (errScroll) {
-      field.scrollIntoView(false);
+    placeEditor();
+    if (typeof field.scrollIntoView === "function") {
+      try {
+        field.scrollIntoView({ block: "nearest", inline: "nearest" });
+      } catch (errScroll) {
+        field.scrollIntoView(false);
+      }
     }
   });
 }
