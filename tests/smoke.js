@@ -1643,9 +1643,9 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-event='tie']") &&
       symbolsPanel.querySelector("[data-event='beam']") &&
       symbolsPanel.querySelector("[data-event='chord']") &&
-      symbolsPanel.querySelector("[data-event='chord']").textContent === "^" &&
+      symbolsPanel.querySelector("[data-event='chord'] .edit-music-icon") &&
       symbolsPanel.querySelector("[data-event='stack']") &&
-      symbolsPanel.querySelector("[data-event='stack']").textContent === "[ ]" &&
+      symbolsPanel.querySelector("[data-event='stack'] .edit-music-icon") &&
       symbolsPanel.querySelector("[data-dur='']") &&
       symbolsPanel.querySelector("[data-dur='w']") &&
       symbolsPanel.querySelector("[data-dot]") &&
@@ -1773,8 +1773,8 @@ function chatCase(w) {
         !w.document.getElementById("editNotePreview") &&
         !!symbolsPanel.querySelector("[data-dur='w']") &&
         !!symbolsPanel.querySelector("[data-note='C']") &&
-        !!symbolsPanel.querySelector("[data-undo]") &&
-        !!symbolsPanel.querySelector("[data-redo]") &&
+        !!w.document.querySelector("#editNoteHistory [data-undo]") &&
+        !!w.document.querySelector("#editNoteHistory [data-redo]") &&
         w.I18N.en["edit.noteHigher"] === "Higher" &&
         w.I18N.es["edit.noteHigher"] === "M\u00E1s aguda" &&
         w.I18N.en["edit.noteLower"] === "Lower" &&
@@ -1876,9 +1876,9 @@ function chatCase(w) {
       focusLine.value === "C3" &&
         symbolsPanel.querySelector("[data-clef='treble']").getAttribute("aria-pressed") === "true"
     );
-    poke(symbolsPanel.querySelector("[data-undo]"));
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
     check("undo restores the bass clef", focusLine.value === "@bass C3");
-    poke(symbolsPanel.querySelector("[data-redo]"));
+    poke(w.document.querySelector("#editNoteHistory [data-redo]"));
     check("redo clears the clef again", focusLine.value === "C3");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='stack']"));

@@ -1785,11 +1785,58 @@ function editorBuildIcon(kind) {
     }));
     return editorFitIcon(svg);
   }
-  if (kind === "chord") {
+  if (kind === "stack") {
+    var stackYs = [220, 0, -220];
+    var stackI;
     if (typeof staffPlaceGlyph === "function") {
-      staffPlaceGlyph(svg, "noteheadBlack", 0, 0, space);
-      staffPlaceGlyph(svg, "noteheadBlack", 260, -220, space);
+      for (stackI = 0; stackI < stackYs.length; stackI++) {
+        staffPlaceGlyph(svg, "noteheadBlack", 0, stackYs[stackI], space);
+      }
     }
+    svg.appendChild(editorSvgEl("line", {
+      x1: String(stemX),
+      y1: String(stackYs[0] + 24),
+      x2: String(stemX),
+      y2: String(stackYs[2] - stemLen * 0.45),
+      stroke: "currentColor",
+      "stroke-width": "28"
+    }));
+    return editorFitIcon(svg);
+  }
+  if (kind === "chord") {
+    var staffY;
+    for (staffY = -2; staffY <= 2; staffY++) {
+      svg.appendChild(editorSvgEl("line", {
+        x1: "-40",
+        y1: String(staffY * space),
+        x2: "520",
+        y2: String(staffY * space),
+        stroke: "currentColor",
+        "stroke-width": "22",
+        opacity: "0.55"
+      }));
+    }
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "noteheadBlack", 40, 0, space);
+    }
+    svg.appendChild(editorSvgEl("line", {
+      x1: String(40 + stemX),
+      y1: "24",
+      x2: String(40 + stemX),
+      y2: String(-stemLen * 0.7),
+      stroke: "currentColor",
+      "stroke-width": "28"
+    }));
+    var chordLabel = editorSvgEl("text", {
+      x: "300",
+      y: String(-stemLen * 0.72),
+      fill: "currentColor",
+      "font-size": "220",
+      "font-family": "system-ui, sans-serif",
+      "font-weight": "600"
+    });
+    chordLabel.textContent = "C\u22067";
+    svg.appendChild(chordLabel);
     return editorFitIcon(svg);
   }
   return editorFitIcon(svg);
@@ -2015,8 +2062,8 @@ function editorPaintNoteEvents(row) {
   editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"));
   editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"));
   editorPadButton(row, { "data-event": "beam" }, editorMusicIcon("beam"), t("edit.noteBeam"));
-  editorPadButton(row, { "data-event": "chord" }, "^", t("edit.noteChord"));
-  editorPadButton(row, { "data-event": "stack" }, "[ ]", t("edit.noteStack"));
+  editorPadButton(row, { "data-event": "chord" }, editorMusicIcon("chord"), t("edit.noteChord"));
+  editorPadButton(row, { "data-event": "stack" }, editorMusicIcon("stack"), t("edit.noteStack"));
 }
 
 function editorPaintNotePad() {
@@ -2025,12 +2072,11 @@ function editorPaintNotePad() {
   var durHost = document.getElementById("editNoteDurations");
   var clefsHost = document.getElementById("editNoteClefs");
   var eventsHost = document.getElementById("editNoteEvents");
-  var historyHost = document.getElementById("editNoteHistory");
   var stamp;
-  if (!stepHost || !chipsHost || !durHost || !clefsHost || !eventsHost || !historyHost) {
+  if (!stepHost || !chipsHost || !durHost || !clefsHost || !eventsHost) {
     return;
   }
-  stamp = editorNotePadStampNow() + "~" + editorSymbolUndo.length + "~" + editorSymbolRedo.length;
+  stamp = editorNotePadStampNow();
   if (stamp === editorNotePadStamp) {
     return;
   }
@@ -2044,8 +2090,8 @@ function editorPaintNotePad() {
   editorPaintDurations(durHost);
   editorPaintClefs(clefsHost);
   editorPaintNoteEvents(eventsHost);
-  editorPaintUndoRedo();
   editorNotePadStamp = stamp;
+  editorPaintUndoRedo();
 }
 
 function editorWriteLetter(letter) {
@@ -3139,7 +3185,6 @@ function buildEditorNotePad(host) {
   var durations = document.createElement("div");
   var clefs = document.createElement("div");
   var events = document.createElement("div");
-  var history = document.createElement("div");
   pad.id = "editNotePad";
   flow.id = "editNoteFlow";
   main.id = "editNoteMain";
@@ -3153,8 +3198,6 @@ function buildEditorNotePad(host) {
   clefs.className = "edit-note-row";
   events.id = "editNoteEvents";
   events.className = "edit-note-row";
-  history.id = "editNoteHistory";
-  history.className = "edit-note-row";
   main.appendChild(letters);
   main.appendChild(modifiers);
   main.appendChild(durations);
@@ -3162,7 +3205,6 @@ function buildEditorNotePad(host) {
   pad.appendChild(flow);
   pad.appendChild(clefs);
   pad.appendChild(events);
-  pad.appendChild(history);
   host.appendChild(pad);
 }
 
@@ -3535,14 +3577,33 @@ function initEditor() {
       refreshEditorHint();
     });
   }
-  symbols.addEventListener("pointerdown", function (event) {
-    var button = event.target.closest("button");
-    if (!button || !symbols.contains(button)) {
+  function editorBindPadPointer(host) {
+    if (!host) {
       return;
     }
-    event.preventDefault();
-    editorActivateSymbol(button);
-  });
+    host.addEventListener("pointerdown", function (event) {
+      var button = event.target.closest("button");
+      var swallowClick;
+      if (!button || !host.contains(button)) {
+        return;
+      }
+      /* Pad rebuild destroys the button mid-gesture; iOS then retargets click to Share under the finger. */
+      event.preventDefault();
+      event.stopPropagation();
+      swallowClick = function (clickEvent) {
+        clickEvent.preventDefault();
+        clickEvent.stopPropagation();
+        document.removeEventListener("click", swallowClick, true);
+      };
+      document.addEventListener("click", swallowClick, true);
+      window.setTimeout(function () {
+        document.removeEventListener("click", swallowClick, true);
+      }, 600);
+      editorActivateSymbol(button);
+    });
+  }
+  editorBindPadPointer(symbols);
+  editorBindPadPointer(document.getElementById("editNoteHistory"));
   document.addEventListener("keydown", function (event) {
     var key;
     var undoKey;

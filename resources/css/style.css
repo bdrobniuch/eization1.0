@@ -2087,15 +2087,15 @@ body.is-editing #counter {
   order: 40;
 }
 
-#editFocusChrome {
+#editPreview {
   order: 41;
 }
 
-#allEdit {
+#editFocusChrome {
   order: 42;
 }
 
-#editPreview {
+#allEdit {
   order: 43;
 }
 
@@ -2115,7 +2115,8 @@ body.is-editing #counter {
 
 #editSymbols {
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  isolation: isolate;
   flex: 0 0 auto;
   display: block;
   width: 100%;
@@ -2342,7 +2343,18 @@ body.is-editing #counter {
 }
 
 #textdiv.is-edit-list #editFocusChrome {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#textdiv.is-edit-list #editFocusBar > :not(#editNoteHistory),
+#textdiv.is-edit-list #editFocusLine {
+  display: none !important;
+}
+
+#textdiv.is-edit-list #editNoteHistory {
+  margin-left: 0;
 }
 
 #textdiv.is-edit-list #allEdit {
@@ -2444,11 +2456,30 @@ body.is-editing #counter {
 }
 
 #editNoteHistory {
-  display: flex;
+  display: inline-flex;
+  flex: 0 0 auto;
   flex-wrap: nowrap;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+#editNoteHistory button {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  width: auto;
+  padding: 0 8px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--face-font);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 #editNoteHistory button:disabled {
@@ -2675,10 +2706,10 @@ body.is-about #counter {
       "sym view share more glyphend"
       "menu menu menu menu menu"
       "sympanel sympanel sympanel sympanel sympanel"
+      "prev prev prev prev prev"
       "focus focus focus focus focus"
       "count count count count count"
       "area area area area area"
-      "prev prev prev prev prev"
       "note note note note note"
       "staff staff staff staff staff";
     align-content: start;
@@ -2691,7 +2722,7 @@ body.is-about #counter {
   }
 
   #textdiv.is-edit-list.is-open {
-    grid-template-rows: minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(72px, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto);
+    grid-template-rows: repeat(10, minmax(min-content, auto)) minmax(72px, auto) minmax(min-content, auto) minmax(min-content, auto);
   }
 
   #allEdit {
@@ -2922,6 +2953,14 @@ body.is-about #counter {
 
   #editFocusAdd {
     margin-left: auto;
+  }
+
+  #editNoteHistory {
+    margin-left: 0;
+  }
+
+  #textdiv.is-edit-focus #editNoteHistory {
+    margin-left: 0;
   }
 
   #allEdit {
