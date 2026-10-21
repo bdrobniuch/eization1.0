@@ -1492,7 +1492,7 @@ function chatCase(w) {
   var moreMenu = w.document.getElementById("editMoreMenu");
   var staffHelp = w.document.getElementById("editStaffHelp");
   var desktopActions = w.matchMedia("(min-width: 841px)").matches;
-  var phoneEdit = w.matchMedia("(max-width: 640px)").matches;
+  var phoneEdit = w.matchMedia("(max-width: 640px), (orientation: landscape) and (max-height: 520px)").matches;
   check("exercise actions sit above the name", !!(exerciseRow && nameRow && (exerciseRow.compareDocumentPosition(nameRow) & 4)));
   check("share sits on the exercise row", !!(share && send && share.parentNode === send));
   check("staff sits beside bars", !!(staffHelp && writeRow && writeRow.contains(staffHelp)));
@@ -1708,7 +1708,7 @@ function chatCase(w) {
     w.currentExerciseId = focusWalkId;
     w.SelectExercise();
     w.editorOpen();
-    var phoneFocus = w.matchMedia("(max-width: 640px)").matches;
+    var phoneFocus = w.matchMedia("(max-width: 640px), (orientation: landscape) and (max-height: 520px)").matches;
     var viewLabel = viewToggle.querySelector(".btn-label");
     var shownView = viewLabel ? viewLabel.textContent : viewToggle.textContent;
     var sheetBox = sheet.getBoundingClientRect();

@@ -2109,13 +2109,20 @@ body.is-editing #counter {
 }
 
 #editSymbols {
-  flex: 1 0 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex: 0 0 auto;
+  display: block;
   width: 100%;
   min-width: 0;
+  /* Grid items with overflow otherwise size to 0; keep the pad's full height and scroll #textdiv. */
+  min-height: min-content;
   box-sizing: border-box;
+}
+
+#editSymbols.is-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
 }
 
 #editSymbols[hidden] {
@@ -2123,11 +2130,12 @@ body.is-editing #counter {
 }
 
 #editNotePad {
-  flex: 1 0 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 #editNotePad .edit-note-row {
@@ -2138,8 +2146,10 @@ body.is-editing #counter {
 
 #editSymbols button {
   flex: 0 0 auto;
+  flex-shrink: 0;
   min-width: 44px;
   min-height: 44px;
+  width: auto;
   padding: 0 8px;
   border: 2px solid rgba(255, 255, 255, 0.85);
   background: transparent;
@@ -2171,8 +2181,17 @@ body.is-editing #counter {
   min-width: 0;
 }
 
+.edit-note-octave-group {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
 .edit-note-octave {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   min-width: 44px;
@@ -2409,6 +2428,8 @@ body.is-editing #counter {
 }
 
 #editNoteHistory {
+  display: flex;
+  flex-wrap: nowrap;
   margin-top: 4px;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.28);
@@ -2417,6 +2438,14 @@ body.is-editing #counter {
 #editNoteHistory button:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+#editNoteHistory .chrome-icon {
+  width: 1.15em;
+  height: 1.15em;
+  display: block;
+  margin: 0 auto;
+  pointer-events: none;
 }
 
 #editStaffNote {
@@ -2618,7 +2647,7 @@ body.is-about #counter {
   display: block;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (orientation: landscape) and (max-height: 520px) {
   #textdiv.is-open {
     display: grid;
     grid-template-columns: 44px 44px 44px 44px minmax(0, 1fr);
@@ -2640,7 +2669,11 @@ body.is-about #counter {
   }
 
   #textdiv.is-edit-list.is-open {
-    grid-template-rows: auto auto auto auto auto auto auto auto auto auto auto minmax(120px, 1fr) auto;
+    grid-template-rows: auto auto auto auto auto auto auto auto auto auto auto minmax(72px, 1fr) auto;
+  }
+
+  #allEdit {
+    min-height: 72px;
   }
 
   #editExercise,

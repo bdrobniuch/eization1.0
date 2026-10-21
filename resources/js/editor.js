@@ -417,8 +417,11 @@ function editorToggleSymbols() {
   }
 }
 
+/* Portrait phones, and landscape phones (short height) such as iPhone rotated. */
+var EDITOR_PHONE_MQ = "(max-width: 640px), (orientation: landscape) and (max-height: 520px)";
+
 function editorPhoneChrome() {
-  return window.matchMedia("(max-width: 640px)").matches;
+  return window.matchMedia(EDITOR_PHONE_MQ).matches;
 }
 
 function setEditorAskHint(on) {
@@ -1844,16 +1847,46 @@ function editorPaintOctave(row) {
   row.appendChild(mark);
 }
 
+function editorHistoryIcon(kind) {
+  var svg = editorSvgEl("svg", {
+    viewBox: "0 0 24 24",
+    class: "chrome-icon",
+    "aria-hidden": "true",
+    focusable: "false"
+  });
+  function strokePath(d) {
+    return editorSvgEl("path", {
+      d: d,
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "2",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round"
+    });
+  }
+  if (kind === "redo") {
+    svg.appendChild(strokePath("M21 9l-4-4-4 4"));
+    svg.appendChild(strokePath("M17 5v7a5 5 0 0 1-9 3.5"));
+  } else {
+    svg.appendChild(strokePath("M3 9l4-4 4 4"));
+    svg.appendChild(strokePath("M7 5v7a5 5 0 0 0 9 3.5"));
+  }
+  return svg;
+}
+
 function editorPaintModifiers(row) {
   var clef = editorClefName();
+  var octaveGroup = document.createElement("div");
+  octaveGroup.className = "edit-note-octave-group";
   editorPadButton(row, { "data-clef": "treble" }, editorMusicIcon("clef-treble"), t("edit.clefTreble"), clef !== "bass");
   editorPadButton(row, { "data-clef": "bass" }, editorMusicIcon("clef-bass"), t("edit.clefBass"), clef === "bass");
   editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), editorNote.acc === "b");
   editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), editorNote.acc === "#");
   editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), editorNote.acc === "n");
-  editorPadButton(row, { "data-shift": "-1" }, "\u2193", t("edit.noteLower"));
-  editorPaintOctave(row);
-  editorPadButton(row, { "data-shift": "1" }, "\u2191", t("edit.noteHigher"));
+  editorPadButton(octaveGroup, { "data-shift": "-1" }, "\u2193", t("edit.noteLower"));
+  editorPaintOctave(octaveGroup);
+  editorPadButton(octaveGroup, { "data-shift": "1" }, "\u2191", t("edit.noteHigher"));
+  row.appendChild(octaveGroup);
 }
 
 function editorClearSymbolHistory() {
@@ -1950,8 +1983,8 @@ function editorPaintUndoRedo() {
     return;
   }
   host.innerHTML = "";
-  undoBtn = editorPadButton(host, { "data-undo": "1" }, t("edit.undo"), t("edit.undo"));
-  redoBtn = editorPadButton(host, { "data-redo": "1" }, t("edit.redo"), t("edit.redo"));
+  undoBtn = editorPadButton(host, { "data-undo": "1" }, editorHistoryIcon("undo"), t("edit.undo"));
+  redoBtn = editorPadButton(host, { "data-redo": "1" }, editorHistoryIcon("redo"), t("edit.redo"));
   undoBtn.disabled = !editorSymbolUndo.length;
   redoBtn.disabled = !editorSymbolRedo.length;
 }
