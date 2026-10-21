@@ -2577,7 +2577,7 @@
                       }
                   ],
         "lines":  [
-                      "@treble @key=Cm ^C_Harmonic-minor {C4e_1 D4e_2 Eb4e_b3 F4e_4} {G4e_5 Ab4e_b6 B4e_7 C5e_1}"
+                      "@key=Cm ^C_Harmonic-minor {C4e_1 D4e_2 Eb4e_b3 F4e_4} {G4e_5 Ab4e_b6 B4e_7 C5e_1}"
                   ]
     },
     {
@@ -2609,7 +2609,7 @@
                       }
                   ],
         "lines":  [
-                      "@treble @key=Bbm ^C_Dorian-♭2 {C4e_1 Db4e_b2 Eb4e_b3 F4e_4} {G4e_5 A4e_6 Bb4e_b7 C5e_1}"
+                      "@key=Bbm ^C_Dorian-♭2 {C4e_1 Db4e_b2 Eb4e_b3 F4e_4} {G4e_5 A4e_6 Bb4e_b7 C5e_1}"
                   ]
     },
     {
@@ -2641,7 +2641,7 @@
                       }
                   ],
         "lines":  [
-                      "@treble @key=C ^C_Major-pentatonic {C4e_1 D4e_2 E4e_3 G4e_5} {A4e_6 C5e_1}"
+                      "@key=C ^C_Major-pentatonic {C4e_1 D4e_2 E4e_3 G4e_5} {A4e_6 C5e_1}"
                   ]
     },
     {
@@ -2673,7 +2673,7 @@
                       }
                   ],
         "lines":  [
-                      "@treble @key=C ^C_Whole-tone {C4e_1 D4e_2 E4e_3 F#4e_#4} {G#4e_#5 A#4e_b7 C5e_1}"
+                      "@key=C ^C_Whole-tone {C4e_1 D4e_2 E4e_3 F#4e_#4} {G#4e_#5 A#4e_b7 C5e_1}"
                   ]
     },
     {

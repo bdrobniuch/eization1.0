@@ -353,7 +353,6 @@ var registerScaleFamily;
       parts.push(midiToToken(rootMidi + scale.semis[i], useFlat, scale.degrees[i]));
     }
     return (
-      "@treble " +
       keyDirective(scale.parent(root)) +
       " ^" +
       scaleTitle(root, scale) +

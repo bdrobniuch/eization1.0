@@ -2,7 +2,8 @@ registerScaleFamily({
   id: "symmetricBebop",
   label: "Symmetric and Bebop",
   inMenu: false,
-  rev: 1,
+  /* 2026-10-21: drop default @treble from every line. */
+  rev: 2,
   names: [
     "Whole-tone",
     "Half-whole-diminished",

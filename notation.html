@@ -87,7 +87,7 @@
         <h2>Clef and key</h2>
         <p><code>@treble</code> or <code>@bass</code>, and <code>@key=</code>, in either order. The default is treble, key of C. <code>@key=Eb</code> is E-flat major. <code>@key=Am</code> prints the signature of the relative major (C). A <code>!</code> after the octave prints the accidental even when the key already has it (<code>F#4!</code>).</p>
         <figure class="notation-sample">
-            <pre>@treble @key=Eb Eb4 F4 G4 Ab4 Bb4</pre>
+            <pre>@key=Eb Eb4 F4 G4 Ab4 Bb4</pre>
             <div class="notation-staff"></div>
         </figure>
         <figure class="notation-sample">
@@ -98,7 +98,7 @@
         <h2>A scale</h2>
         <p><code>^Major</code> is any one word above the staff, before the notes — a scale name or a chord symbol. <code>_1</code> is the degree under that note. <code>_b3</code> prints as ♭3. Braces beam eighths and sixteenths into one group.</p>
         <figure class="notation-sample">
-            <pre>@treble @key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
+            <pre>@key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
             <div class="notation-staff"></div>
         </figure>
 

@@ -729,13 +729,19 @@ function ensureDeskExercises() {
   return list;
 }
 
+function olderScaleLine(line) {
+  return String(line)
+    .replace(/^@treble\s+/, "")
+    .replace(/\^([A-G](?:\u266F|\u266D|#|b)?)_/, "^");
+}
+
 function linesMatchOlderScales(stored, fresh) {
   if (!stored || !fresh || stored.length !== fresh.length) {
     return false;
   }
   var j;
   for (j = 0; j < stored.length; j++) {
-    if (String(stored[j]) !== String(fresh[j]).replace(/\^([A-G](?:\u266F|\u266D|#|b)?)_/, "^")) {
+    if (olderScaleLine(stored[j]) !== olderScaleLine(fresh[j])) {
       return false;
     }
   }

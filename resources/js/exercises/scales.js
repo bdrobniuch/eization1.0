@@ -3,7 +3,7 @@ registerScaleFamily({
   label: "Scales",
   staff: true,
   inMenu: true,
-  /* 2026-10-17: the menu exercise is the seven major modes. */
-  rev: 3,
+  /* 2026-10-21: drop default @treble from every line. */
+  rev: 4,
   names: ["Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian"]
 });

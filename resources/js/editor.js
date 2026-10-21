@@ -59,7 +59,7 @@ var editorPadCaret = null;
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
-  "@treble @key=Eb Eb4 F4 G4 Ab4 Bb4",
+  "@key=Eb Eb4 F4 G4 Ab4 Bb4",
   "[E3h G3h B3h D4h]^C\u22067_3",
   "/q /e rq",
   "C4q~ | C4q",

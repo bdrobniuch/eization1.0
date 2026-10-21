@@ -2,7 +2,8 @@ registerScaleFamily({
   id: "melodicMinorModes",
   label: "Melodic Minor Modes",
   inMenu: false,
-  rev: 1,
+  /* 2026-10-21: drop default @treble from every line. */
+  rev: 2,
   names: [
     "Dorian-\u266D2",
     "Lydian-augmented",

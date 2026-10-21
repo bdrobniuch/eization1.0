@@ -110,22 +110,22 @@
             <h2>Write one line they can see</h2>
             <p>Open Edit. Name the exercise for the week (“Dorian, three keys,” not “scales”). Each line is one scale, one bar of eighth notes in 4/4, so set Bars to 1. Staff, next to Bars, opens a short writing guide without changing your lines. The preview above the box draws the line at the caret. The full set is on <a href="../notation.html">How to write on the staff</a>.</p>
             <ul class="recipe">
-                <li><code>@treble</code> and <code>@key=</code> come first. The key is the parent major, so the signature does the accidentals.</li>
+                <li><code>@key=</code> comes first (treble is the default). The key is the parent major, so the signature does the accidentals.</li>
                 <li><code>^Dorian</code> is the name above the staff. One word. No spaces.</li>
                 <li><code>D4e_1</code> is D, octave 4, eighth note, degree 1 under the note. <code>_b3</code> prints as ♭3.</li>
                 <li>Braces beam four eighths: <code>{D4e_1 E4e_2 F4e_b3 G4e_4}</code>.</li>
             </ul>
             <p>Paste these three lines. They are three examples, not one run-on scale.</p>
             <figure class="notation-sample">
-                <pre>@treble @key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
+                <pre>@key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
                 <div class="notation-staff"></div>
             </figure>
             <figure class="notation-sample">
-                <pre>@treble @key=C ^Dorian {D4e_1 E4e_2 F4e_b3 G4e_4} {A4e_5 B4e_6 C5e_b7 D5e_1}</pre>
+                <pre>@key=C ^Dorian {D4e_1 E4e_2 F4e_b3 G4e_4} {A4e_5 B4e_6 C5e_b7 D5e_1}</pre>
                 <div class="notation-staff"></div>
             </figure>
             <figure class="notation-sample">
-                <pre>@treble @key=Bb ^Mixolydian {F4e_1 G4e_2 A4e_3 Bb4e_4} {C5e_5 D5e_6 Eb5e_b7 F5e_1}</pre>
+                <pre>@key=Bb ^Mixolydian {F4e_1 G4e_2 A4e_3 Bb4e_4} {C5e_5 D5e_6 Eb5e_b7 F5e_1}</pre>
                 <div class="notation-staff"></div>
             </figure>
             <p>D dorian keeps <code>@key=C</code>. The signature is C major. The ♭3 is the degree, not a new key. F mixolydian uses <code>@key=Bb</code>, so B-flat and E-flat come from the signature. Ask them to say the degree under the note while they play. The number is the check. The fingering is still yours to correct in the room.</p>

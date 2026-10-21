@@ -110,22 +110,22 @@
             <h2>Escribe una línea que se pueda ver</h2>
             <p>Abre Editar. Ponle al ejercicio el nombre de la semana (“Dórico, tres tonalidades”, no “escalas”). Cada línea es una escala, un compás de corcheas en 4/4, así que Compases va en 1. Pentagrama, junto a Compases, abre una guía corta sin cambiar tus líneas. La vista previa encima del recuadro dibuja la línea del cursor. El conjunto está en <a href="../notation.html">Cómo escribir en el pentagrama</a>.</p>
             <ul class="recipe">
-                <li><code>@treble</code> y <code>@key=</code> van primero. La armadura es la del mayor padre, así que las alteraciones las pone la armadura.</li>
+                <li><code>@key=</code> va primero (la clave de sol es el valor por defecto). La armadura es la del mayor padre, así que las alteraciones las pone la armadura.</li>
                 <li><code>^Dorian</code> es el nombre sobre el pentagrama. Una palabra. Sin espacios.</li>
                 <li><code>D4e_1</code> es re, octava 4, corchea, grado 1 bajo la nota. <code>_b3</code> se ve como ♭3.</li>
                 <li>Las llaves barran cuatro corcheas: <code>{D4e_1 E4e_2 F4e_b3 G4e_4}</code>.</li>
             </ul>
             <p>Pega estas tres líneas. Son tres ejemplos, no una escala seguida.</p>
             <figure class="notation-sample">
-                <pre>@treble @key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
+                <pre>@key=C ^Major {C4e_1 D4e_2 E4e_3 F4e_4} {G4e_5 A4e_6 B4e_7 C5e_1}</pre>
                 <div class="notation-staff"></div>
             </figure>
             <figure class="notation-sample">
-                <pre>@treble @key=C ^Dorian {D4e_1 E4e_2 F4e_b3 G4e_4} {A4e_5 B4e_6 C5e_b7 D5e_1}</pre>
+                <pre>@key=C ^Dorian {D4e_1 E4e_2 F4e_b3 G4e_4} {A4e_5 B4e_6 C5e_b7 D5e_1}</pre>
                 <div class="notation-staff"></div>
             </figure>
             <figure class="notation-sample">
-                <pre>@treble @key=Bb ^Mixolydian {F4e_1 G4e_2 A4e_3 Bb4e_4} {C5e_5 D5e_6 Eb5e_b7 F5e_1}</pre>
+                <pre>@key=Bb ^Mixolydian {F4e_1 G4e_2 A4e_3 Bb4e_4} {C5e_5 D5e_6 Eb5e_b7 F5e_1}</pre>
                 <div class="notation-staff"></div>
             </figure>
             <p>Re dórico conserva <code>@key=C</code>. La armadura es do mayor. El ♭3 es el grado, no una tonalidad nueva. Fa mixolidio usa <code>@key=Bb</code>, así que el si bemol y el mi bemol salen de la armadura. Pide que digan el grado bajo la nota mientras tocan. El número es la comprobación. La digitación la corriges tú en la sala.</p>
