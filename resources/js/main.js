@@ -524,6 +524,62 @@ function deskIdForToday(seed) {
   return added ? added.id : "";
 }
 
+function offerShareSnapshot(snap) {
+  var offer;
+  if (!snap || typeof deskShareOffer !== "function") {
+    if (typeof clearShareHash === "function") {
+      clearShareHash();
+    }
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("share.bad"));
+    }
+    return;
+  }
+  offer = deskShareOffer(snap);
+  if (offer.kind === "bad") {
+    if (typeof clearShareHash === "function") {
+      clearShareHash();
+    }
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("share.bad"));
+    }
+    return;
+  }
+  if (offer.kind === "exact" && offer.exact) {
+    finishShareSelect(offer.exact.id, "");
+    return;
+  }
+  if (embedded) {
+    shareOffer = snap;
+    if (offer.kind === "changed") {
+      confirmShareUpdate();
+    } else {
+      confirmShareAdd();
+    }
+    return;
+  }
+  showShareAsk(offer.kind, offer.full, snap);
+}
+
+function openTodayShare(seed) {
+  if (typeof moreDaySnapshot !== "function") {
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("share.bad"));
+    }
+    return;
+  }
+  moreDaySnapshot(seed, function (snap) {
+    if (!snap) {
+      if (typeof showDeskNote === "function") {
+        showDeskNote(t("share.bad"));
+      }
+      return;
+    }
+    track("today_exercise", { exercise_id: seed });
+    offerShareSnapshot(snap);
+  });
+}
+
 function openTodayExercise() {
   var seed;
   var id;
@@ -534,19 +590,23 @@ function openTodayExercise() {
   if (!seed) {
     return;
   }
-  id = deskIdForToday(seed);
-  if (!id) {
-    return;
-  }
   if (typeof closeAbout === "function") {
     closeAbout();
   }
   closeExercisePanel();
   closeShareQuestion(false);
-  currentExerciseId = id;
-  buildExerciseMenu();
-  SelectExercise();
-  track("today_exercise", { exercise_id: seed });
+  if (typeof exercises !== "undefined" && exercises[seed]) {
+    id = deskIdForToday(seed);
+    if (!id) {
+      return;
+    }
+    currentExerciseId = id;
+    buildExerciseMenu();
+    SelectExercise();
+    track("today_exercise", { exercise_id: seed });
+    return;
+  }
+  openTodayShare(seed);
 }
 
 function shareBlocksPlay() {
@@ -987,40 +1047,18 @@ function dismissShareAsk() {
 function offerSharedExercise() {
   var hash = window.location.hash || "";
   var snap;
-  var offer;
   if (typeof isShareHash !== "function" || !isShareHash(hash)) {
     return;
   }
   snap = typeof readShareHash === "function" ? readShareHash(hash) : null;
-  if (!snap || typeof deskShareOffer !== "function") {
+  if (!snap) {
     clearShareHash();
     if (typeof showDeskNote === "function") {
       showDeskNote(t("share.bad"));
     }
     return;
   }
-  offer = deskShareOffer(snap);
-  if (offer.kind === "bad") {
-    clearShareHash();
-    if (typeof showDeskNote === "function") {
-      showDeskNote(t("share.bad"));
-    }
-    return;
-  }
-  if (offer.kind === "exact" && offer.exact) {
-    finishShareSelect(offer.exact.id, "");
-    return;
-  }
-  if (embedded) {
-    shareOffer = snap;
-    if (offer.kind === "changed") {
-      confirmShareUpdate();
-    } else {
-      confirmShareAdd();
-    }
-    return;
-  }
-  showShareAsk(offer.kind, offer.full, snap);
+  offerShareSnapshot(snap);
 }
 
 function openExerciseFromAddress() {
@@ -1037,24 +1075,28 @@ function openExerciseFromAddress() {
   if (!seed) {
     return;
   }
-  if (typeof exercises === "undefined" || !exercises[seed]) {
+  if (typeof exercises !== "undefined" && exercises[seed]) {
+    id = fromToday ? deskIdForToday(seed) : exerciseIdFromQuery(window.location.search);
+    if (!id) {
+      id = deskIdForToday(seed);
+    }
     clearExerciseQuery();
+    if (id) {
+      currentExerciseId = id;
+      openedExerciseFromAddress = true;
+      if (fromToday) {
+        track("today_exercise", { exercise_id: seed });
+      }
+      return;
+    }
     if (typeof showDeskNote === "function") {
       showDeskNote(t("desk.notHere"));
     }
     return;
   }
-  id = fromToday ? deskIdForToday(seed) : exerciseIdFromQuery(window.location.search);
-  if (!id) {
-    id = deskIdForToday(seed);
-  }
   clearExerciseQuery();
-  if (id) {
-    currentExerciseId = id;
-    openedExerciseFromAddress = true;
-    if (fromToday) {
-      track("today_exercise", { exercise_id: seed });
-    }
+  if (fromToday) {
+    openTodayShare(seed);
     return;
   }
   if (typeof showDeskNote === "function") {

@@ -46,7 +46,7 @@ function dayNumber(date) {
 }
 
 function dayOrder() {
-  var source = typeof dayExercises !== "undefined" ? dayExercises : [];
+  var source = typeof moreDayOrder !== "undefined" ? moreDayOrder : [];
   var order = source.slice();
   var rng = mulberry32(DAY_SHUFFLE_SEED);
   var i;

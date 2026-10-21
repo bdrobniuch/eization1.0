@@ -168,13 +168,13 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
   check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
-  check("day list stays pinned", !!(w.dayExercises && w.dayExercises.length === 11));
+  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 190));
   var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));
-  check("day pick is stable", day === dayAgain && w.dayExercises.indexOf(day) >= 0);
-  check("next utc day picks another exercise", nextUtcDay !== day && w.dayExercises.indexOf(nextUtcDay) >= 0);
-  check("a day before the epoch stays in the list", w.dayExercises.indexOf(w.exerciseOfDay(new Date(Date.UTC(2026, 9, 16)))) >= 0);
+  check("day pick is stable", day === dayAgain && w.moreDayOrder.indexOf(day) >= 0);
+  check("next utc day picks another exercise", nextUtcDay !== day && w.moreDayOrder.indexOf(nextUtcDay) >= 0);
+  check("a day before the epoch stays in the list", w.moreDayOrder.indexOf(w.exerciseOfDay(new Date(Date.UTC(2026, 9, 16)))) >= 0);
   var seededLeft = ["a", "b", "c", "d", "e"];
   var seededRight = ["a", "b", "c", "d", "e"];
   w.shuffleArray(seededLeft, 7);
