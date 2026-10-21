@@ -1149,50 +1149,37 @@ function refreshEditor() {
     return;
   }
   var line = itemToLine(currentEditorLine());
-  preview.classList.toggle("is-empty", !line);
   preview.classList.remove("is-staff", "is-staff-pending");
   preview.innerHTML = "";
   if (!line) {
-    editorLastGoodStaffHtml = "";
     clearEditStaffNote();
+    if (editorStaffOn() && typeof renderMusicStaff === "function") {
+      preview.classList.remove("is-empty");
+      editorPaintStaffPreview(preview, "", "");
+    } else {
+      preview.classList.add("is-empty");
+      editorLastGoodStaffHtml = "";
+    }
     refreshEditorHint();
     return;
   }
+  preview.classList.remove("is-empty");
   var status =
     typeof staffNotationStatus === "function"
       ? staffNotationStatus(line)
       : { ok: false, notationIsh: false, music: line, caption: "" };
   if (editorStaffOn() && status.ok && typeof renderMusicStaff === "function") {
     clearEditStaffNote();
-    preview.classList.add("is-staff");
-    var svg = renderMusicStaff(status.music, "current");
-    if (svg) {
-      var box = (svg.getAttribute("viewBox") || "").split(/\s+/);
-      var w = parseFloat(box[2]);
-      var h = parseFloat(box[3]);
-      if (w > 0 && h > 0) {
-        svg.setAttribute("width", String(Math.round(w)));
-        svg.setAttribute("height", String(Math.round(h)));
-      }
-      var wrap = document.createElement("span");
-      wrap.className = "prog-changes";
-      wrap.appendChild(svg);
-      preview.appendChild(wrap);
-    }
-    if (status.caption) {
-      var cap = document.createElement("span");
-      cap.className = "prog-name";
-      cap.textContent = status.caption;
-      preview.appendChild(cap);
-    }
-    editorLastGoodStaffHtml = preview.innerHTML;
-    editorScrollPreviewToEnd(preview);
-  } else if (editorStaffOn() && status.notationIsh) {
-    /* Mid-edit / broken staff: keep last good draw; text is already in the field. */
+    editorPaintStaffPreview(preview, status.music, status.caption);
+  } else if (editorStaffOn()) {
+    /* Staff mode: never flip to text preview — keep last good (or empty staff) + pending frame. */
     clearEditStaffNote();
     preview.classList.add("is-staff", "is-staff-pending");
     if (editorLastGoodStaffHtml) {
       preview.innerHTML = editorLastGoodStaffHtml;
+    } else if (typeof renderMusicStaff === "function") {
+      editorPaintStaffPreview(preview, "", "");
+      preview.classList.add("is-staff-pending");
     }
   } else {
     editorLastGoodStaffHtml = "";
@@ -1200,6 +1187,41 @@ function refreshEditor() {
     clearEditStaffNote();
   }
   refreshEditorHint();
+}
+
+function editorPaintStaffPreview(preview, music, caption) {
+  var svg;
+  var box;
+  var w;
+  var h;
+  var wrap;
+  var cap;
+  if (!preview || typeof renderMusicStaff !== "function") {
+    return;
+  }
+  preview.classList.add("is-staff");
+  svg = renderMusicStaff(music || "", "current");
+  if (svg) {
+    box = (svg.getAttribute("viewBox") || "").split(/\s+/);
+    w = parseFloat(box[2]);
+    h = parseFloat(box[3]);
+    if (w > 0 && h > 0) {
+      svg.setAttribute("width", String(Math.round(w)));
+      svg.setAttribute("height", String(Math.round(h)));
+    }
+    wrap = document.createElement("span");
+    wrap.className = "prog-changes";
+    wrap.appendChild(svg);
+    preview.appendChild(wrap);
+  }
+  if (caption) {
+    cap = document.createElement("span");
+    cap.className = "prog-name";
+    cap.textContent = caption;
+    preview.appendChild(cap);
+  }
+  editorLastGoodStaffHtml = preview.innerHTML;
+  editorScrollPreviewToEnd(preview);
 }
 
 function editorScrollPreviewToEnd(preview) {

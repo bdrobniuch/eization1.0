@@ -1715,9 +1715,23 @@ function staffReadMeter() {
 }
 
 function renderMusicStaff(source, role) {
-  var ast = parseMusicNotation(source);
-  if (!ast) {
-    return null;
+  var raw = typeof source === "string" ? source.trim() : "";
+  var ast;
+  if (!raw) {
+    /* Empty line: default treble, key C, meter from Setup — clef + time + staff only. */
+    ast = {
+      source: "",
+      clef: "treble",
+      keyName: "C",
+      keyAlts: staffKeyAlterations("C"),
+      chordSymbol: "",
+      events: []
+    };
+  } else {
+    ast = parseMusicNotation(source);
+    if (!ast) {
+      return null;
+    }
   }
   role = role || "current";
 

@@ -288,6 +288,15 @@ function staffNotation(w) {
     "a tie draws a curve",
     !!(tiedSvg && tiedSvg.querySelector("path.staff-tie"))
   );
+  var emptyStaffSvg = w.renderMusicStaff("", "current");
+  check(
+    "empty source draws a default staff",
+    !!(
+      emptyStaffSvg &&
+      emptyStaffSvg.querySelector(".staff-lines line") &&
+      emptyStaffSvg.querySelectorAll("path").length >= 2
+    )
+  );
   var brokenTuplet = w.staffNotationStatus("(3 C4e D4e E4e");
   check(
     "broken tuplet is notation-ish and not ok",
