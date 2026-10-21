@@ -2445,6 +2445,12 @@ body.is-editing #counter {
   white-space: normal;
 }
 
+/* Broken / mid-typing staff: keep last good SVG, orange inset frame instead of text + warn. */
+#editPreview.is-staff.is-staff-pending {
+  box-shadow: inset 0 0 0 2px #e67e22;
+  min-height: 2.5em;
+}
+
 #editPreview.is-staff .prog-changes {
   display: block;
   overflow: visible;

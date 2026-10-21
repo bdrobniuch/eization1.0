@@ -1623,7 +1623,7 @@ function isMusicNotation(source) {
 
 /*
  * Status for the edit preview: whether the line draws as a staff, and whether
- * a failed line still looks like notation (show an amber note, not a stale staff).
+ * a failed line still looks like notation (keep last good staff with a pending frame).
  */
 function staffNotationStatus(source) {
   var parts = staffExampleParts(source);

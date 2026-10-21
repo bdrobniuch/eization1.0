@@ -9,8 +9,8 @@ var editorDraft = {
   storedLines: null
 };
 
-var editStaffWarnTimer = null;
-var editStaffWarnLine = "";
+/* Last successful staff preview HTML; kept while the line is still notation-ish but broken. */
+var editorLastGoodStaffHtml = "";
 var editorStaffHelpSelection = { start: 0, end: 0 };
 var editorFocusIndex = 0;
 var editorViewOverride = null;
@@ -744,41 +744,11 @@ function editorToggleStaffHelp() {
 }
 
 function clearEditStaffNote() {
-  if (editStaffWarnTimer) {
-    clearTimeout(editStaffWarnTimer);
-    editStaffWarnTimer = null;
-  }
-  editStaffWarnLine = "";
   var note = document.getElementById("editStaffNote");
   if (note) {
     note.hidden = true;
     note.textContent = "";
   }
-}
-
-function scheduleEditStaffWarn(line) {
-  var note = document.getElementById("editStaffNote");
-  if (!note) {
-    return;
-  }
-  if (editStaffWarnTimer) {
-    clearTimeout(editStaffWarnTimer);
-  }
-  editStaffWarnLine = line;
-  note.hidden = true;
-  note.textContent = "";
-  editStaffWarnTimer = setTimeout(function () {
-    editStaffWarnTimer = null;
-    if (!editorIsOpen()) {
-      return;
-    }
-    var current = itemToLine(currentEditorLine());
-    if (current !== editStaffWarnLine) {
-      return;
-    }
-    note.textContent = t("edit.staffWarn");
-    note.hidden = false;
-  }, 400);
 }
 
 function editorCloseQuiet() {
@@ -792,6 +762,7 @@ function editorCloseQuiet() {
   editorCloseMore();
   editorCloseSymbols();
   clearEditStaffNote();
+  editorLastGoodStaffHtml = "";
   editorClearSymbolHistory();
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
@@ -1179,9 +1150,10 @@ function refreshEditor() {
   }
   var line = itemToLine(currentEditorLine());
   preview.classList.toggle("is-empty", !line);
-  preview.classList.remove("is-staff");
+  preview.classList.remove("is-staff", "is-staff-pending");
   preview.innerHTML = "";
   if (!line) {
+    editorLastGoodStaffHtml = "";
     clearEditStaffNote();
     refreshEditorHint();
     return;
@@ -1213,14 +1185,19 @@ function refreshEditor() {
       cap.textContent = status.caption;
       preview.appendChild(cap);
     }
+    editorLastGoodStaffHtml = preview.innerHTML;
     editorScrollPreviewToEnd(preview);
-  } else {
-    preview.innerHTML = lineToItem(line);
-    if (editorStaffOn() && status.notationIsh) {
-      scheduleEditStaffWarn(line);
-    } else {
-      clearEditStaffNote();
+  } else if (editorStaffOn() && status.notationIsh) {
+    /* Mid-edit / broken staff: keep last good draw; text is already in the field. */
+    clearEditStaffNote();
+    preview.classList.add("is-staff", "is-staff-pending");
+    if (editorLastGoodStaffHtml) {
+      preview.innerHTML = editorLastGoodStaffHtml;
     }
+  } else {
+    editorLastGoodStaffHtml = "";
+    preview.innerHTML = lineToItem(line);
+    clearEditStaffNote();
   }
   refreshEditorHint();
 }

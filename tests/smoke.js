@@ -1925,6 +1925,21 @@ function chatCase(w) {
         w.document.getElementById("editPreview").classList.contains("is-staff")
       )
     );
+    w.setEditorStaff(true);
+    placeCaret("C4q");
+    placeCaret("C4q~");
+    var pendingPreview = w.document.getElementById("editPreview");
+    var staffNote = w.document.getElementById("editStaffNote");
+    check(
+      "broken staff keeps last draw with pending frame",
+      !!(
+        pendingPreview.classList.contains("is-staff") &&
+        pendingPreview.classList.contains("is-staff-pending") &&
+        pendingPreview.querySelector("svg") &&
+        staffNote &&
+        staffNote.hidden
+      )
+    );
     w.editorCancel();
   }
 }
