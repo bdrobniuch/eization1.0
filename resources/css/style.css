@@ -2418,14 +2418,6 @@ body.is-editing #counter {
   display: none !important;
 }
 
-#textdiv.is-edit-list #editFocusAdd {
-  margin-left: auto;
-}
-
-#textdiv.is-edit-list #editNoteHistory {
-  margin-left: 0;
-}
-
 #textdiv.is-edit-list #allEdit {
   position: static;
   clip: auto;
@@ -2986,14 +2978,6 @@ body.is-about #counter {
     grid-area: focus;
     flex-wrap: nowrap;
     width: 100%;
-  }
-
-  #editFocusAdd {
-    margin-left: auto;
-  }
-
-  #editNoteHistory {
-    margin-left: 0;
   }
 
   #editFocusLine {

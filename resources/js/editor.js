@@ -1093,6 +1093,7 @@ function editorFocusAdd() {
       return;
     }
     editorClampFocusIndex(lines.length);
+    editorPushSymbolUndo();
     lines.splice(editorFocusIndex + 1, 0, "");
     editorSetRawLines(lines);
     editorFocusIndex += 1;
@@ -1121,6 +1122,7 @@ function editorFocusAdd() {
   if (index >= lines.length) {
     index = lines.length - 1;
   }
+  editorPushSymbolUndo();
   lines.splice(index + 1, 0, "");
   editorSetRawLines(lines);
   caret = editorLineStartOffset(lines, index + 1);
@@ -1142,6 +1144,10 @@ function editorFocusRemove() {
     editorSyncFocusToArea();
     lines = editorRawLines();
     editorClampFocusIndex(lines.length);
+    if (lines.length <= 1 && !collapseEditorSpaces(lines[0] || "")) {
+      return;
+    }
+    editorPushSymbolUndo();
     if (lines.length <= 1) {
       editorSetRawLines([""]);
       editorFocusIndex = 0;
@@ -1173,6 +1179,10 @@ function editorFocusRemove() {
   if (index >= lines.length) {
     index = lines.length - 1;
   }
+  if (lines.length <= 1 && !collapseEditorSpaces(lines[index] || "")) {
+    return;
+  }
+  editorPushSymbolUndo();
   if (lines.length <= 1) {
     editorSetRawLines([""]);
     caret = 0;
@@ -2260,7 +2270,12 @@ function editorClearSymbolHistory() {
 
 function editorSymbolSnapshot() {
   var field = editorActiveField();
+  var area = document.getElementById("allEdit");
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+  }
   return {
+    doc: area ? String(area.value || "") : "",
     value: field ? String(field.value || "") : "",
     caret: field ? editorReadSelection(field).start : 0,
     focusIndex: editorFocusIndex,
@@ -2278,6 +2293,7 @@ function editorCloneSymbolSnap(snap) {
     return null;
   }
   return {
+    doc: typeof snap.doc === "string" ? snap.doc : undefined,
     value: snap.value || "",
     caret: snap.caret || 0,
     focusIndex: typeof snap.focusIndex === "number" ? snap.focusIndex : 0,
@@ -2366,22 +2382,33 @@ function editorPushSymbolUndo() {
 
 function editorApplySymbolSnapshot(snap) {
   var field;
+  var area;
   var lines;
+  var doc;
   if (!snap) {
     return;
   }
+  area = document.getElementById("allEdit");
+  doc = typeof snap.doc === "string" ? snap.doc : null;
   if (editorIsFocusMode()) {
     editorFocusIndex = typeof snap.focusIndex === "number" ? snap.focusIndex : editorFocusIndex;
+    if (area && doc !== null) {
+      area.value = doc;
+    }
+    lines = editorRawLines();
+    editorClampFocusIndex(lines.length);
     field = document.getElementById("editFocusLine");
     if (field) {
-      field.value = snap.value || "";
-      editorSyncFocusToArea();
+      field.value = doc !== null ? (lines[editorFocusIndex] || "") : (snap.value || "");
+      if (doc === null) {
+        editorSyncFocusToArea();
+      }
       editorPlaceCaret(field, snap.caret || 0, snap.caret || 0, !!(editorPadCaret && editorSymbolsIsOpen()));
     }
   } else {
     field = document.getElementById("allEdit");
     if (field) {
-      field.value = snap.value || "";
+      field.value = doc !== null ? doc : (snap.value || "");
       editorPlaceCaret(field, snap.caret || 0, snap.caret || 0, !!(editorPadCaret && editorSymbolsIsOpen()));
     }
   }

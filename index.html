@@ -214,11 +214,6 @@
         </div>
         <div id="editFocusChrome">
             <div id="editFocusBar">
-                <div id="editFocusPager">
-                    <button type="button" id="editFocusPrev" data-i18n-aria="edit.focusPrev" aria-label="Previous example" data-i18n-title="edit.focusPrev" title="Previous example">‹</button>
-                    <p id="editFocusIndex" aria-live="polite">1 / 1</p>
-                    <button type="button" id="editFocusNext" data-i18n-aria="edit.focusNext" aria-label="Next example" data-i18n-title="edit.focusNext" title="Next example">›</button>
-                </div>
                 <button type="button" id="editFocusAdd" data-i18n-aria="edit.focusAdd" aria-label="Add" data-i18n-title="edit.focusAddTitle" title="Add an example after this one">
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
                     <span class="btn-label" data-i18n="edit.focusAdd">Add</span>
@@ -227,6 +222,11 @@
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M9 7V4.5h6V7M7 7l.8 13h8.4L17 7"/></svg>
                     <span class="btn-label" data-i18n="edit.focusRemove">Remove</span>
                 </button>
+                <div id="editFocusPager">
+                    <button type="button" id="editFocusPrev" data-i18n-aria="edit.focusPrev" aria-label="Previous example" data-i18n-title="edit.focusPrev" title="Previous example">‹</button>
+                    <p id="editFocusIndex" aria-live="polite">1 / 1</p>
+                    <button type="button" id="editFocusNext" data-i18n-aria="edit.focusNext" aria-label="Next example" data-i18n-title="edit.focusNext" title="Next example">›</button>
+                </div>
                 <div id="editNoteHistory" class="edit-note-row"></div>
             </div>
             <input id="editFocusLine" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-i18n-aria="edit.focusLineAria" aria-label="Current example" data-i18n-placeholder="edit.focusPlaceholder" placeholder="One example">
