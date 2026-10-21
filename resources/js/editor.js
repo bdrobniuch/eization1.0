@@ -794,7 +794,7 @@ function editorCloseQuiet() {
   clearEditStaffNote();
   editorClearSymbolHistory();
   var sheet = document.getElementById("textdiv");
-  sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
+  sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list", "is-field-typing");
   sheet.style.display = "";
   editorClearSheetPlacement();
   document.body.classList.remove("is-editing");
@@ -853,6 +853,15 @@ function editorClearSheetPlacement() {
   sheet.style.bottom = "";
   sheet.style.height = "";
   sheet.style.maxHeight = "";
+}
+
+function editorSetFieldTyping(on) {
+  var sheet = document.getElementById("textdiv");
+  if (!sheet) {
+    return;
+  }
+  sheet.classList.toggle("is-field-typing", !!on);
+  placeEditor();
 }
 
 function editorEnsureFieldVisible(field) {
@@ -3834,10 +3843,25 @@ function initEditor() {
     if (target.id === "editFocusLine" || target.id === "allEdit") {
       editorPadCaret = null;
       editorSetPadInputMode(false);
+      editorSetFieldTyping(true);
       editorEnsureFieldVisible(target);
     }
   }
+  function editorOnFieldFocusOutForTyping(event) {
+    var target = event && event.target;
+    if (!target || (target.id !== "editFocusLine" && target.id !== "allEdit")) {
+      return;
+    }
+    window.requestAnimationFrame(function () {
+      var active = document.activeElement;
+      if (active && (active.id === "editFocusLine" || active.id === "allEdit")) {
+        return;
+      }
+      editorSetFieldTyping(false);
+    });
+  }
   document.addEventListener("focusin", editorOnFieldFocusForPad);
+  document.addEventListener("focusout", editorOnFieldFocusOutForTyping);
   document.addEventListener("keydown", function (event) {
     var key;
     var undoKey;

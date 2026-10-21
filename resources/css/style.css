@@ -2099,6 +2099,31 @@ body.is-editing #counter {
   order: 43;
 }
 
+/* Keyboard typing: keep preview visible above, pin the field at the bottom of the sheet. */
+#textdiv.is-open.is-field-typing {
+  overflow: hidden;
+}
+
+#textdiv.is-open.is-field-typing #editPreview {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+#textdiv.is-open.is-field-typing #editFocusChrome,
+#textdiv.is-open.is-field-typing.is-edit-list #allEdit {
+  flex: 0 0 auto;
+}
+
+#textdiv.is-open.is-field-typing #editPreview.is-staff {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: none;
+}
+
 #editStaffNote {
   order: 44;
 }
@@ -2740,6 +2765,34 @@ body.is-about #counter {
 
   #textdiv.is-edit-list.is-open {
     grid-template-rows: repeat(10, minmax(min-content, auto)) minmax(72px, auto) minmax(min-content, auto) minmax(min-content, auto);
+  }
+
+  /* Phone grid: preview takes leftover height; example field stays on the last visible rows. */
+  #textdiv.is-edit-focus.is-field-typing.is-open {
+    overflow: hidden;
+    align-content: stretch;
+    grid-template-rows:
+      auto auto auto auto auto auto auto
+      minmax(0, 1fr)
+      auto auto auto auto auto;
+  }
+
+  #textdiv.is-edit-list.is-field-typing.is-open {
+    overflow: hidden;
+    align-content: stretch;
+    grid-template-rows:
+      auto auto auto auto auto auto auto
+      minmax(0, 1fr)
+      auto auto
+      minmax(72px, auto)
+      auto auto;
+  }
+
+  #textdiv.is-field-typing.is-open #editPreview {
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    align-self: stretch;
   }
 
   #allEdit {
