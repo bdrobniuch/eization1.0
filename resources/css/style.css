@@ -1806,11 +1806,15 @@ body.is-editing #counter {
   gap: 8px;
   top: 0;
   bottom: 0;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   min-height: 0;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 #editMeta {
@@ -1884,7 +1888,8 @@ body.is-editing #counter {
   display: none !important;
 }
 
-@media (min-width: 841px) {
+/* Wide and tall enough: show Download / Upload / Ask inline. Short landscape phones stay under More. */
+@media (min-width: 841px) and (min-height: 521px) {
   #editMore {
     display: none !important;
   }
@@ -2082,19 +2087,19 @@ body.is-editing #counter {
   order: 40;
 }
 
-#editPreview {
+#editFocusChrome {
   order: 41;
 }
 
-#editStaffNote {
+#allEdit {
   order: 42;
 }
 
-#editFocusChrome {
+#editPreview {
   order: 43;
 }
 
-#allEdit {
+#editStaffNote {
   order: 44;
 }
 
@@ -2109,6 +2114,8 @@ body.is-editing #counter {
 }
 
 #editSymbols {
+  position: relative;
+  z-index: 2;
   flex: 0 0 auto;
   display: block;
   width: 100%;
@@ -2215,10 +2222,16 @@ body.is-editing #counter {
   display: none;
 }
 
-#editNoteEvents {
+#editNoteClefs {
   margin-top: 4px;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+#editNoteEvents {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 #editSymbols .edit-music-icon {
@@ -2389,9 +2402,12 @@ body.is-editing #counter {
   max-width: 100%;
   min-height: 0;
   height: fit-content;
+  max-height: min(36vh, 14rem);
   padding: 8px 10px;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   background: #fff;
   color: #111;
@@ -2659,21 +2675,55 @@ body.is-about #counter {
       "sym view share more glyphend"
       "menu menu menu menu menu"
       "sympanel sympanel sympanel sympanel sympanel"
-      "prev prev prev prev prev"
-      "note note note note note"
       "focus focus focus focus focus"
       "count count count count count"
       "area area area area area"
+      "prev prev prev prev prev"
+      "note note note note note"
       "staff staff staff staff staff";
     align-content: start;
+    align-items: start;
+    /* With overflow-y:scroll, plain auto tracks may shrink below content and spill. */
+    grid-template-rows: repeat(13, minmax(min-content, auto));
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
   }
 
   #textdiv.is-edit-list.is-open {
-    grid-template-rows: auto auto auto auto auto auto auto auto auto auto auto minmax(72px, 1fr) auto;
+    grid-template-rows: minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(72px, auto) minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto);
   }
 
   #allEdit {
     min-height: 72px;
+  }
+
+  /* Keep More closed until tapped; do not inherit the wide desktop inline menu. */
+  #editMore {
+    display: inline-flex !important;
+  }
+
+  #editMoreMenu[hidden] {
+    display: none !important;
+  }
+
+  #editMoreMenu:not([hidden]) {
+    display: flex !important;
+  }
+
+  #editPreview {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #editSymbols {
+    overflow: visible;
+  }
+
+  #editPreview.is-staff {
+    max-height: min(28vh, 9rem);
   }
 
   #editExercise,
