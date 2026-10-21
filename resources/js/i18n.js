@@ -604,7 +604,7 @@ var I18N = {
     "edit.hintDirty": "Actualizar sustituye este ejercicio. Guardar como nuevo conserva también el anterior.",
     "edit.hintCreate": "Crear deja este ejercicio en este dispositivo.",
     "edit.hintShare": "Actualizar sustituye este ejercicio en este dispositivo. Guardar como nuevo conserva ese ejercicio y añade este.",
-    "edit.saveAs": "Guardar como nuevo",
+    "edit.saveAs": "Copia nueva",
     "edit.saveAsTitle": "Deja una copia nueva en este dispositivo",
     "edit.update": "Actualizar",
     "edit.updateTitle": "Actualiza este ejercicio en este dispositivo",

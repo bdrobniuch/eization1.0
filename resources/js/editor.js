@@ -315,11 +315,13 @@ function syncEditorCommitLabels() {
   var update = document.getElementById("editUpdate");
   var saveAs = document.getElementById("editSaveAs");
   var del = document.getElementById("editDelete");
+  var dirty;
   if (editorIsCreateMode()) {
     if (update) {
       update.textContent = t("edit.create");
       update.title = t("edit.createTitle");
       update.setAttribute("aria-label", t("edit.createAria"));
+      update.hidden = false;
     }
     if (saveAs) {
       saveAs.hidden = true;
@@ -329,17 +331,17 @@ function syncEditorCommitLabels() {
     }
     return;
   }
+  dirty = editorIsDirty();
   if (update) {
-    update.textContent = t("edit.update");
-    update.title = t("edit.updateTitle");
-    update.setAttribute("aria-label", t("edit.updateAria"));
+    if (!update.classList.contains("is-armed")) {
+      update.textContent = t("edit.update");
+      update.title = t("edit.updateTitle");
+      update.setAttribute("aria-label", t("edit.updateAria"));
+    }
+    update.hidden = !(dirty || update.classList.contains("is-armed"));
   }
   if (saveAs) {
-    if (typeof sharePreview !== "undefined" && sharePreview) {
-      saveAs.hidden = false;
-    } else {
-      saveAs.hidden = !editorIsDirty();
-    }
+    saveAs.hidden = !dirty;
   }
   if (del) {
     del.hidden = typeof sharePreview !== "undefined" && !!sharePreview;
@@ -589,16 +591,9 @@ function refreshEditorHint() {
     return;
   }
   var phone = editorPhoneChrome();
-  var saveAs = document.getElementById("editSaveAs");
-  if (saveAs && !editorIsCreateMode()) {
-    if (typeof sharePreview !== "undefined" && sharePreview) {
-      saveAs.hidden = false;
-    } else {
-      saveAs.hidden = !editorIsDirty();
-    }
-  }
   var del = document.getElementById("editDelete");
   var update = document.getElementById("editUpdate");
+  syncEditorCommitLabels();
   if ((del && del.classList.contains("is-armed")) || (update && update.classList.contains("is-armed"))) {
     hint.textContent = "";
     setEditorAskHint(false);

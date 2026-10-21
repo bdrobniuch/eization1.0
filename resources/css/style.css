@@ -1854,8 +1854,17 @@ body.is-editing #counter {
   margin: 0;
 }
 
+#editSaveAs {
+  margin-left: auto;
+}
+
+/* When Save as new is hidden, keep Update on the right. */
+#editHead:has(#editSaveAs[hidden]) #editUpdate {
+  margin-left: auto;
+}
+
 #editHint {
-  flex: 1 1 160px;
+  flex: 1 0 100%;
   font-size: 14px;
   line-height: 1.35;
   opacity: 0.9;
@@ -1882,7 +1891,7 @@ body.is-editing #counter {
   display: none !important;
 }
 
-/* Wide and tall enough: show Download / Upload / Ask inline. Short landscape phones stay under More. */
+/* Wide and tall enough: show Download / Upload / Ask / Share with labels. Short landscape phones stay under More. */
 @media (min-width: 841px) and (min-height: 521px) {
   #editMore {
     display: none !important;
@@ -1892,6 +1901,22 @@ body.is-editing #counter {
   #editMoreMenu[hidden] {
     display: flex !important;
     flex: 1 1 auto;
+  }
+
+  #editShare {
+    width: auto;
+    min-width: 44px;
+    padding: 0 14px;
+    gap: 6px;
+  }
+
+  #editShare .btn-label {
+    display: inline;
+  }
+
+  #editShare .chrome-icon {
+    width: 1.05em;
+    height: 1.05em;
   }
 }
 
@@ -2081,6 +2106,11 @@ body.is-editing #counter {
 #editSaveAs:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+#editSaveAs[hidden],
+#editUpdate[hidden] {
+  display: none !important;
 }
 
 #editFile {
@@ -2834,30 +2864,17 @@ body.is-about #counter {
   }
 
   #editHead {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     grid-area: head;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "cancel update"
-      "save save"
-      "hint hint";
     align-items: center;
     gap: 8px;
   }
 
-  #editCancel {
-    grid-area: cancel;
-    justify-self: start;
-  }
-
+  #editCancel,
+  #editSaveAs,
   #editUpdate {
-    grid-area: update;
-    justify-self: end;
-  }
-
-  #editSaveAs {
-    grid-area: save;
-    justify-self: stretch;
+    flex: 0 0 auto;
   }
 
   #editSaveAs[hidden] {
@@ -2865,8 +2882,7 @@ body.is-about #counter {
   }
 
   #editHint {
-    grid-area: hint;
-    flex: none;
+    flex: 1 0 100%;
     width: 100%;
   }
 
