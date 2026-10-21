@@ -1038,6 +1038,7 @@ function refreshEditor() {
       cap.textContent = status.caption;
       preview.appendChild(cap);
     }
+    editorScrollPreviewToEnd(preview);
   } else {
     preview.innerHTML = lineToItem(line);
     if (editorStaffOn() && status.notationIsh) {
@@ -1047,6 +1048,27 @@ function refreshEditor() {
     }
   }
   refreshEditorHint();
+}
+
+function editorScrollPreviewToEnd(preview) {
+  var field;
+  var value;
+  var caret;
+  if (!preview) {
+    return;
+  }
+  field = editorActiveField();
+  if (field) {
+    value = String(field.value || "");
+    caret = field.selectionStart || 0;
+    if (caret < value.length) {
+      return;
+    }
+  }
+  window.requestAnimationFrame(function () {
+    preview.scrollLeft = preview.scrollWidth;
+    preview.scrollTop = preview.scrollHeight;
+  });
 }
 
 function insertEditorText(text, caretBack) {
@@ -2117,7 +2139,12 @@ function editorArmAcc(acc) {
       return;
     }
   }
-  editorNote.acc = editorNote.acc === acc ? "" : acc;
+  /* No note at the caret: seed a C so the accidental is visible right away. */
+  editorNote.acc = acc;
+  editorPushSymbolUndo();
+  editorInsertSymbol(editorLetterToken("C"));
+  editorNote.acc = "";
+  editorNote.oct = null;
   editorPaintNotePad();
 }
 
@@ -2159,9 +2186,14 @@ function editorShiftOctave(dir) {
   var suffix;
   var next;
   dir = dir < 0 ? -1 : 1;
-  hit = editorNote.acc ? null : editorPitchAtCaret();
+  hit = editorPitchAtCaret();
   if (!hit) {
+    /* No note at the caret: seed a C at the aimed octave. */
     editorNote.oct = editorClampOctave(editorWorkingOctave() + dir);
+    editorPushSymbolUndo();
+    editorInsertSymbol(editorLetterToken("C"));
+    editorNote.acc = "";
+    editorNote.oct = null;
     editorPaintNotePad();
     return;
   }

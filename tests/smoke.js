@@ -1798,18 +1798,18 @@ function chatCase(w) {
     placeCaret("C4 D4 |");
     poke(symbolsPanel.querySelector("[data-acc='b']"));
     check(
-      "a sign waits when the caret is not on a note",
-      focusLine.value === "C4 D4 |" &&
-        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
+      "a sign writes C when the caret is not on a note",
+      focusLine.value === "C4 D4 | Cb4" &&
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false" &&
         octaveNow() === "4"
     );
+    placeCaret("C4 D4 |");
     poke(symbolsPanel.querySelector("[data-shift='1']"));
-    check("up aims the next note while a sign is lit", focusLine.value === "C4 D4 |" && octaveNow() === "5");
-    poke(symbolsPanel.querySelector("[data-note='E']"));
     check(
-      "the sign and the aim write once",
-      focusLine.value === "C4 D4 | Eb5" && symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false"
+      "up writes C when the caret is not on a note",
+      focusLine.value === "C4 D4 | C5" && octaveNow() === "5"
     );
+    placeCaret("C4 D4 | Eb5");
     poke(symbolsPanel.querySelector("[data-dur='e']"));
     check(
       "a duration rewrites the note at the caret",
