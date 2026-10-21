@@ -1953,6 +1953,21 @@ function chatCase(w) {
         staffNote.hidden
       )
     );
+    w.setEditorStaff(true);
+    placeCaret("C4q");
+    var undoBefore = w.editorSymbolUndo ? w.editorSymbolUndo.length : 0;
+    placeCaret("C4q D4q");
+    check(
+      "each valid keyboard staff step is undoable",
+      !!(w.editorSymbolUndo && w.editorSymbolUndo.length === undoBefore + 1)
+    );
+    placeCaret("C4q D4q~");
+    check("invalid staff typing enables undo to last good", !!w.editorCanUndoStaffTyping());
+    w.editorSymbolUndoStep();
+    check(
+      "undo restores the last valid staff line",
+      focusLine.value === "C4q D4q" && !w.editorCanUndoStaffTyping()
+    );
     w.editorCancel();
   }
 }
