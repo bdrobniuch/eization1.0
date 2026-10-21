@@ -2043,6 +2043,12 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
+/* Symbols / Notes: wider so ♯∆ø and the mini staff both fit. */
+#editSymbolsToggle {
+  width: 60px;
+  min-width: 60px;
+}
+
 #editShare .btn-label,
 #editMore .btn-label,
 #editStaffHelp .btn-label,
@@ -2171,8 +2177,10 @@ body.is-editing #counter {
 
 #editSymbolsToggle .btn-mark {
   font-family: var(--face-font);
-  font-size: 1.05em;
+  font-size: 0.92em;
   line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 #editSymbolsToggle .icon-staff-notes {
@@ -2184,11 +2192,6 @@ body.is-editing #counter {
 #editSymbolsToggle.is-text .icon-staff-notes,
 #editSymbolsToggle.is-staff .btn-mark {
   display: none !important;
-}
-
-#editSymbolsToggle.is-staff {
-  width: 60px;
-  min-width: 60px;
 }
 
 #editSymbolsToggle.is-staff .icon-staff-notes {
