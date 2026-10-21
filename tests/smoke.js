@@ -227,7 +227,28 @@ function staffNotation(w) {
       w.staffDurationQuarters("q.") === 1.5
     )
   );
-  check("dotted whole is rejected", !w.parseMusicNotation("C4w."));
+  var dottedWhole = w.parseMusicNotation("C4w.");
+  check(
+    "dotted whole is a whole and a half",
+    !!(
+      dottedWhole &&
+      dottedWhole.events.length === 1 &&
+      dottedWhole.events[0].duration === "w." &&
+      w.staffDurationQuarters("w.") === 6
+    )
+  );
+  check("dotted stemless is rejected", !w.parseMusicNotation("C4n."));
+  var openStack = w.parseMusicNotation("C4 [ ]");
+  check(
+    "an empty stack stays on the line",
+    !!(
+      openStack &&
+      openStack.events.length === 2 &&
+      openStack.events[1].type === "stack" &&
+      openStack.events[1].pitches.length === 0 &&
+      w.renderMusicStaff("C4 [ ]", "current")
+    )
+  );
   var tiedQuarters = w.parseMusicNotation("/q~/q");
   check(
     "a slash tie parses",
@@ -1586,16 +1607,61 @@ function chatCase(w) {
   );
   symbolsToggle.click();
   check("symbols open", symbolsPanel.hidden === false && symbolsToggle.getAttribute("aria-expanded") === "true" && symbolsPanel.querySelectorAll("button").length > 0);
+  var symbolKind = w.editorStaffOn();
+  w.setEditorStaff(false);
+  var chartArrow = symbolsPanel.querySelector("[data-symbol='\u2192']");
+  var chartBox = symbolsPanel.querySelector("[data-symbol='\u2610']");
+  var notePad = w.document.getElementById("editNotePad");
   check(
-    "symbols include a pitch row",
+    "text symbols are the chart marks",
     !!(
-      symbolsPanel.querySelector("[data-note='C']") &&
-      symbolsPanel.querySelector("[data-oct='4'][aria-pressed='true']") &&
-      symbolsPanel.querySelector("[data-dur=''][aria-pressed='true']") &&
-      symbolsPanel.querySelector("[data-event='slash']") &&
-      symbolsPanel.querySelector("[data-event='beam']")
+      chartArrow &&
+      chartBox &&
+      symbolsPanel.querySelector("[data-symbol='\u2193']") &&
+      symbolsPanel.querySelector("[data-symbol='\u2612']") &&
+      symbolsPanel.querySelector("[data-symbol='\u266F']") &&
+      symbolsPanel.querySelector("[data-symbol='[ ]']") &&
+      notePad &&
+      w.getComputedStyle(notePad).display === "none" &&
+      w.getComputedStyle(chartArrow).display !== "none" &&
+      !symbolsPanel.querySelector("[data-symbol='\uD834\uDD00']") &&
+      w.I18N.en["edit.noteNone"] === "No sign" &&
+      w.I18N.es["edit.noteNone"] === "Sin alteraci\u00F3n"
     )
   );
+  w.setEditorStaff(true);
+  check(
+    "staff symbols walk a note",
+    !!(
+      notePad &&
+      w.getComputedStyle(notePad).display !== "none" &&
+      w.getComputedStyle(chartArrow).display === "none" &&
+      symbolsPanel.querySelector("[data-note='C']") &&
+      symbolsPanel.querySelector("[data-event='slash']") &&
+      symbolsPanel.querySelector("[data-event='rest']") &&
+      symbolsPanel.querySelector("[data-event='bar']") &&
+      symbolsPanel.querySelector("[data-event='tie']") &&
+      symbolsPanel.querySelector("[data-event='beam']") &&
+      symbolsPanel.querySelector("[data-event='chord']") &&
+      symbolsPanel.querySelector("[data-event='chord']").textContent === "^" &&
+      symbolsPanel.querySelector("[data-event='stack']") &&
+      symbolsPanel.querySelector("[data-event='stack']").textContent === "[ ]" &&
+      symbolsPanel.querySelector("[data-dur='']") &&
+      symbolsPanel.querySelector("[data-dur='w']") &&
+      symbolsPanel.querySelector("[data-dot]") &&
+      !symbolsPanel.querySelector("[data-dur='e.']") &&
+      symbolsPanel.querySelector("[data-shift='1']") &&
+      symbolsPanel.querySelector("[data-shift='-1']") &&
+      symbolsPanel.querySelector("[data-octave]") &&
+      symbolsPanel.querySelector("[data-clef='treble']") &&
+      symbolsPanel.querySelector("[data-clef='bass']") &&
+      symbolsPanel.querySelector("[data-acc='b']") &&
+      !symbolsPanel.querySelector("[data-oct]") &&
+      !symbolsPanel.querySelector("[data-symbol='mf ']") &&
+      !symbolsPanel.querySelector("[data-symbol='cresc ']")
+    )
+  );
+  w.setEditorStaff(symbolKind);
   check(
     "staff help can add an example",
     w.document.querySelectorAll("#editStaffSamples button").length === 8 &&
@@ -1683,22 +1749,127 @@ function chatCase(w) {
       viewToggle.click();
     }
     w.document.getElementById("editFocusAdd").click();
+    w.setEditorStaff(true);
     if (symbolsPanel.hidden) {
       symbolsToggle.click();
     }
     function poke(el) {
       el.dispatchEvent(new w.PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse" }));
     }
+    function placeCaret(text) {
+      focusLine.value = text;
+      focusLine.dispatchEvent(new w.Event("input", { bubbles: true }));
+      focusLine.setSelectionRange(text.length, text.length);
+    }
+    function octaveNow() {
+      var mark = symbolsPanel.querySelector("[data-octave]");
+      return mark ? mark.getAttribute("data-octave") : "";
+    }
     poke(symbolsPanel.querySelector("[data-note='C']"));
-    check("pitch button writes a quarter", focusLine.value.indexOf("C4 ") === 0);
-    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    check(
+      "a letter writes the note",
+      focusLine.value === "C5 " &&
+        octaveNow() === "5" &&
+        !w.document.getElementById("editNotePreview") &&
+        !!symbolsPanel.querySelector("[data-dur='w']") &&
+        !!symbolsPanel.querySelector("[data-note='C']") &&
+        w.I18N.en["edit.noteHigher"] === "Higher" &&
+        w.I18N.es["edit.noteHigher"] === "M\u00E1s aguda" &&
+        w.I18N.en["edit.noteLower"] === "Lower" &&
+        w.I18N.es["edit.noteLower"] === "M\u00E1s grave" &&
+        w.I18N.en["edit.noteDotted"] === "Dot" &&
+        w.I18N.es["edit.noteDotted"] === "Puntillo"
+    );
+    poke(symbolsPanel.querySelector("[data-shift='-1']"));
+    check("down moves the note just written", focusLine.value === "C4 " && octaveNow() === "4");
     poke(symbolsPanel.querySelector("[data-note='D']"));
-    check("eighth sticks to the next note", focusLine.value.indexOf("D4e ") >= 0);
+    check("the next letter stays close", focusLine.value === "C4 D4 ");
     poke(symbolsPanel.querySelector("[data-acc='b']"));
+    check(
+      "a sign waits for the next letter",
+      focusLine.value === "C4 D4 " &&
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
+        octaveNow() === "4"
+    );
+    poke(symbolsPanel.querySelector("[data-shift='1']"));
+    check("up aims the next note while a sign is lit", focusLine.value === "C4 D4 " && octaveNow() === "5");
     poke(symbolsPanel.querySelector("[data-note='E']"));
-    check("flat sticks to the next note", focusLine.value.indexOf("Eb4e ") >= 0);
+    check(
+      "the sign and the aim write once",
+      focusLine.value === "C4 D4 Eb5 " && symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "false"
+    );
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    check(
+      "a duration stays lit without writing",
+      focusLine.value === "C4 D4 Eb5 " && symbolsPanel.querySelector("[data-dur='e']").getAttribute("aria-pressed") === "true"
+    );
+    poke(symbolsPanel.querySelector("[data-note='F']"));
+    check("the lit duration writes with the letter", focusLine.value === "C4 D4 Eb5 F5e ");
+    poke(symbolsPanel.querySelector("[data-event='slash']"));
+    check("a slash uses the lit duration", focusLine.value === "C4 D4 Eb5 F5e /e ");
+    poke(symbolsPanel.querySelector("[data-dur='']"));
+    poke(symbolsPanel.querySelector("[data-event='rest']"));
+    check("a rest uses the lit duration", focusLine.value === "C4 D4 Eb5 F5e /e rq ");
+    poke(symbolsPanel.querySelector("[data-dur='w']"));
+    poke(symbolsPanel.querySelector("[data-dot]"));
+    check(
+      "a dot waits on the lit duration",
+      focusLine.value === "C4 D4 Eb5 F5e /e rq " &&
+        symbolsPanel.querySelector("[data-dot]").getAttribute("aria-pressed") === "true" &&
+        symbolsPanel.querySelector("[data-dur='w']").getAttribute("aria-pressed") === "true"
+    );
+    poke(symbolsPanel.querySelector("[data-note='B']"));
+    check("a dot can sit on a whole note", focusLine.value === "C4 D4 Eb5 F5e /e rq B5w. ");
+    poke(symbolsPanel.querySelector("[data-dot]"));
+    poke(symbolsPanel.querySelector("[data-dur='']"));
+    placeCaret("Eb4");
+    poke(symbolsPanel.querySelector("[data-note='C']"));
+    check("a note takes a space when it would stick", focusLine.value === "Eb4 C4 ");
+    placeCaret("C4");
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check("a chord mark takes a space and stays open", focusLine.value === "C4 ^");
+    placeCaret("C4");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check("a tie stays glued", focusLine.value === "C4~");
+    placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
-    check("beam writes braces", focusLine.value.indexOf("{ }") >= 0);
+    check("a long note beams as an eighth", focusLine.value === "C4h { }" && w.editorNote.dur === "e");
+    placeCaret("C0");
+    poke(symbolsPanel.querySelector("[data-shift='-1']"));
+    check("octave stops at 0", focusLine.value === "C0" && octaveNow() === "0");
+    placeCaret("C9");
+    poke(symbolsPanel.querySelector("[data-shift='1']"));
+    check("octave stops at 9", focusLine.value === "C9" && octaveNow() === "9");
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-clef='bass']"));
+    check(
+      "bass sets the clef and the octave",
+      focusLine.value === "@bass " &&
+        octaveNow() === "3" &&
+        symbolsPanel.querySelector("[data-clef='bass']").getAttribute("aria-pressed") === "true"
+    );
+    poke(symbolsPanel.querySelector("[data-dur='']"));
+    poke(symbolsPanel.querySelector("[data-note='C']"));
+    check("a bass letter uses that octave", focusLine.value === "@bass C3 ");
+    poke(symbolsPanel.querySelector("[data-clef='treble']"));
+    check(
+      "treble replaces the clef",
+      focusLine.value === "@treble C3 " &&
+        symbolsPanel.querySelector("[data-clef='treble']").getAttribute("aria-pressed") === "true"
+    );
+    placeCaret("C4");
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "a stacked chord takes a space and stays open",
+      focusLine.value === "C4 [ ]" && focusLine.selectionStart === 4
+    );
+    w.setEditorStaff(false);
+    placeCaret("Cmaj");
+    poke(symbolsPanel.querySelector("[data-symbol='\u266F']"));
+    check("a chart mark stays glued", focusLine.value === "Cmaj\u266F");
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-symbol='[ ]']"));
+    check("text brackets stay open", focusLine.value === "[ ]" && focusLine.selectionStart === 1);
     w.document.getElementById("editStaffHelp").click();
     var sampleButton = w.document.querySelector("#editStaffSamples button");
     sampleButton.click();

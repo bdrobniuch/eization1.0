@@ -124,11 +124,11 @@ function staffDurationDotted(dur) {
   return typeof dur === "string" && dur.length > 1 && dur.charAt(dur.length - 1) === ".";
 }
 
-/* Combine base letter + optional trailing ".". Rejects dotted whole and dotted stemless. */
+/* Combine base letter + optional trailing ".". A dotted stemless note does not parse. */
 function staffMakeDuration(base, dotted) {
   var b = base || "q";
   if (dotted) {
-    if (b === "w" || b === "n") {
+    if (b === "n") {
       return null;
     }
     return b + ".";
@@ -1015,7 +1015,7 @@ function staffParseBeamInner(inner, clef) {
 function staffParseStackInner(inner) {
   var parts = inner.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) {
-    return null;
+    return [];
   }
   var pitches = [];
   for (var i = 0; i < parts.length; i++) {
@@ -1180,7 +1180,7 @@ function staffParseEventAt(tokens, i, clef) {
         pitches: pitches,
         label: stackAff.label,
         above: stackAff.above,
-        duration: pitches[0].duration || "q"
+        duration: pitches.length ? pitches[0].duration || "q" : "q"
       },
       next: i + 1
     };
@@ -2096,6 +2096,10 @@ function renderMusicStaff(source, role) {
         explicit: !!bidNote
       };
     } else if (ev.type === "stack") {
+      if (!ev.pitches.length) {
+        tupRunId = 0;
+        return;
+      }
       stackCount++;
       tupRunId = 0;
       col = {
@@ -3208,7 +3212,7 @@ function renderMusicStaff(source, role) {
         staffDrawAboveText(cx, ev.above);
       }
     } else if (ev.type === "stack") {
-      var stackDur = ev.duration || ev.pitches[0].duration || "q";
+      var stackDur = ev.duration || (ev.pitches[0] && ev.pitches[0].duration) || "q";
       var stemUp = staffEventStemUpGuess(ev);
       var offsets = staffStackSecondOffsets(ev.pitches, stemUp, secondShift);
       var accCols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);

@@ -74,7 +74,7 @@
         </section>
 
         <h2>One pitch, then the durations</h2>
-        <p>Letter, octave. Each note is its own word: <code>C4 E4</code> is two notes; <code>C4E4</code> is not. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth, <code>n</code> a filled notehead with no stem (one beat, <code>C4n</code>). A dot follows the duration: <code>q.</code>. <code>w.</code> and <code>n.</code> do not parse. Accidentals: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> or <code>C##4</code>, <code>Ebb4</code>. Symbols in Edit (closed until you open it) inserts ♯ ♭ ♮ and the other music characters; they parse the same way.</p>
+        <p>Letter, octave. Each note is its own word: <code>C4 E4</code> is two notes; <code>C4E4</code> is not. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth, <code>n</code> a filled notehead with no stem (one beat, <code>C4n</code>). A dot follows the duration: <code>q.</code> <code>w.</code>. <code>n.</code> does not parse. Accidentals: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> or <code>C##4</code>, <code>Ebb4</code>. Symbols in Edit (closed until you open it) inserts ♯ ♭ ♮ and the other music characters; they parse the same way.</p>
         <figure class="notation-sample">
             <pre>C4</pre>
             <div class="notation-staff"></div>
@@ -110,7 +110,7 @@
         </figure>
 
         <h2>Rhythm</h2>
-        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. A rest can take a dot: <code>re.</code> <code>rq.</code>. A dotted whole (<code>w.</code>) does not parse. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> is text under a slash or a rest. <code>^P</code> is text above it. The same pair works on a note.</p>
+        <p>A slash has no pitch: <code>/q</code>, <code>/e</code>, <code>/q.</code>. Rests are <code>r</code>, <code>rq</code>, <code>rh</code>, <code>rw</code>, <code>re</code>, <code>rs</code>. A rest can take a dot: <code>re.</code> <code>rq.</code> <code>rw.</code>. <code>|</code> is a barline. A caption after <code> · </code> (space, middle dot, space) sits under the staff. <code>_R</code> is text under a slash or a rest. <code>^P</code> is text above it. The same pair works on a note.</p>
         <figure class="notation-sample">
             <pre>/q. /e rh | rq /q · Charleston</pre>
             <div class="notation-staff"></div>

@@ -2134,6 +2134,61 @@ body.is-editing #counter {
   color: #111111;
 }
 
+#editSymbols.is-text #editNotePad {
+  display: none;
+}
+
+#editSymbols.is-staff > button {
+  display: none;
+}
+
+#editNoteFlow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.edit-note-octave {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+#editNoteMain {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#editNoteChips:empty {
+  display: none;
+}
+
+#editNoteEvents {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+#editSymbols .edit-music-icon {
+  width: 1.7em;
+  height: 1.7em;
+  display: block;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
 #editFocusChrome {
   display: none;
   flex-direction: column;

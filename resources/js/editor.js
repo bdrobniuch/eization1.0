@@ -32,14 +32,18 @@ var EDITOR_SYMBOLS = [
   { char: "\u00B7", key: "sym.caption" },
   { char: "\u2612", key: "sym.played" },
   { char: "\u2610", key: "sym.open" },
-  { char: "\uD834\uDD00", key: "sym.staff" }
+  { char: "[ ]", key: "sym.stack", caretBack: 2 }
 ];
 
 var editorNote = {
   acc: "",
-  oct: 4,
-  dur: ""
+  dur: "",
+  dot: false,
+  oct: null
 };
+
+var editorNotePadStamp = "";
+var editorIconCache = {};
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
@@ -207,6 +211,7 @@ function setEditorStaff(on) {
   if (staff) {
     staff.setAttribute("aria-pressed", pressed ? "true" : "false");
   }
+  editorSyncSymbolKind();
 }
 
 function editorLeaveIfClean(message) {
@@ -385,6 +390,7 @@ function editorCloseSymbols() {
   if (button) {
     button.setAttribute("aria-expanded", "false");
   }
+  editorDropNoteFlow();
   return true;
 }
 
@@ -980,6 +986,7 @@ function refreshEditor() {
     editorSyncFocusToArea();
     editorUpdateFocusChrome();
   }
+  editorSyncSymbolKind();
   var total = visibleLineCount(area.value);
   if (count) {
     count.textContent = total === 1 ? t("edit.examplesOne") : tr("edit.examplesMany", { n: total });
@@ -1116,112 +1123,768 @@ function insertEditorText(text, caretBack) {
   refreshEditor();
 }
 
-function editorNotePitch(letter) {
-  return String(letter || "C") + (editorNote.acc || "") + String(editorNote.oct || 4) + (editorNote.dur || "");
+function editorTextBeforeCaret() {
+  var field = document.getElementById(editorIsFocusMode() ? "editFocusLine" : "allEdit");
+  var start;
+  if (!field) {
+    return "";
+  }
+  start = field.selectionStart || 0;
+  return String(field.value || "").slice(0, start);
+}
+
+/* A pitch, slash, rest, bar, beam, or chord glued to the previous word is one token and fails. */
+function editorInsertSymbol(text, caretBack) {
+  var body = String(text || "");
+  var before = editorTextBeforeCaret();
+  var first = body.charAt(0);
+  var prev = before ? before.charAt(before.length - 1) : "";
+  if (body && !/^\s/.test(body) && prev && !/\s/.test(prev) && first !== "'" && first !== ">" && first !== "-" && first !== "~") {
+    body = " " + body;
+  }
+  insertEditorText(body, caretBack);
+}
+
+function editorDurCode(dur) {
+  if (dur === "w" || dur === "h" || dur === "e" || dur === "s") {
+    return dur;
+  }
+  return "";
+}
+
+function editorPitchSuffix() {
+  var code = editorDurCode(editorNote.dur);
+  if (editorNote.dot) {
+    return (code || "q") + ".";
+  }
+  return code;
+}
+
+function editorRhythmSuffix() {
+  return (editorDurCode(editorNote.dur) || "q") + (editorNote.dot ? "." : "");
 }
 
 function editorSlashToken() {
-  return "/" + (editorNote.dur || "q");
+  return "/" + editorRhythmSuffix();
 }
 
 function editorRestToken() {
-  return "r" + (editorNote.dur || "q");
+  return "r" + editorRhythmSuffix();
+}
+
+function editorSyncSymbolKind() {
+  var panel = document.getElementById("editSymbols");
+  var staff;
+  if (!panel) {
+    return;
+  }
+  staff = editorStaffOn();
+  panel.classList.toggle("is-staff", staff);
+  panel.classList.toggle("is-text", !staff);
+  if (!staff) {
+    editorNote.acc = "";
+    editorNote.oct = null;
+  }
+  editorPaintNotePad();
+}
+
+function editorDropNoteFlow() {
+  if (!editorNote.acc && editorNote.oct === null) {
+    return;
+  }
+  editorNote.acc = "";
+  editorNote.oct = null;
+  editorPaintNotePad();
+}
+
+function editorLineDirectives(line) {
+  var parts = String(line || "").trim().split(/\s+/);
+  var out = [];
+  var i;
+  for (i = 0; i < parts.length; i++) {
+    var token = parts[i];
+    if (token === "@treble" || token === "@bass" || token.indexOf("@key=") === 0) {
+      out.push(token);
+    }
+  }
+  return out.join(" ");
+}
+
+function editorActiveField() {
+  return document.getElementById(editorIsFocusMode() ? "editFocusLine" : "allEdit");
+}
+
+function editorClefName() {
+  var lead = editorLineDirectives(currentEditorLine());
+  return lead.indexOf("@bass") >= 0 ? "bass" : "treble";
+}
+
+function editorClampOctave(oct) {
+  oct = parseInt(oct, 10);
+  if (isNaN(oct) || oct < 0) {
+    return 0;
+  }
+  if (oct > 9) {
+    return 9;
+  }
+  return oct;
+}
+
+/* The octave on the pad. A chosen number wins. Otherwise the note at the caret, or 5 in treble and 3 in bass. */
+function editorWorkingOctave() {
+  var hit;
+  if (editorNote.oct !== null && editorNote.oct !== undefined) {
+    return editorClampOctave(editorNote.oct);
+  }
+  hit = editorPitchAtCaret() || editorEarlierPitch();
+  if (hit) {
+    return editorClampOctave(hit.oct);
+  }
+  return editorClefName() === "bass" ? 3 : 5;
+}
+
+function editorLineSpan() {
+  var field = editorActiveField();
+  var value;
+  var caret;
+  var lineStart;
+  var lineEnd;
+  if (!field) {
+    return null;
+  }
+  value = String(field.value || "");
+  caret = field.selectionStart || 0;
+  if (editorIsFocusMode()) {
+    return { field: field, value: value, lineStart: 0, lineEnd: value.length, caret: caret };
+  }
+  lineStart = value.lastIndexOf("\n", caret - 1) + 1;
+  lineEnd = value.indexOf("\n", caret);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  return { field: field, value: value, lineStart: lineStart, lineEnd: lineEnd, caret: caret };
+}
+
+function editorSetClef(clef) {
+  var token = clef === "bass" ? "@bass" : "@treble";
+  var span = editorLineSpan();
+  var line;
+  var found;
+  var nextLine;
+  var rel;
+  var caret;
+  if (!span) {
+    return;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  found = /@bass|@treble/.exec(line);
+  if (found && found[0] === token) {
+    return;
+  }
+  if (!found && token === "@treble") {
+    return;
+  }
+  if (found) {
+    nextLine = line.slice(0, found.index) + token + line.slice(found.index + found[0].length);
+  } else if (!line) {
+    nextLine = token + " ";
+  } else if (line.charAt(0) === " ") {
+    nextLine = token + line;
+  } else {
+    nextLine = token + " " + line;
+  }
+  span.field.value = span.value.slice(0, span.lineStart) + nextLine + span.value.slice(span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (found) {
+    if (rel >= found.index) {
+      rel += token.length - found[0].length;
+    }
+  } else {
+    rel += nextLine.length - line.length;
+  }
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > nextLine.length) {
+    rel = nextLine.length;
+  }
+  caret = span.lineStart + rel;
+  try {
+    span.field.setSelectionRange(caret, caret);
+  } catch (errClef) {}
+  clearEditorNotice();
+  refreshEditor();
+}
+
+function editorParsePitchToken(token) {
+  var parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?$/.exec(token || "");
+  if (!parsed) {
+    return null;
+  }
+  return {
+    token: token,
+    letter: parsed[1],
+    acc: parsed[2] || "",
+    oct: parseInt(parsed[3], 10)
+  };
+}
+
+function editorPitchTail(text) {
+  var trimmed = String(text || "").replace(/\s+$/, "");
+  var m = trimmed.match(/([A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?)$/);
+  var prev;
+  if (!m) {
+    return null;
+  }
+  if (m.index > 0) {
+    prev = trimmed.charAt(m.index - 1);
+    if (prev !== " " && prev !== "\n" && prev !== "\t" && prev !== "|" && prev !== "~" && prev !== "{") {
+      return null;
+    }
+  }
+  return editorParsePitchToken(m[1]);
+}
+
+function editorPitchAtCaret() {
+  var field = editorActiveField();
+  var value;
+  var caret;
+  var before;
+  var hit;
+  if (!field || (field.selectionStart || 0) !== (field.selectionEnd || 0)) {
+    return null;
+  }
+  value = String(field.value || "");
+  caret = field.selectionStart || 0;
+  before = value.slice(0, caret);
+  hit = editorPitchTail(before);
+  if (!hit) {
+    return null;
+  }
+  hit.field = field;
+  hit.start = before.replace(/\s+$/, "").length - hit.token.length;
+  hit.end = hit.start + hit.token.length;
+  hit.caret = caret;
+  return hit;
+}
+
+function editorEarlierPitch() {
+  var field = editorActiveField();
+  var before;
+  var re;
+  var last;
+  var m;
+  var prev;
+  if (!field) {
+    return null;
+  }
+  before = String(field.value || "").slice(0, field.selectionStart || 0);
+  re = /[A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?/g;
+  last = null;
+  while ((m = re.exec(before))) {
+    if (m.index > 0) {
+      prev = before.charAt(m.index - 1);
+      if (prev !== " " && prev !== "\n" && prev !== "\t" && prev !== "|" && prev !== "~" && prev !== "{") {
+        continue;
+      }
+    }
+    last = m[0];
+  }
+  return editorParsePitchToken(last);
+}
+
+function editorLetterToken(letter) {
+  return String(letter || "C") + (editorNote.acc || "") + String(editorWorkingOctave()) + editorPitchSuffix();
+}
+
+function editorNotePadStampNow() {
+  var field = editorActiveField();
+  return [
+    editorStaffOn() ? "staff" : "text",
+    editorNote.acc || "",
+    editorNote.oct === null || editorNote.oct === undefined ? "" : String(editorNote.oct),
+    editorNote.dot ? "." : "",
+    editorNote.dur || "",
+    String(editorWorkingOctave()),
+    editorClefName(),
+    currentEditorLine(),
+    field ? String(field.selectionStart || 0) : "0",
+    typeof eizationLang === "string" ? eizationLang : "",
+    t("edit.noteHigher")
+  ].join("~");
+}
+
+function editorSvgEl(name, attrs) {
+  var el = document.createElementNS("http://www.w3.org/2000/svg", name);
+  var key;
+  for (key in attrs) {
+    if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+      el.setAttribute(key, attrs[key]);
+    }
+  }
+  return el;
+}
+
+function editorFitIcon(svg) {
+  var box = null;
+  svg.setAttribute("width", "64");
+  svg.setAttribute("height", "64");
+  svg.style.position = "absolute";
+  svg.style.left = "-10000px";
+  svg.style.top = "0";
+  if (document.body) {
+    document.body.appendChild(svg);
+    try {
+      box = svg.getBBox();
+    } catch (err) {
+      box = null;
+    }
+    if (svg.parentNode) {
+      svg.parentNode.removeChild(svg);
+    }
+  }
+  svg.style.position = "";
+  svg.style.left = "";
+  svg.style.top = "";
+  if (!box || !(box.height > 0)) {
+    svg.setAttribute("viewBox", "-100 -1000 800 1400");
+  } else {
+    var w = box.width > 1 ? box.width : Math.max(box.height * 0.16, 24);
+    var x = box.width > 1 ? box.x : box.x - w / 2;
+    var pad = Math.max(w, box.height) * 0.12;
+    svg.setAttribute("viewBox", (x - pad) + " " + (box.y - pad) + " " + (w + pad * 2) + " " + (box.height + pad * 2));
+  }
+  svg.setAttribute("width", "32");
+  svg.setAttribute("height", "32");
+  svg.setAttribute("class", "edit-music-icon");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  return svg;
+}
+
+function editorPlainIcon(node) {
+  var svg = editorSvgEl("svg", {});
+  svg.appendChild(node);
+  return editorFitIcon(svg);
+}
+
+function editorDurParts(raw) {
+  var text = String(raw || "");
+  var dotted = text.charAt(text.length - 1) === ".";
+  return {
+    base: dotted ? text.slice(0, -1) : text,
+    dotted: dotted
+  };
+}
+
+function editorBuildIcon(kind) {
+  var space = 250;
+  var head = 1.18 * space;
+  var stemX = head * 0.925;
+  var stemLen = 3.5 * space;
+  var svg = editorSvgEl("svg", {});
+  if (kind === "acc-none") {
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "noteheadBlack", 0, 0, space);
+    }
+    return editorFitIcon(svg);
+  }
+  if (kind === "acc-b" || kind === "acc-#" || kind === "acc-n") {
+    var accName = kind === "acc-b" ? "accidentalFlat" : kind === "acc-#" ? "accidentalSharp" : "accidentalNatural";
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, accName, 0, 0, space);
+    }
+    return editorFitIcon(svg);
+  }
+  if (kind.indexOf("dur-") === 0) {
+    var dur = editorDurParts(kind.slice(4));
+    var headName = dur.base === "w" ? "noteheadWhole" : dur.base === "h" ? "noteheadHalf" : "noteheadBlack";
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, headName, 0, 0, space);
+    }
+    if (dur.base !== "w") {
+      svg.appendChild(editorSvgEl("line", {
+        x1: String(stemX),
+        y1: "24",
+        x2: String(stemX),
+        y2: String(-stemLen),
+        stroke: "currentColor",
+        "stroke-width": "28"
+      }));
+    }
+    if (dur.base === "e" && typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "flag8thUp", stemX, -stemLen, space);
+    }
+    if (dur.base === "s" && typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "flag16thUp", stemX, -stemLen, space);
+    }
+    if (dur.dotted && typeof staffPlaceGlyph === "function") {
+      var noteDotX = head + 70;
+      var noteDotY = -40;
+      if (typeof staffGlyphAdvance === "function") {
+        noteDotX = staffGlyphAdvance(headName, space) + 50;
+      }
+      if (dur.base === "e" || dur.base === "s") {
+        noteDotX = stemX + (dur.base === "s" ? 390 : 330);
+        noteDotY = 36;
+      }
+      staffPlaceGlyph(svg, "augmentationDot", noteDotX, noteDotY, space);
+    }
+    return editorFitIcon(svg);
+  }
+  if (kind.indexOf("slash-") === 0) {
+    var slashDur = editorDurParts(kind.slice(6));
+    var slashHead = slashDur.base === "w" ? "noteheadSlashWhiteWhole" : slashDur.base === "h" ? "noteheadSlashWhiteHalf" : "noteheadSlash";
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, slashHead, 0, 0, space);
+    }
+    if (slashDur.base !== "w") {
+      svg.appendChild(editorSvgEl("line", {
+        x1: "8",
+        y1: String(space),
+        x2: "8",
+        y2: String(space + stemLen),
+        stroke: "currentColor",
+        "stroke-width": "28"
+      }));
+      if (slashDur.base === "e" && typeof staffPlaceGlyph === "function") {
+        staffPlaceGlyph(svg, "flag8thDown", 8, space + stemLen, space);
+      }
+      if (slashDur.base === "s" && typeof staffPlaceGlyph === "function") {
+        staffPlaceGlyph(svg, "flag16thDown", 8, space + stemLen, space);
+      }
+    }
+    if (slashDur.dotted && typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "augmentationDot", 2.12 * space + 40, 40, space);
+    }
+    return editorFitIcon(svg);
+  }
+  if (kind.indexOf("rest-") === 0) {
+    var restDur = editorDurParts(kind.slice(5));
+    var restName = restDur.base === "w" ? "restWhole" : restDur.base === "h" ? "restHalf" : restDur.base === "s" ? "rest16th" : restDur.base === "e" ? "rest8th" : "restQuarter";
+    var restLine;
+    if (restName === "restWhole" || restName === "restHalf") {
+      for (restLine = -1; restLine <= 1; restLine++) {
+        svg.appendChild(editorSvgEl("line", {
+          x1: "-90",
+          y1: String(restLine * 160),
+          x2: "430",
+          y2: String(restLine * 160),
+          stroke: "currentColor",
+          "stroke-width": "28"
+        }));
+      }
+    }
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, restName, 20, 0, space);
+    }
+    if (restDur.dotted && typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "augmentationDot", 340, restName === "restHalf" ? -50 : 50, space);
+    }
+    return editorFitIcon(svg);
+  }
+  if (kind === "bar") {
+    return editorPlainIcon(editorSvgEl("rect", {
+      x: "32",
+      y: "8",
+      width: "16",
+      height: "184",
+      fill: "currentColor"
+    }));
+  }
+  if (kind === "tie") {
+    return editorPlainIcon(editorSvgEl("path", {
+      d: "M20 36 Q120 120 220 36",
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "16",
+      "stroke-linecap": "round"
+    }));
+  }
+  if (kind === "beam") {
+    var gap = head + 160;
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "noteheadBlack", 0, 0, space);
+      staffPlaceGlyph(svg, "noteheadBlack", gap, 0, space);
+    }
+    svg.appendChild(editorSvgEl("line", {
+      x1: String(stemX),
+      y1: "24",
+      x2: String(stemX),
+      y2: String(-stemLen),
+      stroke: "currentColor",
+      "stroke-width": "28"
+    }));
+    svg.appendChild(editorSvgEl("line", {
+      x1: String(gap + stemX),
+      y1: "24",
+      x2: String(gap + stemX),
+      y2: String(-stemLen),
+      stroke: "currentColor",
+      "stroke-width": "28"
+    }));
+    svg.appendChild(editorSvgEl("line", {
+      x1: String(stemX),
+      y1: String(-stemLen),
+      x2: String(gap + stemX),
+      y2: String(-stemLen),
+      stroke: "currentColor",
+      "stroke-width": String(space * 0.5),
+      "stroke-linecap": "butt"
+    }));
+    return editorFitIcon(svg);
+  }
+  if (kind === "chord") {
+    if (typeof staffPlaceGlyph === "function") {
+      staffPlaceGlyph(svg, "noteheadBlack", 0, 0, space);
+      staffPlaceGlyph(svg, "noteheadBlack", 260, -220, space);
+    }
+    return editorFitIcon(svg);
+  }
+  return editorFitIcon(svg);
+}
+
+function editorMusicIcon(kind) {
+  if (!editorIconCache[kind]) {
+    editorIconCache[kind] = editorBuildIcon(kind);
+  }
+  return editorIconCache[kind].cloneNode(true);
+}
+
+function editorPadButton(row, attrs, face, label, pressed) {
+  var button = document.createElement("button");
+  var key;
+  button.type = "button";
+  for (key in attrs) {
+    if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+      button.setAttribute(key, attrs[key]);
+    }
+  }
+  if (face && face.nodeType) {
+    button.appendChild(face);
+  } else {
+    button.textContent = face || "";
+  }
+  if (label) {
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
+  if (pressed === true || pressed === false) {
+    button.setAttribute("aria-pressed", pressed ? "true" : "false");
+  }
+  row.appendChild(button);
+  return button;
+}
+
+function editorPaintLetters(row) {
+  var letters = ["C", "D", "E", "F", "G", "A", "B"];
+  var i;
+  for (i = 0; i < letters.length; i++) {
+    editorPadButton(row, { "data-note": letters[i] }, letters[i], letters[i]);
+  }
+}
+
+function editorPaintOctave(row) {
+  var oct = String(editorWorkingOctave());
+  var mark = document.createElement("span");
+  var label = t("edit.noteOctave").replace("{n}", oct);
+  mark.className = "edit-note-octave";
+  mark.setAttribute("data-octave", oct);
+  mark.textContent = oct;
+  mark.setAttribute("aria-label", label);
+  mark.title = label;
+  row.appendChild(mark);
+}
+
+function editorPaintModifiers(row) {
+  var clef = editorClefName();
+  editorPadButton(row, { "data-clef": "treble" }, t("edit.clefTreble"), t("edit.clefTreble"), clef !== "bass");
+  editorPadButton(row, { "data-clef": "bass" }, t("edit.clefBass"), t("edit.clefBass"), clef === "bass");
+  editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), editorNote.acc === "b");
+  editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), editorNote.acc === "#");
+  editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), editorNote.acc === "n");
+  editorPadButton(row, { "data-shift": "-1" }, "\u2193", t("edit.noteLower"));
+  editorPaintOctave(row);
+  editorPadButton(row, { "data-shift": "1" }, "\u2191", t("edit.noteHigher"));
+}
+
+function editorPaintDurations(row) {
+  var lit = editorDurCode(editorNote.dur);
+  var choices = [
+    ["w", "dur-w", "edit.noteWhole"],
+    ["h", "dur-h", "edit.noteHalf"],
+    ["", "dur-", "edit.noteQuarter"],
+    ["e", "dur-e", "edit.noteEighth"],
+    ["s", "dur-s", "edit.noteSixteenth"]
+  ];
+  var i;
+  for (i = 0; i < choices.length; i++) {
+    editorPadButton(row, { "data-dur": choices[i][0] }, editorMusicIcon(choices[i][1]), t(choices[i][2]), lit === choices[i][0]);
+  }
+  editorPadButton(row, { "data-dot": "1" }, editorMusicIcon("dur-" + (lit || "q") + "."), t("edit.noteDotted"), !!editorNote.dot);
+}
+
+function editorPaintNoteEvents(row) {
+  var rhythm = editorRhythmSuffix();
+  editorPadButton(row, { "data-event": "slash" }, editorMusicIcon("slash-" + rhythm), t("edit.noteSlash") + " " + editorSlashToken());
+  editorPadButton(row, { "data-event": "rest" }, editorMusicIcon("rest-" + rhythm), t("edit.noteRest") + " " + editorRestToken());
+  editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"));
+  editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"));
+  editorPadButton(row, { "data-event": "beam" }, editorMusicIcon("beam"), t("edit.noteBeam"));
+  editorPadButton(row, { "data-event": "chord" }, "^", t("edit.noteChord"));
+  editorPadButton(row, { "data-event": "stack" }, "[ ]", t("edit.noteStack"));
 }
 
 function editorPaintNotePad() {
-  var pad = document.getElementById("editNotePad");
-  var buttons;
-  var i;
-  if (!pad) {
+  var stepHost = document.getElementById("editNoteStep");
+  var chipsHost = document.getElementById("editNoteChips");
+  var durHost = document.getElementById("editNoteDurations");
+  var eventsHost = document.getElementById("editNoteEvents");
+  var stamp;
+  if (!stepHost || !chipsHost || !durHost || !eventsHost) {
     return;
   }
-  buttons = pad.querySelectorAll("button");
-  for (i = 0; i < buttons.length; i++) {
-    var button = buttons[i];
-    var letter = button.getAttribute("data-note");
-    var label = "";
-    if (letter) {
-      label = tr("edit.noteInsert", { token: editorNotePitch(letter) });
-    } else if (button.hasAttribute("data-acc")) {
-      button.setAttribute("aria-pressed", editorNote.acc === button.getAttribute("data-acc") ? "true" : "false");
-      label = t(button.getAttribute("data-label") || "sym.sharp");
-    } else if (button.hasAttribute("data-oct")) {
-      button.setAttribute("aria-pressed", String(editorNote.oct) === button.getAttribute("data-oct") ? "true" : "false");
-      label = tr("edit.noteOctave", { n: button.getAttribute("data-oct") });
-    } else if (button.hasAttribute("data-dur")) {
-      button.setAttribute("aria-pressed", (editorNote.dur || "") === (button.getAttribute("data-dur") || "") ? "true" : "false");
-      label = t(button.getAttribute("data-label") || "edit.noteQuarter");
-    } else if (button.getAttribute("data-event") === "slash" || button.getAttribute("data-event") === "rest") {
-      var shown = button.getAttribute("data-event") === "slash" ? editorSlashToken() : editorRestToken();
-      button.textContent = shown;
-      label = t(button.getAttribute("data-event") === "slash" ? "edit.noteSlash" : "edit.noteRest") + " " + shown;
-    } else if (button.getAttribute("data-event")) {
-      label = t(button.getAttribute("data-label") || "edit.noteBar");
-    } else if (button.getAttribute("data-label")) {
-      label = t(button.getAttribute("data-label"));
-    }
-    if (label) {
-      button.setAttribute("aria-label", label);
-      button.title = label;
-    }
+  stamp = editorNotePadStampNow();
+  if (stamp === editorNotePadStamp) {
+    return;
   }
+  stepHost.innerHTML = "";
+  chipsHost.innerHTML = "";
+  durHost.innerHTML = "";
+  eventsHost.innerHTML = "";
+  editorPaintLetters(stepHost);
+  editorPaintModifiers(chipsHost);
+  editorPaintDurations(durHost);
+  editorPaintNoteEvents(eventsHost);
+  editorNotePadStamp = stamp;
+}
+
+function editorWriteLetter(letter) {
+  var token = editorLetterToken(letter);
+  editorNote.acc = "";
+  editorNote.oct = null;
+  editorInsertSymbol(token + " ");
+}
+
+function editorArmAcc(acc) {
+  acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
+  editorNote.acc = editorNote.acc === acc ? "" : acc;
+  editorPaintNotePad();
+}
+
+function editorSetDuration(dur) {
+  editorNote.dur = editorDurCode(dur);
+  editorPaintNotePad();
+}
+
+function editorToggleDot() {
+  editorNote.dot = !editorNote.dot;
+  editorPaintNotePad();
+}
+
+function editorShiftOctave(dir) {
+  var hit;
+  var oct;
+  var suffix;
+  var next;
+  var value;
+  var caret;
+  dir = dir < 0 ? -1 : 1;
+  hit = editorNote.acc ? null : editorPitchAtCaret();
+  if (!hit) {
+    editorNote.oct = editorClampOctave(editorWorkingOctave() + dir);
+    editorPaintNotePad();
+    return;
+  }
+  oct = editorClampOctave(hit.oct + dir);
+  if (oct === hit.oct) {
+    editorPaintNotePad();
+    return;
+  }
+  suffix = hit.token.slice((hit.letter + (hit.acc || "") + String(hit.oct)).length);
+  next = hit.letter + (hit.acc || "") + String(oct) + suffix;
+  value = String(hit.field.value || "");
+  hit.field.value = value.slice(0, hit.start) + next + value.slice(hit.end);
+  caret = hit.caret + (next.length - hit.token.length);
+  try {
+    hit.field.setSelectionRange(caret, caret);
+  } catch (errShift) {}
+  editorNote.oct = null;
+  clearEditorNotice();
+  refreshEditor();
 }
 
 function editorActivateSymbol(button) {
-  var acc;
-  var oct;
-  var dur;
+  var eventName;
   if (!button) {
     return;
   }
-  if (button.hasAttribute("data-acc")) {
-    acc = button.getAttribute("data-acc") || "";
-    editorNote.acc = editorNote.acc === acc ? "" : acc;
-    editorPaintNotePad();
+  if (button.hasAttribute("data-note")) {
+    editorWriteLetter(button.getAttribute("data-note"));
     return;
   }
-  if (button.hasAttribute("data-oct")) {
-    oct = parseInt(button.getAttribute("data-oct"), 10);
-    editorNote.oct = oct === 3 || oct === 5 ? oct : 4;
-    editorPaintNotePad();
+  if (button.hasAttribute("data-acc")) {
+    editorArmAcc(button.getAttribute("data-acc") || "");
+    return;
+  }
+  if (button.hasAttribute("data-shift")) {
+    editorShiftOctave(parseInt(button.getAttribute("data-shift"), 10));
+    return;
+  }
+  if (button.hasAttribute("data-clef")) {
+    editorSetClef(button.getAttribute("data-clef") || "");
+    return;
+  }
+  if (button.hasAttribute("data-dot")) {
+    editorToggleDot();
     return;
   }
   if (button.hasAttribute("data-dur")) {
-    dur = button.getAttribute("data-dur") || "";
-    editorNote.dur = dur === "e" || dur === "e." ? dur : "";
-    editorPaintNotePad();
+    editorSetDuration(button.getAttribute("data-dur") || "");
     return;
   }
-  if (button.getAttribute("data-note")) {
-    insertEditorText(editorNotePitch(button.getAttribute("data-note")) + " ");
-    return;
-  }
-  if (button.getAttribute("data-event") === "slash") {
-    insertEditorText(editorSlashToken() + " ");
-    return;
-  }
-  if (button.getAttribute("data-event") === "rest") {
-    insertEditorText(editorRestToken() + " ");
-    return;
-  }
-  if (button.getAttribute("data-event") === "bar") {
-    insertEditorText("| ");
-    return;
-  }
-  if (button.getAttribute("data-event") === "tie") {
-    insertEditorText("~");
-    return;
-  }
-  if (button.getAttribute("data-event") === "beam") {
-    /* Braces only beam eighths and sixteenths. A quarter would stay text. */
-    if (!editorNote.dur) {
-      editorNote.dur = "e";
-      editorPaintNotePad();
+  eventName = button.getAttribute("data-event");
+  if (eventName) {
+    if (eventName === "slash") {
+      editorInsertSymbol(editorSlashToken() + " ");
+      return;
     }
-    insertEditorText("{ }", 2);
-    return;
+    if (eventName === "rest") {
+      editorInsertSymbol(editorRestToken() + " ");
+      return;
+    }
+    if (eventName === "bar") {
+      editorInsertSymbol("| ");
+      return;
+    }
+    if (eventName === "tie") {
+      editorInsertSymbol("~");
+      return;
+    }
+    if (eventName === "beam") {
+      /* Braces only beam eighths and sixteenths. A longer value would stay text. */
+      if (editorNote.dur !== "e" && editorNote.dur !== "s") {
+        editorNote.dur = "e";
+      }
+      editorInsertSymbol("{ }", 2);
+      return;
+    }
+    if (eventName === "chord") {
+      editorInsertSymbol("^");
+      return;
+    }
+    if (eventName === "stack") {
+      editorInsertSymbol("[ ]", 2);
+      return;
+    }
   }
-  insertEditorText(button.getAttribute("data-symbol") || "");
+  if (button.hasAttribute("data-symbol")) {
+    editorDropNoteFlow();
+    insertEditorText(button.getAttribute("data-symbol") || "", parseInt(button.getAttribute("data-caret") || "0", 10) || 0);
+  }
 }
 
 function editorAreaCaret() {
@@ -2133,66 +2796,32 @@ function ToggleEdit() {
   editorOpen();
 }
 
-function editorAddNoteButton(row, text, attrs) {
-  var button = document.createElement("button");
-  var key;
-  button.type = "button";
-  button.textContent = text;
-  for (key in attrs) {
-    if (Object.prototype.hasOwnProperty.call(attrs, key)) {
-      button.setAttribute(key, attrs[key]);
-    }
-  }
-  row.appendChild(button);
-}
-
-function editorNoteRow(pad) {
-  var row = document.createElement("div");
-  row.className = "edit-note-row";
-  pad.appendChild(row);
-  return row;
-}
-
 function buildEditorNotePad(host) {
   var pad = document.createElement("div");
-  var letters;
-  var mods;
-  var events;
-  var alphabet = ["C", "D", "E", "F", "G", "A", "B"];
-  var i;
+  var flow = document.createElement("div");
+  var main = document.createElement("div");
+  var letters = document.createElement("div");
+  var modifiers = document.createElement("div");
+  var durations = document.createElement("div");
+  var events = document.createElement("div");
   pad.id = "editNotePad";
-  letters = editorNoteRow(pad);
-  mods = editorNoteRow(pad);
-  events = editorNoteRow(pad);
-  for (i = 0; i < alphabet.length; i++) {
-    editorAddNoteButton(letters, alphabet[i], { "data-note": alphabet[i] });
-  }
-  editorAddNoteButton(mods, "\u266D", { "data-acc": "b", "data-label": "sym.flat" });
-  editorAddNoteButton(mods, "\u266F", { "data-acc": "#", "data-label": "sym.sharp" });
-  editorAddNoteButton(mods, "\u266E", { "data-acc": "n", "data-label": "sym.natural" });
-  editorAddNoteButton(mods, "3", { "data-oct": "3" });
-  editorAddNoteButton(mods, "4", { "data-oct": "4" });
-  editorAddNoteButton(mods, "5", { "data-oct": "5" });
-  editorAddNoteButton(mods, "\u2669", { "data-dur": "", "data-label": "edit.noteQuarter" });
-  editorAddNoteButton(mods, "\u266A", { "data-dur": "e", "data-label": "edit.noteEighth" });
-  editorAddNoteButton(mods, "\u266A.", { "data-dur": "e.", "data-label": "edit.noteDotted" });
-  editorAddNoteButton(events, "/", { "data-symbol": "/ ", "data-label": "edit.notePlay" });
-  editorAddNoteButton(events, "/q", { "data-event": "slash" });
-  editorAddNoteButton(events, "rq", { "data-event": "rest" });
-  editorAddNoteButton(events, "|", { "data-event": "bar", "data-label": "edit.noteBar" });
-  editorAddNoteButton(events, "~", { "data-event": "tie", "data-label": "edit.noteTie" });
-  editorAddNoteButton(events, "{ }", { "data-event": "beam", "data-label": "edit.noteBeam" });
-  var marks = editorNoteRow(pad);
-  editorAddNoteButton(marks, "mf", { "data-symbol": "mf ", "data-label": "edit.noteDynamic" });
-  editorAddNoteButton(marks, "cresc", { "data-symbol": "cresc ", "data-label": "edit.noteCresc" });
-  editorAddNoteButton(marks, "dim", { "data-symbol": "dim ", "data-label": "edit.noteDim" });
-  editorAddNoteButton(marks, "'", { "data-symbol": "'", "data-label": "edit.noteStaccato" });
-  editorAddNoteButton(marks, ">", { "data-symbol": ">", "data-label": "edit.noteAccent" });
-  editorAddNoteButton(marks, "-", { "data-symbol": "-", "data-label": "edit.noteTenuto" });
-  editorAddNoteButton(marks, "^", { "data-symbol": "^", "data-label": "edit.noteChord" });
-  editorAddNoteButton(marks, "%", { "data-symbol": "% ", "data-label": "edit.noteSimile" });
+  flow.id = "editNoteFlow";
+  main.id = "editNoteMain";
+  letters.id = "editNoteStep";
+  letters.className = "edit-note-row";
+  modifiers.id = "editNoteChips";
+  modifiers.className = "edit-note-row";
+  durations.id = "editNoteDurations";
+  durations.className = "edit-note-row";
+  events.id = "editNoteEvents";
+  events.className = "edit-note-row";
+  main.appendChild(letters);
+  main.appendChild(modifiers);
+  main.appendChild(durations);
+  flow.appendChild(main);
+  pad.appendChild(flow);
+  pad.appendChild(events);
   host.appendChild(pad);
-  editorPaintNotePad();
 }
 
 function editorPaintStaffSamples() {
@@ -2239,6 +2868,7 @@ function buildEditorSymbols() {
     var spec = EDITOR_SYMBOLS[i];
     var button = document.createElement("button");
     button.type = "button";
+    button.className = "edit-text-symbol";
     button.textContent = spec.char;
     button.setAttribute("aria-label", t(spec.key));
     button.title = t(spec.key);
@@ -2247,8 +2877,12 @@ function buildEditorSymbols() {
       insert = " \u00B7 ";
     }
     button.setAttribute("data-symbol", insert);
+    if (spec.caretBack) {
+      button.setAttribute("data-caret", String(spec.caretBack));
+    }
     row.appendChild(button);
   }
+  editorSyncSymbolKind();
 }
 
 function newShareId() {
