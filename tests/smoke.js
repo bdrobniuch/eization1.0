@@ -1471,9 +1471,10 @@ function chatCase(w) {
   var moreMenu = w.document.getElementById("editMoreMenu");
   var staffHelp = w.document.getElementById("editStaffHelp");
   var desktopActions = w.matchMedia("(min-width: 841px)").matches;
+  var phoneEdit = w.matchMedia("(max-width: 640px)").matches;
   check("exercise actions sit above the name", !!(exerciseRow && nameRow && (exerciseRow.compareDocumentPosition(nameRow) & 4)));
   check("share sits on the exercise row", !!(share && send && share.parentNode === send));
-  check("staff sits beside bars", !!(staffHelp && writeRow && staffHelp.parentNode === writeRow));
+  check("staff sits beside bars", !!(staffHelp && writeRow && writeRow.contains(staffHelp)));
   check(
     "empty preview coaches one example",
     w.I18N.en["edit.preview"].indexOf("One example per line") === 0 &&
@@ -1555,11 +1556,17 @@ function chatCase(w) {
   check("opening the menu does not write the desk", JSON.stringify(w.listDeskExercises()) === desk);
   menu = w.document.getElementById("editAskMenu");
   check("chat menu opens", menu.hidden === false);
-  check("three chats sit in one row", !!(w.document.getElementById("editAskGemini") && w.getComputedStyle(menu).flexDirection === "row" && w.I18N.en["edit.ask"] === "Ask AI" && w.I18N.es["edit.ask"] === "Preguntar a la IA" && w.I18N.en["edit.askGemini"] === "Gemini"));
-  check("hint asks to paste", w.document.getElementById("editHint").textContent === w.t("edit.askHint"));
+  var askHint = w.document.getElementById("editAskHint");
+  check("three chats follow the width", !!(w.document.getElementById("editAskGemini") && w.getComputedStyle(menu).flexDirection === (phoneEdit ? "column" : "row") && w.I18N.en["edit.ask"] === "Ask AI" && w.I18N.es["edit.ask"] === "Preguntar a la IA" && w.I18N.en["edit.askGemini"] === "Gemini"));
+  check(
+    "hint asks to paste",
+    phoneEdit
+      ? !!(askHint && askHint.hidden === false && askHint.textContent === w.t("edit.askHint") && w.document.getElementById("editHint").textContent === "")
+      : w.document.getElementById("editHint").textContent === w.t("edit.askHint")
+  );
   w.document.getElementById("editAsk").click();
   check("chat menu closes", menu.hidden === true);
-  check("paste line leaves with the chats", w.document.getElementById("editHint").textContent !== w.t("edit.askHint"));
+  check("paste line leaves with the chats", w.document.getElementById("editHint").textContent !== w.t("edit.askHint") && (!askHint || askHint.hidden === true));
   if (!desktopActions) {
     moreButton.click();
     check("more menu closes", moreMenu.hidden === true);
@@ -1635,16 +1642,28 @@ function chatCase(w) {
     w.currentExerciseId = focusWalkId;
     w.SelectExercise();
     w.editorOpen();
-    var narrowFocus = !desktopActions;
+    var phoneFocus = w.matchMedia("(max-width: 640px)").matches;
+    var viewLabel = viewToggle.querySelector(".btn-label");
+    var shownView = viewLabel ? viewLabel.textContent : viewToggle.textContent;
+    var sheetBox = sheet.getBoundingClientRect();
+    var footerBox = w.document.querySelector("footer").getBoundingClientRect();
+    w.toggleTempo();
+    check("play does not start while editing", w.paused === true && w.editorIsOpen());
+    check(
+      "edit covers the screen",
+      sheetBox.top <= 1 &&
+        sheetBox.bottom >= footerBox.bottom - 1 &&
+        parseInt(w.getComputedStyle(sheet).zIndex, 10) > parseInt(w.getComputedStyle(w.document.querySelector("footer")).zIndex, 10)
+    );
     check(
       "edit opens in the viewport view",
       !!(
         sheet &&
-        sheet.classList.contains(narrowFocus ? "is-edit-focus" : "is-edit-list") &&
-        viewToggle.textContent === (narrowFocus ? w.t("edit.allExamples") : w.t("edit.oneExample"))
+        sheet.classList.contains(phoneFocus ? "is-edit-focus" : "is-edit-list") &&
+        shownView === (phoneFocus ? w.t("edit.allExamples") : w.t("edit.oneExample"))
       )
     );
-    if (!narrowFocus) {
+    if (!phoneFocus) {
       viewToggle.click();
     }
     check("focus shows one line", !!(sheet.classList.contains("is-edit-focus") && focusLine.value === "Alpha" && focusIndex.textContent.indexOf("1") >= 0 && area.value.indexOf("Alpha") >= 0 && area.value.indexOf("Charlie") >= 0));

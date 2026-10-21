@@ -660,7 +660,9 @@ function onVisualStep(item) {
   if (item.countIn) {
     if (item.advance) {
       item.advance = false;
-      advanceNote();
+      if (!editorHoldsReel()) {
+        advanceNote();
+      }
     }
     phraseBar = 0;
     showCountIn(item.count);
@@ -670,7 +672,9 @@ function onVisualStep(item) {
     hideCountIn();
     if (item.advance) {
       item.advance = false;
-      advanceNote();
+      if (!editorHoldsReel()) {
+        advanceNote();
+      }
     }
     if (beat === 0) {
       phraseBar = item.phraseIndex;
@@ -808,7 +812,9 @@ function stopScheduler() {
     var pending = pendingVisuals[i];
     if (pending.gen === generation && pending.advance && pending.time <= now) {
       pending.advance = false;
-      advanceNote();
+      if (!editorHoldsReel()) {
+        advanceNote();
+      }
       break;
     }
   }
@@ -971,8 +977,15 @@ function renderTempoToggle() {
   }
 }
 
+function editorHoldsReel() {
+  return typeof editorIsOpen === "function" && editorIsOpen();
+}
+
 function toggleTempo() {
   var input = document.getElementById("bpm");
+  if (editorHoldsReel()) {
+    return;
+  }
   if (!paused && currentBpm > 0) {
     tempoHeld = currentBpm;
     stopScheduler();

@@ -408,11 +408,27 @@ function editorToggleSymbols() {
   }
 }
 
+function editorPhoneChrome() {
+  return window.matchMedia("(max-width: 640px)").matches;
+}
+
+function setEditorAskHint(on) {
+  var askHint = document.getElementById("editAskHint");
+  if (!askHint) {
+    return;
+  }
+  if (on) {
+    askHint.textContent = t("edit.askHint");
+  }
+  askHint.hidden = !on;
+}
+
 function refreshEditorHint() {
   var hint = document.getElementById("editHint");
   if (!hint) {
     return;
   }
+  var phone = editorPhoneChrome();
   var saveAs = document.getElementById("editSaveAs");
   if (saveAs && !editorIsCreateMode()) {
     if (typeof sharePreview !== "undefined" && sharePreview) {
@@ -425,26 +441,44 @@ function refreshEditorHint() {
   var update = document.getElementById("editUpdate");
   if ((del && del.classList.contains("is-armed")) || (update && update.classList.contains("is-armed"))) {
     hint.textContent = "";
+    setEditorAskHint(false);
     return;
   }
   var askMenu = document.getElementById("editAskMenu");
   if (askMenu && !askMenu.hidden) {
-    hint.textContent = t("edit.askHint");
+    if (phone) {
+      setEditorAskHint(true);
+      if (typeof sharePreview !== "undefined" && sharePreview && sharePreview.mode === "changed") {
+        hint.textContent = t("edit.hintShare");
+      } else if (!editorIsCreateMode() && editorIsDirty()) {
+        hint.textContent = t("edit.hintDirty");
+      } else {
+        hint.textContent = "";
+      }
+    } else {
+      hint.textContent = t("edit.askHint");
+      setEditorAskHint(false);
+    }
     return;
   }
+  setEditorAskHint(false);
   if (typeof sharePreview !== "undefined" && sharePreview) {
-    hint.textContent = sharePreview.mode === "changed" ? t("edit.hintShare") : t("edit.hintCreate");
+    if (sharePreview.mode === "changed") {
+      hint.textContent = t("edit.hintShare");
+    } else {
+      hint.textContent = phone ? "" : t("edit.hintCreate");
+    }
     return;
   }
   if (editorIsCreateMode()) {
-    hint.textContent = t("edit.hintCreate");
+    hint.textContent = phone ? "" : t("edit.hintCreate");
     return;
   }
   if (editorIsDirty()) {
     hint.textContent = t("edit.hintDirty");
-  } else {
-    hint.textContent = t("edit.hintUpdate");
+    return;
   }
+  hint.textContent = phone ? "" : t("edit.hintUpdate");
 }
 
 function selectExerciseChip(id) {
@@ -629,26 +663,29 @@ function editorCloseQuiet() {
 
 function placeEditor() {
   var sheet = document.getElementById("textdiv");
+  var top = 0;
+  var bottom = 0;
+  var viewport;
   if (!sheet || !sheet.classList.contains("is-open")) {
     return;
   }
-  var bar = document.getElementById("topBar");
-  var footer = document.querySelector("footer");
-  var top = bar ? bar.getBoundingClientRect().bottom : 0;
-  var limit = footer ? footer.getBoundingClientRect().top : window.innerHeight;
-  var viewport = window.visualViewport;
+  viewport = window.visualViewport;
   if (viewport) {
-    var visibleBottom = viewport.offsetTop + viewport.height;
-    if (visibleBottom < limit) {
-      limit = visibleBottom;
-    }
+    top = viewport.offsetTop;
+    bottom = window.innerHeight - (viewport.offsetTop + viewport.height);
   }
-  sheet.style.top = Math.max(0, top) + "px";
-  sheet.style.bottom = Math.max(0, window.innerHeight - limit) + "px";
+  if (top < 0) {
+    top = 0;
+  }
+  if (bottom < 0) {
+    bottom = 0;
+  }
+  sheet.style.top = top + "px";
+  sheet.style.bottom = bottom + "px";
 }
 
 function editorDefaultViewMode() {
-  return window.matchMedia("(max-width: 840px)").matches ? "focus" : "list";
+  return editorPhoneChrome() ? "focus" : "list";
 }
 
 function editorEffectiveViewMode() {
@@ -748,12 +785,31 @@ function editorSyncFocusFromArea() {
 
 function editorRefreshViewToggle() {
   var button = document.getElementById("editViewToggle");
+  var label;
+  var text;
+  var listIcon;
+  var oneIcon;
   if (!button) {
     return;
   }
   var focus = editorEffectiveViewMode() === "focus";
-  button.textContent = focus ? t("edit.allExamples") : t("edit.oneExample");
+  label = focus ? t("edit.allExamples") : t("edit.oneExample");
+  text = button.querySelector(".btn-label");
+  if (text) {
+    text.textContent = label;
+  } else {
+    button.textContent = label;
+  }
+  button.setAttribute("aria-label", label);
   button.setAttribute("aria-pressed", focus ? "true" : "false");
+  listIcon = button.querySelector(".icon-list");
+  oneIcon = button.querySelector(".icon-one");
+  if (listIcon) {
+    listIcon.classList.toggle("is-hidden", !focus);
+  }
+  if (oneIcon) {
+    oneIcon.classList.toggle("is-hidden", focus);
+  }
 }
 
 function editorApplyViewMode() {
@@ -2679,7 +2735,11 @@ function initEditor() {
     editorDismissEscape();
   });
   window.addEventListener("resize", function () {
-    if (!editorIsOpen() || editorViewOverride) {
+    if (!editorIsOpen()) {
+      return;
+    }
+    if (editorViewOverride) {
+      refreshEditorHint();
       return;
     }
     editorApplyViewMode();

@@ -1790,9 +1790,9 @@ body.is-editing #counter {
   position: fixed;
   left: 0;
   right: 0;
-  z-index: 18;
+  z-index: 22;
   box-sizing: border-box;
-  padding: 10px 12px 12px;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
   background: rgba(0, 0, 0, 0.32);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -1804,6 +1804,8 @@ body.is-editing #counter {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  top: 0;
+  bottom: 0;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -1855,6 +1857,20 @@ body.is-editing #counter {
   opacity: 0.9;
 }
 
+#editHint:empty {
+  display: none;
+}
+
+#editSetup {
+  display: contents;
+}
+
+#editViewToggle .chrome-icon,
+#editFocusAdd .chrome-icon,
+#editFocusRemove .chrome-icon {
+  display: none;
+}
+
 #editMoreMenu {
   flex: 1 0 100%;
   display: flex;
@@ -1890,6 +1906,18 @@ body.is-editing #counter {
 }
 
 #editAskMenu[hidden] {
+  display: none !important;
+}
+
+#editAskHint {
+  flex: 1 0 100%;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+
+#editAskHint[hidden] {
   display: none !important;
 }
 
@@ -2492,6 +2520,266 @@ body.is-about #counter {
   width: 0.92em;
   height: 0.92em;
   display: block;
+}
+
+@media (max-width: 640px) {
+  #textdiv.is-open {
+    display: grid;
+    grid-template-columns: 44px 44px 44px 44px minmax(0, 1fr);
+    grid-template-areas:
+      "head head head head head"
+      "name name name name name"
+      "err err err err err"
+      "setup setup setup setup setup"
+      "sym view share more glyphend"
+      "menu menu menu menu menu"
+      "sympanel sympanel sympanel sympanel sympanel"
+      "focus focus focus focus focus"
+      "count count count count count"
+      "area area area area area"
+      "prev prev prev prev prev"
+      "note note note note note"
+      "staff staff staff staff staff";
+    align-content: start;
+  }
+
+  #textdiv.is-edit-list.is-open {
+    grid-template-rows: auto auto auto auto auto auto auto auto auto minmax(120px, 1fr) auto auto auto;
+  }
+
+  #editExercise,
+  #editSend,
+  #editMeta,
+  #editWrite,
+  #editSymbolsRow {
+    display: contents;
+  }
+
+  #editHead {
+    display: grid;
+    grid-area: head;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "cancel update"
+      "save save"
+      "hint hint";
+    align-items: center;
+    gap: 8px;
+  }
+
+  #editCancel {
+    grid-area: cancel;
+    justify-self: start;
+  }
+
+  #editUpdate {
+    grid-area: update;
+    justify-self: end;
+  }
+
+  #editSaveAs {
+    grid-area: save;
+    justify-self: stretch;
+  }
+
+  #editSaveAs[hidden] {
+    display: none !important;
+  }
+
+  #editHint {
+    grid-area: hint;
+    flex: none;
+    width: 100%;
+  }
+
+  #editNameRow {
+    grid-area: name;
+    width: 100%;
+  }
+
+  #editError {
+    grid-area: err;
+  }
+
+  #editExerciseLabel,
+  #textdiv .step-label,
+  #textdiv.is-edit-focus #editCount {
+    display: none !important;
+  }
+
+  #editCount {
+    grid-area: count;
+  }
+
+  #editSetup {
+    display: flex;
+    grid-area: setup;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  #editKind {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #editKind button {
+    padding: 0 8px;
+  }
+
+  #editStaffHelp {
+    margin-left: auto;
+  }
+
+  #editSymbolsToggle {
+    grid-area: sym;
+  }
+
+  #editViewToggle {
+    grid-area: view;
+  }
+
+  #editShare {
+    grid-area: share;
+  }
+
+  #editMore {
+    grid-area: more;
+  }
+
+  #editShare,
+  #editMore,
+  #editStaffHelp,
+  #editSymbolsToggle,
+  #editViewToggle,
+  #editFocusAdd,
+  #editFocusRemove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    gap: 0;
+  }
+
+  #editShare .btn-label,
+  #editMore .btn-label,
+  #editStaffHelp .btn-label,
+  #editSymbolsToggle .btn-label,
+  #editViewToggle .btn-label,
+  #editFocusAdd .btn-label,
+  #editFocusRemove .btn-label {
+    display: none;
+  }
+
+  #editViewToggle .chrome-icon,
+  #editFocusAdd .chrome-icon,
+  #editFocusRemove .chrome-icon {
+    display: block;
+    width: 1.15em;
+    height: 1.15em;
+  }
+
+  #editMoreMenu {
+    grid-area: menu;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  #editMoreMenu > button,
+  #editAskMenu > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  #editAskMenu {
+    order: 1;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  #editClearList {
+    order: 2;
+  }
+
+  #editDelete {
+    order: 3;
+  }
+
+  #editAskHint {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  #editSymbols {
+    grid-area: sympanel;
+    flex: none;
+    width: 100%;
+  }
+
+  #editFocusChrome {
+    grid-area: focus;
+  }
+
+  #editFocusBar {
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  #editFocusAdd {
+    margin-left: auto;
+  }
+
+  #allEdit {
+    grid-area: area;
+  }
+
+  #editPreview {
+    grid-area: prev;
+  }
+
+  #editPreview.is-empty {
+    min-height: 0;
+  }
+
+  #editPreview.is-empty::before {
+    content: none;
+  }
+
+  #editStaffNote {
+    grid-area: note;
+  }
+
+  #editStaffPanel {
+    grid-area: staff;
+  }
+
+  #textdiv.is-staff-help.is-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #editName,
+  #editNameRow,
+  #allEdit,
+  #editSetup {
+    min-width: 0;
+  }
 }
 
 #about {

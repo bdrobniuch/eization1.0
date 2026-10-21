@@ -1394,6 +1394,9 @@ function init() {
   });
   document.getElementById("tempoToggle").addEventListener("click", function () {
     var starting;
+    if (typeof editorIsOpen === "function" && editorIsOpen()) {
+      return;
+    }
     starting = paused || !(currentBpm > 0);
     toggleTempo();
     track(starting ? "tempo_start" : "tempo_stop", { exercise_id: analyticsExerciseId() });
