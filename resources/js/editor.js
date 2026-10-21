@@ -796,6 +796,7 @@ function editorCloseQuiet() {
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
   sheet.style.display = "";
+  editorClearSheetPlacement();
   document.body.classList.remove("is-editing");
   editorDraft.mode = "edit";
   editorViewOverride = null;
@@ -818,24 +819,57 @@ function editorCloseQuiet() {
 function placeEditor() {
   var sheet = document.getElementById("textdiv");
   var top = 0;
-  var bottom = 0;
+  var height;
   var viewport;
   if (!sheet || !sheet.classList.contains("is-open")) {
     return;
   }
   viewport = window.visualViewport;
-  if (viewport) {
+  if (viewport && viewport.height > 0) {
+    /* Fit the sheet to the visible viewport so the soft keyboard does not cover controls. */
     top = viewport.offsetTop;
-    bottom = window.innerHeight - (viewport.offsetTop + viewport.height);
+    if (top < 0) {
+      top = 0;
+    }
+    height = viewport.height;
+    sheet.style.top = top + "px";
+    sheet.style.bottom = "auto";
+    sheet.style.height = height + "px";
+    sheet.style.maxHeight = height + "px";
+  } else {
+    sheet.style.top = "";
+    sheet.style.bottom = "";
+    sheet.style.height = "";
+    sheet.style.maxHeight = "";
   }
-  if (top < 0) {
-    top = 0;
+}
+
+function editorClearSheetPlacement() {
+  var sheet = document.getElementById("textdiv");
+  if (!sheet) {
+    return;
   }
-  if (bottom < 0) {
-    bottom = 0;
+  sheet.style.top = "";
+  sheet.style.bottom = "";
+  sheet.style.height = "";
+  sheet.style.maxHeight = "";
+}
+
+function editorEnsureFieldVisible(field) {
+  if (!field || !editorIsOpen()) {
+    return;
   }
-  sheet.style.top = top + "px";
-  sheet.style.bottom = bottom + "px";
+  placeEditor();
+  window.requestAnimationFrame(function () {
+    placeEditor();
+    if (typeof field.scrollIntoView === "function") {
+      try {
+        field.scrollIntoView({ block: "nearest", inline: "nearest" });
+      } catch (errScroll) {
+        field.scrollIntoView(false);
+      }
+    }
+  });
 }
 
 function editorDefaultViewMode() {
@@ -3800,6 +3834,7 @@ function initEditor() {
     if (target.id === "editFocusLine" || target.id === "allEdit") {
       editorPadCaret = null;
       editorSetPadInputMode(false);
+      editorEnsureFieldVisible(target);
     }
   }
   document.addEventListener("focusin", editorOnFieldFocusForPad);
@@ -4005,7 +4040,12 @@ function initEditor() {
     refreshEditor();
   });
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", placeEditor);
+    window.visualViewport.addEventListener("resize", function () {
+      placeEditor();
+      if (document.activeElement && (document.activeElement.id === "editFocusLine" || document.activeElement.id === "allEdit")) {
+        editorEnsureFieldVisible(document.activeElement);
+      }
+    });
     window.visualViewport.addEventListener("scroll", placeEditor);
   }
 }
