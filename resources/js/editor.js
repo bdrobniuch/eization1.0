@@ -794,7 +794,7 @@ function editorCloseQuiet() {
   clearEditStaffNote();
   editorClearSymbolHistory();
   var sheet = document.getElementById("textdiv");
-  sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list", "is-field-typing");
+  sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
   sheet.style.display = "";
   editorClearSheetPlacement();
   document.body.classList.remove("is-editing");
@@ -819,29 +819,26 @@ function editorCloseQuiet() {
 function placeEditor() {
   var sheet = document.getElementById("textdiv");
   var top = 0;
-  var height;
+  var bottom = 0;
   var viewport;
   if (!sheet || !sheet.classList.contains("is-open")) {
     return;
   }
   viewport = window.visualViewport;
-  if (viewport && viewport.height > 0) {
-    /* Fit the sheet to the visible viewport so the soft keyboard does not cover controls. */
+  if (viewport) {
     top = viewport.offsetTop;
-    if (top < 0) {
-      top = 0;
-    }
-    height = viewport.height;
-    sheet.style.top = top + "px";
-    sheet.style.bottom = "auto";
-    sheet.style.height = height + "px";
-    sheet.style.maxHeight = height + "px";
-  } else {
-    sheet.style.top = "";
-    sheet.style.bottom = "";
-    sheet.style.height = "";
-    sheet.style.maxHeight = "";
+    bottom = window.innerHeight - (viewport.offsetTop + viewport.height);
   }
+  if (top < 0) {
+    top = 0;
+  }
+  if (bottom < 0) {
+    bottom = 0;
+  }
+  sheet.style.top = top + "px";
+  sheet.style.bottom = bottom + "px";
+  sheet.style.height = "";
+  sheet.style.maxHeight = "";
 }
 
 function editorClearSheetPlacement() {
@@ -855,28 +852,19 @@ function editorClearSheetPlacement() {
   sheet.style.maxHeight = "";
 }
 
-function editorSetFieldTyping(on) {
-  var sheet = document.getElementById("textdiv");
-  if (!sheet) {
-    return;
-  }
-  sheet.classList.toggle("is-field-typing", !!on);
-  placeEditor();
-}
-
 function editorEnsureFieldVisible(field) {
   if (!field || !editorIsOpen()) {
     return;
   }
   placeEditor();
   window.requestAnimationFrame(function () {
-    placeEditor();
-    if (typeof field.scrollIntoView === "function") {
-      try {
-        field.scrollIntoView({ block: "nearest", inline: "nearest" });
-      } catch (errScroll) {
-        field.scrollIntoView(false);
-      }
+    if (typeof field.scrollIntoView !== "function") {
+      return;
+    }
+    try {
+      field.scrollIntoView({ block: "nearest", inline: "nearest" });
+    } catch (errScroll) {
+      field.scrollIntoView(false);
     }
   });
 }
@@ -3843,25 +3831,10 @@ function initEditor() {
     if (target.id === "editFocusLine" || target.id === "allEdit") {
       editorPadCaret = null;
       editorSetPadInputMode(false);
-      editorSetFieldTyping(true);
       editorEnsureFieldVisible(target);
     }
   }
-  function editorOnFieldFocusOutForTyping(event) {
-    var target = event && event.target;
-    if (!target || (target.id !== "editFocusLine" && target.id !== "allEdit")) {
-      return;
-    }
-    window.requestAnimationFrame(function () {
-      var active = document.activeElement;
-      if (active && (active.id === "editFocusLine" || active.id === "allEdit")) {
-        return;
-      }
-      editorSetFieldTyping(false);
-    });
-  }
   document.addEventListener("focusin", editorOnFieldFocusForPad);
-  document.addEventListener("focusout", editorOnFieldFocusOutForTyping);
   document.addEventListener("keydown", function (event) {
     var key;
     var undoKey;
