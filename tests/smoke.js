@@ -1653,7 +1653,7 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-shift='1']") &&
       symbolsPanel.querySelector("[data-shift='-1']") &&
       symbolsPanel.querySelector("[data-octave]") &&
-      symbolsPanel.querySelector("[data-clef='treble']") &&
+      symbolsPanel.querySelectorAll("[data-clef]").length === 1 &&
       symbolsPanel.querySelector("[data-clef='bass']") &&
       symbolsPanel.querySelector("[data-acc='b']") &&
       !symbolsPanel.querySelector("[data-oct]") &&
@@ -1865,7 +1865,7 @@ function chatCase(w) {
       "bass sets the clef and the octave",
       focusLine.value === "@bass " &&
         octaveNow() === "3" &&
-        symbolsPanel.querySelector("[data-clef='bass']").getAttribute("aria-pressed") === "true"
+        !!symbolsPanel.querySelector("[data-clef='treble']")
     );
     poke(symbolsPanel.querySelector("[data-dur='']"));
     poke(symbolsPanel.querySelector("[data-note='C']"));
@@ -1874,7 +1874,7 @@ function chatCase(w) {
     check(
       "treble clears the clef",
       focusLine.value === "C3" &&
-        symbolsPanel.querySelector("[data-clef='treble']").getAttribute("aria-pressed") === "true"
+        !!symbolsPanel.querySelector("[data-clef='bass']")
     );
     poke(w.document.querySelector("#editNoteHistory [data-undo]"));
     check("undo restores the bass clef", focusLine.value === "@bass C3");

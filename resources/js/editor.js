@@ -1921,10 +1921,11 @@ function editorHistoryIcon(kind) {
   return svg;
 }
 
-function editorPaintClefs(row) {
-  var clef = editorClefName();
-  editorPadButton(row, { "data-clef": "treble" }, editorMusicIcon("clef-treble"), t("edit.clefTreble"), clef !== "bass");
-  editorPadButton(row, { "data-clef": "bass" }, editorMusicIcon("clef-bass"), t("edit.clefBass"), clef === "bass");
+function editorPaintClefToggle(row) {
+  var next = editorClefName() === "bass" ? "treble" : "bass";
+  var label = next === "bass" ? t("edit.clefBass") : t("edit.clefTreble");
+  /* Icon is the clef you get next — one control, not two pressed states. */
+  editorPadButton(row, { "data-clef": next }, editorMusicIcon("clef-" + next), label);
 }
 
 function editorPaintModifiers(row) {
@@ -2060,6 +2061,7 @@ function editorPaintNoteEvents(row) {
   editorPadButton(row, { "data-event": "slash" }, editorMusicIcon("slash-" + rhythm), t("edit.noteSlash") + " " + editorSlashToken());
   editorPadButton(row, { "data-event": "rest" }, editorMusicIcon("rest-" + rhythm), t("edit.noteRest") + " " + editorRestToken());
   editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"));
+  editorPaintClefToggle(row);
   editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"));
   editorPadButton(row, { "data-event": "beam" }, editorMusicIcon("beam"), t("edit.noteBeam"));
   editorPadButton(row, { "data-event": "chord" }, editorMusicIcon("chord"), t("edit.noteChord"));
@@ -2070,10 +2072,9 @@ function editorPaintNotePad() {
   var stepHost = document.getElementById("editNoteStep");
   var chipsHost = document.getElementById("editNoteChips");
   var durHost = document.getElementById("editNoteDurations");
-  var clefsHost = document.getElementById("editNoteClefs");
   var eventsHost = document.getElementById("editNoteEvents");
   var stamp;
-  if (!stepHost || !chipsHost || !durHost || !clefsHost || !eventsHost) {
+  if (!stepHost || !chipsHost || !durHost || !eventsHost) {
     return;
   }
   stamp = editorNotePadStampNow();
@@ -2083,12 +2084,10 @@ function editorPaintNotePad() {
   stepHost.innerHTML = "";
   chipsHost.innerHTML = "";
   durHost.innerHTML = "";
-  clefsHost.innerHTML = "";
   eventsHost.innerHTML = "";
   editorPaintLetters(stepHost);
   editorPaintModifiers(chipsHost);
   editorPaintDurations(durHost);
-  editorPaintClefs(clefsHost);
   editorPaintNoteEvents(eventsHost);
   editorNotePadStamp = stamp;
   editorPaintUndoRedo();
@@ -3183,7 +3182,6 @@ function buildEditorNotePad(host) {
   var letters = document.createElement("div");
   var modifiers = document.createElement("div");
   var durations = document.createElement("div");
-  var clefs = document.createElement("div");
   var events = document.createElement("div");
   pad.id = "editNotePad";
   flow.id = "editNoteFlow";
@@ -3194,8 +3192,6 @@ function buildEditorNotePad(host) {
   modifiers.className = "edit-note-row";
   durations.id = "editNoteDurations";
   durations.className = "edit-note-row";
-  clefs.id = "editNoteClefs";
-  clefs.className = "edit-note-row";
   events.id = "editNoteEvents";
   events.className = "edit-note-row";
   main.appendChild(letters);
@@ -3203,7 +3199,6 @@ function buildEditorNotePad(host) {
   main.appendChild(durations);
   flow.appendChild(main);
   pad.appendChild(flow);
-  pad.appendChild(clefs);
   pad.appendChild(events);
   host.appendChild(pad);
 }
