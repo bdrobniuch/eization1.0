@@ -56,6 +56,11 @@ var editorStaffTypingDirty = false;
 var editorKeyboardStaffEdit = false;
 /* While Symbols/Notes is open, keep caret here and avoid focusing the field (no soft keyboard). */
 var editorPadCaret = null;
+/* Erase hold-to-repeat (one undo step for the whole hold). */
+var editorEraseRepeatDelay = null;
+var editorEraseRepeatTimer = null;
+var editorEraseHoldUndoPushed = false;
+var editorEraseLastAt = 0;
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
@@ -2765,6 +2770,9 @@ function editorEraseLabel() {
   if (!editorStaffOn()) {
     return t("edit.clearExample");
   }
+  if (editorCanUndoStaffTyping()) {
+    return t("edit.erase");
+  }
   target = editorStaffEraseTarget();
   if (!target) {
     return t("edit.erase");
@@ -2783,6 +2791,9 @@ function editorCanErase() {
   if (!editorStaffOn()) {
     line = currentEditorLine();
     return !!collapseEditorSpaces(line);
+  }
+  if (editorCanUndoStaffTyping()) {
+    return true;
   }
   return !!editorStaffEraseTarget();
 }
@@ -2803,34 +2814,172 @@ function editorClearCurrentExample() {
   refreshEditor();
 }
 
-function editorEraseStep() {
+function editorStripTrailingOrphans(line) {
+  return String(line || "").replace(/(?:\s*[|~])+\s*$/g, "").replace(/\s+$/g, "");
+}
+
+function editorLineMusicTokenCount(line) {
+  var words;
+  var i;
+  var spans;
+  var n = 0;
+  var w;
+  words = String(line || "").match(/\S+/g) || [];
+  for (i = 0; i < words.length; i++) {
+    spans = editorMusicEventSpans(words[i]);
+    for (w = 0; w < spans.length; w++) {
+      if (editorIsMusicEraseToken(spans[w].token)) {
+        n += 1;
+      }
+    }
+  }
+  return n;
+}
+
+/* After a peel, park the caret just before } ] ) so the next write stays inside. */
+function editorSnapCaretBeforeGroupCloser(field, lineStart, preferred) {
+  var value;
+  var lineEnd;
+  var line;
+  var rel;
+  var groups;
+  var g;
+  var i;
+  var caret;
+  var silent;
+  if (!field) {
+    return;
+  }
+  value = String(field.value || "");
+  lineEnd = value.indexOf("\n", lineStart);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  line = value.slice(lineStart, lineEnd);
+  rel = preferred - lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  groups = editorFindBalancedGroups(line);
+  g = null;
+  for (i = 0; i < groups.length; i++) {
+    if (rel >= groups[i].open && rel <= groups[i].closeEnd) {
+      g = groups[i];
+    }
+  }
+  caret = preferred;
+  if (g && rel <= g.closeStart) {
+    caret = lineStart + g.closeStart;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, caret, caret, silent);
+}
+
+function editorStopEraseRepeat() {
+  if (editorEraseRepeatDelay) {
+    window.clearTimeout(editorEraseRepeatDelay);
+    editorEraseRepeatDelay = null;
+  }
+  if (editorEraseRepeatTimer) {
+    window.clearInterval(editorEraseRepeatTimer);
+    editorEraseRepeatTimer = null;
+  }
+  editorEraseHoldUndoPushed = false;
+}
+
+/* opts.skipUndo: hold-repeat steps share one undo pushed by the first tap. */
+function editorEraseStep(opts) {
   var field;
   var target;
   var value;
   var silent;
+  var skipUndo = !!(opts && opts.skipUndo);
+  var line;
+  var lineStart;
+  var lineEnd;
+  var linePart;
+  var edited;
+  var relStart;
+  var relEnd;
+  var caret;
+  var now;
+  var doubleTap;
+  var span;
   if (!editorCanErase()) {
-    return;
+    return false;
   }
+  now = Date.now();
+  doubleTap = now - editorEraseLastAt < 450;
+  editorEraseLastAt = now;
   if (!editorStaffOn()) {
-    editorPushSymbolUndo();
+    if (!skipUndo) {
+      editorPushSymbolUndo();
+    }
     editorClearCurrentExample();
-    return;
+    return true;
+  }
+  line = currentEditorLine();
+  if (
+    doubleTap &&
+    !skipUndo &&
+    collapseEditorSpaces(line) &&
+    editorLineMusicTokenCount(line) === 0
+  ) {
+    if (!skipUndo) {
+      editorPushSymbolUndo();
+    }
+    editorClearCurrentExample();
+    return true;
+  }
+  /* Broken staff: one Erase restores the last drawable line. */
+  if (editorCanUndoStaffTyping() && editorLastValidSnap) {
+    if (!skipUndo) {
+      editorPushSymbolUndo();
+    }
+    editorApplySymbolSnapshot(editorCloneSymbolSnap(editorLastValidSnap));
+    editorStaffTypingDirty = false;
+    editorPaintUndoRedo();
+    return true;
   }
   target = editorStaffEraseTarget();
   if (!target) {
-    return;
+    return false;
   }
   field = editorActiveField();
   if (!field) {
-    return;
+    return false;
   }
-  editorPushSymbolUndo();
+  if (!skipUndo) {
+    editorPushSymbolUndo();
+  }
   value = String(field.value || "");
-  field.value = value.slice(0, target.start) + value.slice(target.end);
+  span = editorLineSpan();
+  lineStart = span ? span.lineStart : 0;
+  lineEnd = span ? span.lineEnd : value.length;
+  linePart = value.slice(lineStart, lineEnd);
+  relStart = target.start - lineStart;
+  relEnd = target.end - lineStart;
+  if (relStart < 0) {
+    relStart = 0;
+  }
+  if (relEnd < relStart) {
+    relEnd = relStart;
+  }
+  if (relEnd > linePart.length) {
+    relEnd = linePart.length;
+  }
+  edited = editorStripTrailingOrphans(linePart.slice(0, relStart) + linePart.slice(relEnd));
+  field.value = value.slice(0, lineStart) + edited + value.slice(lineEnd);
+  caret = lineStart + Math.min(relStart, edited.length);
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  editorPlaceCaret(field, target.start, target.start, silent);
+  editorPlaceCaret(field, caret, caret, silent);
+  editorSnapCaretBeforeGroupCloser(field, lineStart, caret);
   clearEditorNotice();
   refreshEditor();
+  return true;
 }
 
 function editorPaintClefToggle(row) {
@@ -4756,8 +4905,66 @@ function initEditor() {
       editorActivateSymbol(button);
     });
   }
+  function editorBindHistoryPointer(host) {
+    if (!host) {
+      return;
+    }
+    function stopHold() {
+      editorStopEraseRepeat();
+    }
+    host.addEventListener("pointerdown", function (event) {
+      var button = event.target.closest("button");
+      var swallowClick;
+      if (!button || !host.contains(button) || button.disabled) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      editorBeginPadInput();
+      swallowClick = function (clickEvent) {
+        clickEvent.preventDefault();
+        clickEvent.stopPropagation();
+        document.removeEventListener("click", swallowClick, true);
+      };
+      document.addEventListener("click", swallowClick, true);
+      window.setTimeout(function () {
+        document.removeEventListener("click", swallowClick, true);
+      }, 600);
+      if (button.hasAttribute("data-erase")) {
+        try {
+          host.setPointerCapture(event.pointerId);
+        } catch (errCap) {}
+        editorStopEraseRepeat();
+        editorEraseHoldUndoPushed = false;
+        if (editorCanErase()) {
+          editorPushSymbolUndo();
+          editorEraseHoldUndoPushed = true;
+          editorEraseStep({ skipUndo: true });
+        }
+        editorEraseRepeatDelay = window.setTimeout(function () {
+          editorEraseRepeatDelay = null;
+          editorEraseRepeatTimer = window.setInterval(function () {
+            if (!editorCanErase()) {
+              editorStopEraseRepeat();
+              return;
+            }
+            if (!editorEraseHoldUndoPushed) {
+              editorPushSymbolUndo();
+              editorEraseHoldUndoPushed = true;
+            }
+            editorEraseStep({ skipUndo: true });
+          }, 90);
+        }, 400);
+        return;
+      }
+      editorActivateSymbol(button);
+    });
+    host.addEventListener("pointerup", stopHold);
+    host.addEventListener("pointercancel", stopHold);
+    host.addEventListener("lostpointercapture", stopHold);
+  }
   editorBindPadPointer(symbols);
-  editorBindPadPointer(document.getElementById("editNoteHistory"));
+  editorBindHistoryPointer(document.getElementById("editNoteHistory"));
   function editorOnFieldFocusForPad(event) {
     var target = event && event.target;
     if (!target) {
@@ -4774,6 +4981,8 @@ function initEditor() {
     var key;
     var undoKey;
     var redoKey;
+    var eraseKey;
+    var active;
     if (!editorIsOpen()) {
       return;
     }
@@ -4791,6 +5000,21 @@ function initEditor() {
     if (redoKey && editorSymbolRedo.length) {
       event.preventDefault();
       editorSymbolRedoStep();
+      return;
+    }
+    /* Notes/Symbols open with pad inputmode: hardware Backspace matches Erase. */
+    eraseKey = (key === "backspace" || event.key === "Backspace") && !event.ctrlKey && !event.metaKey && !event.altKey;
+    if (eraseKey && editorSymbolsIsOpen() && editorCanErase()) {
+      active = document.activeElement;
+      if (
+        active &&
+        (active.id === "editFocusLine" || active.id === "allEdit") &&
+        active.getAttribute("inputmode") !== "none"
+      ) {
+        return;
+      }
+      event.preventDefault();
+      editorEraseStep();
     }
   });
   var viewToggle = document.getElementById("editViewToggle");

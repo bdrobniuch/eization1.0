@@ -1941,9 +1941,14 @@ function chatCase(w) {
     check("erase removes the whole symbol when the caret is inside it", focusLine.value === "");
     poke(w.document.querySelector("#editNoteHistory [data-undo]"));
     check("undo restores the mid-symbol erase", focusLine.value === "B4e_6");
+    placeCaret("C4q");
     placeCaret("C4q~");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
-    check("erase clips a broken trailing tie", focusLine.value === "C4q");
+    check("erase heals a broken staff line", focusLine.value === "C4q");
+    placeCaret("C4q D4q |");
+    focusLine.setSelectionRange(7, 7);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase strips a trailing orphan bar", focusLine.value === "C4q");
     placeCaret("{C4e D4e}");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase after a beam peels the last inner note", focusLine.value === "{C4e}");
