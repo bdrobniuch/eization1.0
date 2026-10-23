@@ -206,11 +206,24 @@ function exerciseMenu(w) {
   check("desk backup packs exercises", !!(packed && packed.kind === "exercises" && packed.exercises.length === w.menuOrder.length));
   var round = w.parseDeskExercisesBackup(JSON.stringify(packed));
   check("desk backup parses back", !!(round && round.exercises && round.exercises.length === packed.exercises.length));
-  var addedIntervals = w.addCatalogExercise("intervals");
+  var beforeCatalogAsk = w.listDeskExercises().length;
+  var returnId = w.currentExerciseId;
+  w.offerCatalogExercise("intervals", false);
+  check("a library exercise asks before add", w.document.getElementById("shareAsk").hidden === false && w.document.getElementById("shareAdd").hidden === false);
+  check("a library exercise does not add yet", w.listDeskExercises().length === beforeCatalogAsk && w.exerciseIdFromQuery("?exercise=intervals") === "");
+  check(
+    "a library ask draws the catalog examples",
+    w.currentExerciseId === returnId && w.shareOfferOnScreen() && !!(w.shareOffer && w.shareOffer.seedId === "intervals")
+  );
+  var addedIntervals = w.confirmShareAdd();
   check(
     "a library page can add its exercise",
-    !!(addedIntervals && addedIntervals.seedId === "intervals" && w.exerciseIdFromQuery("?exercise=intervals") === addedIntervals.id)
+    !!(addedIntervals && w.getDeskExercise(w.currentExerciseId) && w.getDeskExercise(w.currentExerciseId).seedId === "intervals" && w.exerciseIdFromQuery("?exercise=intervals") === w.currentExerciseId)
   );
+  w.offerCatalogExercise("keySignatures", false);
+  check("key signatures asks when missing", w.document.getElementById("shareAsk").hidden === false && w.document.getElementById("shareAdd").hidden === false);
+  w.dismissShareAsk();
+  check("not now leaves key signatures off the desk", !w.listDeskExercises().some(function (row) { return row.seedId === "keySignatures"; }));
 }
 
 function staffNotation(w) {

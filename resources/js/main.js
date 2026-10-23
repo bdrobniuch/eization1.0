@@ -510,18 +510,56 @@ function todayExerciseName() {
 function deskIdForToday(seed) {
   var list;
   var i;
-  var added;
   list = typeof listDeskExercises === "function" ? listDeskExercises() : [];
   for (i = 0; i < list.length; i++) {
     if (list[i].seedId === seed) {
       return list[i].id;
     }
   }
-  if (typeof addCatalogExercise !== "function") {
-    return "";
+  return "";
+}
+
+function catalogShareSnapshot(seedId) {
+  var row;
+  var snap;
+  var id;
+  if (typeof catalogExerciseRecord !== "function" || typeof shareSnapshot !== "function") {
+    return null;
   }
-  added = addCatalogExercise(seed);
-  return added ? added.id : "";
+  row = catalogExerciseRecord(seedId);
+  if (!row) {
+    return null;
+  }
+  id = typeof newShareId === "function" ? newShareId() : "";
+  if (!id) {
+    return null;
+  }
+  snap = shareSnapshot({
+    id: id,
+    name: row.name,
+    bars: row.bars,
+    staff: row.staff,
+    lines: row.lines
+  });
+  if (!snap) {
+    return null;
+  }
+  snap.seedId = seedId;
+  return snap;
+}
+
+function offerCatalogExercise(seed, fromToday) {
+  var snap = catalogShareSnapshot(seed);
+  if (!snap) {
+    if (typeof showDeskNote === "function") {
+      showDeskNote(t("share.bad"));
+    }
+    return;
+  }
+  if (fromToday) {
+    track("today_exercise", { exercise_id: seed });
+  }
+  offerShareSnapshot(snap);
 }
 
 function offerShareSnapshot(snap) {
@@ -597,13 +635,14 @@ function openTodayExercise() {
   closeShareQuestion(false);
   if (typeof exercises !== "undefined" && exercises[seed]) {
     id = deskIdForToday(seed);
-    if (!id) {
+    if (id) {
+      currentExerciseId = id;
+      buildExerciseMenu();
+      SelectExercise();
+      track("today_exercise", { exercise_id: seed });
       return;
     }
-    currentExerciseId = id;
-    buildExerciseMenu();
-    SelectExercise();
-    track("today_exercise", { exercise_id: seed });
+    offerCatalogExercise(seed, true);
     return;
   }
   openTodayShare(seed);
@@ -905,7 +944,7 @@ function finishShareSelect(id, message) {
 }
 
 function confirmShareAdd() {
-  if (!shareOffer || typeof createDeskExercise !== "function" || typeof findDeskShare !== "function") {
+  if (!shareOffer || typeof findDeskShare !== "function") {
     return false;
   }
   var found = findDeskShare(shareOffer);
@@ -922,13 +961,20 @@ function confirmShareAdd() {
     }
     return false;
   }
-  var created = createDeskExercise({
-    name: shareOffer.name,
-    bars: shareOffer.bars,
-    staff: !!shareOffer.staff,
-    lines: shareOffer.lines,
-    shareId: shareOffer.shareId
-  });
+  var created;
+  if (shareOffer.seedId && typeof addCatalogExercise === "function") {
+    created = addCatalogExercise(shareOffer.seedId);
+  } else if (typeof createDeskExercise === "function") {
+    created = createDeskExercise({
+      name: shareOffer.name,
+      bars: shareOffer.bars,
+      staff: !!shareOffer.staff,
+      lines: shareOffer.lines,
+      shareId: shareOffer.shareId
+    });
+  } else {
+    created = null;
+  }
   if (!created) {
     var failed = document.getElementById("shareAskNote");
     if (failed) {
@@ -1076,9 +1122,9 @@ function openExerciseFromAddress() {
     return;
   }
   if (typeof exercises !== "undefined" && exercises[seed]) {
-    id = fromToday ? deskIdForToday(seed) : exerciseIdFromQuery(window.location.search);
+    id = deskIdForToday(seed);
     if (!id) {
-      id = deskIdForToday(seed);
+      id = exerciseIdFromQuery(window.location.search);
     }
     clearExerciseQuery();
     if (id) {
@@ -1089,9 +1135,7 @@ function openExerciseFromAddress() {
       }
       return;
     }
-    if (typeof showDeskNote === "function") {
-      showDeskNote(t("desk.notHere"));
-    }
+    offerCatalogExercise(seed, fromToday);
     return;
   }
   clearExerciseQuery();

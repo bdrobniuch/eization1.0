@@ -504,6 +504,8 @@ function addCatalogExercise(seedId) {
   var i;
   var row;
   var data;
+  var deleted;
+  var gone;
   for (i = 0; i < list.length; i++) {
     if (list[i].seedId === seedId) {
       return list[i];
@@ -520,6 +522,12 @@ function addCatalogExercise(seedId) {
   data = deskState();
   data.exercises = list;
   data.exercise = row.id;
+  deleted = listDeletedSeeds(data);
+  gone = deleted.indexOf(seedId);
+  if (gone >= 0) {
+    deleted.splice(gone, 1);
+    data.deletedSeeds = deleted;
+  }
   if (!writeDesk(data)) {
     return null;
   }
