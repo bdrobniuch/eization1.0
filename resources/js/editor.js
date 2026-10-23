@@ -2536,9 +2536,20 @@ function editorInnerMusicSpans(line, group) {
   return spans;
 }
 
+function editorStaffGroupShellTarget(line, g) {
+  var start = g.open;
+  var end = g.closeEnd;
+  if (start > 0 && /\s/.test(line.charAt(start - 1))) {
+    start -= 1;
+  }
+  return { start: start, end: end, token: line.slice(g.open, g.closeEnd), kind: "token" };
+}
+
 /*
- * On a drawn staff, Erase after } ] ) peels the last inner event; an empty
- * { } / [ ] / (3 ) shell (also while still empty from the pad) goes in one tap.
+ * On a drawn staff, Erase after } ] ) peels the last inner event. The last
+ * inner event (or a two-note tuplet, which cannot stand alone) takes the shell
+ * with it so the line does not sit on empty braces. An empty pad shell
+ * ({ } / [ ] / (3 )) still clears in one tap.
  */
 function editorStaffGroupEraseTarget(line, rel) {
   var groups;
@@ -2552,6 +2563,7 @@ function editorStaffGroupEraseTarget(line, rel) {
   var onCloser;
   var inside;
   var probe;
+  var clearShell;
   line = String(line || "");
   groups = editorFindBalancedGroups(line);
   if (!groups.length) {
@@ -2571,7 +2583,7 @@ function editorStaffGroupEraseTarget(line, rel) {
       probe -= 1;
     }
     for (i = groups.length - 1; i >= 0; i--) {
-      if (probe > groups[i].closeStart && probe <= groups[i].closeEnd) {
+      if (probe >= groups[i].closeStart && probe <= groups[i].closeEnd) {
         g = groups[i];
         break;
       }
@@ -2593,12 +2605,7 @@ function editorStaffGroupEraseTarget(line, rel) {
   inside = rel > g.open && rel < g.closeStart;
   if (!music.length) {
     if (onCloser || inside || rel === g.closeEnd) {
-      start = g.open;
-      end = g.closeEnd;
-      if (start > 0 && /\s/.test(line.charAt(start - 1))) {
-        start -= 1;
-      }
-      return { start: start, end: end, token: line.slice(g.open, g.closeEnd), kind: "token" };
+      return editorStaffGroupShellTarget(line, g);
     }
     return null;
   }
@@ -2607,6 +2614,11 @@ function editorStaffGroupEraseTarget(line, rel) {
   }
   if (!onCloser) {
     return null;
+  }
+  /* Last note (or a tuplet that would drop below two) removes the whole group. */
+  clearShell = music.length <= 1 || (g.kind === "tuplet" && music.length <= 2);
+  if (clearShell) {
+    return editorStaffGroupShellTarget(line, g);
   }
   last = music[music.length - 1];
   start = last.start;
