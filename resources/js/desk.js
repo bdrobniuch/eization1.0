@@ -1,8 +1,9 @@
 var DESK_KEY = "eization-desk";
 /* schema 1 (2026-10-15): stock rows record seedRev and touched.
    schema 2 (2026-10-15): one launch drops saved exercises, re-seeds the stock list, and clears the intro.
-   schema 3 (2026-10-17): ]_ after a stack becomes ]^, so a saved chord name stays above the staff. */
-var DESK_SCHEMA = 3;
+   schema 3 (2026-10-17): ]_ after a stack becomes ]^, so a saved chord name stays above the staff.
+   schema 4 (2026-10-23): one launch drops saved exercises again (promo clean slate), re-seeds, clears intro. */
+var DESK_SCHEMA = 4;
 var DESK_EXERCISE_CAP = 40;
 var deskReady = false;
 var deskTimer = null;
@@ -820,12 +821,13 @@ function ensureDeskExercises() {
   }
   var ahead = schema > DESK_SCHEMA;
   var resetHello = false;
-  if (!ahead && schema < 2 && readDesk()) {
+  /* schema 2 and schema 4 both reseed; any desk below 4 gets one wipe on this launch. */
+  if (!ahead && schema < 4 && readDesk()) {
     delete data.exercises;
     delete data.deletedSeeds;
     delete data.custom;
     delete data.exercise;
-    schema = 2;
+    schema = 4;
     resetHello = true;
   }
   var deleted = listDeletedSeeds(data);

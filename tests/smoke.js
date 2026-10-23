@@ -2326,11 +2326,11 @@ function deskRoundTrip(w) {
   for (pad = 0; pad < w.DESK_EXERCISE_CAP; pad++) {
     pads.push({ id: "ex:pad" + pad, name: "Pad", bars: 1, lines: ["C4"] });
   }
-  localStorage.setItem("eization-desk", JSON.stringify({ schema: 2, exercises: pads }));
+  localStorage.setItem("eization-desk", JSON.stringify({ schema: w.DESK_SCHEMA, exercises: pads }));
   w.ensureDeskExercises();
   check("a full list does not grow past the cap", w.listDeskExercises().length === w.DESK_EXERCISE_CAP);
   localStorage.setItem("eization-desk", JSON.stringify({
-    schema: 2,
+    schema: w.DESK_SCHEMA,
     exercises: [
       { id: "ex:same", name: "One", bars: 1, lines: ["C4"] },
       { id: "ex:same", name: "Two", bars: 1, lines: ["D4"] }
@@ -2492,27 +2492,35 @@ function storageMigration(w) {
       afterDesk.schema === beforeDesk.schema
   );
   check("intro again is announced", w.document.getElementById("deskNote").textContent === w.t("device.introQueued"));
+  localStorage.setItem("eization-hello", "1");
   localStorage.setItem("eization-desk", JSON.stringify({
-    schema: 2,
+    schema: 3,
     bpm: 100,
     beats: 4,
+    deletedSeeds: ["freePlay"],
     exercises: [
-      { id: "ex:stackkeep", name: "Kept", bars: 1, lines: ["[F3 A3 C4 E4]_Dm9", "C4_1"] }
+      { id: "ex:stackkeep", name: "Kept", bars: 1, lines: ["[F3 A3 C4 E4]^Dm9", "C4_1"] }
     ]
   }));
   w.ensureDeskExercises();
   var stackKept = w.getDeskExercise("ex:stackkeep");
   var stackStored = JSON.parse(localStorage.getItem("eization-desk"));
   check(
-    "schema 3 rewrites a saved stack without resetting",
-    !!(
-      stackKept &&
-      stackKept.lines[0] === "[F3 A3 C4 E4]^Dm9" &&
-      stackKept.lines[1] === "C4_1" &&
+    "schema 4 drops a schema 3 desk",
+    !stackKept &&
       stackStored.schema === w.DESK_SCHEMA &&
       stackStored.bpm === 100 &&
-      stackStored.exercises.length > 1
-    )
+      stackStored.beats === 4 &&
+      stackStored.exercises.length === w.menuOrder.length &&
+      !!w.getDeskExercise("ex:freePlay") &&
+      (!stackStored.deletedSeeds || stackStored.deletedSeeds.indexOf("freePlay") < 0)
+  );
+  check("schema 4 clears the intro", localStorage.getItem("eization-hello") === null);
+  custom = w.createDeskExercise({ name: "After schema 4", bars: 1, lines: ["E4"] });
+  w.ensureDeskExercises();
+  check(
+    "schema 4 does not wipe again",
+    !!(custom && w.getDeskExercise(custom.id) && w.getDeskExercise(custom.id).lines[0] === "E4")
   );
   w.restoreDefaults();
   restored = JSON.parse(localStorage.getItem("eization-desk"));
