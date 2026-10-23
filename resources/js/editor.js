@@ -910,14 +910,20 @@ function editorSyncFocusToArea() {
 
 function editorUpdateFocusChrome() {
   var indexEl = document.getElementById("editFocusIndex");
+  var pager = document.getElementById("editFocusPager");
   var prev = document.getElementById("editFocusPrev");
   var next = document.getElementById("editFocusNext");
   var remove = document.getElementById("editFocusRemove");
   var lines = editorRawLines();
   var removeIndex;
+  var indexLabel;
   editorClampFocusIndex(lines.length);
+  indexLabel = tr("edit.focusIndex", { n: editorFocusIndex + 1, total: lines.length });
   if (indexEl) {
-    indexEl.textContent = tr("edit.focusIndex", { n: editorFocusIndex + 1, total: lines.length });
+    indexEl.textContent = indexLabel;
+  }
+  if (pager) {
+    pager.setAttribute("aria-label", indexLabel);
   }
   if (prev) {
     prev.disabled = editorFocusIndex <= 0;

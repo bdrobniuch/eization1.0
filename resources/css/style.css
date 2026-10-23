@@ -2351,18 +2351,16 @@ body.is-editing #counter {
 
 #editFocusBar {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   width: 100%;
   min-width: 0;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
 #editFocusPager {
+  position: relative;
   display: inline-flex;
   flex: 0 0 auto;
   flex-shrink: 0;
@@ -2581,6 +2579,7 @@ body.is-editing #counter {
   flex-wrap: nowrap;
   flex-shrink: 0;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   margin: 0 0 0 auto;
   padding: 0;
@@ -3015,8 +3014,22 @@ body.is-about #counter {
 
   #editFocusBar {
     grid-area: focus;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
+  }
+
+  /* Tight chrome: ‹ › only; keep the count for aria-live. */
+  #editFocusIndex {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    min-width: 0;
   }
 
   #editFocusLine {
