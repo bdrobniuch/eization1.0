@@ -2318,6 +2318,248 @@ function editorPickEventSpan(spans, caretInWord) {
   return spans[spans.length - 1];
 }
 
+function editorLineMusicOk(line) {
+  var status;
+  if (typeof staffNotationStatus !== "function") {
+    return false;
+  }
+  status = staffNotationStatus(line);
+  return !!(status && status.ok);
+}
+
+function editorIsMusicEraseToken(tok) {
+  tok = String(tok || "");
+  if (!tok || tok === "{" || tok === "}" || tok === "[" || tok === "]" || tok === "(" || tok === ")" || tok === "~" || tok === "|") {
+    return false;
+  }
+  if (typeof staffParsePitchToken === "function" && staffParsePitchToken(tok)) {
+    return true;
+  }
+  if (typeof staffParseRestToken === "function" && staffParseRestToken(tok)) {
+    return true;
+  }
+  if (typeof staffParseSlashToken === "function" && staffParseSlashToken(tok, "treble")) {
+    return true;
+  }
+  return false;
+}
+
+function editorStackAffixEnd(line, afterBracket) {
+  var best = afterBracket;
+  var k;
+  var slice;
+  if (typeof staffParseAffixes !== "function") {
+    return afterBracket;
+  }
+  for (k = afterBracket + 1; k <= line.length; k++) {
+    slice = line.slice(afterBracket, k);
+    if (/\s/.test(slice)) {
+      break;
+    }
+    if (staffParseAffixes(slice)) {
+      best = k;
+    } else if (best > afterBracket) {
+      break;
+    }
+  }
+  return best;
+}
+
+function editorMatchGroupClose(line, openAt, openCh, closeCh) {
+  var depth = 1;
+  var j;
+  var ch;
+  for (j = openAt + 1; j < line.length; j++) {
+    ch = line.charAt(j);
+    if (ch === openCh) {
+      depth += 1;
+    } else if (ch === closeCh) {
+      depth -= 1;
+      if (!depth) {
+        return j;
+      }
+    }
+  }
+  return -1;
+}
+
+/* Balanced { }, [ ]^…, and (3 … ) / (5:4 … ) spans on one example line. */
+function editorFindBalancedGroups(line) {
+  var groups = [];
+  var i;
+  var ch;
+  var close;
+  var tuplet;
+  var openEnd;
+  line = String(line || "");
+  for (i = 0; i < line.length; i++) {
+    ch = line.charAt(i);
+    if (ch === "{") {
+      close = editorMatchGroupClose(line, i, "{", "}");
+      if (close < 0) {
+        continue;
+      }
+      groups.push({
+        kind: "beam",
+        open: i,
+        openEnd: i + 1,
+        innerStart: i + 1,
+        innerEnd: close,
+        closeStart: close,
+        closeEnd: close + 1
+      });
+    } else if (ch === "[") {
+      close = editorMatchGroupClose(line, i, "[", "]");
+      if (close < 0) {
+        continue;
+      }
+      groups.push({
+        kind: "stack",
+        open: i,
+        openEnd: i + 1,
+        innerStart: i + 1,
+        innerEnd: close,
+        closeStart: close,
+        closeEnd: editorStackAffixEnd(line, close + 1)
+      });
+    } else if (ch === "(") {
+      tuplet = /^\((\d{1,2})(?::(\d{1,2}))?/.exec(line.slice(i));
+      if (!tuplet) {
+        continue;
+      }
+      openEnd = i + tuplet[0].length;
+      close = line.indexOf(")", openEnd);
+      if (close < 0) {
+        continue;
+      }
+      groups.push({
+        kind: "tuplet",
+        open: i,
+        openEnd: openEnd,
+        innerStart: openEnd,
+        innerEnd: close,
+        closeStart: close,
+        closeEnd: close + 1
+      });
+    }
+  }
+  return groups;
+}
+
+function editorInnerMusicSpans(line, group) {
+  var inner = line.slice(group.innerStart, group.innerEnd);
+  var spans = [];
+  var re = /\S+/g;
+  var m;
+  var first = true;
+  var wordSpans;
+  var w;
+  var tok;
+  while ((m = re.exec(inner))) {
+    tok = m[0];
+    if (group.kind === "tuplet" && first && /^\d{1,2}(:\d{1,2})?$/.test(tok)) {
+      first = false;
+      continue;
+    }
+    first = false;
+    if (tok.charAt(tok.length - 1) === ")" && tok.length > 1 && group.kind === "tuplet") {
+      tok = tok.slice(0, -1);
+    }
+    wordSpans = editorMusicEventSpans(tok);
+    for (w = 0; w < wordSpans.length; w++) {
+      if (!editorIsMusicEraseToken(wordSpans[w].token)) {
+        continue;
+      }
+      spans.push({
+        start: group.innerStart + m.index + wordSpans[w].start,
+        end: group.innerStart + m.index + wordSpans[w].start + wordSpans[w].token.length,
+        token: wordSpans[w].token
+      });
+    }
+  }
+  return spans;
+}
+
+/*
+ * On a drawn staff, Erase after } ] ) peels the last inner event; an empty
+ * { } / [ ] / (3 ) shell (also while still empty from the pad) goes in one tap.
+ */
+function editorStaffGroupEraseTarget(line, rel) {
+  var groups;
+  var g;
+  var i;
+  var music;
+  var last;
+  var start;
+  var end;
+  var statusOk;
+  var onCloser;
+  var inside;
+  var probe;
+  line = String(line || "");
+  groups = editorFindBalancedGroups(line);
+  if (!groups.length) {
+    return null;
+  }
+  statusOk = editorLineMusicOk(line);
+  g = null;
+  for (i = groups.length - 1; i >= 0; i--) {
+    if (groups[i].open < rel && rel <= groups[i].closeEnd) {
+      g = groups[i];
+      break;
+    }
+  }
+  if (!g) {
+    probe = rel;
+    while (probe > 0 && /\s/.test(line.charAt(probe - 1))) {
+      probe -= 1;
+    }
+    for (i = groups.length - 1; i >= 0; i--) {
+      if (probe > groups[i].closeStart && probe <= groups[i].closeEnd) {
+        g = groups[i];
+        break;
+      }
+    }
+  }
+  if (!g) {
+    return null;
+  }
+  music = editorInnerMusicSpans(line, g);
+  onCloser = rel > g.closeStart && rel <= g.closeEnd;
+  if (!onCloser) {
+    probe = rel;
+    while (probe > 0 && /\s/.test(line.charAt(probe - 1))) {
+      probe -= 1;
+    }
+    onCloser = probe > g.closeStart && probe <= g.closeEnd;
+  }
+  inside = rel > g.open && rel <= g.closeStart;
+  if (!music.length) {
+    if (onCloser || inside || rel === g.closeEnd) {
+      start = g.open;
+      end = g.closeEnd;
+      if (start > 0 && /\s/.test(line.charAt(start - 1))) {
+        start -= 1;
+      }
+      return { start: start, end: end, token: line.slice(g.open, g.closeEnd), kind: "token" };
+    }
+    return null;
+  }
+  if (!statusOk) {
+    return null;
+  }
+  if (!onCloser) {
+    return null;
+  }
+  last = music[music.length - 1];
+  start = last.start;
+  end = last.end;
+  if (start > g.innerStart && /\s/.test(line.charAt(start - 1))) {
+    start -= 1;
+  }
+  return { start: start, end: end, token: last.token, kind: "token" };
+}
+
 /* Token or selection Erase would remove on a staff line (field coordinates). */
 function editorStaffEraseTarget() {
   var field = editorActiveField();
@@ -2335,6 +2577,7 @@ function editorStaffEraseTarget() {
   var start;
   var end;
   var token;
+  var groupTarget;
   if (!field) {
     return null;
   }
@@ -2359,6 +2602,15 @@ function editorStaffEraseTarget() {
   }
   line = value.slice(lineStart, lineEnd);
   rel = caret - lineStart;
+  groupTarget = editorStaffGroupEraseTarget(line, rel);
+  if (groupTarget) {
+    return {
+      start: lineStart + groupTarget.start,
+      end: lineStart + groupTarget.end,
+      token: groupTarget.token,
+      kind: groupTarget.kind
+    };
+  }
   if (rel > 0 && !String(line.slice(0, rel)).replace(/\s+$/, "")) {
     return {
       start: caret - 1,

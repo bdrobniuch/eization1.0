@@ -1932,6 +1932,27 @@ function chatCase(w) {
     placeCaret("C4q~");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase clips a broken trailing tie", focusLine.value === "C4q");
+    placeCaret("{C4e D4e}");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase after a beam peels the last inner note", focusLine.value === "{C4e}");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase after a one-note beam peels the last note", focusLine.value === "{}");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase removes an empty beam shell", focusLine.value === "");
+    placeCaret("[C4 E4]^C");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase after a stack peels the last pitch", focusLine.value === "[C4]^C");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase peels down to one stack pitch", focusLine.value === "[]^C");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase removes an empty stack shell and its label", focusLine.value === "");
+    placeCaret("(3 C4e D4e E4e)");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase after a tuplet peels the last inner note", focusLine.value === "(3 C4e D4e)");
+    placeCaret("{ }");
+    focusLine.setSelectionRange(1, 1);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase removes an empty beam from the pad", focusLine.value === "");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(
