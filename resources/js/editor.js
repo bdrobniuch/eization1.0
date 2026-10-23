@@ -2917,6 +2917,90 @@ function editorForceShortDuration() {
   }
 }
 
+/*
+ * True when a Beam / Triplet / Stack tap would nest the same shell the parser
+ * rejects (beam-in-beam, stack-in-stack, tuplet-in-tuplet). Cross-kind stays
+ * open (e.g. a beam or stack inside a tuplet).
+ */
+function editorStructureWouldNest(kind) {
+  var span = editorLineSpan();
+  var line;
+  var sel;
+  var start;
+  var end;
+  var raw;
+  var lead;
+  var trail;
+  var swap;
+  if (!span || !kind) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  sel = editorReadSelection(span.field);
+  start = sel.start - span.lineStart;
+  end = sel.end - span.lineStart;
+  if (start < 0) {
+    start = 0;
+  }
+  if (end < 0) {
+    end = 0;
+  }
+  if (start > line.length) {
+    start = line.length;
+  }
+  if (end > line.length) {
+    end = line.length;
+  }
+  if (start > end) {
+    swap = start;
+    start = end;
+    end = swap;
+  }
+  if (start === end) {
+    return editorRelInsideStructure(line, start, kind);
+  }
+  raw = line.slice(start, end);
+  if (!raw || raw.indexOf("\n") >= 0) {
+    return editorRelInsideStructure(line, start, kind);
+  }
+  lead = (raw.match(/^\s*/) || [""])[0].length;
+  trail = (raw.match(/\s*$/) || [""])[0].length;
+  if (lead + trail >= raw.length) {
+    return editorRelInsideStructure(line, start, kind);
+  }
+  return editorRangeNestsStructure(line, start + lead, end - trail, kind);
+}
+
+function editorRelInsideStructure(line, rel, kind) {
+  var groups = editorFindBalancedGroups(line);
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind === kind && rel > g.open && rel < g.closeEnd) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorRangeNestsStructure(line, start, end, kind) {
+  var groups = editorFindBalancedGroups(line);
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== kind) {
+      continue;
+    }
+    /* Any overlap with a same-kind shell would nest or re-wrap it. */
+    if (start < g.closeEnd && end > g.open) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* If the caret has a same-line selection, wrap it and return true. */
 function editorWrapSelection(open, close) {
   var field = editorActiveField();
@@ -2958,6 +3042,10 @@ function editorWrapSelection(open, close) {
 
 function editorInsertBeamGroup() {
   editorForceShortDuration();
+  if (editorStructureWouldNest("beam")) {
+    editorPaintNotePad();
+    return;
+  }
   if (editorWrapSelection("{", "}")) {
     editorPaintNotePad();
     return;
@@ -2969,6 +3057,10 @@ function editorInsertBeamGroup() {
 
 function editorInsertTupletGroup() {
   editorForceShortDuration();
+  if (editorStructureWouldNest("tuplet")) {
+    editorPaintNotePad();
+    return;
+  }
   if (editorWrapSelection("(3 ", ")")) {
     editorPaintNotePad();
     return;
@@ -2979,6 +3071,9 @@ function editorInsertTupletGroup() {
 }
 
 function editorInsertStackGroup() {
+  if (editorStructureWouldNest("stack")) {
+    return;
+  }
   if (editorWrapSelection("[", "]")) {
     return;
   }

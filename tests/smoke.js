@@ -1904,6 +1904,20 @@ function chatCase(w) {
     focusLine.setSelectionRange(0, focusLine.value.length);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check("a beam wraps the selection", focusLine.value === "{C4e D4e}");
+    placeCaret("{C4e D4e}");
+    focusLine.setSelectionRange(3, 3);
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check("beam does not nest inside a beam", focusLine.value === "{C4e D4e}");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check("beam does not re-wrap a beam", focusLine.value === "{C4e D4e}");
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(3, 10);
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam wraps notes inside a tuplet",
+      focusLine.value === "(3 {C4e D4e} E4e)"
+    );
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
@@ -1912,6 +1926,10 @@ function chatCase(w) {
         focusLine.selectionStart === focusLine.value.length - 1 &&
         w.editorNote.dur === "e"
     );
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(6, 6);
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check("tuplet does not nest inside a tuplet", focusLine.value === "(3 C4e D4e E4e)");
     placeCaret("C0");
     poke(symbolsPanel.querySelector("[data-shift='-1']"));
     check("octave stops at 0", focusLine.value === "C0" && octaveNow() === "0");
@@ -1993,6 +2011,10 @@ function chatCase(w) {
       focusLine.value === "C4 [C4 E4 G4]" &&
         focusLine.selectionStart === focusLine.value.length - 1
     );
+    placeCaret("[C4 E4 G4]");
+    focusLine.setSelectionRange(3, 3);
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check("stack does not nest inside a stack", focusLine.value === "[C4 E4 G4]");
     w.setEditorStaff(false);
     placeCaret("Cmaj");
     poke(symbolsPanel.querySelector("[data-symbol='\u266F']"));
