@@ -297,6 +297,32 @@ function staffNotation(w) {
       emptyStaffSvg.querySelectorAll("path").length >= 2
     )
   );
+  var bassKeyOnly = w.parseMusicNotation("@bass @key=D");
+  var bassKeySvg = w.renderMusicStaff("@bass @key=D", "current");
+  check(
+    "clef and key alone draw an empty staff",
+    !!(
+      bassKeyOnly &&
+      bassKeyOnly.clef === "bass" &&
+      bassKeyOnly.keyName === "D" &&
+      !bassKeyOnly.events.length &&
+      bassKeySvg &&
+      bassKeySvg.querySelector(".staff-lines line")
+    )
+  );
+  var lineChord = w.parseMusicNotation("@key=G ^G_Major");
+  var lineChordSvg = w.renderMusicStaff("@key=G ^G_Major", "current");
+  check(
+    "a line chord with no note draws",
+    !!(
+      lineChord &&
+      lineChord.keyName === "G" &&
+      lineChord.chordSymbol === "G_Major" &&
+      !lineChord.events.length &&
+      lineChordSvg &&
+      lineChordSvg.textContent.indexOf("G Major") >= 0
+    )
+  );
   var brokenTuplet = w.staffNotationStatus("(3 C4e D4e E4e");
   check(
     "broken tuplet is notation-ish and not ok",
@@ -485,7 +511,12 @@ function staffNotation(w) {
     }
   }
   check("essential progressions use play anything", !!(prog && prog.items && prog.items.length && !progRhythm));
-  check("a dangling chord symbol is rejected", !w.parseMusicNotation("^G"));
+  check(
+    "a chord with no note is a line chord",
+    !!(w.parseMusicNotation("^G") && w.parseMusicNotation("^G").chordSymbol === "G")
+  );
+  check("a trailing chord after a note is rejected", !w.parseMusicNotation("C4q ^G"));
+  check("an empty chord mark is rejected", !w.parseMusicNotation("^"));
   var simile = w.parseMusicNotation("^II- /q /q %");
   check(
     "a simile fills the rest of the bar",

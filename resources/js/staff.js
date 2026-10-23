@@ -1314,10 +1314,22 @@ function staffAttachMarks(ev, marks) {
 function staffFinishMarks(marks, events) {
   var last;
   var i;
+  var hasHost;
   if (marks.dynamic) {
     return { error: "dangling dynamic", tok: marks.dynamic };
   }
   if (marks.chord) {
+    hasHost = false;
+    for (i = 0; i < events.length; i++) {
+      if (events[i].type !== "barline") {
+        hasHost = true;
+        break;
+      }
+    }
+    /* No timed event: park as a line chord (empty staff / directives only). */
+    if (!hasHost) {
+      return { chordSymbol: marks.chord };
+    }
     return { error: "dangling chord symbol", tok: "^" + marks.chord };
   }
   if (marks.hairpin && !marks.hairpin.start) {
@@ -1452,11 +1464,15 @@ function staffParseSequence(tokens, clef, opts) {
     events.push(one.event);
     i = one.next;
   }
-  var markError = staffFinishMarks(marks, events);
-  if (markError) {
-    return markError;
+  var markDone = staffFinishMarks(marks, events);
+  if (markDone && markDone.error) {
+    return markDone;
   }
-  return { events: events, sawMusic: sawMusic };
+  return {
+    events: events,
+    sawMusic: sawMusic,
+    chordSymbol: (markDone && markDone.chordSymbol) || ""
+  };
 }
 
 /* Duration of one parsed event in quarter-note units; a tuplet is scaled by m/n. */
@@ -1545,7 +1561,16 @@ function parseMusicNotation(source) {
     return fail(seq.error, seq.tok);
   }
   var events = seq.events;
-  if (!seq.sawMusic || !events.length) {
+  chordSymbol = seq.chordSymbol || "";
+  /*
+   * Timed music still requires notes/rests/simile. Directives alone, or a line
+   * chord with no attack (`@bass @key=D`, `^G_Major`), draw an empty staff.
+   */
+  if (!seq.sawMusic) {
+    if (events.length) {
+      return fail("no notes or rests", null);
+    }
+  } else if (!events.length) {
     return fail("no notes or rests", null);
   }
   var tied = staffBindTies(events);
@@ -2991,7 +3016,7 @@ function renderMusicStaff(source, role) {
       fill: "currentColor",
       "text-anchor": "start"
     });
-    sym.textContent = staffFormatChordText(ast.chordSymbol);
+    sym.textContent = staffFormatChordText(String(ast.chordSymbol).replace(/_/g, " "));
     svg.appendChild(sym);
   }
 

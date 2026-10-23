@@ -55,7 +55,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 
 An example line that parses as music notation renders as an SVG staff instead of HTML text. A trailing ` · ` caption (or HTML `prog-changes` / `prog-name`) is stripped before parse and shown under the staff. The music side still rejects `<` or `&`. Notation-ish lines that fail to parse fall back to HTML text and log a `console.warn`.
 
-- Clef / key: leading `@treble` or `@bass` and `@key=NAME` in any order (default treble, key C). Unknown `@…` tokens are rejected
+- Clef / key: leading `@treble` or `@bass` and `@key=NAME` in any order (default treble, key C). Unknown `@…` tokens are rejected. Clefs and keys alone (no notes) still draw an empty staff
 - Key names: major (`@key=G`, `@key=Eb`, `@key=F#`) or minor aliases that map to the relative major for the signature only:
 
   | Alias | Signature | Alias | Signature |
@@ -69,7 +69,7 @@ An example line that parses as music notation renders as an SVG staff instead of
   | D#m | F# | Abm | Cb |
   | A#m | C# | | |
 
-- Chord symbol above: `^…` before the note, slash, rest, or stack it belongs to (`^Bb7 C4q`, `^G / / / / | ^D / / ^A / /`). A second `^` starts a new symbol at that event. `_` inside that word is a space (`^Any_dom_7`). An empty `^`, or a `^` with nothing after it, is rejected
+- Chord symbol above: `^…` before the note, slash, rest, or stack it belongs to (`^Bb7 C4q`, `^G / / / / | ^D / / ^A / /`). A second `^` starts a new symbol at that event. `_` inside that word is a space (`^Any_dom_7`). With no note after it, `^…` is a line chord on an empty staff (`@key=G ^G_Major`). A trailing `^` after a note, an empty `^`, or a `^` with nothing after it, is rejected
 - Text above a symbol: `^text` glued after the duration, or after `]` (`/w^P`, `rw^R`, `[E3h G3h B3h D4h]^C∆7`). Text under a symbol: `_text` (`C4_1`, `/e_R`, `]_3`). Both can sit on one symbol (`]^C∆7_3`, `/q^P_R`). A leading `b`, `#`, `bb`, or `##` prints ♭, ♯, 𝄫, or 𝄪 in either band (`^bVII`, `_bVII`, `_#IV`, `_bbVII`)
 - Dynamics under the next note, slash, rest, or stack: `pp` `p` `mp` `mf` `f` `ff` `sfz`. They do not take time. Two in a row, or one with no note after it, is rejected
 - Hairpins: `cresc` and `dim` open a wedge from the next note through the note that carries the next dynamic, or through the last note. A hairpin with no note after it is rejected
