@@ -229,6 +229,13 @@ function exerciseMenu(w) {
 function staffNotation(w) {
   check("staff parser is loaded", typeof w.parseMusicNotation === "function" && typeof w.isMusicNotation === "function");
   check("staff status helper is loaded", typeof w.staffNotationStatus === "function");
+  check("staff defaults helper is loaded", typeof w.staffSetActiveDefaults === "function" && typeof w.staffRunWithDefaults === "function");
+  var bassDefault = w.staffRunWithDefaults({ clef: "bass" }, function () {
+    return w.parseMusicNotation("[E3h G3h B3h]^C∆7");
+  });
+  check("exercise bass default draws bass", !!(bassDefault && bassDefault.clef === "bass"));
+  var trebleAgain = w.parseMusicNotation("[E3h G3h B3h]^C∆7");
+  check("defaults do not stick after the run", !!(trebleAgain && trebleAgain.clef === "treble"));
   var dotted = w.parseMusicNotation("C4q. D4e");
   check(
     "dotted quarter parses",
@@ -1342,12 +1349,22 @@ function shareCase(w) {
   for (pi = 0; pi < packedIds.length; pi++) {
     plines = w.exercises[packedIds[pi]] ? w.exercises[packedIds[pi]].items : [];
     for (pj = 0; pj < plines.length; pj++) {
-      if (!w.staffNotationStatus(plines[pj]).ok || !w.staffShareCanonical(plines[pj])) {
+      if (
+        !w.staffRunWithDefaults(
+          { clef: w.exercises[packedIds[pi]].clef === "bass" ? "bass" : "treble", key: w.exercises[packedIds[pi]].key || "C" },
+          function () {
+            return w.staffNotationStatus(plines[pj]).ok && w.staffShareCanonical(plines[pj]);
+          }
+        )
+      ) {
         packedOk = false;
       }
     }
   }
   check("staff lines pack", packedOk);
+  check("left hand rootless defaults to bass", w.exercises.leftHandRootless && w.exercises.leftHandRootless.clef === "bass");
+  check("comping 3/4 recommends 3/4", !!(w.exercises.compingRhythm34 && w.exercises.compingRhythm34.meter && w.exercises.compingRhythm34.meter.beats === 3 && w.exercises.compingRhythm34.meter.unit === 4));
+  check("meter ask is in the page", !!w.document.getElementById("meterAsk") && !!w.document.getElementById("editDefaults"));
   minorKey = w.staffShareCanonical("@key=Am C4e D4e E4e F4e G4e A4e B4e C5e");
   check("minor key name stays", minorKey.indexOf("@key=Am") === 0 && w.staffShareCanonical(minorKey) === minorKey);
   check(
@@ -1361,7 +1378,16 @@ function shareCase(w) {
     !!(mixedRead && mixedRead.lines[1] === "not notation" && w.shareLinesSame(["C4e  D4e"], [mixedRead.lines[0]]))
   );
   rootless = w.getDeskExercise("ex:leftHandRootless");
-  rootUrl = w.shareExerciseUrl({ v: 1, id: "fact0003", name: rootless.name, bars: rootless.bars, lines: rootless.lines.slice() }, base);
+  check("desk rootless keeps bass clef", !!(rootless && rootless.clef === "bass"));
+  rootUrl = w.shareExerciseUrl({
+    v: 1,
+    id: "fact0003",
+    name: rootless.name,
+    bars: rootless.bars,
+    staff: true,
+    clef: rootless.clef,
+    lines: rootless.lines.slice()
+  }, base);
   check("a long staff link is packed", rootUrl.indexOf("#s2=") > 0 && rootUrl.length <= 8000);
   check("stock exercise uses its id", w.shareCatalogHref(w.getDeskExercise("ex:scales")) === "https://eization.com/?exercise=scales");
   var week = { v: 1, id: "teach001", name: "Week", bars: 4, lines: ["Dm7 G7", "Cmaj7"] };
@@ -1618,7 +1644,7 @@ function chatCase(w) {
       ? w.getComputedStyle(moreButton).display === "none" && w.getComputedStyle(moreMenu).display !== "none"
       : w.getComputedStyle(moreButton).display !== "none" && moreMenu.hidden === true
   );
-  check("download and clear drop the extra word", w.document.querySelector("#editSave .btn-label").textContent === w.t("edit.download") && w.document.getElementById("editClearList").textContent === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Editar" && w.I18N.en["share.preview"] === "Edit");
+  check("download and clear drop the extra word", w.document.querySelector("#editSave .btn-label").textContent.trim() === w.t("edit.download") && w.document.querySelector("#editClearList .btn-label").textContent.trim() === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Editar" && w.I18N.en["share.preview"] === "Edit");
   check("exercise actions keep a mark", ["editMore", "editSave", "editOpen", "editShare", "editAsk", "editDelete"].every(function (id) {
     var button = w.document.getElementById(id);
     return !!(button && button.querySelector("svg.chrome-icon") && button.querySelector(".btn-label"));
@@ -2112,6 +2138,7 @@ function chatCase(w) {
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-symbol='[ ]']"));
     check("text brackets stay open", focusLine.value === "[ ]" && focusLine.selectionStart === 1);
+    w.setEditorStaff(true);
     w.document.getElementById("editStaffHelp").click();
     var sampleButton = w.document.querySelector("#editStaffSamples button");
     sampleButton.click();
@@ -2140,6 +2167,11 @@ function chatCase(w) {
       )
     );
     w.setEditorStaff(true);
+    w.editorSymbolUndo = [];
+    w.editorSymbolRedo = [];
+    w.editorLastValidSnap = null;
+    w.editorLastValidRenderKey = null;
+    w.editorStaffTypingDirty = false;
     placeCaret("C4q");
     var undoBefore = w.editorSymbolUndo ? w.editorSymbolUndo.length : 0;
     placeCaret("C4q ");
@@ -2161,10 +2193,13 @@ function chatCase(w) {
     );
     w.setEditorStaff(true);
     placeCaret("C4q~");
+    w.editorFocusIndex = 0;
     w.editorSyncFocusToArea();
     var areaBroken = w.document.getElementById("allEdit");
     areaBroken.value = "C4q~\nD4q~\nE4q";
     areaBroken.dispatchEvent(new w.Event("input", { bubbles: true }));
+    w.editorFocusIndex = 0;
+    w.editorSyncFocusFromArea();
     check(
       "broken staff report names the first bad example",
       !!(
@@ -2328,7 +2363,7 @@ function deskRoundTrip(w) {
   check("restore re-seeds the desk", !!(after && after.exercises && after.exercises.length === w.menuOrder.length));
   check("restore clears deleted seeds", !!(after && (!after.deletedSeeds || !after.deletedSeeds.length)));
   check("restore clears the intro flag", helloGone);
-  check("restore stamps the schema", !!(after && after.schema === w.DESK_SCHEMA && after.exercises[0].seedId === "allNotes" && after.exercises[0].seedRev === 1 && after.exercises[0].touched === false));
+  check("restore stamps the schema", !!(after && after.schema === w.DESK_SCHEMA && after.exercises[0].seedId === "allNotes" && after.exercises[0].seedRev === w.exerciseRev("allNotes") && after.exercises[0].touched === false));
   check("restore leaves the metronome paused", w.paused === true);
   if (beforeHello) {
     try {

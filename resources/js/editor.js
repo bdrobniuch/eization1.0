@@ -5,6 +5,9 @@ var editorDraft = {
   text: "",
   bars: 1,
   staff: false,
+  clef: "",
+  key: "",
+  meter: null,
   mode: "edit",
   storedLines: null
 };
@@ -280,7 +283,26 @@ function editorIsDirty() {
   var text = editorLinesFrom(area.value).join("\n");
   var name = editorNameValue().replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
   var draftName = (editorDraft.name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
-  return text !== editorDraft.text || bars !== editorDraft.bars || editorStaffOn() !== !!editorDraft.staff || name !== draftName;
+  var defaults = editorReadDefaults();
+  return (
+    text !== editorDraft.text ||
+    bars !== editorDraft.bars ||
+    editorStaffOn() !== !!editorDraft.staff ||
+    name !== draftName ||
+    defaults.clef !== (editorDraft.clef || "") ||
+    defaults.key !== (editorDraft.key || "") ||
+    !editorMeterEqual(defaults.meter, editorDraft.meter)
+  );
+}
+
+function editorMeterEqual(a, b) {
+  if (!a && !b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return a.beats === b.beats && a.unit === b.unit;
 }
 
 function editorStaffOn() {
@@ -291,6 +313,7 @@ function editorStaffOn() {
 function setEditorStaff(on) {
   var text = document.getElementById("editKindText");
   var staff = document.getElementById("editKindStaff");
+  var write = document.getElementById("editWrite");
   var pressed = !!on;
   if (text) {
     text.setAttribute("aria-pressed", pressed ? "false" : "true");
@@ -298,7 +321,117 @@ function setEditorStaff(on) {
   if (staff) {
     staff.setAttribute("aria-pressed", pressed ? "true" : "false");
   }
+  if (write) {
+    write.classList.toggle("is-text-kind", !pressed);
+  }
   editorSyncSymbolKind();
+}
+
+function editorReadDefaults() {
+  var clefBass = document.getElementById("editClefBass");
+  var keyField = document.getElementById("editKey");
+  var presets = document.querySelectorAll(".edit-meter-preset");
+  var clef = clefBass && clefBass.getAttribute("aria-pressed") === "true" ? "bass" : "";
+  var key = keyField ? String(keyField.value || "") : "";
+  var meter = null;
+  var i;
+  var raw;
+  if (typeof cleanDeskKey === "function") {
+    key = cleanDeskKey(key);
+  } else if (key === "C") {
+    key = "";
+  }
+  for (i = 0; i < presets.length; i++) {
+    if (presets[i].getAttribute("aria-pressed") === "true") {
+      raw = presets[i].getAttribute("data-meter") || "";
+      meter = typeof cleanDeskMeter === "function" ? cleanDeskMeter(raw) : null;
+      break;
+    }
+  }
+  return { clef: clef, key: key, meter: meter };
+}
+
+function editorApplyDefaultsUi(spec) {
+  var clef = spec && spec.clef === "bass" ? "bass" : "";
+  var key = spec && spec.key ? String(spec.key) : "";
+  var meter = spec && spec.meter ? spec.meter : null;
+  var treble = document.getElementById("editClefTreble");
+  var bass = document.getElementById("editClefBass");
+  var keyField = document.getElementById("editKey");
+  var presets = document.querySelectorAll(".edit-meter-preset");
+  var meterText = meter ? meter.beats + "/" + meter.unit : "";
+  var i;
+  var raw;
+  if (treble) {
+    treble.setAttribute("aria-pressed", clef === "bass" ? "false" : "true");
+  }
+  if (bass) {
+    bass.setAttribute("aria-pressed", clef === "bass" ? "true" : "false");
+  }
+  if (keyField) {
+    if (key && !Array.prototype.some.call(keyField.options, function (opt) {
+      return opt.value === key;
+    })) {
+      keyField.value = "";
+    } else {
+      keyField.value = key;
+    }
+  }
+  for (i = 0; i < presets.length; i++) {
+    raw = presets[i].getAttribute("data-meter") || "";
+    presets[i].setAttribute("aria-pressed", raw === meterText ? "true" : "false");
+  }
+}
+
+function editorSyncStaffDefaults() {
+  var defaults = editorReadDefaults();
+  if (typeof staffSetActiveDefaults === "function") {
+    staffSetActiveDefaults({
+      clef: defaults.clef === "bass" ? "bass" : "treble",
+      key: defaults.key || "C"
+    });
+  }
+}
+
+function editorRestorePracticeDefaults() {
+  var desk = typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null;
+  if (typeof applyPracticeStaffDefaults === "function") {
+    applyPracticeStaffDefaults(desk);
+  } else if (typeof staffSetActiveDefaults === "function") {
+    staffSetActiveDefaults(null);
+  }
+}
+
+function editorCloseDefaults() {
+  var btn = document.getElementById("editDefaults");
+  var panel = document.getElementById("editDefaultsPanel");
+  if (panel) {
+    panel.hidden = true;
+  }
+  if (btn) {
+    btn.setAttribute("aria-expanded", "false");
+  }
+}
+
+function editorToggleDefaults() {
+  var btn = document.getElementById("editDefaults");
+  var panel = document.getElementById("editDefaultsPanel");
+  var open;
+  if (!panel || !btn) {
+    return;
+  }
+  open = panel.hidden;
+  panel.hidden = !open;
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+function editorPartDefaults() {
+  var defaults = editorReadDefaults();
+  return {
+    clef: defaults.clef,
+    key: defaults.key,
+    meter: defaults.meter
+  };
 }
 
 function editorLeaveIfClean(message) {
@@ -314,6 +447,11 @@ function editorLeaveIfClean(message) {
 }
 
 function editorDismissEscape() {
+  var defaultsPanel = document.getElementById("editDefaultsPanel");
+  if (defaultsPanel && !defaultsPanel.hidden) {
+    editorCloseDefaults();
+    return;
+  }
   if (editorCloseStaffHelp()) {
     return;
   }
@@ -832,6 +970,7 @@ function editorCloseQuiet() {
   }
   editorCloseStaffHelp({ focus: false });
   editorCloseMore();
+  editorCloseDefaults();
   editorCloseSymbols();
   clearEditStaffNote();
   editorLastGoodStaffHtml = "";
@@ -851,6 +990,7 @@ function editorCloseQuiet() {
   editorAskMenu(false);
   setEditorCommitsEnabled(true);
   syncEditorCommitLabels();
+  editorRestorePracticeDefaults();
   if (typeof renderPreview === "function") {
     renderPreview();
   }
@@ -3889,11 +4029,17 @@ function editorOpenSheet(options) {
     editorDraft.name = t("edit.defaultName");
     editorDraft.bars = 1;
     editorDraft.staff = true;
+    editorDraft.clef = "";
+    editorDraft.key = "";
+    editorDraft.meter = null;
     editorDraft.text = "";
   } else {
     editorDraft.name = desk ? exerciseDisplayName(desk) : editorDraft.label;
     editorDraft.bars = typeof exerciseBars === "number" && exerciseBars > 0 ? exerciseBars : 1;
     editorDraft.staff = !!(desk && desk.staff);
+    editorDraft.clef = desk && desk.clef === "bass" ? "bass" : "";
+    editorDraft.key = desk && desk.key ? desk.key : "";
+    editorDraft.meter = desk && desk.meter ? { beats: desk.meter.beats, unit: desk.meter.unit } : null;
     /* Prefer desk.lines (plain source). chromaticScale holds display HTML for text. */
     var source =
       desk && desk.lines && desk.lines.length
@@ -3913,10 +4059,13 @@ function editorOpenSheet(options) {
   editorDraft.storedLines = editorIsCreateMode() ? null : editorStoredLinesNow(editorDraft.id);
   editorViewOverride = null;
   editorFocusIndex = 0;
+  editorCloseDefaults();
   var area = document.getElementById("allEdit");
   area.value = editorDraft.text;
   document.getElementById("editBars").value = String(editorDraft.bars);
   setEditorStaff(editorDraft.staff);
+  editorApplyDefaultsUi(editorDraft);
+  editorSyncStaffDefaults();
   var nameField = document.getElementById("editName");
   if (nameField) {
     nameField.value = editorDraft.name || "";
@@ -4022,22 +4171,31 @@ function editorOpenSharePreview(spec) {
     editorDraft.name = t("edit.defaultName");
     editorDraft.bars = 1;
     editorDraft.staff = spec.staff === true;
+    editorDraft.clef = spec.clef === "bass" ? "bass" : "";
+    editorDraft.key = spec.key || "";
+    editorDraft.meter = spec.meter || null;
     editorDraft.text = "";
   } else {
     editorDraft.id = target.id;
     editorDraft.name = typeof exerciseDisplayName === "function" ? exerciseDisplayName(target) : target.name;
     editorDraft.bars = target.bars;
     editorDraft.staff = spec.staff === true;
+    editorDraft.clef = target.clef === "bass" ? "bass" : spec.clef === "bass" ? "bass" : "";
+    editorDraft.key = target.key || spec.key || "";
+    editorDraft.meter = target.meter || spec.meter || null;
     editorDraft.text = editorPlainLines(target.lines);
   }
   editorDraft.storedLines = editorDraft.mode === "create" || !target ? null : editorPlainLines(target.lines);
   editorViewOverride = null;
   editorFocusIndex = 0;
   editorClearSymbolHistory();
+  editorCloseDefaults();
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
   document.getElementById("editBars").value = String(spec.bars || 1);
   setEditorStaff(editorDraft.staff);
+  editorApplyDefaultsUi(editorDraft);
+  editorSyncStaffDefaults();
   var nameField = document.getElementById("editName");
   if (nameField) {
     nameField.value = spec.name || "";
@@ -4099,11 +4257,27 @@ function editorCancel() {
 
 var EDITOR_FILE_VERSION = 1;
 
-function editorFileText(lines, bars, name, staff) {
+function editorFileText(lines, bars, name, staff, defaults) {
   var out = "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n# staff " + (staff ? "1" : "0") + "\n";
   var clean = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+  var clef;
+  var key;
+  var meter;
   if (clean) {
     out += "# name " + clean.slice(0, 60) + "\n";
+  }
+  defaults = defaults || {};
+  clef = defaults.clef === "bass" ? "bass" : "";
+  key = defaults.key || "";
+  meter = defaults.meter;
+  if (clef) {
+    out += "# clef " + clef + "\n";
+  }
+  if (key) {
+    out += "# key " + key + "\n";
+  }
+  if (meter && meter.beats && meter.unit) {
+    out += "# meter " + meter.beats + "/" + meter.unit + "\n";
   }
   return out + lines.join("\n") + "\n";
 }
@@ -4115,6 +4289,9 @@ function readEditorFile(text) {
   var staff = null;
   var version = null;
   var name = null;
+  var clef = "";
+  var key = "";
+  var meter = null;
   var body = [];
   var started = false;
   var i;
@@ -4132,6 +4309,24 @@ function readEditorFile(text) {
       var staffMatch = line.match(/^\s*#\s*staff\s+([01])\s*$/i);
       if (staffMatch) {
         staff = staffMatch[1] === "1";
+        continue;
+      }
+      var clefMatch = line.match(/^\s*#\s*clef\s+(treble|bass)\s*$/i);
+      if (clefMatch) {
+        clef = clefMatch[1].toLowerCase() === "bass" ? "bass" : "";
+        continue;
+      }
+      var keyMatch = line.match(/^\s*#\s*key\s+(\S+)\s*$/i);
+      if (keyMatch) {
+        key = typeof cleanDeskKey === "function" ? cleanDeskKey(keyMatch[1]) : keyMatch[1];
+        continue;
+      }
+      var meterMatch = line.match(/^\s*#\s*meter\s+(\d+)\s*\/\s*(\d+)\s*$/i);
+      if (meterMatch) {
+        meter =
+          typeof cleanDeskMeter === "function"
+            ? cleanDeskMeter({ beats: meterMatch[1], unit: meterMatch[2] })
+            : null;
         continue;
       }
       var nameMatch = line.match(/^\s*#\s*name\s+(.+?)\s*$/i);
@@ -4155,6 +4350,9 @@ function readEditorFile(text) {
     lines: editorLinesFrom(body.join("\n")),
     bars: bars,
     staff: staff,
+    clef: clef,
+    key: key,
+    meter: meter,
     name: name,
     version: version
   };
@@ -4177,7 +4375,10 @@ function editorSaveFile() {
   var bars = clampEditorBars(document.getElementById("editBars").value);
   document.getElementById("editBars").value = String(bars);
   var name = editorNameValue();
-  var blob = new Blob([editorFileText(lines, bars, name, editorStaffOn())], { type: "text/plain;charset=utf-8" });
+  var blob = new Blob(
+    [editorFileText(lines, bars, name, editorStaffOn(), editorPartDefaults())],
+    { type: "text/plain;charset=utf-8" }
+  );
   var url = URL.createObjectURL(blob);
   var link = document.createElement("a");
   link.href = url;
@@ -4222,6 +4423,12 @@ function editorOpenFile(file) {
     if (parsed.staff === true || parsed.staff === false) {
       setEditorStaff(parsed.staff);
     }
+    editorApplyDefaultsUi({
+      clef: parsed.clef || "",
+      key: parsed.key || "",
+      meter: parsed.meter || null
+    });
+    editorSyncStaffDefaults();
     if (parsed.name) {
       var nameField = document.getElementById("editName");
       if (nameField) {
@@ -4448,13 +4655,22 @@ function editorApplyLanguage() {
   refreshEditor();
 }
 
-function applyEditorToReel(lines, bars, staff) {
+function applyEditorToReel(lines, bars, staff, defaults) {
   var on = staff === true || staff === false ? staff : editorStaffOn();
   var items = [];
+  var record =
+    defaults ||
+    (typeof getDeskExercise === "function" ? getDeskExercise(currentExerciseId) : null);
   for (var i = 0; i < lines.length; i++) {
     items.push(typeof deskDisplayItem === "function" ? deskDisplayItem(lines[i], on) : lineToItem(lines[i]));
   }
+  if (typeof applyPracticeStaffDefaults === "function") {
+    applyPracticeStaffDefaults(record);
+  }
   newExercise(items, bars, on);
+  if (typeof maybeOfferRecommendedMeter === "function") {
+    maybeOfferRecommendedMeter(record);
+  }
   if (typeof buildExerciseMenu === "function") {
     buildExerciseMenu();
   }
@@ -4593,8 +4809,17 @@ function editorUpdate() {
     return;
   }
   disarmEditorStale();
+  var defaults = editorPartDefaults();
   var saved = typeof updateDeskExercise === "function"
-    ? updateDeskExercise(editorDraft.id, { name: name, bars: bars, staff: editorStaffOn(), lines: lines })
+    ? updateDeskExercise(editorDraft.id, {
+        name: name,
+        bars: bars,
+        staff: editorStaffOn(),
+        lines: lines,
+        clef: defaults.clef,
+        key: defaults.key,
+        meter: defaults.meter
+      })
     : null;
   if (!saved) {
     editorNotice(t("edit.noUpdate"));
@@ -4606,7 +4831,7 @@ function editorUpdate() {
   if (fromShare && typeof finishShareEdit === "function") {
     finishShareEdit();
   }
-  applyEditorToReel(saved.lines, saved.bars, saved.staff);
+  applyEditorToReel(saved.lines, saved.bars, saved.staff, saved);
   if (fromShare && typeof showDeskNote === "function") {
     showDeskNote(t("share.updated"));
   }
@@ -4647,7 +4872,16 @@ function editorSaveAsNew() {
   document.getElementById("editBars").value = String(bars);
   var name = resolveEditorName(editorNameValue());
   var fromShare = typeof sharePreview !== "undefined" && !!sharePreview;
-  var part = { name: name, bars: bars, staff: editorStaffOn(), lines: lines };
+  var defaults = editorPartDefaults();
+  var part = {
+    name: name,
+    bars: bars,
+    staff: editorStaffOn(),
+    lines: lines,
+    clef: defaults.clef,
+    key: defaults.key,
+    meter: defaults.meter
+  };
   if (fromShare && typeof shareOffer !== "undefined" && shareOffer && shareOffer.shareId) {
     part.shareId = shareOffer.shareId;
   }
@@ -4663,7 +4897,7 @@ function editorSaveAsNew() {
   if (fromShare && typeof finishShareEdit === "function") {
     finishShareEdit();
   }
-  applyEditorToReel(created.lines, created.bars, created.staff);
+  applyEditorToReel(created.lines, created.bars, created.staff, created);
   if (fromShare && typeof offerHelloAfterShare === "function") {
     offerHelloAfterShare();
   }
@@ -5009,8 +5243,18 @@ function editorShare() {
   } else {
     shareId = newShareId();
   }
+  var shareDefaults = editorPartDefaults();
   var snap = typeof shareSnapshot === "function"
-    ? shareSnapshot({ id: shareId, name: editorNameValue(), bars: bars, staff: editorStaffOn(), lines: lines })
+    ? shareSnapshot({
+        id: shareId,
+        name: editorNameValue(),
+        bars: bars,
+        staff: editorStaffOn(),
+        lines: lines,
+        clef: shareDefaults.clef,
+        key: shareDefaults.key,
+        meter: shareDefaults.meter
+      })
     : null;
   var catalogHref = "";
   if (
@@ -5473,6 +5717,53 @@ function initEditor() {
       refreshEditor();
     });
   });
+  var editDefaultsBtn = document.getElementById("editDefaults");
+  if (editDefaultsBtn) {
+    editDefaultsBtn.addEventListener("click", function () {
+      editorToggleDefaults();
+      disarmEditorDelete();
+      clearEditorNotice();
+      refreshEditorHint();
+    });
+  }
+  ["editClefTreble", "editClefBass"].forEach(function (id) {
+    var button = document.getElementById(id);
+    if (!button) {
+      return;
+    }
+    button.addEventListener("click", function () {
+      editorApplyDefaultsUi({
+        clef: id === "editClefBass" ? "bass" : "",
+        key: editorReadDefaults().key,
+        meter: editorReadDefaults().meter
+      });
+      editorSyncStaffDefaults();
+      disarmEditorDelete();
+      clearEditorNotice();
+      refreshEditor();
+    });
+  });
+  var meterPresets = document.querySelectorAll(".edit-meter-preset");
+  for (var mi = 0; mi < meterPresets.length; mi++) {
+    meterPresets[mi].addEventListener("click", function () {
+      var raw = this.getAttribute("data-meter") || "";
+      var meter = typeof cleanDeskMeter === "function" ? cleanDeskMeter(raw) : null;
+      var cur = editorReadDefaults();
+      editorApplyDefaultsUi({ clef: cur.clef, key: cur.key, meter: meter });
+      disarmEditorDelete();
+      clearEditorNotice();
+      refreshEditorHint();
+    });
+  }
+  var editKey = document.getElementById("editKey");
+  if (editKey) {
+    editKey.addEventListener("change", function () {
+      editorSyncStaffDefaults();
+      disarmEditorDelete();
+      clearEditorNotice();
+      refreshEditor();
+    });
+  }
   document.addEventListener("keydown", function (event) {
     if (event.key !== "Escape" || !editorIsOpen()) {
       return;

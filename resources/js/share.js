@@ -1935,23 +1935,40 @@ function sharePackExercise(snap) {
   }
   raw.push(barsByte);
   sharePushU16(raw, snap.lines.length);
-  for (i = 0; i < snap.lines.length; i++) {
-    canon = snap.staff === false ? "" : staffShareCanonical(snap.lines[i]);
-    staffBytes = canon ? shareEncodeStaffLine(canon) : null;
-    if (staffBytes) {
+  function packOneLine(line) {
+    var lineCanon = snap.staff === false ? "" : staffShareCanonical(line);
+    var lineStaff = lineCanon ? shareEncodeStaffLine(lineCanon) : null;
+    if (lineStaff) {
       raw.push(1);
-      sharePush(raw, staffBytes);
-      stored.push(canon);
-      continue;
+      sharePush(raw, lineStaff);
+      stored.push(lineCanon);
+      return true;
     }
-    textBytes = shareUtf8Encode(snap.lines[i]);
+    textBytes = shareUtf8Encode(line);
     if (textBytes.length > 65535) {
-      return null;
+      return false;
     }
     raw.push(0);
     sharePushU16(raw, textBytes.length);
     sharePush(raw, textBytes);
-    stored.push(snap.lines[i]);
+    stored.push(line);
+    return true;
+  }
+  for (i = 0; i < snap.lines.length; i++) {
+    if (typeof staffRunWithDefaults === "function") {
+      if (
+        !staffRunWithDefaults(
+          { clef: snap.clef === "bass" ? "bass" : "treble", key: snap.key || "C" },
+          function () {
+            return packOneLine(snap.lines[i]);
+          }
+        )
+      ) {
+        return null;
+      }
+    } else if (!packOneLine(snap.lines[i])) {
+      return null;
+    }
   }
   deflated = shareDeflate(raw);
   back = shareInflate(deflated);
@@ -2101,14 +2118,24 @@ function sharePageBase() {
 }
 
 function shareJsonHash(snap) {
-  return "#s=" + shareEncode(JSON.stringify({
+  var obj = {
     v: 1,
     id: snap.shareId,
     name: snap.name,
     bars: snap.bars,
     staff: !!snap.staff,
     lines: snap.lines
-  }));
+  };
+  if (snap.clef === "bass") {
+    obj.clef = "bass";
+  }
+  if (snap.key) {
+    obj.key = snap.key;
+  }
+  if (snap.meter) {
+    obj.meter = snap.meter;
+  }
+  return "#s=" + shareEncode(JSON.stringify(obj));
 }
 
 function shareHashFromPayload(payload) {
@@ -2124,7 +2151,10 @@ function shareHashFromPayload(payload) {
     name: payload.name,
     bars: payload.bars,
     staff: payload.staff,
-    lines: payload.lines
+    lines: payload.lines,
+    clef: payload.clef,
+    key: payload.key,
+    meter: payload.meter
   });
   if (!snap) {
     return "";
@@ -2212,7 +2242,10 @@ function readShareHash(hash) {
     name: json.name,
     bars: json.bars,
     staff: json.staff,
-    lines: json.lines
+    lines: json.lines,
+    clef: json.clef,
+    key: json.key,
+    meter: json.meter
   });
 }
 
@@ -2254,7 +2287,10 @@ function exerciseShareUrl(row) {
     name: row.name,
     bars: row.bars,
     staff: row.staff,
-    lines: row.lines
+    lines: row.lines,
+    clef: row.clef,
+    key: row.key,
+    meter: row.meter
   });
   if (!snap) {
     return "";
@@ -2265,7 +2301,10 @@ function exerciseShareUrl(row) {
     name: snap.name,
     bars: snap.bars,
     staff: snap.staff,
-    lines: snap.lines
+    lines: snap.lines,
+    clef: snap.clef,
+    key: snap.key,
+    meter: snap.meter
   });
 }
 
@@ -2276,7 +2315,16 @@ function downloadExerciseFile(row) {
   if (!row || !row.lines || !row.lines.length || typeof editorFileText !== "function") {
     return false;
   }
-  blob = new Blob([editorFileText(row.lines, row.bars, row.name, row.staff)], { type: "text/plain;charset=utf-8" });
+  blob = new Blob(
+    [
+      editorFileText(row.lines, row.bars, row.name, row.staff, {
+        clef: row.clef,
+        key: row.key,
+        meter: row.meter
+      })
+    ],
+    { type: "text/plain;charset=utf-8" }
+  );
   url = URL.createObjectURL(blob);
   link = document.createElement("a");
   link.href = url;

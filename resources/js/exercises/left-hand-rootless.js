@@ -265,9 +265,7 @@
       }
       parts.push(degreeToken(placed[i], degreeLetter(root.name, step)));
     }
-    return (
-      "@bass " + keyDirective(parentKey) + " [" + parts.join(" ") + "]^" + symbol
-    );
+    return keyDirective(parentKey) + " [" + parts.join(" ") + "]^" + symbol;
   }
 
   var items = [];
@@ -301,10 +299,12 @@
     id: "leftHandRootless",
     label: "Left Hand Rootless Voicings",
     staff: true,
+    clef: "bass",
     inMenu: true,
     /* 2026-10-17: each tone uses the root's letter, so F# is not written Gb beside G.
-       2026-10-17: chord name is ^ above the stack. _ under a stack is text, not the name. */
-    rev: 3,
+       2026-10-17: chord name is ^ above the stack. _ under a stack is text, not the name.
+       2026-10-23: exercise default clef is bass; lines no longer repeat @bass. */
+    rev: 4,
     items: items
   });
 })();

@@ -113,6 +113,13 @@
         </div>
     </div>
     <p id="deskNote" hidden role="status">Kept on this device.</p>
+    <div id="meterAsk" hidden>
+        <p id="meterAskLead"></p>
+        <div id="meterAskActions">
+            <button type="button" id="meterAskYes" data-i18n="meterAsk.yes">Update</button>
+            <button type="button" id="meterAskNo" data-i18n="meterAsk.no">Keep</button>
+        </div>
+    </div>
     <div id="shareAsk" hidden>
         <p id="shareAskName"></p>
         <p id="shareAskLead" data-i18n="share.text">Draw one example at a time from your library, in time with the metronome.</p>
@@ -200,6 +207,51 @@
                         <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
                         <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
                     </button>
+                    <button type="button" id="editDefaults" aria-expanded="false" aria-controls="editDefaultsPanel" data-i18n-title="edit.defaultsTitle" title="Exercise defaults" data-i18n-aria="edit.defaultsTitle" aria-label="Exercise defaults">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.75" fill="currentColor"/><circle cx="12" cy="12" r="1.75" fill="currentColor"/><circle cx="18" cy="12" r="1.75" fill="currentColor"/></svg>
+                        <span class="btn-label" data-i18n="edit.defaults">Defaults</span>
+                    </button>
+                </div>
+                <div id="editDefaultsPanel" hidden>
+                    <div id="editDefaultClef" class="edit-defaults-row" role="group" data-i18n-aria="edit.clefAria" aria-label="Default clef">
+                        <span class="edit-defaults-label" data-i18n="edit.clef">Clef</span>
+                        <button type="button" id="editClefTreble" aria-pressed="true" data-i18n="edit.clefTreble">Treble</button>
+                        <button type="button" id="editClefBass" aria-pressed="false" data-i18n="edit.clefBass">Bass</button>
+                    </div>
+                    <div id="editDefaultMeter" class="edit-defaults-row" role="group" data-i18n-aria="edit.meterAria" aria-label="Recommended meter">
+                        <span class="edit-defaults-label" data-i18n="edit.meter">Meter</span>
+                        <button type="button" class="edit-meter-preset" data-meter="" aria-pressed="true" data-i18n="edit.meterAny">Any</button>
+                        <button type="button" class="edit-meter-preset" data-meter="4/4" aria-pressed="false">4/4</button>
+                        <button type="button" class="edit-meter-preset" data-meter="3/4" aria-pressed="false">3/4</button>
+                        <button type="button" class="edit-meter-preset" data-meter="5/4" aria-pressed="false">5/4</button>
+                        <button type="button" class="edit-meter-preset" data-meter="7/4" aria-pressed="false">7/4</button>
+                        <button type="button" class="edit-meter-preset" data-meter="6/8" aria-pressed="false">6/8</button>
+                    </div>
+                    <div id="editDefaultKey" class="edit-defaults-row">
+                        <label for="editKey" class="edit-defaults-label" data-i18n="edit.key">Key</label>
+                        <select id="editKey" data-i18n-aria="edit.keyAria" aria-label="Default key">
+                            <option value="">C</option>
+                            <option value="G">G</option>
+                            <option value="D">D</option>
+                            <option value="A">A</option>
+                            <option value="E">E</option>
+                            <option value="B">B</option>
+                            <option value="F#">F♯</option>
+                            <option value="Db">D♭</option>
+                            <option value="Ab">A♭</option>
+                            <option value="Eb">E♭</option>
+                            <option value="Bb">B♭</option>
+                            <option value="F">F</option>
+                            <option value="Am">Am</option>
+                            <option value="Em">Em</option>
+                            <option value="Bm">Bm</option>
+                            <option value="F#m">F♯m</option>
+                            <option value="Cm">Cm</option>
+                            <option value="Gm">Gm</option>
+                            <option value="Dm">Dm</option>
+                            <option value="Fm">Fm</option>
+                        </select>
+                    </div>
                 </div>
                 <button type="button" id="editViewToggle" aria-pressed="false" data-i18n-aria="edit.allExamples" aria-label="All examples">
                     <svg class="chrome-icon icon-list" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 7h14M5 12h14M5 17h14"/></svg>

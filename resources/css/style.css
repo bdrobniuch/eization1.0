@@ -648,6 +648,50 @@ footer {
     display: none !important;
 }
 
+#meterAsk {
+    position: fixed;
+    left: 50%;
+    top: 1.6vmin;
+    z-index: 40;
+    width: min(92vw, 420px);
+    margin: 0;
+    padding: 1.2vmin 1.6vmin;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    font-size: clamp(14px, 2.8vmin, 20px);
+    pointer-events: auto;
+    box-sizing: border-box;
+}
+
+#meterAsk[hidden] {
+    display: none !important;
+}
+
+#meterAsk p {
+    margin: 0 0 0.6vmin;
+}
+
+#meterAskActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#meterAskActions button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
 #shareAsk {
     position: fixed;
     left: 50%;
@@ -1878,6 +1922,72 @@ body.is-editing #counter {
   display: contents;
 }
 
+#editDefaultsPanel {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0 2px;
+}
+
+#editDefaultsPanel[hidden] {
+  display: none !important;
+}
+
+.edit-defaults-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-defaults-label {
+  flex: 0 0 auto;
+  min-width: 3.5em;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+#editDefaultClef button,
+.edit-meter-preset {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#editDefaultClef button[aria-pressed="true"],
+.edit-meter-preset[aria-pressed="true"] {
+  background: #ffffff;
+  color: #111111;
+}
+
+#editKey {
+  min-height: 40px;
+  min-width: 5.5em;
+  padding: 0 10px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+}
+
+#editKey option {
+  color: #111111;
+}
+
+#editWrite.is-text-kind #editDefaultClef,
+#editWrite.is-text-kind #editDefaultKey {
+  display: none;
+}
+
 #editMoreMenu {
   flex: 1 0 100%;
   display: flex;
@@ -2017,10 +2127,11 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
-/* Compact chrome: Share / More / Staff / view / Symbols / Add / Remove stay icon-only. */
+/* Compact chrome: Share / More / Staff / Defaults / view / Symbols / Add / Remove stay icon-only. */
 #editShare,
 #editMore,
 #editStaffHelp,
+#editDefaults,
 #editSymbolsToggle,
 #editViewToggle,
 #editFocusAdd,
@@ -2052,6 +2163,7 @@ body.is-editing #counter {
 #editShare .btn-label,
 #editMore .btn-label,
 #editStaffHelp .btn-label,
+#editDefaults .btn-label,
 #editSymbolsToggle .btn-label,
 #editViewToggle .btn-label,
 #editFocusAdd .btn-label,
@@ -2062,6 +2174,7 @@ body.is-editing #counter {
 #editShare .chrome-icon,
 #editMore .chrome-icon,
 #editStaffHelp .chrome-icon,
+#editDefaults .chrome-icon,
 #editViewToggle .chrome-icon,
 #editFocusAdd .chrome-icon,
 #editFocusRemove .chrome-icon {
@@ -2072,6 +2185,7 @@ body.is-editing #counter {
 }
 
 #editStaffHelp[aria-expanded="true"],
+#editDefaults[aria-expanded="true"],
 #editMore[aria-expanded="true"],
 #editSymbolsToggle[aria-expanded="true"] {
   background: #ffffff;

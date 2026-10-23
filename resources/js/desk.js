@@ -61,7 +61,31 @@ function deskExerciseStamp(data) {
       continue;
     }
     lines = row.lines && row.lines.length ? row.lines.join("\n") : "";
-    parts.push(row.id + "\n" + (row.name || "") + "\n" + (row.bars || "") + "\n" + (row.staff ? "1" : "0") + "\n" + (row.seedId || "") + "\n" + (row.seedRev || "") + "\n" + (row.touched ? "1" : "0") + "\n" + (row.shareId || "") + "\n" + lines);
+    parts.push(
+      row.id +
+        "\n" +
+        (row.name || "") +
+        "\n" +
+        (row.bars || "") +
+        "\n" +
+        (row.staff ? "1" : "0") +
+        "\n" +
+        (row.clef || "") +
+        "\n" +
+        (row.key || "") +
+        "\n" +
+        (row.meter ? row.meter.beats + "/" + row.meter.unit : "") +
+        "\n" +
+        (row.seedId || "") +
+        "\n" +
+        (row.seedRev || "") +
+        "\n" +
+        (row.touched ? "1" : "0") +
+        "\n" +
+        (row.shareId || "") +
+        "\n" +
+        lines
+    );
   }
   deleted = data && data.deletedSeeds && data.deletedSeeds.length ? data.deletedSeeds.join("\n") : "";
   return parts.join("\n\n") + "\n---\n" + deleted;
@@ -196,6 +220,123 @@ function cleanDeskLines(lines) {
   return clean;
 }
 
+function cleanDeskClef(value) {
+  return value === "bass" ? "bass" : "";
+}
+
+function cleanDeskKey(value) {
+  var text = String(value || "").trim();
+  var m;
+  if (!text || text === "C") {
+    return "";
+  }
+  text = text.replace(/\u266F/g, "#").replace(/\u266D/g, "b");
+  m = /^([A-Ga-g])([#b]?)(m)?$/i.exec(text);
+  if (!m) {
+    return "";
+  }
+  text = m[1].toUpperCase() + (m[2] || "") + (m[3] ? "m" : "");
+  if (typeof staffParseKeyName !== "function" || !staffParseKeyName(text)) {
+    return "";
+  }
+  return text;
+}
+
+function cleanDeskMeter(raw) {
+  var beats;
+  var unit;
+  if (!raw) {
+    return null;
+  }
+  if (typeof raw === "string") {
+    var parts = raw.split("/");
+    if (parts.length !== 2) {
+      return null;
+    }
+    beats = parseInt(parts[0], 10);
+    unit = parseInt(parts[1], 10);
+  } else if (typeof raw === "object") {
+    beats = parseInt(raw.beats != null ? raw.beats : raw.top, 10);
+    unit = parseInt(raw.unit != null ? raw.unit : raw.bottom, 10);
+  } else {
+    return null;
+  }
+  if (!beats || beats < 1 || beats > 32) {
+    return null;
+  }
+  if (unit !== 1 && unit !== 2 && unit !== 4 && unit !== 8 && unit !== 16) {
+    return null;
+  }
+  return { beats: beats, unit: unit };
+}
+
+function assignDeskDefaults(record, src) {
+  var clef;
+  var key;
+  var meter;
+  if (!record) {
+    return record;
+  }
+  clef = cleanDeskClef(src && src.clef);
+  key = cleanDeskKey(src && src.key);
+  meter = cleanDeskMeter(src && src.meter);
+  if (clef) {
+    record.clef = clef;
+  } else {
+    delete record.clef;
+  }
+  if (key) {
+    record.key = key;
+  } else {
+    delete record.key;
+  }
+  if (meter) {
+    record.meter = meter;
+  } else {
+    delete record.meter;
+  }
+  return record;
+}
+
+function deskStaffOpts(record) {
+  return {
+    clef: record && record.clef === "bass" ? "bass" : "treble",
+    key: record && record.key ? record.key : "C"
+  };
+}
+
+function deskDefaultsEqual(a, b) {
+  var ac = (a && a.clef) || "";
+  var bc = (b && b.clef) || "";
+  var ak = (a && a.key) || "";
+  var bk = (b && b.key) || "";
+  var am = a && a.meter;
+  var bm = b && b.meter;
+  if (ac !== bc || ak !== bk) {
+    return false;
+  }
+  if (!am && !bm) {
+    return true;
+  }
+  if (!am || !bm) {
+    return false;
+  }
+  return am.beats === bm.beats && am.unit === bm.unit;
+}
+
+function formatDeskMeter(meter) {
+  if (!meter) {
+    return "";
+  }
+  return meter.beats + "/" + meter.unit;
+}
+
+function applyPracticeStaffDefaults(record) {
+  if (typeof staffSetActiveDefaults === "function") {
+    staffSetActiveDefaults(deskStaffOpts(record));
+  }
+}
+
 function cleanDeskName(name, fallback) {
   var text = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
   if (!text) {
@@ -295,6 +436,7 @@ function normalizeDeskExercise(raw) {
     staff: deskStaffValue(raw, lines),
     lines: lines
   };
+  assignDeskDefaults(record, raw);
   if (typeof raw.seedId === "string" && raw.seedId) {
     record.seedId = raw.seedId;
     if (raw.touched === true) {
@@ -348,7 +490,19 @@ function shareLinesMatch(a, b) {
   return true;
 }
 
-function shareLinesSame(a, b) {
+function shareLineCanonical(line, opts) {
+  if (typeof staffShareCanonical !== "function") {
+    return "";
+  }
+  if (typeof staffRunWithDefaults === "function") {
+    return staffRunWithDefaults(opts || null, function () {
+      return staffShareCanonical(line);
+    });
+  }
+  return staffShareCanonical(line);
+}
+
+function shareLinesSame(a, b, aOpts, bOpts) {
   var i;
   var left;
   var right;
@@ -362,8 +516,8 @@ function shareLinesSame(a, b) {
     if (a[i] === b[i]) {
       continue;
     }
-    left = staffShareCanonical(a[i]);
-    right = staffShareCanonical(b[i]);
+    left = shareLineCanonical(a[i], aOpts);
+    right = shareLineCanonical(b[i], bOpts);
     if (!left || left !== right) {
       return false;
     }
@@ -380,13 +534,15 @@ function shareSnapshot(part) {
   if (!shareId || !lines.length) {
     return null;
   }
-  return {
+  var snap = {
     shareId: shareId,
     name: cleanDeskName(part.name, t("edit.defaultName")),
     bars: clampDeskInt(part.bars, 1, 16, 1),
     staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
+  assignDeskDefaults(snap, part);
+  return snap;
 }
 
 function findDeskShare(part) {
@@ -406,7 +562,12 @@ function findDeskShare(part) {
     if (!out.related) {
       out.related = row;
     }
-    if (row.bars === snap.bars && !!row.staff === !!snap.staff && shareLinesSame(row.lines, snap.lines) && (row.name === snap.name || row.seedId)) {
+    if (
+      row.bars === snap.bars &&
+      !!row.staff === !!snap.staff &&
+      shareLinesSame(row.lines, snap.lines, deskStaffOpts(row), deskStaffOpts(snap)) &&
+      (row.name === snap.name || row.seedId)
+    ) {
       out.exact = row;
       break;
     }
@@ -419,7 +580,11 @@ function findDeskShare(part) {
     if (!row.seedId) {
       continue;
     }
-    if (row.bars === snap.bars && !!row.staff === !!snap.staff && shareLinesSame(row.lines, snap.lines)) {
+    if (
+      row.bars === snap.bars &&
+      !!row.staff === !!snap.staff &&
+      shareLinesSame(row.lines, snap.lines, deskStaffOpts(row), deskStaffOpts(snap))
+    ) {
       out.exact = row;
       break;
     }
@@ -456,7 +621,7 @@ function catalogExerciseRecord(seedId) {
   if (!lines.length) {
     return null;
   }
-  return {
+  var record = {
     id: deskIdForSeed(seedId),
     seedId: seedId,
     seedRev: exerciseRev(seedId),
@@ -466,6 +631,8 @@ function catalogExerciseRecord(seedId) {
     staff: exerciseUsesStaff(ex),
     lines: lines
   };
+  assignDeskDefaults(record, ex);
+  return record;
 }
 
 function exerciseRev(seedId) {
@@ -483,7 +650,13 @@ function shareCatalogHref(saved) {
     return "";
   }
   fresh = catalogExerciseRecord(saved.seedId);
-  if (!fresh || fresh.bars !== saved.bars || !!fresh.staff !== !!saved.staff || !shareLinesMatch(saved.lines, fresh.lines)) {
+  if (
+    !fresh ||
+    fresh.bars !== saved.bars ||
+    !!fresh.staff !== !!saved.staff ||
+    !deskDefaultsEqual(saved, fresh) ||
+    !shareLinesMatch(saved.lines, fresh.lines)
+  ) {
     return "";
   }
   if (typeof stockNameIsCatalog === "function" && !stockNameIsCatalog(saved.seedId, saved.name)) {
@@ -787,7 +960,13 @@ function stockRowIsPristine(row) {
     return false;
   }
   fresh = catalogExerciseRecord(row.seedId);
-  if (!fresh || !stockNameIsCatalog(row.seedId, row.name) || row.bars !== fresh.bars || !!row.staff !== !!fresh.staff) {
+  if (
+    !fresh ||
+    !stockNameIsCatalog(row.seedId, row.name) ||
+    row.bars !== fresh.bars ||
+    !!row.staff !== !!fresh.staff ||
+    !deskDefaultsEqual(row, fresh)
+  ) {
     return false;
   }
   if (shareLinesMatch(row.lines, fresh.lines)) {
@@ -838,11 +1017,17 @@ function mirrorUntouchedSeeds(list, openId) {
     if (!fresh) {
       continue;
     }
-    changed = !shareLinesMatch(row.lines, fresh.lines) || row.bars !== fresh.bars || row.name !== fresh.name || !!row.staff !== !!fresh.staff;
+    changed =
+      !shareLinesMatch(row.lines, fresh.lines) ||
+      row.bars !== fresh.bars ||
+      row.name !== fresh.name ||
+      !!row.staff !== !!fresh.staff ||
+      !deskDefaultsEqual(row, fresh);
     row.lines = fresh.lines.slice();
     row.bars = fresh.bars;
     row.staff = fresh.staff;
     row.name = fresh.name;
+    assignDeskDefaults(row, fresh);
     row.seedRev = fresh.seedRev;
     row.touched = false;
     if (changed && row.id === openId) {
@@ -906,7 +1091,15 @@ function deskExerciseItems(id) {
   if (!items.length) {
     return null;
   }
-  return { items: items, bars: record.bars, name: record.name, staff: !!record.staff };
+  return {
+    items: items,
+    bars: record.bars,
+    name: record.name,
+    staff: !!record.staff,
+    clef: record.clef || "",
+    key: record.key || "",
+    meter: record.meter || null
+  };
 }
 
 function newDeskExerciseId() {
@@ -933,6 +1126,11 @@ function updateDeskExercise(id, part) {
     if (!next.lines.length) {
       return null;
     }
+    assignDeskDefaults(next, {
+      clef: part.clef !== undefined ? part.clef : list[i].clef,
+      key: part.key !== undefined ? part.key : list[i].key,
+      meter: part.meter !== undefined ? part.meter : list[i].meter
+    });
     if (list[i].seedId) {
       next.seedId = list[i].seedId;
     }
@@ -948,10 +1146,18 @@ function updateDeskExercise(id, part) {
     }
     if (next.seedId) {
       var freshSeed = catalogExerciseRecord(next.seedId);
-      if (freshSeed && next.bars === freshSeed.bars && !!next.staff === !!freshSeed.staff && shareLinesMatch(next.lines, freshSeed.lines) && stockNameIsCatalog(next.seedId, next.name)) {
+      if (
+        freshSeed &&
+        next.bars === freshSeed.bars &&
+        !!next.staff === !!freshSeed.staff &&
+        deskDefaultsEqual(next, freshSeed) &&
+        shareLinesMatch(next.lines, freshSeed.lines) &&
+        stockNameIsCatalog(next.seedId, next.name)
+      ) {
         next.touched = false;
         next.seedRev = freshSeed.seedRev;
         next.name = freshSeed.name;
+        assignDeskDefaults(next, freshSeed);
       } else {
         next.touched = true;
         if (list[i].seedRev) {
@@ -992,6 +1198,7 @@ function createDeskExercise(part) {
     staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
+  assignDeskDefaults(row, part);
   var shareId = cleanShareId(part.shareId);
   if (shareId) {
     row.shareId = shareId;
@@ -1017,6 +1224,7 @@ function packDeskExercises() {
       staff: !!list[i].staff,
       lines: list[i].lines.slice()
     };
+    assignDeskDefaults(row, list[i]);
     if (list[i].seedId) {
       row.seedId = list[i].seedId;
       if (list[i].touched === true) {
@@ -1093,6 +1301,7 @@ function parseDeskExercisesBackup(text) {
       lines: lines
     };
     row.staff = deskStaffValue(raw, lines);
+    assignDeskDefaults(row, raw);
     if (typeof raw.seedId === "string" && raw.seedId && !seenSeed[raw.seedId]) {
       row.seedId = raw.seedId;
       row.id = deskIdForSeed(raw.seedId);

@@ -6,6 +6,7 @@ registerExercise({
   id: "compingRhythm34",
   label: "Comping Rhythm Motifs 3/4",
   bars: 2,
+  meter: { beats: 3, unit: 4 },
   inMenu: false,
   items: [
     comping34Item("/q re /e rq | rh.", "57 short"),

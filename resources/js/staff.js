@@ -49,9 +49,52 @@ var STAFF_KEY_POS_BASS = {
 };
 
 var staffAstCache = new Map();
+/* Whole-exercise defaults applied before line @treble / @bass / @key=. */
+var staffActiveDefaults = { clef: "treble", keyName: "C" };
 
 function clearMusicStaffCache() {
   staffAstCache.clear();
+}
+
+function staffNormalizeDefaults(opts) {
+  var clef = opts && opts.clef === "bass" ? "bass" : "treble";
+  var keyName = "C";
+  var rawKey = opts && (opts.key || opts.keyName);
+  var parsed;
+  if (rawKey) {
+    parsed = staffParseKeyName(String(rawKey));
+    if (parsed) {
+      keyName = parsed;
+    }
+  }
+  return { clef: clef, keyName: keyName };
+}
+
+function staffDefaultsEqual(a, b) {
+  return a && b && a.clef === b.clef && a.keyName === b.keyName;
+}
+
+function staffSetActiveDefaults(opts) {
+  var next = staffNormalizeDefaults(opts);
+  if (staffDefaultsEqual(staffActiveDefaults, next)) {
+    return;
+  }
+  staffActiveDefaults = next;
+  staffAstCache.clear();
+}
+
+function staffRunWithDefaults(opts, fn) {
+  var prev = staffActiveDefaults;
+  staffActiveDefaults = staffNormalizeDefaults(opts);
+  try {
+    return fn();
+  } finally {
+    staffActiveDefaults = prev;
+  }
+}
+
+function staffCacheKey(raw) {
+  return staffActiveDefaults.clef + "\0" + staffActiveDefaults.keyName + "\0" + raw;
 }
 
 function staffAccKind(kind) {
@@ -1505,8 +1548,9 @@ function parseMusicNotation(source) {
   if (!raw || /[<&]/.test(raw)) {
     return null;
   }
-  if (staffAstCache.has(raw)) {
-    return staffAstCache.get(raw);
+  var cacheKey = staffCacheKey(raw);
+  if (staffAstCache.has(cacheKey)) {
+    return staffAstCache.get(cacheKey);
   }
   var tokens = staffTokenize(raw);
   if (!tokens.length) {
@@ -1527,8 +1571,8 @@ function parseMusicNotation(source) {
   }
 
   var i = 0;
-  var clef = "treble";
-  var keyName = "C";
+  var clef = staffActiveDefaults.clef;
+  var keyName = staffActiveDefaults.keyName;
   var chordSymbol = "";
 
   while (i < tokens.length) {
@@ -1586,7 +1630,7 @@ function parseMusicNotation(source) {
     chordSymbol: chordSymbol,
     events: events
   };
-  staffAstCache.set(raw, ast);
+  staffAstCache.set(cacheKey, ast);
   return ast;
 }
 
