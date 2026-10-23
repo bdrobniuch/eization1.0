@@ -317,6 +317,16 @@ function staffNotation(w) {
       emptyStaffSvg.querySelectorAll("path").length >= 2
     )
   );
+  var meterOverride34 = w.renderMusicStaff("", "current", { meter: { beats: 3, unit: 4 } });
+  var meterOverride44 = w.renderMusicStaff("", "current", { meter: { beats: 4, unit: 4 } });
+  check(
+    "opts.meter overrides Setup time signature",
+    !!(
+      meterOverride34 &&
+      meterOverride44 &&
+      meterOverride34.innerHTML !== meterOverride44.innerHTML
+    )
+  );
   var bassKeyOnly = w.parseMusicNotation("@bass @key=D");
   var bassKeySvg = w.renderMusicStaff("@bass @key=D", "current");
   check(
@@ -2154,6 +2164,43 @@ function chatCase(w) {
     );
     w.setEditorStaff(true);
     placeCaret("C4q");
+    if (typeof w.setBeatsPerBar === "function") {
+      w.setBeatsPerBar(4);
+    }
+    if (typeof w.setBeatUnit === "function") {
+      w.setBeatUnit(4);
+    }
+    var meterAny = w.document.querySelector('.edit-meter-preset[data-meter=""]');
+    var meter34 = w.document.querySelector('.edit-meter-preset[data-meter="3/4"]');
+    var previewEl = w.document.getElementById("editPreview");
+    if (meterAny) {
+      meterAny.click();
+    }
+    w.refreshEditor();
+    var previewAnyHtml = previewEl && previewEl.innerHTML;
+    var expectedAny = w.renderMusicStaff("C4q", "current", { showMeter: false });
+    if (meter34) {
+      meter34.click();
+    }
+    var preview34Html = previewEl && previewEl.innerHTML;
+    var expected34 = w.renderMusicStaff("C4q", "current", { meter: { beats: 3, unit: 4 } });
+    check(
+      "edit meter preset redraws the staff preview",
+      !!(
+        meter34 &&
+        previewAnyHtml &&
+        preview34Html &&
+        previewAnyHtml !== preview34Html &&
+        expectedAny &&
+        previewAnyHtml.indexOf(expectedAny.innerHTML) >= 0 &&
+        expected34 &&
+        previewEl.querySelector("svg") &&
+        previewEl.querySelector("svg").innerHTML === expected34.innerHTML
+      )
+    );
+    if (meterAny) {
+      meterAny.click();
+    }
     placeCaret("C4q~");
     var pendingPreview = w.document.getElementById("editPreview");
     var staffNote = w.document.getElementById("editStaffNote");

@@ -1771,11 +1771,21 @@ function staffBeamTipYs(xs, ys, stemUp, minStem) {
   return tips;
 }
 
-function staffReadMeter() {
-  var top = typeof beatsPerBar === "number" ? beatsPerBar : 4;
-  var bottom = typeof beatUnit === "number" ? beatUnit : 4;
+function staffReadMeter(override) {
+  var top;
+  var bottom;
+  if (override) {
+    top = parseInt(override.top != null ? override.top : override.beats, 10);
+    bottom = parseInt(override.bottom != null ? override.bottom : override.unit, 10);
+  }
+  if (!top || top < 1) {
+    top = typeof beatsPerBar === "number" ? beatsPerBar : 4;
+  }
   if (!top || top < 1) {
     top = 4;
+  }
+  if (bottom !== 1 && bottom !== 2 && bottom !== 4 && bottom !== 8 && bottom !== 16) {
+    bottom = typeof beatUnit === "number" ? beatUnit : 4;
   }
   if (bottom !== 1 && bottom !== 2 && bottom !== 4 && bottom !== 8 && bottom !== 16) {
     bottom = 4;
@@ -1788,7 +1798,7 @@ function renderMusicStaff(source, role, opts) {
   var ast;
   var showMeter = !(opts && opts.showMeter === false);
   if (!raw) {
-    /* Empty line: default treble, key C, meter from Setup — clef + time + staff only. */
+    /* Empty line: default treble, key C, meter from Setup (or opts.meter) — clef + time + staff only. */
     ast = {
       source: "",
       clef: "treble",
@@ -1815,7 +1825,7 @@ function renderMusicStaff(source, role, opts) {
   var padTop = 36;
   var padBottom = 40;
 
-  var meter = staffReadMeter();
+  var meter = staffReadMeter(opts && opts.meter);
   var key = STAFF_MAJOR_KEYS[ast.keyName] || STAFF_MAJOR_KEYS.C;
   var keyPositions = ast.clef === "bass" ? STAFF_KEY_POS_BASS : STAFF_KEY_POS_TREBLE;
   var keyList = key.kind === "sharp" ? keyPositions.sharp : keyPositions.flat;

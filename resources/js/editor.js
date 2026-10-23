@@ -1500,6 +1500,15 @@ function refreshEditor() {
   refreshEditorHint();
 }
 
+function editorPreviewMeterOpts() {
+  var defaults = editorReadDefaults();
+  if (defaults && defaults.meter) {
+    return { meter: defaults.meter };
+  }
+  /* Any: layout still follows Setup, but do not print a time signature. */
+  return { showMeter: false };
+}
+
 function editorPaintStaffPreview(preview, music, caption) {
   var svg;
   var box;
@@ -1507,11 +1516,14 @@ function editorPaintStaffPreview(preview, music, caption) {
   var h;
   var wrap;
   var cap;
+  var meterOpts;
   if (!preview || typeof renderMusicStaff !== "function") {
     return;
   }
   preview.classList.add("is-staff");
-  svg = renderMusicStaff(music || "", "current");
+  /* Recommended meter shows that signature; Any hides the glyph (Setup still beams). */
+  meterOpts = editorPreviewMeterOpts();
+  svg = renderMusicStaff(music || "", "current", meterOpts);
   if (svg) {
     box = (svg.getAttribute("viewBox") || "").split(/\s+/);
     w = parseFloat(box[2]);
@@ -5752,7 +5764,7 @@ function initEditor() {
       editorApplyDefaultsUi({ clef: cur.clef, key: cur.key, meter: meter });
       disarmEditorDelete();
       clearEditorNotice();
-      refreshEditorHint();
+      refreshEditor();
     });
   }
   var editKey = document.getElementById("editKey");
