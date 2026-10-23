@@ -2924,9 +2924,10 @@ function editorStaffGroupShellTarget(line, g) {
 
 /*
  * On a drawn staff, Erase after } ] ) peels the last inner event. The last
- * inner event (or a two-note tuplet, which cannot stand alone) takes the shell
- * with it so the line does not sit on empty braces. An empty pad shell
- * ({ } / [ ] / (3 )) still clears in one tap.
+ * inner event takes the shell with it so the line does not sit on empty
+ * braces. A one-note tuplet stays legal (drawn plain), so peeling from two
+ * leaves `(3 C4e)`. An empty pad shell ({ } / [ ] / (3 )) still clears in
+ * one tap.
  */
 function editorStaffGroupEraseTarget(line, rel) {
   var groups;
@@ -2992,8 +2993,8 @@ function editorStaffGroupEraseTarget(line, rel) {
   if (!onCloser) {
     return null;
   }
-  /* Last note (or a tuplet that would drop below two) removes the whole group. */
-  clearShell = music.length <= 1 || (g.kind === "tuplet" && music.length <= 2);
+  /* Last remaining inner event removes the whole group. */
+  clearShell = music.length <= 1;
   if (clearShell) {
     return editorStaffGroupShellTarget(line, g);
   }
@@ -3266,26 +3267,29 @@ function editorSeedPitchToken(letter) {
   return String(letter || "C") + String(editorWorkingOctave()) + editorPitchSuffix();
 }
 
-function editorSeedPitchRun(count) {
-  var letters = ["C", "D", "E", "F", "G", "A", "B"];
-  var parts = [];
-  var i;
-  for (i = 0; i < count; i++) {
-    parts.push(editorSeedPitchToken(letters[i % letters.length]));
-  }
-  return parts.join(" ");
-}
-
 function editorForceShortDuration() {
   if (editorNote.dur !== "e" && editorNote.dur !== "s") {
     editorNote.dur = "e";
   }
 }
 
+function editorStructureOpenClose(kind) {
+  if (kind === "beam") {
+    return { open: "{", close: "}" };
+  }
+  if (kind === "stack") {
+    return { open: "[", close: "]" };
+  }
+  if (kind === "tuplet") {
+    return { open: "(3 ", close: ")" };
+  }
+  return null;
+}
+
 /*
  * True when a Beam / Triplet / Stack tap would nest the same shell the parser
  * rejects (beam-in-beam, stack-in-stack, tuplet-in-tuplet). Cross-kind stays
- * open (e.g. a beam or stack inside a tuplet).
+ * open where the parser allows it (e.g. a beam or stack inside a tuplet).
  */
 function editorStructureWouldNest(kind) {
   var span = editorLineSpan();
@@ -3349,6 +3353,62 @@ function editorRelInsideStructure(line, rel, kind) {
   return false;
 }
 
+function editorCaretInsideStructure(kind) {
+  var span = editorLineSpan();
+  var sel;
+  var line;
+  var rel;
+  if (!span || !kind) {
+    return false;
+  }
+  sel = editorReadSelection(span.field);
+  if (sel.start !== sel.end) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = sel.start - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  return editorRelInsideStructure(line, rel, kind);
+}
+
+/* Beam↔stack and tuplet-inside-beam/stack are illegal; refuse those parents. */
+function editorStructureParentBlocks(kind, line, rel) {
+  if (kind === "beam") {
+    return editorRelInsideStructure(line, rel, "stack");
+  }
+  if (kind === "stack") {
+    return editorRelInsideStructure(line, rel, "beam");
+  }
+  if (kind === "tuplet") {
+    return (
+      editorRelInsideStructure(line, rel, "beam") || editorRelInsideStructure(line, rel, "stack")
+    );
+  }
+  return false;
+}
+
+function editorInnermostGroupAt(line, rel, kind) {
+  var groups = editorFindBalancedGroups(line);
+  var best = null;
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== kind || rel <= g.open || rel >= g.closeEnd) {
+      continue;
+    }
+    if (!best || g.closeEnd - g.open < best.closeEnd - best.open) {
+      best = g;
+    }
+  }
+  return best;
+}
+
 function editorRangeNestsStructure(line, start, end, kind) {
   var groups = editorFindBalancedGroups(line);
   var i;
@@ -3405,50 +3465,178 @@ function editorWrapSelection(open, close) {
   return true;
 }
 
-function editorInsertBeamGroup() {
+/* Move caret just after the closer so the next pad symbol is outside the group. */
+function editorCloseStructure(kind) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var g;
+  var silent;
+  if (!span || !kind) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  g = editorInnermostGroupAt(line, rel, kind);
+  if (!g) {
+    return false;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, span.lineStart + g.closeEnd, span.lineStart + g.closeEnd, silent);
+  editorPaintNotePad();
+  return true;
+}
+
+function editorStructureHit(kind) {
+  var pitch;
+  var rhythm;
+  if (kind === "stack") {
+    return editorPitchAtCaret();
+  }
+  pitch = editorPitchAtCaret();
+  if (pitch) {
+    return pitch;
+  }
+  rhythm = editorRhythmAtCaret();
+  if (!rhythm) {
+    return null;
+  }
+  if (kind === "beam" && rhythm.kind === "rest") {
+    return null;
+  }
+  return rhythm;
+}
+
+/* Beam braces need e/s; rewrite a longer note or slash to the lit short duration. */
+function editorRewriteShortToken(hit) {
+  var short;
+  var parsed;
+  var base;
+  if (!hit) {
+    return "";
+  }
   editorForceShortDuration();
-  if (editorStructureWouldNest("beam")) {
-    editorPaintNotePad();
+  short = editorDurCode(editorNote.dur) || "e";
+  if (hit.kind === "slash") {
+    return "/" + short + (editorNote.dot ? "." : "");
+  }
+  if (hit.kind !== "pitch") {
+    return hit.token;
+  }
+  parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?$/.exec(hit.token || "");
+  if (!parsed) {
+    return hit.token;
+  }
+  base = String(parsed[4] || "").replace(".", "");
+  if (base === "e" || base === "s") {
+    return hit.token;
+  }
+  return parsed[1] + (parsed[2] || "") + parsed[3] + short + (editorNote.dot ? "." : "");
+}
+
+function editorStructureWrapHit(kind, hit) {
+  var pair = editorStructureOpenClose(kind);
+  var body;
+  var value;
+  var silent;
+  var caret;
+  if (!pair || !hit || !hit.field) {
+    return false;
+  }
+  body = kind === "beam" ? editorRewriteShortToken(hit) : hit.token;
+  editorPushSymbolUndo();
+  value = String(hit.field.value || "");
+  hit.field.value = value.slice(0, hit.start) + pair.open + body + pair.close + value.slice(hit.end);
+  caret = hit.start + pair.open.length + body.length;
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(hit.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+function editorStructureSeed(kind) {
+  var pair = editorStructureOpenClose(kind);
+  if (!pair) {
     return;
   }
-  if (editorWrapSelection("{", "}")) {
-    editorPaintNotePad();
-    return;
+  if (kind === "beam") {
+    editorForceShortDuration();
   }
   editorPushSymbolUndo();
-  editorInsertSymbol("{" + editorSeedPitchRun(2) + "}", 1);
+  editorInsertSymbol(pair.open + editorSeedPitchToken("C") + pair.close, pair.close.length);
   editorPaintNotePad();
+}
+
+/*
+ * Beam / Stack / Triplet: lit while the caret is inside that shell. First tap
+ * wraps the note (or selection) or seeds one event; second tap closes (caret
+ * after the closer) without removing the braces.
+ */
+function editorToggleStructure(kind) {
+  var span = editorLineSpan();
+  var line;
+  var sel;
+  var rel;
+  var pair;
+  var hit;
+  pair = editorStructureOpenClose(kind);
+  if (!span || !pair) {
+    return;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  sel = editorReadSelection(span.field);
+  rel = sel.start - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  if (sel.start === sel.end && editorRelInsideStructure(line, rel, kind)) {
+    editorCloseStructure(kind);
+    return;
+  }
+  if (sel.start === sel.end && editorStructureParentBlocks(kind, line, rel)) {
+    editorPaintNotePad();
+    return;
+  }
+  if (editorStructureWouldNest(kind)) {
+    editorPaintNotePad();
+    return;
+  }
+  if (kind === "beam") {
+    editorForceShortDuration();
+  }
+  if (editorWrapSelection(pair.open, pair.close)) {
+    editorPaintNotePad();
+    return;
+  }
+  hit = editorStructureHit(kind);
+  if (hit) {
+    editorStructureWrapHit(kind, hit);
+    return;
+  }
+  editorStructureSeed(kind);
+}
+
+function editorInsertBeamGroup() {
+  editorToggleStructure("beam");
 }
 
 function editorInsertTupletGroup() {
-  editorForceShortDuration();
-  if (editorStructureWouldNest("tuplet")) {
-    editorPaintNotePad();
-    return;
-  }
-  if (editorWrapSelection("(3 ", ")")) {
-    editorPaintNotePad();
-    return;
-  }
-  editorPushSymbolUndo();
-  editorInsertSymbol("(3 " + editorSeedPitchRun(3) + ")", 1);
-  editorPaintNotePad();
+  editorToggleStructure("tuplet");
 }
 
 function editorInsertStackGroup() {
-  if (editorStructureWouldNest("stack")) {
-    return;
-  }
-  if (editorWrapSelection("[", "]")) {
-    return;
-  }
-  editorPushSymbolUndo();
-  editorInsertSymbol(
-    "[" +
-      [editorSeedPitchToken("C"), editorSeedPitchToken("E"), editorSeedPitchToken("G")].join(" ") +
-      "]",
-    1
-  );
+  editorToggleStructure("stack");
 }
 
 /* opts.skipUndo: hold-repeat steps share one undo pushed by the first tap. */
@@ -3797,10 +3985,28 @@ function editorPaintNoteEvents(row) {
   editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"));
   editorPaintClefToggle(row);
   editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"));
-  editorPadButton(row, { "data-event": "beam" }, editorMusicIcon("beam"), t("edit.noteBeam"));
-  editorPadButton(row, { "data-event": "tuplet" }, editorMusicIcon("tuplet"), t("edit.noteTuplet"));
+  editorPadButton(
+    row,
+    { "data-event": "beam" },
+    editorMusicIcon("beam"),
+    t("edit.noteBeam"),
+    editorCaretInsideStructure("beam")
+  );
+  editorPadButton(
+    row,
+    { "data-event": "tuplet" },
+    editorMusicIcon("tuplet"),
+    t("edit.noteTuplet"),
+    editorCaretInsideStructure("tuplet")
+  );
   editorPadButton(row, { "data-event": "chord" }, editorMusicIcon("chord"), t("edit.noteChord"));
-  editorPadButton(row, { "data-event": "stack" }, editorMusicIcon("stack"), t("edit.noteStack"));
+  editorPadButton(
+    row,
+    { "data-event": "stack" },
+    editorMusicIcon("stack"),
+    t("edit.noteStack"),
+    editorCaretInsideStructure("stack")
+  );
 }
 
 function editorPaintNotePad() {

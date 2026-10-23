@@ -1312,8 +1312,16 @@ function staffParseTupletAt(tokens, i, clef) {
   for (k = 0; k < events.length; k++) {
     count += events[k].type === "beam" ? events[k].notes.length : 1;
   }
+  if (count < 1) {
+    return { error: "empty tuplet", tok: tokens[i] };
+  }
+  /*
+   * One timed unit (note, rest, slash, stack, or single-note beam): keep the
+   * `(N …)` shell in the text so Erase can peel, but draw and time it as if
+   * the wrapper were not there (pad builds `(3 C4e)` then adds more).
+   */
   if (count < 2) {
-    return { error: "tuplet needs two or more notes", tok: tokens[i] };
+    return { event: events[0], next: j + 1 };
   }
   /* A ~ on the last note of the group continues into the note after the tuplet. */
   var hang = staffLastEvent(events);

@@ -712,7 +712,18 @@ function staffTuplets(w) {
   check("nested tuplet is rejected", !w.parseMusicNotation("(3 C4e (3 D4e E4e) F4e)"));
   check("unclosed tuplet is rejected", !w.parseMusicNotation("(3 C4e D4e E4e"));
   check("barline inside a tuplet is rejected", !w.parseMusicNotation("(3 C4q | D4q E4q)"));
-  check("one-note tuplet is rejected", !w.parseMusicNotation("(3 C4q)"));
+  var oneNoteTuplet = w.parseMusicNotation("(3 C4q)");
+  check(
+    "one-note tuplet draws as a plain note",
+    !!(
+      oneNoteTuplet &&
+      oneNoteTuplet.events.length === 1 &&
+      oneNoteTuplet.events[0].type === "note" &&
+      oneNoteTuplet.events[0].pitch &&
+      oneNoteTuplet.events[0].pitch.letter === "C"
+    )
+  );
+  check("empty tuplet is rejected", !w.parseMusicNotation("(3 )"));
   var mixed = w.parseMusicNotation("(3 /q /e)");
   check(
     "mixed triplet lasts one beat",
