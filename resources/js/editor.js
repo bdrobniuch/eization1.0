@@ -67,6 +67,8 @@ var editorHoldRepeatTimer = null;
 var editorHoldUndoPushed = false;
 var editorHoldRepeatAction = null;
 var editorEraseLastAt = 0;
+/* One Analytics bag per Edit open; flushed in editorCloseQuiet. */
+var editorAnalytics = null;
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
@@ -423,6 +425,15 @@ function editorToggleDefaults() {
   open = panel.hidden;
   panel.hidden = !open;
   btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) {
+    editorAnalyticsMark("used_defaults");
+    if (typeof track === "function") {
+      track("edit_defaults", {
+        mode: editorIsCreateMode() ? "create" : "edit",
+        kind: editorAnalyticsKind()
+      });
+    }
+  }
 }
 
 function editorPartDefaults() {
@@ -522,6 +533,108 @@ function setEditorCommitsEnabled(on) {
 
 function editorIsCreateMode() {
   return editorDraft.mode === "create";
+}
+
+function editorAnalyticsKind() {
+  return editorStaffOn() ? "staff" : "text";
+}
+
+function editorAnalyticsExerciseId() {
+  if (editorIsCreateMode()) {
+    return "custom";
+  }
+  return typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom";
+}
+
+function editorAnalyticsExampleCount() {
+  var area = document.getElementById("allEdit");
+  if (!area) {
+    return 0;
+  }
+  return editorLinesFrom(area.value).length;
+}
+
+function editorAnalyticsInputOf(a) {
+  var pad;
+  var type;
+  var paste;
+  if (!a) {
+    return "none";
+  }
+  pad = !!a.used_pad;
+  type = !!a.used_type;
+  paste = !!a.used_paste;
+  if (pad && type) {
+    return "both";
+  }
+  if (pad) {
+    return "pad";
+  }
+  if (type) {
+    return "type";
+  }
+  if (paste) {
+    return "paste";
+  }
+  return "none";
+}
+
+function editorAnalyticsBegin(source) {
+  editorAnalytics = {
+    mode: editorIsCreateMode() ? "create" : "edit",
+    exercise_id: editorAnalyticsExerciseId(),
+    source: source || "edit",
+    used_symbols: false,
+    used_help: false,
+    used_sample: false,
+    used_defaults: false,
+    used_pad: false,
+    used_type: false,
+    used_paste: false,
+    focus_adds: 0,
+    outcome: null,
+    dirty: false
+  };
+}
+
+function editorAnalyticsMark(flag) {
+  if (!editorAnalytics || !flag) {
+    return;
+  }
+  editorAnalytics[flag] = true;
+}
+
+function editorAnalyticsOutcome(outcome, dirty) {
+  if (!editorAnalytics) {
+    return;
+  }
+  editorAnalytics.outcome = outcome;
+  if (typeof dirty === "boolean") {
+    editorAnalytics.dirty = dirty;
+  }
+}
+
+function editorFlushSession() {
+  var a = editorAnalytics;
+  editorAnalytics = null;
+  if (!a || typeof track !== "function") {
+    return;
+  }
+  track("edit_session", {
+    mode: a.mode,
+    exercise_id: a.exercise_id,
+    kind: editorAnalyticsKind(),
+    example_count: editorAnalyticsExampleCount(),
+    input: editorAnalyticsInputOf(a),
+    used_help: !!a.used_help,
+    used_symbols: !!a.used_symbols,
+    used_sample: !!a.used_sample,
+    used_defaults: !!a.used_defaults,
+    focus_adds: a.focus_adds || 0,
+    outcome: a.outcome || "close",
+    dirty: !!a.dirty,
+    source: a.source || "edit"
+  });
 }
 
 function syncEditorCommitLabels() {
@@ -757,9 +870,11 @@ function editorOpenSymbols() {
   var panel = document.getElementById("editSymbols");
   var button = document.getElementById("editSymbolsToggle");
   var field;
+  var firstOpen;
   if (!panel) {
     return;
   }
+  firstOpen = panel.hidden;
   panel.hidden = false;
   if (button) {
     button.setAttribute("aria-expanded", "true");
@@ -769,6 +884,15 @@ function editorOpenSymbols() {
   field = editorActiveField();
   if (field && document.activeElement === field) {
     field.blur();
+  }
+  if (firstOpen) {
+    editorAnalyticsMark("used_symbols");
+    if (typeof track === "function") {
+      track("edit_symbols_open", {
+        mode: editorIsCreateMode() ? "create" : "edit",
+        kind: editorAnalyticsKind()
+      });
+    }
   }
 }
 
@@ -918,9 +1042,11 @@ function editorOpenStaffHelp() {
   var sheet = document.getElementById("textdiv");
   var closeBtn = document.getElementById("editStaffHelpClose");
   var area = document.getElementById("allEdit");
+  var firstOpen;
   if (!panel || !editorIsOpen()) {
     return;
   }
+  firstOpen = panel.hidden;
   editorCloseMore();
   editorCloseSymbols();
   if (editorIsFocusMode()) {
@@ -942,6 +1068,15 @@ function editorOpenStaffHelp() {
   }
   if (closeBtn) {
     closeBtn.focus();
+  }
+  if (firstOpen) {
+    editorAnalyticsMark("used_help");
+    if (typeof track === "function") {
+      track("edit_staff_help", {
+        mode: editorIsCreateMode() ? "create" : "edit",
+        kind: editorAnalyticsKind()
+      });
+    }
   }
 }
 
@@ -968,6 +1103,7 @@ function editorCloseQuiet() {
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
   }
+  editorFlushSession();
   editorCloseStaffHelp({ focus: false });
   editorCloseMore();
   editorCloseDefaults();
@@ -1249,14 +1385,24 @@ function editorSetViewMode(mode) {
 }
 
 function editorToggleViewMode() {
+  var next;
   if (!editorIsOpen()) {
     return;
   }
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
+    next = "list";
     editorSetViewMode("list");
   } else {
+    next = "focus";
     editorSetViewMode("focus");
+  }
+  if (typeof track === "function") {
+    track("edit_view", {
+      view: next,
+      mode: editorIsCreateMode() ? "create" : "edit",
+      kind: editorAnalyticsKind()
+    });
   }
 }
 
@@ -1296,6 +1442,9 @@ function editorFocusAdd() {
   var caret;
   var index;
   var field;
+  if (editorAnalytics) {
+    editorAnalytics.focus_adds = (editorAnalytics.focus_adds || 0) + 1;
+  }
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
     lines = editorRawLines();
@@ -3617,6 +3766,7 @@ function editorPaintUndoRedo() {
 
 function editorWithKeyboardStaffEdit(fn) {
   editorKeyboardStaffEdit = true;
+  editorAnalyticsMark("used_type");
   try {
     fn();
   } finally {
@@ -3781,6 +3931,7 @@ function editorActivateSymbol(button, opts) {
   if (!button) {
     return;
   }
+  editorAnalyticsMark("used_pad");
   if (button.hasAttribute("data-undo")) {
     editorSymbolUndoStep();
     return;
@@ -3896,6 +4047,12 @@ function editorPutSample(line) {
   var caret;
   if (!sample || !editorIsOpen()) {
     return;
+  }
+  editorAnalyticsMark("used_sample");
+  if (typeof track === "function") {
+    track("edit_staff_sample", {
+      mode: editorIsCreateMode() ? "create" : "edit"
+    });
   }
   disarmEditorDelete();
   if (editorIsFocusMode()) {
@@ -4117,9 +4274,14 @@ function editorOpenSheet(options) {
     }
   }
   refreshEditor();
+  editorAnalyticsBegin("edit");
   if (typeof track === "function") {
     track("edit_open", {
-      exercise_id: editorIsCreateMode() ? "custom" : (typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom")
+      exercise_id: editorAnalyticsExerciseId(),
+      mode: editorIsCreateMode() ? "create" : "edit",
+      kind: editorAnalyticsKind(),
+      example_count: editorAnalyticsExampleCount(),
+      source: "edit"
     });
   }
 }
@@ -4242,17 +4404,40 @@ function editorOpenSharePreview(spec) {
     }
   }
   refreshEditor();
+  editorAnalyticsBegin("share");
+  if (typeof track === "function") {
+    track("edit_open", {
+      exercise_id: editorAnalyticsExerciseId(),
+      mode: editorIsCreateMode() ? "create" : "edit",
+      kind: editorAnalyticsKind(),
+      example_count: editorAnalyticsExampleCount(),
+      source: "share"
+    });
+  }
 }
 
 function editorCancel() {
+  var dirty;
+  var face;
   if (!editorIsOpen()) {
     return;
+  }
+  dirty = editorIsDirty();
+  editorAnalyticsOutcome("cancel", dirty);
+  if (typeof track === "function") {
+    track("edit_cancel", {
+      mode: editorIsCreateMode() ? "create" : "edit",
+      kind: editorAnalyticsKind(),
+      dirty: dirty,
+      example_count: editorAnalyticsExampleCount(),
+      source: editorAnalytics ? editorAnalytics.source : "edit"
+    });
   }
   if (typeof sharePreview !== "undefined" && sharePreview && typeof cancelSharePreview === "function") {
     cancelSharePreview();
     return;
   }
-  var face = document.getElementById("exerciseFace");
+  face = document.getElementById("exerciseFace");
   if (face && typeof setComboLabel === "function") {
     setComboLabel(face, editorDraft.label);
   }
@@ -4838,6 +5023,17 @@ function editorUpdate() {
     return;
   }
   var fromShare = typeof sharePreview !== "undefined" && !!sharePreview;
+  var updateParams = {
+    exercise_id: typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom",
+    mode: "edit",
+    kind: editorStaffOn() ? "staff" : "text",
+    example_count: lines.length,
+    source: editorAnalytics ? editorAnalytics.source : "edit"
+  };
+  editorAnalyticsOutcome("update", false);
+  if (typeof track === "function") {
+    track("edit_update", updateParams);
+  }
   currentExerciseId = saved.id;
   editorCloseQuiet();
   if (fromShare && typeof finishShareEdit === "function") {
@@ -4852,9 +5048,6 @@ function editorUpdate() {
   }
   if (typeof rememberSetup === "function") {
     rememberSetup();
-  }
-  if (typeof track === "function") {
-    track("edit_update", { exercise_id: typeof analyticsExerciseId === "function" ? analyticsExerciseId() : "custom" });
   }
 }
 
@@ -4904,6 +5097,18 @@ function editorSaveAsNew() {
     editorNotice(t("desk.keepFail"));
     return;
   }
+  var createMode = editorIsCreateMode();
+  var saveParams = {
+    exercise_id: "custom",
+    mode: createMode ? "create" : "edit",
+    kind: editorStaffOn() ? "staff" : "text",
+    example_count: lines.length,
+    source: editorAnalytics ? editorAnalytics.source : "edit"
+  };
+  editorAnalyticsOutcome(createMode ? "create" : "save_as", false);
+  if (typeof track === "function") {
+    track("edit_save_as", saveParams);
+  }
   currentExerciseId = created.id;
   editorCloseQuiet();
   if (fromShare && typeof finishShareEdit === "function") {
@@ -4918,9 +5123,6 @@ function editorSaveAsNew() {
   }
   if (typeof rememberSetup === "function") {
     rememberSetup();
-  }
-  if (typeof track === "function") {
-    track("edit_save_as", { exercise_id: "custom" });
   }
 }
 
@@ -4948,8 +5150,13 @@ function editorDelete() {
   if (typeof deleteDeskExercise !== "function" || !deleteDeskExercise(id)) {
     return;
   }
+  editorAnalyticsOutcome("delete", false);
   if (typeof track === "function") {
-    track("edit_delete", { exercise_id: removedId });
+    track("edit_delete", {
+      exercise_id: removedId,
+      kind: editorAnalyticsKind(),
+      example_count: editorAnalyticsExampleCount()
+    });
   }
   currentExerciseId = typeof firstDeskExerciseId === "function" ? firstDeskExerciseId() : "";
   editorCloseQuiet();
@@ -5625,9 +5832,13 @@ function initEditor() {
         var decoded = itemToLine(line);
         return decoded || line.replace(/^\s+|\s+$/g, "");
       }).join("\n");
-      editorWithKeyboardStaffEdit(function () {
+      editorAnalyticsMark("used_paste");
+      editorKeyboardStaffEdit = true;
+      try {
         insertEditorText(cleaned);
-      });
+      } finally {
+        editorKeyboardStaffEdit = false;
+      }
     });
     focusField.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
@@ -5697,9 +5908,13 @@ function initEditor() {
       var decoded = itemToLine(line);
       return decoded || line.replace(/^\s+|\s+$/g, "");
     }).join("\n");
-    editorWithKeyboardStaffEdit(function () {
+    editorAnalyticsMark("used_paste");
+    editorKeyboardStaffEdit = true;
+    try {
       insertEditorText(cleaned);
-    });
+    } finally {
+      editorKeyboardStaffEdit = false;
+    }
   });
   area.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
@@ -5723,7 +5938,18 @@ function initEditor() {
       return;
     }
     button.addEventListener("click", function () {
-      setEditorStaff(id === "editKindStaff");
+      var wantStaff = id === "editKindStaff";
+      var wasStaff = editorStaffOn();
+      if (wantStaff === wasStaff) {
+        return;
+      }
+      setEditorStaff(wantStaff);
+      if (typeof track === "function") {
+        track("edit_kind", {
+          kind: wantStaff ? "staff" : "text",
+          mode: editorIsCreateMode() ? "create" : "edit"
+        });
+      }
       disarmEditorDelete();
       clearEditorNotice();
       refreshEditor();
