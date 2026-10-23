@@ -9,12 +9,36 @@
   var kind = "all";
   var struggle = "";
   var query = "";
+  var searchTimer = null;
+  var searchTracked = "";
 
   if (!root) {
     return;
   }
 
   cards = Array.prototype.slice.call(root.querySelectorAll(".more-exercise"));
+
+  function moreTrack(name, params) {
+    if (typeof gtag !== "function") {
+      return;
+    }
+    gtag("event", name, params || {});
+  }
+
+  function cardId(card) {
+    return (card && (card.id || card.getAttribute("data-share-id"))) || "";
+  }
+
+  function visibleCount() {
+    var shown = 0;
+    var i;
+    for (i = 0; i < cards.length; i++) {
+      if (!cards[i].hidden) {
+        shown++;
+      }
+    }
+    return shown;
+  }
 
   function norm(text) {
     return String(text || "")
@@ -90,6 +114,7 @@
     card = visible[Math.floor(Math.random() * visible.length)];
     link = card.querySelector(".opens a.open");
     if (link) {
+      moreTrack("more_surprise", { exercise_id: cardId(card) });
       window.location.href = link.href;
     }
   }
@@ -170,12 +195,25 @@
     var struggleBtn = event.target.closest("[data-more-struggle]");
     var randomBtn = event.target.closest("[data-more-random]");
     var clearBtn = event.target.closest("[data-more-clear]");
+    var openLink = event.target.closest(".more-exercise .opens a.open");
+    var card;
+    if (openLink) {
+      card = openLink.closest(".more-exercise");
+      moreTrack("more_open", {
+        exercise_id: cardId(card),
+        kind: card ? card.getAttribute("data-kind") || "" : "",
+        group: card ? card.getAttribute("data-group") || "" : ""
+      });
+    }
     if (groupBtn) {
       group = groupBtn.getAttribute("data-value") || "all";
       struggle = "";
       setPressed("[data-more-group]", group);
       setPressed("[data-more-struggle]", "");
       apply();
+      if (group !== "all") {
+        moreTrack("more_filter", { field: "group", value: group, results: visibleCount() });
+      }
       if (tools) {
         tools.scrollIntoView({ block: "nearest" });
       }
@@ -185,6 +223,9 @@
       kind = kindBtn.getAttribute("data-value") || "all";
       setPressed("[data-more-kind]", kind);
       apply();
+      if (kind !== "all") {
+        moreTrack("more_filter", { field: "kind", value: kind, results: visibleCount() });
+      }
       return;
     }
     if (struggleBtn) {
@@ -196,6 +237,9 @@
       setPressed("[data-more-struggle]", struggle);
       setPressed("[data-more-group]", "all");
       apply();
+      if (struggle) {
+        moreTrack("more_struggle", { tag: struggle, results: visibleCount() });
+      }
       if (tools) {
         tools.scrollIntoView({ block: "nearest" });
       }
@@ -212,6 +256,7 @@
       kind = "all";
       struggle = "";
       query = "";
+      searchTracked = "";
       if (search) {
         search.value = "";
       }
@@ -226,6 +271,17 @@
     search.addEventListener("input", function () {
       query = norm(search.value);
       apply();
+      if (searchTimer) {
+        clearTimeout(searchTimer);
+      }
+      searchTimer = setTimeout(function () {
+        searchTimer = null;
+        if (!query || query === searchTracked) {
+          return;
+        }
+        searchTracked = query;
+        moreTrack("more_search", { has_results: visibleCount() > 0, results: visibleCount() });
+      }, 600);
     });
   }
 

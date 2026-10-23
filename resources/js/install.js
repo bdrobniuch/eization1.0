@@ -10,6 +10,34 @@ var installNoted = false;
 var installDue = false;
 var installTimer = null;
 var installKind = "other";
+var installShowTracked = false;
+var installRunningTracked = false;
+var installAcceptTracked = false;
+
+function installTrack(name, params) {
+  if (typeof track === "function") {
+    track(name, params);
+    return;
+  }
+  try {
+    if (String(window.location.search || "").indexOf("smoke=1") !== -1) {
+      return;
+    }
+  } catch (err) {
+    return;
+  }
+  if (typeof gtag === "function") {
+    gtag("event", name, params || {});
+  }
+}
+
+function installTrackAccept(source) {
+  if (installAcceptTracked) {
+    return;
+  }
+  installAcceptTracked = true;
+  installTrack("install_accept", { kind: installKind, source: source });
+}
 
 var INSTALL_STEP = {
   ios: "install.ios",
@@ -328,6 +356,17 @@ function installSync() {
   if (chip) {
     chip.hidden = !show;
   }
+  if (show) {
+    if (!installShowTracked) {
+      installShowTracked = true;
+      installTrack("install_prompt_show", {
+        kind: installKind,
+        source: installFromMenu ? "menu" : "auto"
+      });
+    }
+  } else {
+    installShowTracked = false;
+  }
   installPlace();
   if (hello && typeof placeHelloCaption === "function") {
     placeHelloCaption();
@@ -405,9 +444,11 @@ function installActivate() {
     if (choice && choice.outcome === "accepted") {
       installAccepted = true;
       installFromMenu = false;
+      installTrackAccept("prompt");
       installSync();
       return;
     }
+    installTrack("install_dismiss", { kind: installKind, source: "prompt" });
     installShowSteps();
   }, function () {
     installShowSteps();
@@ -417,6 +458,10 @@ function installActivate() {
 function installDismiss() {
   var menuOnly = installFromMenu && !installNoted;
   var steps = document.getElementById("installSteps");
+  installTrack("install_dismiss", {
+    kind: installKind,
+    source: menuOnly ? "menu" : "chip"
+  });
   installFromMenu = false;
   if (!menuOnly) {
     installVisitOff = true;
@@ -448,6 +493,7 @@ function installBuild() {
   menu = document.getElementById("aboutInstall");
   if (menu) {
     menu.addEventListener("click", function () {
+      installTrack("install_menu", { kind: installKind });
       if (typeof closeAbout === "function") {
         closeAbout();
       }
@@ -491,6 +537,7 @@ window.addEventListener("beforeinstallprompt", function (event) {
 window.addEventListener("appinstalled", function () {
   installAccepted = true;
   installFromMenu = false;
+  installTrackAccept("appinstalled");
   installSync();
 });
 
@@ -499,3 +546,10 @@ installBuild();
 installApplyLanguage();
 installWatch();
 installSchedule();
+window.setTimeout(function () {
+  if (installRunningTracked || !installRunning() || installQuiet()) {
+    return;
+  }
+  installRunningTracked = true;
+  installTrack("install_running", { kind: installKind });
+}, 0);

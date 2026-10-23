@@ -26,6 +26,52 @@
     }
   }
 
+  function ctaParams(href) {
+    var url;
+    var id;
+    var params = {};
+    try {
+      url = new URL(href, window.location.href);
+    } catch (err) {
+      return params;
+    }
+    id = url.searchParams.get("exercise") || "";
+    if (id) {
+      params.exercise_id = id;
+    }
+    if (url.searchParams.get("today") === "1") {
+      params.today = "1";
+    }
+    if (url.hash && url.hash.indexOf("s") === 1) {
+      params.share = "1";
+    }
+    return params;
+  }
+
+  function isPracticeOpen(link) {
+    var href;
+    var url;
+    if (!link || link.tagName !== "A") {
+      return false;
+    }
+    href = link.getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#" || /practice\.html(?:$|[?#])/i.test(href)) {
+      return false;
+    }
+    try {
+      url = new URL(href, window.location.href);
+    } catch (err) {
+      return false;
+    }
+    if (url.searchParams.get("exercise") || url.searchParams.get("today") === "1") {
+      return true;
+    }
+    if (url.hash && /^#(s2?=|s=)/.test(url.hash)) {
+      return true;
+    }
+    return false;
+  }
+
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(text);
@@ -52,11 +98,24 @@
   document.addEventListener("click", function (event) {
     var share = event.target.closest("[data-share]");
     var embed = event.target.closest("[data-embed]");
+    var openCta = event.target.closest("a.open");
     var button = share || embed;
     var link;
     var url;
     var id;
     var snippet;
+    var params;
+    if (openCta && isPracticeOpen(openCta) && !share && !embed) {
+      params = ctaParams(openCta.getAttribute("href") || "");
+      if (openCta.closest(".more-exercise")) {
+        params.source = "more";
+      } else {
+        params.source = "guide";
+      }
+      if (typeof gtag === "function") {
+        gtag("event", "guide_cta", params);
+      }
+    }
     if (!button) {
       return;
     }

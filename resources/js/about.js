@@ -355,6 +355,9 @@ var studioOfferOpen = false;
 function armStudioOffer() {
   var button = document.getElementById("shareFeedback");
   studioOfferOpen = true;
+  if (typeof track === "function") {
+    track("studio_interest", { action: "open" });
+  }
   if (!button) {
     return;
   }
@@ -368,6 +371,9 @@ function writeFeedback() {
   var button;
   if (studioOfferOpen) {
     studioOfferOpen = false;
+    if (typeof track === "function") {
+      track("studio_interest", { action: "write" });
+    }
     openMailDraft(t("offer.subject"), t("offer.body"));
     if (typeof clearExerciseQuery === "function") {
       clearExerciseQuery();

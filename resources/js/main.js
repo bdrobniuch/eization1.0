@@ -6,6 +6,7 @@ var analyticsOff = false;
 var nextExampleSeen = {};
 var embedded = false;
 var passShareSeen = {};
+var tempoSessionStarted = 0;
 
 try {
   analyticsOff = String(window.location.search || "").indexOf("smoke=1") !== -1;
@@ -1212,6 +1213,7 @@ function offerPassShare() {
     return;
   }
   passShareSeen[currentExerciseId] = true;
+  track("pass_complete", { exercise_id: row.seedId || "custom" });
   if (typeof deskNoteTimer !== "undefined" && deskNoteTimer) {
     clearTimeout(deskNoteTimer);
     deskNoteTimer = null;
@@ -1516,12 +1518,26 @@ function init() {
   });
   document.getElementById("tempoToggle").addEventListener("click", function () {
     var starting;
+    var params;
+    var secs;
     if (typeof editorIsOpen === "function" && editorIsOpen()) {
       return;
     }
     starting = paused || !(currentBpm > 0);
     toggleTempo();
-    track(starting ? "tempo_start" : "tempo_stop", { exercise_id: analyticsExerciseId() });
+    params = { exercise_id: analyticsExerciseId() };
+    if (starting) {
+      tempoSessionStarted = Date.now();
+      params.bpm = typeof currentBpm === "number" ? currentBpm : 0;
+      track("tempo_start", params);
+      return;
+    }
+    secs = tempoSessionStarted ? Math.round((Date.now() - tempoSessionStarted) / 1000) : 0;
+    tempoSessionStarted = 0;
+    params.duration_s = secs;
+    params.bpm = typeof tempoHeld === "number" ? tempoHeld : (typeof currentBpm === "number" ? currentBpm : 0);
+    track("tempo_stop", params);
+    track("tempo_session", params);
   });
   var deskNote = document.getElementById("deskNote");
   if (deskNote) {
