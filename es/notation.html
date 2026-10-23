@@ -74,7 +74,8 @@
         </section>
 
         <h2>Una nota, y luego las duraciones</h2>
-        <p>Letra y octava. Cada nota es su propia palabra: <code>C4 E4</code> son dos notas; <code>C4E4</code> no. <code>C4</code> es el do central, una negra. Después de la octava: <code>w</code> redonda, <code>h</code> blanca, <code>q</code> negra, <code>e</code> corchea, <code>s</code> semicorchea, <code>n</code> una cabeza de negra sin plica (un tiempo, <code>C4n</code>). El puntillo va después de la duración: <code>q.</code> <code>w.</code>. <code>n.</code> no se lee. Alteraciones: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> o <code>C##4</code>, <code>Ebb4</code>. Símbolos en Editar (cerrado hasta que lo abras) inserta ♯ ♭ ♮ y los demás caracteres musicales; se leen igual.</p>
+        <p>Letra y octava. Cada nota es su propia palabra: <code>C4 E4</code> son dos notas; <code>C4E4</code> no. <code>C4</code> es el do central, una negra. Después de la octava: <code>w</code> redonda, <code>h</code> blanca, <code>q</code> negra, <code>e</code> corchea, <code>s</code> semicorchea, <code>n</code> una cabeza de negra sin plica (un tiempo, <code>C4n</code>). El puntillo va después de la duración: <code>q.</code> <code>w.</code>. <code>n.</code> no se lee. Alteraciones: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> o <code>C##4</code>, <code>Ebb4</code>.</p>
+        <p>Símbolos en Editar permanece cerrado hasta que lo abras. En un ejercicio de pentagrama es un teclado de letras: toca una letra para escribir la nota, luego la duración, el puntillo, la octava, las alteraciones, slash o silencio, barra, grupo irregular, acorde, deshacer y borrar. En un ejercicio de texto inserta ♯ ♭ ♮ y los demás signos de cifrado. Lo escrito a mano se lee igual.</p>
         <figure class="notation-sample">
             <pre>C4</pre>
             <div class="notation-staff"></div>
@@ -86,12 +87,22 @@
 
         <h2>Clave y armadura</h2>
         <p><code>@treble</code> o <code>@bass</code>, y <code>@key=</code>, en cualquier orden. Por defecto es clave de sol, tonalidad de do. <code>@key=Eb</code> es mi bemol mayor. <code>@key=Am</code> imprime la armadura del relativo mayor (do). Un <code>!</code> después de la octava imprime la alteración aunque la armadura ya la tenga (<code>F#4!</code>).</p>
+        <p>En Editar, Metro (⋯) fija la clave, la tonalidad y el compás recomendado de todo el ejercicio. <code>@bass</code> / <code>@treble</code> / <code>@key=</code> en la línea siguen mandando. El compás no se escribe en la línea; un metro recomendado puede actualizar Ajustes al abrir el ejercicio. Pentagrama junto a Compases abre una guía corta; toca un ejemplo para insertar esa línea.</p>
         <figure class="notation-sample">
             <pre>@key=Eb Eb4 F4 G4 Ab4 Bb4</pre>
             <div class="notation-staff"></div>
         </figure>
         <figure class="notation-sample">
             <pre>@bass @key=F C3 E3 F3 A3</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <p>Solo clave y armadura siguen dibujando un pentagrama vacío. Un cifrado sin nota después es un acorde de línea sobre ese pentagrama vacío.</p>
+        <figure class="notation-sample">
+            <pre>@bass @key=D</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>@key=G ^G_Major</pre>
             <div class="notation-staff"></div>
         </figure>
 
@@ -103,9 +114,13 @@
         </figure>
 
         <h2>Un acorde</h2>
-        <p>Los corchetes apilan un acorde. La misma duración en cada nota es la forma clara de escribirlo. <code>^</code> después del corchete de cierre es el cifrado sobre el acorde. <code>_</code> es el texto debajo. Un acorde puede llevar los dos. El cifrado puede usar ∆. <code>^bVII</code> y <code>_bVII</code> se ven como ♭VII. <code>_bbVII</code> se ve como 𝄫VII.</p>
+        <p>Los corchetes apilan un acorde. La misma duración en cada nota es la forma clara de escribirlo. <code>^</code> después del corchete de cierre es el cifrado sobre el acorde. <code>_</code> es el texto debajo. Un acorde puede llevar los dos. El cifrado puede usar ∆. <code>^bVII</code> y <code>_bVII</code> se ven como ♭VII. <code>_bbVII</code> se ve como 𝄫VII. Dentro de una palabra de cifrado sobre el pentagrama, <code>_</code> es un espacio: <code>^Any_dom_7</code>.</p>
         <figure class="notation-sample">
             <pre>@bass @key=C [E3h G3h B3h D4h]^C∆7_3</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>^Any_dom_7 / / / /</pre>
             <div class="notation-staff"></div>
         </figure>
 
