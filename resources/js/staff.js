@@ -1783,9 +1783,10 @@ function staffReadMeter() {
   return { top: top, bottom: bottom };
 }
 
-function renderMusicStaff(source, role) {
+function renderMusicStaff(source, role, opts) {
   var raw = typeof source === "string" ? source.trim() : "";
   var ast;
+  var showMeter = !(opts && opts.showMeter === false);
   if (!raw) {
     /* Empty line: default treble, key C, meter from Setup — clef + time + staff only. */
     ast = {
@@ -2387,17 +2388,23 @@ function renderMusicStaff(source, role) {
   var timeTopNames = staffTimeDigitNames(meter.top);
   var timeBotNames = staffTimeDigitNames(meter.bottom);
   var timeSpaceProbe = lineGap;
-  var timeW = timeCommon
-    ? staffGlyphAdvance("timeSigCommon", timeSpaceProbe)
-    : timeCut
-      ? staffGlyphAdvance("timeSigCutCommon", timeSpaceProbe)
-      : Math.max(
-          staffTimeRowWidth(timeTopNames, timeSpaceProbe),
-          staffTimeRowWidth(timeBotNames, timeSpaceProbe)
-        );
-  var timeX = cursorX + timeW / 2;
-  /* Extra room after meter so note accidentals / chord symbols clear the signature. */
-  cursorX += timeW + lineGap * 2.4;
+  var timeW = 0;
+  var timeX = cursorX;
+  if (showMeter) {
+    timeW = timeCommon
+      ? staffGlyphAdvance("timeSigCommon", timeSpaceProbe)
+      : timeCut
+        ? staffGlyphAdvance("timeSigCutCommon", timeSpaceProbe)
+        : Math.max(
+            staffTimeRowWidth(timeTopNames, timeSpaceProbe),
+            staffTimeRowWidth(timeBotNames, timeSpaceProbe)
+          );
+    timeX = cursorX + timeW / 2;
+    /* Extra room after meter so note accidentals / chord symbols clear the signature. */
+    cursorX += timeW + lineGap * 2.4;
+  } else {
+    cursorX += lineGap * 0.8;
+  }
   var notesStartX = cursorX;
 
   /*
@@ -2557,22 +2564,24 @@ function renderMusicStaff(source, role) {
   }
 
   /* SMuFL: digits 2 spaces tall per band; C / ₵ centered on the middle line. */
-  var timeSpace = lineGap * 0.9;
-  if (timeCommon || timeCut) {
-    var cName = timeCut ? "timeSigCutCommon" : "timeSigCommon";
-    var cAdv = staffGlyphAdvance(cName, timeSpace);
-    staffPlaceGlyph(svg, cName, timeX - cAdv / 2, staffTop + 2 * lineGap, timeSpace);
-  } else {
-    function staffDrawTimeRow(names, bandMidY) {
-      var rowW = staffTimeRowWidth(names, timeSpace);
-      var x = timeX - rowW / 2;
-      var di;
-      for (di = 0; di < names.length; di++) {
-        x += staffPlaceGlyph(svg, names[di], x, bandMidY, timeSpace);
+  if (showMeter) {
+    var timeSpace = lineGap * 0.9;
+    if (timeCommon || timeCut) {
+      var cName = timeCut ? "timeSigCutCommon" : "timeSigCommon";
+      var cAdv = staffGlyphAdvance(cName, timeSpace);
+      staffPlaceGlyph(svg, cName, timeX - cAdv / 2, staffTop + 2 * lineGap, timeSpace);
+    } else {
+      function staffDrawTimeRow(names, bandMidY) {
+        var rowW = staffTimeRowWidth(names, timeSpace);
+        var x = timeX - rowW / 2;
+        var di;
+        for (di = 0; di < names.length; di++) {
+          x += staffPlaceGlyph(svg, names[di], x, bandMidY, timeSpace);
+        }
       }
+      staffDrawTimeRow(timeTopNames, staffTop + lineGap);
+      staffDrawTimeRow(timeBotNames, staffTop + 3 * lineGap);
     }
-    staffDrawTimeRow(timeTopNames, staffTop + lineGap);
-    staffDrawTimeRow(timeBotNames, staffTop + 3 * lineGap);
   }
 
   /*

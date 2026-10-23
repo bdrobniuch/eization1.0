@@ -13,22 +13,30 @@ function notationApplyMeter(raw) {
   beatUnit = bottom;
 }
 
+function notationMeterSpecified(raw) {
+  return raw != null && String(raw).replace(/^\s+|\s+$/g, "") !== "";
+}
+
 function notationAppendStaff(host, source, meter) {
   host.textContent = "";
   host.classList.remove("is-text", "is-empty", "is-staff");
   var trimmed = String(source || "").replace(/^\s+|\s+$/g, "");
+  var showMeter = notationMeterSpecified(meter);
   if (!trimmed) {
     host.classList.add("is-empty");
     return { ok: false, notationIsh: false, music: "", caption: "" };
   }
-  notationApplyMeter(meter);
+  /* Layout still needs a meter; only the time-signature glyph follows data-meter. */
+  notationApplyMeter(showMeter ? meter : "4/4");
   var status =
     typeof staffNotationStatus === "function"
       ? staffNotationStatus(trimmed)
       : { ok: false, notationIsh: false, music: trimmed, caption: "" };
   if (status.ok && typeof renderMusicStaff === "function") {
     host.classList.add("is-staff");
-    var svg = renderMusicStaff(status.music || trimmed, "current");
+    var svg = renderMusicStaff(status.music || trimmed, "current", {
+      showMeter: showMeter
+    });
     if (svg) {
       var box = (svg.getAttribute("viewBox") || "").split(/\s+/);
       var w = parseFloat(box[2]);

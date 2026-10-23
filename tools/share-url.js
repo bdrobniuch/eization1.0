@@ -45,9 +45,11 @@ context.shareSnapshot = function (part) {
     shareId: part.id,
     name: part.name,
     bars: part.bars,
-    staff: !!part.staff,
     lines: part.lines
   };
+  if (part.staff === true || part.staff === false) {
+    snap.staff = part.staff;
+  }
   if (part.clef === "bass") {
     snap.clef = "bass";
   }
@@ -153,6 +155,7 @@ for (i = 0; i < data.length; i++) {
     id: ex.id,
     name: ex.nameEn,
     bars: ex.bars,
+    staff: ex.staff === true,
     lines: ex.lines,
     clef: ex.clef,
     key: ex.key,
