@@ -648,50 +648,6 @@ footer {
     display: none !important;
 }
 
-#meterAsk {
-    position: fixed;
-    left: 50%;
-    top: 1.6vmin;
-    z-index: 40;
-    width: min(92vw, 420px);
-    margin: 0;
-    padding: 1.2vmin 1.6vmin;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.32);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    color: #ffffff;
-    font-size: clamp(14px, 2.8vmin, 20px);
-    pointer-events: auto;
-    box-sizing: border-box;
-}
-
-#meterAsk[hidden] {
-    display: none !important;
-}
-
-#meterAsk p {
-    margin: 0 0 0.6vmin;
-}
-
-#meterAskActions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-#meterAskActions button {
-    min-height: 44px;
-    padding: 0 14px;
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    background: transparent;
-    color: #ffffff;
-    font: inherit;
-    font-size: 15px;
-    cursor: pointer;
-}
-
 #shareAsk {
     position: fixed;
     left: 50%;

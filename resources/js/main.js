@@ -241,71 +241,16 @@ function SelectExercise() {
   }
 }
 
-var meterAskDismissed = {};
-var meterAskPending = null;
-
-function hideMeterAsk() {
-  var bar = document.getElementById("meterAsk");
-  if (bar) {
-    bar.hidden = true;
-  }
-  meterAskPending = null;
-}
-
 function maybeOfferRecommendedMeter(record) {
   var meter;
-  var lead;
-  var bar;
-  var key;
-  if (typeof embedded !== "undefined" && embedded) {
-    hideMeterAsk();
-    if (record && record.meter && typeof setBeatsPerBar === "function" && typeof setBeatUnit === "function") {
-      if (beatsPerBar !== record.meter.beats || beatUnit !== record.meter.unit) {
-        setBeatsPerBar(record.meter.beats);
-        setBeatUnit(record.meter.unit);
-        if (typeof renderMeterSignature === "function") {
-          renderMeterSignature();
-        }
-      }
-    }
-    return;
-  }
   if (typeof shareLookHolds === "function" && shareLookHolds()) {
-    hideMeterAsk();
     return;
   }
   meter = record && record.meter ? cleanDeskMeter(record.meter) : null;
   if (!meter) {
-    hideMeterAsk();
     return;
   }
   if (beatsPerBar === meter.beats && beatUnit === meter.unit) {
-    hideMeterAsk();
-    return;
-  }
-  key = (record.id || record.seedId || "") + ":" + meter.beats + "/" + meter.unit;
-  if (meterAskDismissed[key]) {
-    hideMeterAsk();
-    return;
-  }
-  meterAskPending = { meter: meter, key: key };
-  lead = document.getElementById("meterAskLead");
-  bar = document.getElementById("meterAsk");
-  if (lead && typeof tr === "function") {
-    lead.textContent = tr("meterAsk.lead", {
-      want: meter.beats + "/" + meter.unit,
-      have: beatsPerBar + "/" + beatUnit
-    });
-  }
-  if (bar) {
-    bar.hidden = false;
-  }
-}
-
-function acceptRecommendedMeter() {
-  var meter = meterAskPending && meterAskPending.meter;
-  if (!meter) {
-    hideMeterAsk();
     return;
   }
   if (typeof setBeatsPerBar === "function") {
@@ -317,17 +262,11 @@ function acceptRecommendedMeter() {
   if (typeof renderMeterSignature === "function") {
     renderMeterSignature();
   }
-  if (typeof rememberSetup === "function") {
-    rememberSetup();
+  if (typeof embedded === "undefined" || !embedded) {
+    if (typeof rememberSetup === "function") {
+      rememberSetup();
+    }
   }
-  hideMeterAsk();
-}
-
-function declineRecommendedMeter() {
-  if (meterAskPending && meterAskPending.key) {
-    meterAskDismissed[meterAskPending.key] = true;
-  }
-  hideMeterAsk();
 }
 
 function renderMeterSignature() {
@@ -875,7 +814,6 @@ function beginShareLook() {
   }
   shareReturnId = typeof currentExerciseId === "string" ? currentExerciseId : "";
   shareLooking = true;
-  hideMeterAsk();
   holdShareTempo();
 }
 
@@ -1595,14 +1533,6 @@ function init() {
       sendOpenExercise();
     });
   }
-  var meterAskYes = document.getElementById("meterAskYes");
-  var meterAskNo = document.getElementById("meterAskNo");
-  if (meterAskYes) {
-    meterAskYes.addEventListener("click", acceptRecommendedMeter);
-  }
-  if (meterAskNo) {
-    meterAskNo.addEventListener("click", declineRecommendedMeter);
-  }
   document.getElementById("resetExercise").addEventListener("click", function () {
     resetExercise();
     track("reset_exercise", { exercise_id: analyticsExerciseId() });
@@ -1629,12 +1559,6 @@ function init() {
     if (shareBlocksHello()) {
       event.preventDefault();
       dismissShareAsk();
-      return;
-    }
-    var meterAsk = document.getElementById("meterAsk");
-    if (meterAsk && !meterAsk.hidden) {
-      event.preventDefault();
-      declineRecommendedMeter();
       return;
     }
     var exercise = document.getElementById("exercisePanel");

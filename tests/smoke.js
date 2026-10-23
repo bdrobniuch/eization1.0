@@ -1364,7 +1364,8 @@ function shareCase(w) {
   check("staff lines pack", packedOk);
   check("left hand rootless defaults to bass", w.exercises.leftHandRootless && w.exercises.leftHandRootless.clef === "bass");
   check("comping 3/4 recommends 3/4", !!(w.exercises.compingRhythm34 && w.exercises.compingRhythm34.meter && w.exercises.compingRhythm34.meter.beats === 3 && w.exercises.compingRhythm34.meter.unit === 4));
-  check("meter ask is in the page", !!w.document.getElementById("meterAsk") && !!w.document.getElementById("editDefaults"));
+  check("exercise defaults edit is in the page", !!w.document.getElementById("editDefaults"));
+  check("meter ask stays out of the page", !w.document.getElementById("meterAsk"));
   minorKey = w.staffShareCanonical("@key=Am C4e D4e E4e F4e G4e A4e B4e C5e");
   check("minor key name stays", minorKey.indexOf("@key=Am") === 0 && w.staffShareCanonical(minorKey) === minorKey);
   check(
