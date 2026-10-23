@@ -1295,9 +1295,15 @@ function editorUpdateFocusChrome() {
   }
 }
 
-/* Caret at end of the one-example field (and pad caret when Notes is open). */
+/*
+ * Caret at end of the one-example field. On touch, place silently so focus()
+ * does not open the soft keyboard; desktop (fine pointer) may focus. Notes
+ * open always stays silent (pad caret + inputmode none).
+ */
 function editorPlaceFocusCaretEnd(field) {
   var len;
+  var fine;
+  var silent;
   if (!field) {
     field = document.getElementById("editFocusLine");
   }
@@ -1305,7 +1311,9 @@ function editorPlaceFocusCaretEnd(field) {
     return;
   }
   len = String(field.value || "").length;
-  editorPlaceCaret(field, len, len, !!(editorPadCaret && editorSymbolsIsOpen()));
+  fine = window.matchMedia("(pointer: fine)").matches;
+  silent = !fine || !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, len, len, silent);
 }
 
 /*
