@@ -2373,6 +2373,10 @@ function editorLineMusicOk(line) {
   return !!(status && status.ok);
 }
 
+function editorEraseWordStop(ch) {
+  return !ch || /\s/.test(ch) || ch === "}" || ch === "]" || ch === ")";
+}
+
 function editorIsMusicEraseToken(tok) {
   tok = String(tok || "");
   if (!tok || tok === "{" || tok === "}" || tok === "[" || tok === "]" || tok === "(" || tok === ")" || tok === "~" || tok === "|") {
@@ -2571,15 +2575,16 @@ function editorStaffGroupEraseTarget(line, rel) {
     return null;
   }
   music = editorInnerMusicSpans(line, g);
-  onCloser = rel > g.closeStart && rel <= g.closeEnd;
+  /* Caret after the closer, or parked on it after a peel (rel === closeStart). */
+  onCloser = rel >= g.closeStart && rel <= g.closeEnd;
   if (!onCloser) {
     probe = rel;
     while (probe > 0 && /\s/.test(line.charAt(probe - 1))) {
       probe -= 1;
     }
-    onCloser = probe > g.closeStart && probe <= g.closeEnd;
+    onCloser = probe >= g.closeStart && probe <= g.closeEnd;
   }
-  inside = rel > g.open && rel <= g.closeStart;
+  inside = rel > g.open && rel < g.closeStart;
   if (!music.length) {
     if (onCloser || inside || rel === g.closeEnd) {
       start = g.open;
@@ -2665,20 +2670,29 @@ function editorStaffEraseTarget() {
       kind: "char"
     };
   }
-  /* Word that contains the caret, or the previous word when the caret is in spaces. */
-  if (rel > 0 && !/\s/.test(line.charAt(rel - 1))) {
+  /* Word that contains the caret, or the previous word when the caret is in spaces.
+   * Stop before a group closer so B4e_7} does not become one erasable run. */
+  if (rel > 0 && !editorEraseWordStop(line.charAt(rel - 1))) {
     wordEnd = rel;
-    while (wordEnd < line.length && !/\s/.test(line.charAt(wordEnd))) {
+    while (wordEnd < line.length && !editorEraseWordStop(line.charAt(wordEnd))) {
       wordEnd += 1;
     }
     wordStart = rel;
-    while (wordStart > 0 && !/\s/.test(line.charAt(wordStart - 1))) {
+    while (wordStart > 0 && !editorEraseWordStop(line.charAt(wordStart - 1))) {
       wordStart -= 1;
     }
-  } else if (rel < line.length && !/\s/.test(line.charAt(rel))) {
+  } else if (rel > 0 && (line.charAt(rel - 1) === "}" || line.charAt(rel - 1) === "]" || line.charAt(rel - 1) === ")")) {
+    /* Alone on a closer with no group peel: delete just that mark. */
+    return {
+      start: caret - 1,
+      end: caret,
+      token: line.charAt(rel - 1),
+      kind: "token"
+    };
+  } else if (rel < line.length && !editorEraseWordStop(line.charAt(rel))) {
     wordStart = rel;
     wordEnd = rel;
-    while (wordEnd < line.length && !/\s/.test(line.charAt(wordEnd))) {
+    while (wordEnd < line.length && !editorEraseWordStop(line.charAt(wordEnd))) {
       wordEnd += 1;
     }
   } else if (rel > 0) {
@@ -2686,8 +2700,16 @@ function editorStaffEraseTarget() {
     while (wordEnd > 0 && /\s/.test(line.charAt(wordEnd - 1))) {
       wordEnd -= 1;
     }
+    if (wordEnd > 0 && (line.charAt(wordEnd - 1) === "}" || line.charAt(wordEnd - 1) === "]" || line.charAt(wordEnd - 1) === ")")) {
+      return {
+        start: lineStart + wordEnd - 1,
+        end: lineStart + wordEnd,
+        token: line.charAt(wordEnd - 1),
+        kind: "token"
+      };
+    }
     wordStart = wordEnd;
-    while (wordStart > 0 && !/\s/.test(line.charAt(wordStart - 1))) {
+    while (wordStart > 0 && !editorEraseWordStop(line.charAt(wordStart - 1))) {
       wordStart -= 1;
     }
   } else {

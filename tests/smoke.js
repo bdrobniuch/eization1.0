@@ -1951,6 +1951,14 @@ function chatCase(w) {
     check("erase after a one-note beam peels the last note", focusLine.value === "{}");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase removes an empty beam shell", focusLine.value === "");
+    placeCaret("{G4e_5 A4e_6 B4e_7 C5e_1}");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase peels the last labeled beam note", focusLine.value === "{G4e_5 A4e_6 B4e_7}");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase against the beam closer peels the next note only",
+      focusLine.value === "{G4e_5 A4e_6}"
+    );
     placeCaret("[C4 E4]^C");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase after a stack peels the last pitch", focusLine.value === "[C4]^C");
