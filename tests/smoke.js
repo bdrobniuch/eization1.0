@@ -1665,10 +1665,14 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-event='bar']") &&
       symbolsPanel.querySelector("[data-event='tie']") &&
       symbolsPanel.querySelector("[data-event='beam']") &&
+      symbolsPanel.querySelector("[data-event='tuplet']") &&
+      symbolsPanel.querySelector("[data-event='tuplet'] .edit-music-icon") &&
       symbolsPanel.querySelector("[data-event='chord']") &&
       symbolsPanel.querySelector("[data-event='chord'] .edit-music-icon") &&
       symbolsPanel.querySelector("[data-event='stack']") &&
       symbolsPanel.querySelector("[data-event='stack'] .edit-music-icon") &&
+      w.I18N.en["edit.noteTuplet"] === "Triplet" &&
+      w.I18N.es["edit.noteTuplet"] === "Tresillo" &&
       symbolsPanel.querySelector("[data-dur='']") &&
       symbolsPanel.querySelector("[data-dur='w']") &&
       symbolsPanel.querySelector("[data-dot]") &&
@@ -1891,6 +1895,14 @@ function chatCase(w) {
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check("a long note beams as an eighth", focusLine.value === "C4h { }" && w.editorNote.dur === "e");
+    placeCaret("C4h");
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "a tuplet inserts a triplet shell",
+      focusLine.value === "C4h (3 )" &&
+        focusLine.selectionStart === 7 &&
+        w.editorNote.dur === "e"
+    );
     placeCaret("C0");
     poke(symbolsPanel.querySelector("[data-shift='-1']"));
     check("octave stops at 0", focusLine.value === "C0" && octaveNow() === "0");

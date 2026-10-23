@@ -2110,6 +2110,52 @@ function editorBuildIcon(kind) {
     }));
     return editorFitIcon(svg);
   }
+  if (kind === "tuplet") {
+    var tupGap = head + 100;
+    var tupI;
+    if (typeof staffPlaceGlyph === "function") {
+      for (tupI = 0; tupI < 3; tupI++) {
+        staffPlaceGlyph(svg, "noteheadBlack", tupI * tupGap, 0, space);
+      }
+    }
+    for (tupI = 0; tupI < 3; tupI++) {
+      svg.appendChild(editorSvgEl("line", {
+        x1: String(tupI * tupGap + stemX),
+        y1: "24",
+        x2: String(tupI * tupGap + stemX),
+        y2: String(-stemLen * 0.85),
+        stroke: "currentColor",
+        "stroke-width": "28"
+      }));
+    }
+    svg.appendChild(editorSvgEl("path", {
+      d:
+        "M" +
+        stemX +
+        " " +
+        String(-stemLen * 0.85) +
+        " L" +
+        String(2 * tupGap + stemX) +
+        " " +
+        String(-stemLen * 0.85),
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "22",
+      "stroke-linecap": "round"
+    }));
+    var tupLabel = editorSvgEl("text", {
+      x: String(tupGap + stemX),
+      y: String(-stemLen * 0.85 - 40),
+      fill: "currentColor",
+      "font-size": "200",
+      "font-family": "system-ui, sans-serif",
+      "font-weight": "600",
+      "text-anchor": "middle"
+    });
+    tupLabel.textContent = "3";
+    svg.appendChild(tupLabel);
+    return editorFitIcon(svg);
+  }
   if (kind === "chord") {
     var staffY;
     for (staffY = -2; staffY <= 2; staffY++) {
@@ -3010,6 +3056,7 @@ function editorPaintNoteEvents(row) {
   editorPaintClefToggle(row);
   editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"));
   editorPadButton(row, { "data-event": "beam" }, editorMusicIcon("beam"), t("edit.noteBeam"));
+  editorPadButton(row, { "data-event": "tuplet" }, editorMusicIcon("tuplet"), t("edit.noteTuplet"));
   editorPadButton(row, { "data-event": "chord" }, editorMusicIcon("chord"), t("edit.noteChord"));
   editorPadButton(row, { "data-event": "stack" }, editorMusicIcon("stack"), t("edit.noteStack"));
 }
@@ -3204,6 +3251,15 @@ function editorActivateSymbol(button) {
       }
       editorPushSymbolUndo();
       editorInsertSymbol("{ }", 2);
+      return;
+    }
+    if (eventName === "tuplet") {
+      /* Triplets are usually short notes; match the beam pad default. */
+      if (editorNote.dur !== "e" && editorNote.dur !== "s") {
+        editorNote.dur = "e";
+      }
+      editorPushSymbolUndo();
+      editorInsertSymbol("(3 )", 1);
       return;
     }
     if (eventName === "chord") {
