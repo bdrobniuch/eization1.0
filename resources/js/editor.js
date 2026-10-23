@@ -2771,9 +2771,6 @@ function editorEraseLabel() {
   if (!editorStaffOn()) {
     return t("edit.clearExample");
   }
-  if (editorCanUndoStaffTyping()) {
-    return t("edit.erase");
-  }
   target = editorStaffEraseTarget();
   if (!target) {
     return t("edit.erase");
@@ -2792,9 +2789,6 @@ function editorCanErase() {
   if (!editorStaffOn()) {
     line = currentEditorLine();
     return !!collapseEditorSpaces(line);
-  }
-  if (editorCanUndoStaffTyping()) {
-    return true;
   }
   return !!editorStaffEraseTarget();
 }
@@ -3130,16 +3124,7 @@ function editorEraseStep(opts) {
     editorClearCurrentExample();
     return true;
   }
-  /* Broken staff: one Erase restores the last drawable line. */
-  if (editorCanUndoStaffTyping() && editorLastValidSnap) {
-    if (!skipUndo) {
-      editorPushSymbolUndo();
-    }
-    editorApplySymbolSnapshot(editorCloneSymbolSnap(editorLastValidSnap));
-    editorStaffTypingDirty = false;
-    editorPaintUndoRedo();
-    return true;
-  }
+  /* Broken lines still erase tokens; Undo alone restores the last good draw. */
   target = editorStaffEraseTarget();
   if (!target) {
     return false;

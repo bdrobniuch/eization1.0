@@ -1971,7 +1971,12 @@ function chatCase(w) {
     placeCaret("C4q");
     placeCaret("C4q~");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
-    check("erase heals a broken staff line", focusLine.value === "C4q");
+    check("erase removes a dangling tie on a broken line", focusLine.value === "C4q");
+    placeCaret("C4q D4q~");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase keeps deleting through a broken line", focusLine.value === "C4q D4q");
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    check("undo restores the broken line after erase", focusLine.value === "C4q D4q~");
     placeCaret("C4q D4q |");
     focusLine.setSelectionRange(7, 7);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
