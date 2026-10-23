@@ -2184,6 +2184,15 @@ body.is-editing #counter {
   flex: 0 0 auto;
 }
 
+#editDefaults .icon-meter {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+#editDefaults .icon-meter text {
+  dominant-baseline: alphabetic;
+}
+
 #editStaffHelp[aria-expanded="true"],
 #editDefaults[aria-expanded="true"],
 #editMore[aria-expanded="true"],
