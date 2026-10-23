@@ -136,6 +136,70 @@ $groupOf = @{
 }
 $groupOrder = @('pitch', 'changes', 'rhythm', 'sound', 'language')
 
+$struggleOf = @{
+  'sticky-keys' = 'keys'
+  'sticky-keys-staff' = 'keys'
+  'key-signatures' = 'keys'
+  'two-five-one-clock' = 'changes'
+  'guide-tones-staff' = 'changes'
+  'outline-changes-staff' = 'changes'
+  'minor-two-five' = 'changes'
+  'turnarounds' = 'changes'
+  'turnarounds-staff' = 'changes'
+  'rhythm-bridge' = 'changes'
+  'rhythm-bridge-staff' = 'changes'
+  'tritone-road' = 'changes'
+  'tritone-road-staff' = 'changes'
+  'dominant-cycle' = 'changes'
+  'goal-notes' = 'changes'
+  'goal-notes-staff' = 'changes'
+  'blues-forms' = 'blues'
+  'blues-forms-staff' = 'blues'
+  'basic-major-blues' = 'blues'
+  'basic-major-blues-staff' = 'blues'
+  'jazz-major-blues' = 'blues'
+  'jazz-major-blues-staff' = 'blues'
+  'minor-blues' = 'blues'
+  'minor-blues-staff' = 'blues'
+  'pentatonic-blues' = 'blues'
+  'slow-time' = 'time'
+  'slow-time-staff' = 'time'
+  'time-feel' = 'time'
+  'odd-bars' = 'time'
+  'rhythmic-density' = 'time'
+  'rhythmic-density-staff' = 'time'
+  'rhythmic-displacement' = 'time'
+  'rhythmic-displacement-staff' = 'time'
+  'leave-space' = 'space'
+  'leave-space-staff' = 'space'
+  'whole-play-rest' = 'space'
+  'wide-intervals' = 'intervals'
+  'interval-families-staff' = 'intervals'
+  'all-intervals' = 'intervals'
+  'intervals-from-c' = 'intervals'
+}
+
+$siblingOf = @{
+  'wide-intervals' = 'interval-families-staff'
+  'interval-families-staff' = 'wide-intervals'
+}
+
+$startHereSlugs = @(
+  'sticky-keys-staff',
+  'two-five-one-clock',
+  'leave-space-staff',
+  'slow-time-staff',
+  'guide-tones-staff'
+)
+
+$startWhy = @{
+  'sticky-keys-staff' = @{ en = 'Every major and minor gets a turn, not only C, F, and Bb.'; es = 'Cada mayor y menor tiene turno, no solo C, F y Bb.' }
+  'two-five-one-clock' = @{ en = 'Walk the cadence you already know through twelve keys.'; es = 'Lleva la cadencia que ya conoces por las doce tonalidades.' }
+  'leave-space-staff' = @{ en = 'Play/rest ratios so 2+2 cannot hide the rest.'; es = 'Proporciones de tocar/descansar para que el 2+2 no oculte el resto.' }
+  'slow-time-staff' = @{ en = 'Slow click, one written rhythm: hear every beat.'; es = 'Clic lento, un ritmo escrito: oye cada pulso.' }
+  'guide-tones-staff' = @{ en = '3 and 7 through I VI II V in all keys.'; es = '3 y 7 por I VI II V en todas las tonalidades.' }
+}
+
 function Group-Of($ex) {
   $names = @($ex.PSObject.Properties.Name)
   if ($names -contains 'group' -and $ex.group) { return [string]$ex.group }
@@ -154,6 +218,42 @@ function Sample-Meter($ex) {
   if ($names -contains 'meter' -and $ex.meter) { return [string]$ex.meter }
   if ([string]$ex.slug -eq 'comping-rhythm-motifs-34') { return '3/4' }
   return ''
+}
+
+function Struggle-Of($ex) {
+  $slug = [string]$ex.slug
+  if ($struggleOf.ContainsKey($slug)) { return $struggleOf[$slug] }
+  return ''
+}
+
+function Owned-Id($ex) {
+  $names = @($ex.PSObject.Properties.Name)
+  if ($names -contains 'exercise' -and $ex.exercise) { return 'seed:' + [string]$ex.exercise }
+  return [string]$ex.id
+}
+
+function Sibling-Slug($ex) {
+  $slug = [string]$ex.slug
+  if ($siblingOf.ContainsKey($slug)) { return $siblingOf[$slug] }
+  if ($slug -match '^(.*)-staff$') {
+    $base = $Matches[1]
+    foreach ($other in $exercises) {
+      if ([string]$other.slug -eq $base) { return $base }
+    }
+    return ''
+  }
+  $staff = $slug + '-staff'
+  foreach ($other in $exercises) {
+    if ([string]$other.slug -eq $staff) { return $staff }
+  }
+  return ''
+}
+
+function Find-By-Slug([string]$slug) {
+  foreach ($ex in $exercises) {
+    if ([string]$ex.slug -eq $slug) { return $ex }
+  }
+  return $null
 }
 
 function Book-Links($books, $lang) {
@@ -180,14 +280,37 @@ function Build-Page([string]$lang) {
     $desc = "$n ejercicios extra para problemas habituales de estudiantes. Abre uno en eization. A${chN}adir o Editar lo deja en este dispositivo."
     $h1 = "M${chA}s ejercicios"
     $lead1 = "Lo que ya sabes es lo que m${chA}s suena. El resto espera. Estos ejercicios extra no est${chA}n en el men${chU} por defecto. Abre uno: eization pregunta A${chN}adir o Editar."
-    $lead2 = "Cada ejemplo sale una vez, con el metr${chO}nomo. Luego cambia el orden. Los libros de abajo siguen siendo los libros: practican una l${chI}nea que ya tienes, no la reimprimen."
+    $lead2 = "Busca por categor${chI}a o problema, o abre uno al azar. Cada ejemplo sale una vez, con el metr${chO}nomo."
     $lead3 = "Si armaste un ejercicio, o encontraste una l${chI}nea para corregir,"
     $lead4 = 'Los fuertes pueden entrar en esta lista.'
     $todayLabel = 'El ejercicio de hoy'
+    $randomLabel = "Sorpr${chE}ndeme"
+    $startLabel = "Empieza aqu${chI}"
+    $struggleLabel = 'Me cuesta'
     $sendLabel = "env${chI}a un ejercicio o una correcci${chO}n"
     $openLabel = 'Abrir en eization'
-    $navLabel = "En esta p${chA}gina"
+    $searchLabel = 'Buscar un ejercicio'
+    $searchPh = 'II-V, blues, gu' + [char]0x00ED + 'a, triplets' + [char]0x2026
+    $allLabel = 'Todos'
+    $countOne = '1 ejercicio'
+    $countMany = '%n ejercicios'
+    $emptyLead = 'Nada coincide. Prueba el ejercicio de hoy o limpia los filtros.'
+    $clearLabel = 'Limpiar filtros'
+    $aboutLabel = 'Detalle'
+    $ownedLabel = 'En este dispositivo'
+    $alsoStaff = 'Tambi' + [char]0x00E9 + 'n en pentagrama'
+    $alsoText = 'Tambi' + [char]0x00E9 + 'n en texto'
+    $catsAria = 'Categor' + [char]0x00ED + 'as'
+    $kindAria = 'Formato'
     $groupLabels = @{ pitch = 'Alturas'; changes = 'Cambios'; rhythm = 'Ritmo'; sound = 'Sonido'; language = 'Lenguaje' }
+    $struggleLabels = @{
+      keys = 'Tonalidades dif' + [char]0x00ED + 'ciles'
+      changes = 'II-V-I y cambios'
+      blues = 'Blues'
+      time = 'Tempo y feel'
+      space = 'Tocar / silencio'
+      intervals = 'Intervalos'
+    }
     $staffLabel = 'Pentagrama'
     $textLabel = 'Texto'
     $related = 'Relacionado'
@@ -213,14 +336,37 @@ function Build-Page([string]$lang) {
     $desc = "$n extra exercises for common student practice problems. Open one in eization. Add or Edit keeps it on this device."
     $h1 = 'More exercises'
     $lead1 = 'What you already know gets played the most. The rest waits. These extra exercises are not in the default menu. Open one: eization asks Add or Edit.'
-    $lead2 = 'Each example comes up once, with the metronome. Then the order changes. The books linked below stay the books: practice a line you already have; they do not reprint it.'
+    $lead2 = 'Find by category or problem, or open one at random. Each example comes up once, with the metronome.'
     $lead3 = 'Built an exercise, or found a line to correct?'
     $lead4 = 'Strong ones can join this list.'
     $todayLabel = "Today's exercise"
+    $randomLabel = 'Surprise me'
+    $startLabel = 'Start here'
+    $struggleLabel = 'I struggle with'
     $sendLabel = 'Send an exercise or a correction'
     $openLabel = 'Open in eization'
-    $navLabel = 'On this page'
+    $searchLabel = 'Find an exercise'
+    $searchPh = 'II-V, blues, guide tones, triplets' + [char]0x2026
+    $allLabel = 'All'
+    $countOne = '1 exercise'
+    $countMany = '%n exercises'
+    $emptyLead = 'Nothing matches. Try Today''s exercise or clear the filters.'
+    $clearLabel = 'Clear filters'
+    $aboutLabel = 'About'
+    $ownedLabel = 'On this device'
+    $alsoStaff = 'Also on the staff'
+    $alsoText = 'Also as text'
+    $catsAria = 'Categories'
+    $kindAria = 'Format'
     $groupLabels = @{ pitch = 'Pitch'; changes = 'Changes'; rhythm = 'Rhythm'; sound = 'Sound'; language = 'Language' }
+    $struggleLabels = @{
+      keys = 'Hard keys'
+      changes = 'II-V-I and changes'
+      blues = 'Blues'
+      time = 'Time and feel'
+      space = 'Play / rest'
+      intervals = 'Intervals'
+    }
     $staffLabel = 'Staff'
     $textLabel = 'Text'
     $related = 'Related'
@@ -243,24 +389,72 @@ function Build-Page([string]$lang) {
 '@
   }
 
-  $navSb = New-Object System.Text.StringBuilder
-  [void]$navSb.AppendLine('        <nav aria-labelledby="more-toc">')
-  [void]$navSb.AppendLine('            <h2 id="more-toc">' + (Html-Escape $navLabel) + '</h2>')
-  foreach ($g in $groupOrder) {
-    $inGroup = @($exercises | Where-Object { (Group-Of $_) -eq $g })
-    if ($inGroup.Count -eq 0) { continue }
-    [void]$navSb.AppendLine('            <h3 class="toc-group">' + (Html-Escape $groupLabels[$g]) + '</h3>')
-    [void]$navSb.AppendLine('            <ul class="exercises">')
-    foreach ($ex in $inGroup) {
-      $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
-      $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
-      [void]$navSb.AppendLine('                <li><a href="#' + (Html-Escape $ex.slug) + '">' + (Html-Escape $name) + ' <span class="kind">' + (Html-Escape $kind) + '</span></a></li>')
-    }
-    [void]$navSb.AppendLine('            </ul>')
+  $shareLabel = if ($isEs) { 'Compartir' } else { 'Share' }
+  $embedLabel = if ($isEs) { 'Insertar' } else { 'Embed' }
+  $copiedLabel = if ($isEs) { 'Enlace copiado' } else { 'Link copied' }
+  $codeLabel = if ($isEs) { 'C' + [char]0x00F3 + 'digo copiado' } else { 'Code copied' }
+  $failLabel = if ($isEs) { 'No se pudo copiar' } else { 'Could not copy' }
+  $blurb = if ($isEs) { 'Saca un ejemplo cada vez de tu biblioteca, a tiempo con el metr' + [char]0x00F3 + 'nomo.' } else { 'Draw one example at a time from your library, in time with the metronome.' }
+
+  $groupCounts = @{}
+  foreach ($g in $groupOrder) { $groupCounts[$g] = 0 }
+  foreach ($ex in $exercises) {
+    $g = Group-Of $ex
+    if ($groupCounts.ContainsKey($g)) { $groupCounts[$g] = $groupCounts[$g] + 1 }
   }
-  [void]$navSb.AppendLine('        </nav>')
+
+  $discoverSb = New-Object System.Text.StringBuilder
+  [void]$discoverSb.AppendLine('        <section class="more-discover" aria-label="' + (Html-Escape $h1) + '">')
+  [void]$discoverSb.AppendLine('            <div class="more-paths">')
+  [void]$discoverSb.AppendLine('                <a class="open more-path more-path-today" href="' + $homeHref + '?today=1">' + (Html-Escape $todayLabel) + '</a>')
+  [void]$discoverSb.AppendLine('                <button type="button" class="open more-path" data-more-random>' + (Html-Escape $randomLabel) + '</button>')
+  [void]$discoverSb.AppendLine('            </div>')
+  [void]$discoverSb.AppendLine('            <div class="more-start">')
+  [void]$discoverSb.AppendLine('                <h2>' + (Html-Escape $startLabel) + '</h2>')
+  [void]$discoverSb.AppendLine('                <ul class="more-start-list">')
+  foreach ($slug in $startHereSlugs) {
+    $ex = Find-By-Slug $slug
+    if (-not $ex) { continue }
+    $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
+    $why = if ($isEs) { $startWhy[$slug].es } else { $startWhy[$slug].en }
+    $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
+    [void]$discoverSb.AppendLine('                    <li><a href="#' + (Html-Escape $slug) + '"><span>' + (Html-Escape $name) + '</span> <span class="kind">' + (Html-Escape $kind) + '</span><span class="more-start-why">' + (Html-Escape $why) + '</span></a></li>')
+  }
+  [void]$discoverSb.AppendLine('                </ul>')
+  [void]$discoverSb.AppendLine('            </div>')
+  [void]$discoverSb.AppendLine('            <div class="more-struggle">')
+  [void]$discoverSb.AppendLine('                <h2>' + (Html-Escape $struggleLabel) + '</h2>')
+  [void]$discoverSb.AppendLine('                <div class="more-chips" role="group" aria-label="' + (Html-Escape $struggleLabel) + '">')
+  foreach ($tag in @('keys', 'changes', 'blues', 'time', 'space', 'intervals')) {
+    [void]$discoverSb.AppendLine('                    <button type="button" class="more-chip" data-more-struggle data-value="' + $tag + '" aria-pressed="false">' + (Html-Escape $struggleLabels[$tag]) + '</button>')
+  }
+  [void]$discoverSb.AppendLine('                </div>')
+  [void]$discoverSb.AppendLine('            </div>')
+  [void]$discoverSb.AppendLine('        </section>')
+
+  $toolsSb = New-Object System.Text.StringBuilder
+  [void]$toolsSb.AppendLine('        <div class="more-tools" id="more-tools">')
+  [void]$toolsSb.AppendLine('            <nav class="more-cats" aria-label="' + (Html-Escape $catsAria) + '">')
+  [void]$toolsSb.AppendLine('                <button type="button" class="is-on" data-more-group data-value="all" aria-pressed="true">' + (Html-Escape $allLabel) + '</button>')
+  foreach ($g in $groupOrder) {
+    if ($groupCounts[$g] -eq 0) { continue }
+    [void]$toolsSb.AppendLine('                <button type="button" data-more-group data-value="' + $g + '" aria-pressed="false">' + (Html-Escape $groupLabels[$g]) + ' <span class="more-cat-n">' + $groupCounts[$g] + '</span></button>')
+  }
+  [void]$toolsSb.AppendLine('            </nav>')
+  [void]$toolsSb.AppendLine('            <div class="more-filter-row">')
+  [void]$toolsSb.AppendLine('                <label class="more-search"><span class="visually-hidden">' + (Html-Escape $searchLabel) + '</span><input type="search" id="more-search" name="q" autocomplete="off" enterkeyhint="search" placeholder="' + (Html-Escape $searchPh) + '"></label>')
+  [void]$toolsSb.AppendLine('                <div class="more-kind" role="group" aria-label="' + (Html-Escape $kindAria) + '">')
+  [void]$toolsSb.AppendLine('                    <button type="button" class="is-on" data-more-kind data-value="all" aria-pressed="true">' + (Html-Escape $allLabel) + '</button>')
+  [void]$toolsSb.AppendLine('                    <button type="button" data-more-kind data-value="staff" aria-pressed="false">' + (Html-Escape $staffLabel) + '</button>')
+  [void]$toolsSb.AppendLine('                    <button type="button" data-more-kind data-value="text" aria-pressed="false">' + (Html-Escape $textLabel) + '</button>')
+  [void]$toolsSb.AppendLine('                </div>')
+  [void]$toolsSb.AppendLine('            </div>')
+  [void]$toolsSb.AppendLine('            <p class="more-count" id="more-count" data-one="' + (Html-Escape $countOne) + '" data-many="' + (Html-Escape $countMany) + '">' + (Html-Escape ($countMany.Replace('%n', [string]$n))) + '</p>')
+  [void]$toolsSb.AppendLine('        </div>')
+  [void]$toolsSb.AppendLine('        <p class="more-empty" id="more-empty" hidden>' + (Html-Escape $emptyLead) + ' <button type="button" class="more-chip" data-more-clear>' + (Html-Escape $clearLabel) + '</button> <a class="open" href="' + $homeHref + '?today=1">' + (Html-Escape $todayLabel) + '</a></p>')
 
   $bodySb = New-Object System.Text.StringBuilder
+  [void]$bodySb.AppendLine('        <div id="more-browse">')
   $schemaItems = New-Object System.Collections.Generic.List[object]
   $pos = 0
   foreach ($ex in $exercises) {
@@ -268,14 +462,31 @@ function Build-Page([string]$lang) {
     $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
     $d = if ($isEs) { $ex.descEs } else { $ex.descEn }
     $href = './' + $ex.hash
-    $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
-    [void]$bodySb.AppendLine('        <article class="more-exercise" id="' + (Html-Escape $ex.slug) + '">')
+    $staff = Is-Staff $ex
+    $kind = if ($staff) { $staffLabel } else { $textLabel }
+    $kindKey = if ($staff) { 'staff' } else { 'text' }
+    $groupKey = Group-Of $ex
+    $tag = Struggle-Of $ex
+    $owned = Owned-Id $ex
+    $sib = Sibling-Slug $ex
+    $searchHay = (($name + ' ' + $d + ' ' + $ex.slug + ' ' + $kind + ' ' + $groupKey + ' ' + $tag).ToLowerInvariant())
+    $attrs = ' class="more-exercise" id="' + (Html-Escape $ex.slug) + '" data-group="' + $groupKey + '" data-kind="' + $kindKey + '" data-share-id="' + (Html-Escape $owned) + '" data-owned-label="' + (Html-Escape $ownedLabel) + '" data-search="' + (Html-Escape $searchHay) + '"'
+    if ($tag) { $attrs += ' data-tags="' + $tag + '"' }
+    [void]$bodySb.AppendLine('        <article' + $attrs + '>')
     [void]$bodySb.AppendLine('            <h2>' + (Html-Escape $name) + ' <span class="kind">' + (Html-Escape $kind) + '</span></h2>')
-    [void]$bodySb.AppendLine('            <p>' + (Html-Escape $d) + '</p>')
+    [void]$bodySb.AppendLine('            <p class="more-lead">' + (Html-Escape $d) + '</p>')
+    if ($sib) {
+      $sibEx = Find-By-Slug $sib
+      if ($sibEx) {
+        $sibName = if ($isEs) { $sibEx.nameEs } else { $sibEx.nameEn }
+        $sibLabel = if ($staff) { $alsoText } else { $alsoStaff }
+        [void]$bodySb.AppendLine('            <p class="more-sibling"><a href="#' + (Html-Escape $sib) + '">' + (Html-Escape $sibLabel) + ': ' + (Html-Escape $sibName) + '</a></p>')
+      }
+    }
     $sampleLines = @($ex.lines)
     if ($sampleLines.Count -gt 0 -and [string]$sampleLines[0]) {
       $sample = Html-Escape ([string]$sampleLines[0])
-      if (Is-Staff $ex) {
+      if ($staff) {
         $meterAttr = ''
         $meter = Sample-Meter $ex
         if ($meter) { $meterAttr = ' data-meter="' + $meter + '"' }
@@ -289,14 +500,11 @@ function Build-Page([string]$lang) {
         [void]$bodySb.AppendLine('            </figure>')
       }
     }
-    [void]$bodySb.AppendLine('            <p>' + (Html-Escape $barsLabel) + ': ' + $ex.bars + '. ' + (Html-Escape $related) + ': ' + (Book-Links $ex.books $lang) + '.</p>')
-    $shareLabel = if ($isEs) { 'Compartir' } else { 'Share' }
-    $embedLabel = if ($isEs) { 'Insertar' } else { 'Embed' }
-    $copiedLabel = if ($isEs) { 'Enlace copiado' } else { 'Link copied' }
-    $codeLabel = if ($isEs) { 'C' + [char]0x00F3 + 'digo copiado' } else { 'Code copied' }
-    $failLabel = if ($isEs) { 'No se pudo copiar' } else { 'Could not copy' }
-    $blurb = if ($isEs) { 'Saca un ejemplo cada vez de tu biblioteca, a tiempo con el metr' + [char]0x00F3 + 'nomo.' } else { 'Draw one example at a time from your library, in time with the metronome.' }
     [void]$bodySb.AppendLine('            <p class="opens"><a class="open" href="' + (Html-Escape $href) + '">' + (Html-Escape $openLabel) + '</a> <button type="button" class="open" data-share data-copied="' + (Html-Escape $copiedLabel) + '" data-fail="' + (Html-Escape $failLabel) + '" data-blurb="' + (Html-Escape $blurb) + '">' + (Html-Escape $shareLabel) + '</button> <button type="button" class="open" data-embed data-code="' + (Html-Escape $codeLabel) + '" data-fail="' + (Html-Escape $failLabel) + '">' + (Html-Escape $embedLabel) + '</button></p>')
+    [void]$bodySb.AppendLine('            <details class="more-about">')
+    [void]$bodySb.AppendLine('                <summary>' + (Html-Escape $aboutLabel) + '</summary>')
+    [void]$bodySb.AppendLine('                <p>' + (Html-Escape $barsLabel) + ': ' + $ex.bars + '. ' + (Html-Escape $related) + ': ' + (Book-Links $ex.books $lang) + '.</p>')
+    [void]$bodySb.AppendLine('            </details>')
     [void]$bodySb.AppendLine('        </article>')
     [void]$schemaItems.Add([ordered]@{
       '@type' = 'ListItem'
@@ -306,6 +514,7 @@ function Build-Page([string]$lang) {
       description = $d
     })
   }
+  [void]$bodySb.AppendLine('        </div>')
 
   $schemaObj = [ordered]@{
     '@context' = 'https://schema.org'
@@ -382,9 +591,9 @@ function Build-Page([string]$lang) {
   [void]$sb.AppendLine('        <h1>' + (Html-Escape $h1) + '</h1>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead1) + '</p>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead2) + '</p>')
-  [void]$sb.AppendLine('        <p><a class="open" href="' + $homeHref + '?today=1">' + (Html-Escape $todayLabel) + '</a></p>')
   [void]$sb.AppendLine('        <p>' + (Html-Escape $lead3) + ' <a href="' + $homeHref + '?contribute=1">' + (Html-Escape $sendLabel) + '</a>. ' + (Html-Escape $lead4) + '</p>')
-  [void]$sb.Append($navSb.ToString())
+  [void]$sb.Append($discoverSb.ToString())
+  [void]$sb.Append($toolsSb.ToString())
   [void]$sb.Append($bodySb.ToString())
   [void]$sb.AppendLine($foot.TrimEnd())
   [void]$sb.AppendLine('    </main>')
@@ -392,6 +601,7 @@ function Build-Page([string]$lang) {
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'notation-page.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'guide-share.js"></script>')
+  [void]$sb.AppendLine('    <script src="' + $jsDir + 'more-browse.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $js + '"></script>')
   [void]$sb.AppendLine('</body>')
   [void]$sb.AppendLine('')

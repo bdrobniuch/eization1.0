@@ -649,10 +649,268 @@ body.article figure.figure.figure-phone img {
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.08);
+    scroll-margin-top: 7.5rem;
 }
 
 .more-exercise h2 {
     margin-top: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 8px;
+}
+
+.more-discover {
+    margin: 0 0 20px;
+}
+
+.more-paths {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+}
+
+.more-paths .open {
+    margin: 0;
+}
+
+.more-paths .more-path-today {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: #ffffff;
+    font-weight: 600;
+}
+
+.more-start,
+.more-struggle {
+    margin: 0 0 16px;
+}
+
+.more-start h2,
+.more-struggle h2,
+.more-tools-label {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.more-start-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.more-start-list li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.more-start-list a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    min-height: 48px;
+    padding: 8px 0;
+    text-decoration: none;
+}
+
+.more-start-list .more-start-why {
+    flex: 1 1 100%;
+    font-size: 14px;
+    line-height: 1.35;
+    opacity: 0.88;
+}
+
+.more-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.more-chip,
+.more-tools button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    border-radius: 999px;
+    background: transparent;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.more-chip.is-on,
+.more-tools button.is-on {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
+}
+
+.more-chip:hover,
+.more-tools button:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.more-tools {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    margin: 0 0 16px;
+    padding: 10px 0 12px;
+    background: #0C8A50;
+    box-shadow: 0 8px 16px rgba(9, 70, 50, 0.35);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.more-cats {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0 0 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.more-cats button {
+    flex: 0 0 auto;
+}
+
+.more-cats .more-cat-n {
+    margin-left: 6px;
+    font-weight: 400;
+    opacity: 0.75;
+}
+
+.more-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 0 0 8px;
+}
+
+.more-search {
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.more-search input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.18);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 16px;
+}
+
+.more-search input::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.more-search input:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.more-kind {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.more-count {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+.more-empty {
+    margin: 0 0 20px;
+    padding: 16px;
+    border: 1px dashed rgba(255, 255, 255, 0.45);
+    border-radius: 8px;
+}
+
+.more-empty .open {
+    margin: 8px 8px 0 0;
+    min-height: 40px;
+}
+
+.more-empty[hidden],
+.more-exercise[hidden] {
+    display: none !important;
+}
+
+.more-lead {
+    margin: 0 0 10px;
+    font-size: 15px;
+    line-height: 1.4;
+    opacity: 0.95;
+}
+
+.more-exercise .more-example {
+    margin-bottom: 10px;
+}
+
+.more-about {
+    margin: 4px 0 8px;
+}
+
+.more-about summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.more-about p {
+    margin: 8px 0 0;
+    font-size: 15px;
+}
+
+.more-owned {
+    margin-left: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.more-sibling {
+    margin: 0 0 10px;
+    font-size: 14px;
+}
+
+.more-sibling a {
+    text-underline-offset: 3px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .more-example {

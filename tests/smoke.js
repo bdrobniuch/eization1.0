@@ -1157,10 +1157,12 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 177 share links", keys.length === 177);
+  check("more catalog has 183 share links", keys.length === 183);
   check("more article offers share and embed", html.indexOf("data-share") >= 0 && html.indexOf("data-embed") >= 0);
   check("more page offers today and a correction", html.indexOf('href="./?today=1"') >= 0 && html.indexOf('href="./?contribute=1"') >= 0);
-  check("more page offers coffee", html.indexOf('href="./?coffee=1"') >= 0);
+  check("more page offers search and surprise", html.indexOf('id="more-search"') >= 0 && html.indexOf("data-more-random") >= 0);
+  check("more page offers category chips", html.indexOf("data-more-group") >= 0 && html.indexOf("data-more-struggle") >= 0);
+  check("more page loads browse script", html.indexOf("more-browse.js") >= 0);
   var hashUrl = new URL("./#s2=abc", "https://eization.com/more.html").href;
   var exerciseUrl = new URL("./?exercise=scales", "https://eization.com/scales.html");
   exerciseUrl.searchParams.set("embed", "1");
@@ -1188,7 +1190,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 177 share links", esHashes.length === 177);
+  check("spanish more catalog has 183 share links", esHashes.length === 183);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
