@@ -1,0 +1,237 @@
+{
+  "removed": [
+    "more0001",
+    "more0079",
+    "more0081",
+    "more0082",
+    "more0093",
+    "more0099",
+    "more0100",
+    "more0044",
+    "more0103",
+    "more0104",
+    "more0107",
+    "more0057",
+    "more0115",
+    "more0059",
+    "more0060",
+    "more0117",
+    "more0118"
+  ],
+  "moreDefaultsTouched": 39,
+  "moreCountBefore": 190,
+  "moreCountAfter": 173,
+  "dayCount": 174,
+  "seedUpdates": {
+    "rhythmMotifs": {
+      "clef": "",
+      "meter": "4/4",
+      "key": "",
+      "name": "22 Rhythm Motifs · all"
+    },
+    "compingRhythm": {
+      "clef": "",
+      "meter": "4/4",
+      "key": "",
+      "name": "Comping Rhythm Motifs"
+    },
+    "compingRhythm34": {
+      "clef": "",
+      "meter": "3/4",
+      "key": "",
+      "name": "Comping Rhythm Motifs 3/4"
+    },
+    "essentialProgressions": {
+      "clef": "",
+      "meter": "4/4",
+      "key": "",
+      "name": "Essential Progressions"
+    },
+    "leftHandRootless": {
+      "clef": "bass",
+      "meter": "",
+      "key": "",
+      "name": "Left Hand Rootless Voicings"
+    },
+    "limbs": {
+      "clef": "",
+      "meter": "4/4",
+      "key": "",
+      "name": "Rhythms"
+    },
+    "playRest": {
+      "clef": "",
+      "meter": "4/4",
+      "key": "",
+      "name": "Play/Rest"
+    },
+    "scales": {
+      "clef": "",
+      "meter": "4/4",
+      "key": "",
+      "name": "Scales"
+    }
+  },
+  "editComments": [
+    {
+      "id": "more0071",
+      "source": "more0071",
+      "name": "Outline the changes on the staff",
+      "comment": "Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0074",
+      "source": "more0074",
+      "name": "Turnarounds on the staff",
+      "comment": "Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0075",
+      "source": "more0075",
+      "name": "Blues forms on the staff",
+      "comment": "Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0076",
+      "source": "more0076",
+      "name": "Rhythm bridge on the staff",
+      "comment": "Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0077",
+      "source": "more0077",
+      "name": "Tritone road on the staff",
+      "comment": "Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0078",
+      "source": "more0078",
+      "name": "Pentatonic colors on the staff",
+      "comment": "Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0019",
+      "source": "more0019",
+      "name": "Dominant cycle",
+      "comment": "remove second bar (shorten to one bar excercise)",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0083",
+      "source": "more0083",
+      "name": "Basic major blues on the staff",
+      "comment": "It's a staff excercise but is stored as TEXT excercise Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0084",
+      "source": "more0084",
+      "name": "Jazz major blues on the staff",
+      "comment": "It's a staff excercise but is stored as TEXT excercise Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0085",
+      "source": "more0085",
+      "name": "Minor blues on the staff",
+      "comment": "It's a staff excercise but is stored as TEXT excercise Replace quarter notes with head-only notation e.g. C4n_1 E4n_3",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0098",
+      "source": "more0098",
+      "name": "Double chromatic approach on the staff",
+      "comment": "remove the rests from the excercise so it can be practiced in any meter",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0101",
+      "source": "more0101",
+      "name": "Quartal lines on the staff",
+      "comment": "add more examples",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0102",
+      "source": "more0102",
+      "name": "Inverted interval motifs on the staff",
+      "comment": "add more examples",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0106",
+      "source": "more0106",
+      "name": "Rhythmic density on the staff",
+      "comment": "use rythm notes notation \"/e\" etc. rewrite with more examples",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0109",
+      "source": "more0109",
+      "name": "Whole-step triad pairs on the staff",
+      "comment": "print as two half note stacked chords triad pairs in second inversion in one bar",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0110",
+      "source": "more0110",
+      "name": "Half-step triad pairs on the staff",
+      "comment": "print as two half note stacked chords triad pairs in second inversion in one bar",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0111",
+      "source": "more0111",
+      "name": "Augmented triad pairs on the staff",
+      "comment": "print as two half note stacked chords triad pairs in second inversion in one bar",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0112",
+      "source": "more0112",
+      "name": "Mixed triad pairs on the staff",
+      "comment": "print as two half note stacked chords triad pairs in second inversion in one bar",
+      "meter": "",
+      "clef": ""
+    },
+    {
+      "id": "more0062",
+      "source": "more0062",
+      "name": "Guide-tone ties",
+      "comment": "write examples in all keys",
+      "meter": "4/4",
+      "clef": ""
+    },
+    {
+      "id": "more0116",
+      "source": "more0116",
+      "name": "Sonic nuances on the staff",
+      "comment": "add more examples if the interval is irrelevent use rythm note notation /e",
+      "meter": "4/4",
+      "clef": ""
+    }
+  ]
+}

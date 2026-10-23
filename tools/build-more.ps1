@@ -215,7 +215,14 @@ function Is-Staff($ex) {
 
 function Sample-Meter($ex) {
   $names = @($ex.PSObject.Properties.Name)
-  if ($names -contains 'meter' -and $ex.meter) { return [string]$ex.meter }
+  if ($names -contains 'meter' -and $ex.meter) {
+    $mNames = @($ex.meter.PSObject.Properties.Name)
+    if ($mNames -contains 'beats' -and $mNames -contains 'unit') {
+      return ([string]$ex.meter.beats) + '/' + ([string]$ex.meter.unit)
+    }
+    $raw = [string]$ex.meter
+    if ($raw -match '^\d+/\d+$') { return $raw }
+  }
   if ([string]$ex.slug -eq 'comping-rhythm-motifs-34') { return '3/4' }
   return ''
 }

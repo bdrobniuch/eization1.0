@@ -3,6 +3,7 @@ registerExercise({
   label: "Play/Rest",
   bars: 2,
   staff: true,
+  meter: { beats: 4, unit: 4 },
   inMenu: true,
   rev: 1,
   items: [

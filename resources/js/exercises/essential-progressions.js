@@ -64,6 +64,7 @@ registerExercise({
   label: "Essential Progressions",
   bars: 4,
   staff: true,
+  meter: { beats: 4, unit: 4 },
   inMenu: true,
   /* 2026-10-15: / is play anything. Older copies wrote /q. */
   rev: 2,

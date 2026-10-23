@@ -41,12 +41,23 @@ var context = vm.createContext({
 load(context, "resources/js/staff.js");
 load(context, "resources/js/share.js");
 context.shareSnapshot = function (part) {
-  return {
+  var snap = {
     shareId: part.id,
     name: part.name,
     bars: part.bars,
+    staff: !!part.staff,
     lines: part.lines
   };
+  if (part.clef === "bass") {
+    snap.clef = "bass";
+  }
+  if (part.key) {
+    snap.key = part.key;
+  }
+  if (part.meter && part.meter.beats && part.meter.unit) {
+    snap.meter = { beats: part.meter.beats, unit: part.meter.unit };
+  }
+  return snap;
 };
 
 function fail(message) {
@@ -142,7 +153,10 @@ for (i = 0; i < data.length; i++) {
     id: ex.id,
     name: ex.nameEn,
     bars: ex.bars,
-    lines: ex.lines
+    lines: ex.lines,
+    clef: ex.clef,
+    key: ex.key,
+    meter: ex.meter
   });
   url = "https://eization.com/" + hash;
   if (!hash || url.length > 8000) {

@@ -383,6 +383,7 @@ var registerScaleFamily;
       label: opts.label,
       inMenu: opts.inMenu,
       staff: opts.staff,
+      meter: opts.meter,
       rev: opts.rev,
       items: items
     });

@@ -597,6 +597,7 @@
     id: "rhythmMotifs",
     label: "22 Rhythm Motifs",
     bars: 2,
+    meter: { beats: 4, unit: 4 },
     inMenu: false,
     items: rmBuildItems()
   });
