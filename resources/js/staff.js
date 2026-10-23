@@ -4012,6 +4012,18 @@ function renderMusicStaff(source, role, opts) {
     svg.setAttribute("viewBox", "0 " + viewY + " " + width + " " + viewH);
   }
 
+  /* Edit preview caret: column centers + staff band (JS property; not in innerHTML). */
+  svg._staffCaretLayout = {
+    staffTop: staffTop,
+    staffBot: staffTop + staffHeight,
+    notesStartX: notesStartX,
+    endX: width - padR,
+    half: noteHeadRx,
+    cols: columns.map(function (col, ci) {
+      return { type: col.type, x: colX[ci] };
+    })
+  };
+
   return svg;
 }
 

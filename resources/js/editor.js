@@ -818,12 +818,14 @@ function editorPlaceCaret(field, start, end, silent) {
     try {
       field.setSelectionRange(start, end);
     } catch (errSilentCaret) {}
+    editorUpdateStaffCaretMark();
     return;
   }
   field.focus();
   try {
     field.setSelectionRange(start, end);
   } catch (errFocusCaret) {}
+  editorUpdateStaffCaretMark();
 }
 
 function editorSetPadInputMode(off) {
@@ -1623,6 +1625,7 @@ function refreshEditor() {
   var line = itemToLine(currentEditorLine());
   preview.classList.remove("is-staff", "is-staff-pending");
   preview.innerHTML = "";
+  preview._staffCaretLayout = null;
   if (!line) {
     clearEditStaffNote();
     if (editorStaffOn() && typeof renderMusicStaff === "function") {
@@ -1631,6 +1634,7 @@ function refreshEditor() {
     } else {
       preview.classList.add("is-empty");
       editorLastGoodStaffHtml = "";
+      editorClearStaffCaretMark(preview);
     }
     editorSyncStaffHistoryAfterRefresh("", { ok: true });
     refreshEditorHint();
@@ -1654,10 +1658,12 @@ function refreshEditor() {
       editorPaintStaffPreview(preview, "", "");
       preview.classList.add("is-staff-pending");
     }
+    editorUpdateStaffCaretMark();
   } else {
     editorLastGoodStaffHtml = "";
     preview.innerHTML = lineToItem(line);
     clearEditStaffNote();
+    editorClearStaffCaretMark(preview);
   }
   editorSyncStaffHistoryAfterRefresh(line, status);
   refreshEditorHint();
@@ -1684,10 +1690,12 @@ function editorPaintStaffPreview(preview, music, caption) {
     return;
   }
   preview.classList.add("is-staff");
+  preview._staffCaretLayout = null;
   /* Recommended meter shows that signature; Any hides the glyph (Setup still beams). */
   meterOpts = editorPreviewMeterOpts();
   svg = renderMusicStaff(music || "", "current", meterOpts);
   if (svg) {
+    preview._staffCaretLayout = svg._staffCaretLayout || null;
     box = (svg.getAttribute("viewBox") || "").split(/\s+/);
     w = parseFloat(box[2]);
     h = parseFloat(box[3]);
@@ -1708,6 +1716,7 @@ function editorPaintStaffPreview(preview, music, caption) {
   }
   editorLastGoodStaffHtml = preview.innerHTML;
   editorScrollPreviewToEnd(preview);
+  editorUpdateStaffCaretMark();
 }
 
 function editorScrollPreviewToEnd(preview) {
@@ -1729,6 +1738,321 @@ function editorScrollPreviewToEnd(preview) {
     preview.scrollLeft = preview.scrollWidth;
     preview.scrollTop = preview.scrollHeight;
   });
+}
+
+/* Token list with character offsets in the music string (for caret → column). */
+function editorMusicTokenRanges(music) {
+  var raw = String(music || "");
+  var tokens =
+    typeof staffTokenize === "function" ? staffTokenize(raw) : raw.trim().split(/\s+/).filter(Boolean);
+  var out = [];
+  var pos = 0;
+  var i;
+  var idx;
+  for (i = 0; i < tokens.length; i++) {
+    idx = raw.indexOf(tokens[i], pos);
+    if (idx < 0) {
+      idx = pos;
+    }
+    out.push({ tok: tokens[i], start: idx, end: idx + tokens[i].length });
+    pos = idx + tokens[i].length;
+  }
+  return out;
+}
+
+function editorMusicCaretInLine(line, caret) {
+  var parts =
+    typeof staffExampleParts === "function" ? staffExampleParts(line) : { music: String(line || ""), caption: "" };
+  var music = parts.music || "";
+  var at;
+  var rel;
+  if (!music) {
+    return { music: "", caret: 0 };
+  }
+  at = String(line || "").indexOf(music);
+  if (at < 0) {
+    at = 0;
+  }
+  rel = (typeof caret === "number" ? caret : 0) - at;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > music.length) {
+    rel = music.length;
+  }
+  return { music: music, caret: rel };
+}
+
+function editorStaffCaretNoiseTok(tok) {
+  if (!tok) {
+    return true;
+  }
+  if (tok.charAt(0) === "@" || tok.charAt(0) === "^" || tok === "~") {
+    return true;
+  }
+  if (typeof staffIsDynamic === "function" && staffIsDynamic(tok)) {
+    return true;
+  }
+  if (typeof staffIsHairpin === "function" && staffIsHairpin(tok)) {
+    return true;
+  }
+  return false;
+}
+
+function editorStaffBeamInnerNote(tok) {
+  var inner = String(tok || "").replace(/^\{/, "").replace(/\}$/, "");
+  if (!inner || inner === "~") {
+    return false;
+  }
+  if (typeof staffParsePitchToken === "function" && staffParsePitchToken(inner)) {
+    return true;
+  }
+  if (typeof staffParseSlashToken === "function" && staffParseSlashToken(inner, "treble")) {
+    return true;
+  }
+  return false;
+}
+
+/*
+ * Column starts (char offset of each drawn column). Order matches render:
+ * notes/rests/stacks/similes/bars; beams expand; tuplets flatten.
+ */
+function editorStaffColumnStarts(music) {
+  var ranges = editorMusicTokenRanges(music);
+  var starts = [];
+  var i = 0;
+  var t;
+  var openStart;
+
+  function skipNoise() {
+    while (i < ranges.length && editorStaffCaretNoiseTok(ranges[i].tok)) {
+      i += 1;
+    }
+  }
+
+  function consumeBeam() {
+    skipNoise();
+    if (i >= ranges.length || ranges[i].tok.indexOf("{") < 0) {
+      return;
+    }
+    while (i < ranges.length) {
+      t = ranges[i].tok;
+      if (editorStaffBeamInnerNote(t)) {
+        starts.push(ranges[i].start + (t.charAt(0) === "{" ? 1 : 0));
+      }
+      i += 1;
+      if (t.indexOf("}") >= 0) {
+        break;
+      }
+    }
+  }
+
+  function consumeStack() {
+    skipNoise();
+    if (i >= ranges.length || ranges[i].tok.charAt(0) !== "[") {
+      return;
+    }
+    openStart = ranges[i].start;
+    while (i < ranges.length) {
+      t = ranges[i].tok;
+      i += 1;
+      if (t.indexOf("]") >= 0) {
+        starts.push(openStart);
+        break;
+      }
+    }
+  }
+
+  function consumeTuplet() {
+    skipNoise();
+    if (i >= ranges.length || ranges[i].tok.charAt(0) !== "(") {
+      return;
+    }
+    i += 1;
+    while (i < ranges.length) {
+      t = ranges[i].tok;
+      if (t === ")") {
+        i += 1;
+        break;
+      }
+      if (typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(t)) {
+        /* Glued close: E4e) still counts as a note column. */
+        if (t.length > 1) {
+          starts.push(ranges[i].start);
+        }
+        i += 1;
+        break;
+      }
+      if (editorStaffCaretNoiseTok(t)) {
+        i += 1;
+        continue;
+      }
+      if (t.indexOf("{") >= 0) {
+        consumeBeam();
+        continue;
+      }
+      if (t.charAt(0) === "[") {
+        consumeStack();
+        continue;
+      }
+      starts.push(ranges[i].start);
+      i += 1;
+    }
+  }
+
+  while (i < ranges.length) {
+    skipNoise();
+    if (i >= ranges.length) {
+      break;
+    }
+    t = ranges[i].tok;
+    if (t === "|" || t === "%") {
+      starts.push(ranges[i].start);
+      i += 1;
+      continue;
+    }
+    if (t.charAt(0) === "(") {
+      consumeTuplet();
+      continue;
+    }
+    if (t.indexOf("{") >= 0) {
+      consumeBeam();
+      continue;
+    }
+    if (t.charAt(0) === "[") {
+      consumeStack();
+      continue;
+    }
+    starts.push(ranges[i].start);
+    i += 1;
+  }
+  return starts;
+}
+
+/*
+ * Insertion index: how many columns sit before the caret.
+ * Mid-token caret snaps to that column's trailing edge.
+ */
+function editorStaffCaretInsertionIndex(music, caret) {
+  var starts;
+  var i;
+  var idx = 0;
+  if (!music) {
+    return 0;
+  }
+  starts = editorStaffColumnStarts(music);
+  for (i = 0; i < starts.length; i++) {
+    if (caret > starts[i]) {
+      idx = i + 1;
+    } else {
+      break;
+    }
+  }
+  return idx;
+}
+
+function editorStaffCaretX(layout, insertIndex) {
+  var cols;
+  var half;
+  var left;
+  var right;
+  if (!layout) {
+    return null;
+  }
+  cols = layout.cols || [];
+  half = layout.half || 6;
+  if (!cols.length) {
+    return layout.notesStartX;
+  }
+  if (insertIndex <= 0) {
+    return layout.notesStartX;
+  }
+  if (insertIndex >= cols.length) {
+    left = cols[cols.length - 1];
+    return Math.min(layout.endX, left.x + half + 4);
+  }
+  left = cols[insertIndex - 1];
+  right = cols[insertIndex];
+  return (left.x + right.x) / 2;
+}
+
+function editorClearStaffCaretMark(preview) {
+  var svg;
+  var mark;
+  if (!preview) {
+    return;
+  }
+  svg = preview.querySelector("svg.music-staff");
+  if (!svg) {
+    return;
+  }
+  mark = svg.querySelector(".staff-caret-mark");
+  if (mark && mark.parentNode) {
+    mark.parentNode.removeChild(mark);
+  }
+}
+
+function editorUpdateStaffCaretMark() {
+  var preview = document.getElementById("editPreview");
+  var span;
+  var line;
+  var lineCaret;
+  var mapped;
+  var layout;
+  var svg;
+  var mark;
+  var x;
+  var insertIndex;
+  if (!preview || !editorStaffOn()) {
+    editorClearStaffCaretMark(preview);
+    return;
+  }
+  if (preview.classList.contains("is-staff-pending") || !preview.classList.contains("is-staff")) {
+    editorClearStaffCaretMark(preview);
+    return;
+  }
+  layout = preview._staffCaretLayout;
+  svg = preview.querySelector("svg.music-staff");
+  if (!layout || !svg) {
+    editorClearStaffCaretMark(preview);
+    return;
+  }
+  span = editorLineSpan();
+  if (!span) {
+    editorClearStaffCaretMark(preview);
+    return;
+  }
+  /* Multi-line #allEdit caret is absolute; map to the current line first. */
+  line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
+  lineCaret = span.caret - span.lineStart;
+  if (lineCaret < 0) {
+    lineCaret = 0;
+  }
+  mapped = editorMusicCaretInLine(line, lineCaret);
+  if (!mapped.music) {
+    insertIndex = 0;
+  } else {
+    insertIndex = editorStaffCaretInsertionIndex(mapped.music, mapped.caret);
+  }
+  x = editorStaffCaretX(layout, insertIndex);
+  if (x === null || isNaN(x)) {
+    editorClearStaffCaretMark(preview);
+    return;
+  }
+  mark = svg.querySelector(".staff-caret-mark");
+  if (!mark) {
+    mark = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    mark.setAttribute("class", "staff-caret-mark");
+    mark.setAttribute("stroke", "currentColor");
+    mark.setAttribute("stroke-width", "1.6");
+    mark.setAttribute("stroke-linecap", "round");
+    mark.setAttribute("pointer-events", "none");
+    svg.appendChild(mark);
+  }
+  mark.setAttribute("x1", String(x));
+  mark.setAttribute("x2", String(x));
+  mark.setAttribute("y1", String(layout.staffTop - 3));
+  mark.setAttribute("y2", String(layout.staffBot + 3));
 }
 
 function insertEditorText(text, caretBack) {

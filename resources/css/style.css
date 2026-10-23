@@ -2647,6 +2647,34 @@ body.is-editing #counter {
   color: #111;
 }
 
+/* Soft insertion mark: tracks text/pad caret between staff columns. */
+#editPreview.is-staff .staff-caret-mark {
+  opacity: 0.55;
+  animation: staff-caret-blink 1.1s steps(1, end) infinite;
+}
+
+@keyframes staff-caret-blink {
+  0%,
+  45% {
+    opacity: 0.55;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #editPreview.is-staff .staff-caret-mark {
+    animation: none;
+    opacity: 0.45;
+  }
+}
+
+#editPreview.is-staff.is-staff-pending .staff-caret-mark {
+  display: none;
+}
+
 #editNoteHistory {
   display: inline-flex;
   flex: 0 0 auto;
