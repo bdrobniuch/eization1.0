@@ -325,6 +325,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/dynamics.html"/>
   </url>
   <url>
+    <loc>https://eization.com/key-signatures.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/key-signatures.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/key-signatures.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/key-signatures.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/key-signatures.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/key-signatures.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/key-signatures.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/key-signatures.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/free-play.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/free-play.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/free-play.html"/>

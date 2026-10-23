@@ -145,7 +145,7 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 25);
+  check("hidden exercises still registered", hidden === 26);
   check(
     "scales is the seven modes",
     w.exercises.scales.items.length === 84 &&
@@ -168,7 +168,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
   check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
-  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 190));
+  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 191));
   var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));
@@ -552,12 +552,23 @@ function staffNotation(w) {
     "essentialProgressions",
     "playRest",
     "dynamics",
+    "keySignatures",
     "tuplets",
     "consecutiveEightNotes",
     "consecutiveTripletEightNotes",
     "ties",
     "limbs"
   ];
+  check(
+    "key signatures covers every major and minor",
+    !!(
+      w.exercises.keySignatures &&
+      w.exercises.keySignatures.items.length === 30 &&
+      w.exercises.keySignatures.items[0] === "@key=C \u00B7 C major" &&
+      w.exercises.keySignatures.items[29] === "@key=Abm \u00B7 A\u266D minor" &&
+      w.staffNotationStatus(w.exercises.keySignatures.items[1]).ok
+    )
+  );
   var badLine = "";
   var si;
   var li;
