@@ -149,7 +149,7 @@ function exerciseMenu(w) {
   check(
     "scales is the seven modes",
     w.exercises.scales.items.length === 84 &&
-      w.exercises.scales.rev === 3 &&
+      w.exercises.scales.rev === 4 &&
       w.exercises.minorScales.items.length === 36 &&
       w.exercises.melodicMinorModes.items.length === 84 &&
       w.exercises.pentatonicBlues.items.length === 48 &&
@@ -442,13 +442,17 @@ function staffNotation(w) {
   var staffFace = w.document.createElement("div");
   var staffWas = w.exerciseStaff;
   w.exerciseStaff = false;
-  w.fillExampleFace(textFace, w.lineToItem("B7"), "current");
+  w.fillExampleFace(textFace, w.lineToItem("B^7"), "current");
   w.exerciseStaff = true;
   w.fillExampleFace(staffFace, accentItem, "current");
   w.exerciseStaff = staffWas;
   check(
-    "a text exercise keeps B7 as a word",
+    "a text exercise keeps B^7 as a word with a superscript",
     !textFace.classList.contains("is-staff") && textFace.textContent === "B7" && !!textFace.querySelector("sup")
+  );
+  check(
+    "a plain B7 stays flat",
+    w.lineToItem("B7") === "B7" && w.lineToItem("C^∆7").indexOf("<sup>") >= 0 && w.lineToItem("X_2").indexOf("<sub>") >= 0
   );
   check(
     "a staff exercise draws the accented line",
@@ -1080,6 +1084,20 @@ function editorLines(w) {
   check("an accent stays on the line", w.itemToLine("C4q>") === "C4q>");
   check("a plain ampersand stays", w.itemToLine("C&G") === "C&G");
   check("a comparison stays", w.itemToLine("ii < V") === "ii < V");
+  var chordFace = w.lineToItem("C^♯∆7");
+  check(
+    "text ^ makes a superscript",
+    chordFace.indexOf("<sup>") >= 0 && chordFace.indexOf("♯∆7") >= 0 && w.itemToLine("C^♯∆7") === "C^♯∆7"
+  );
+  check("text _ makes a subscript", w.lineToItem("H_2O").indexOf("<sub>") >= 0 && w.itemToLine("H_2O") === "H_2O");
+  check("display HTML keeps the caret for Edit", w.itemToLine(chordFace) === "C^♯∆7");
+  check("display HTML keeps a subscript for Edit", w.itemToLine(w.lineToItem("H_2O")) === "H_2O");
+  check(
+    "a caption with a caret round-trips",
+    w.itemToLine(w.lineToItem("C^∆7 \u00B7 Blues")) === "C^∆7 \u00B7 Blues"
+  );
+  check("All Chords stores an explicit caret", w.exercises.allChords.items[0] === "C^∆7");
+  check("All Notes stores an accidental caret", w.exercises.allNotes.items[2] === "C^♯");
 }
 
 function guideDoors(w) {
@@ -1677,15 +1695,21 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-symbol='\u2193']") &&
       symbolsPanel.querySelector("[data-symbol='\u2612']") &&
       symbolsPanel.querySelector("[data-symbol='\u266F']") &&
+      symbolsPanel.querySelector("[data-symbol='^']") &&
+      symbolsPanel.querySelector("[data-symbol='_']") &&
       symbolsPanel.querySelector("[data-symbol='[ ]']") &&
       notePad &&
       w.getComputedStyle(notePad).display === "none" &&
       w.getComputedStyle(chartArrow).display !== "none" &&
       !symbolsPanel.querySelector("[data-symbol='\uD834\uDD00']") &&
       symbolsToggle.querySelector(".btn-label").textContent === w.t("edit.symbols") &&
-      symbolsToggle.querySelector(".btn-mark").textContent === "\u266F" &&
+      symbolsToggle.querySelector(".btn-mark").textContent === "\u266F\u2206\u00F8" &&
       w.I18N.en["edit.noteNone"] === "No sign" &&
-      w.I18N.es["edit.noteNone"] === "Sin alteraci\u00F3n"
+      w.I18N.es["edit.noteNone"] === "Sin alteraci\u00F3n" &&
+      w.I18N.en["sym.sup"] === "Superscript" &&
+      w.I18N.en["sym.sub"] === "Subscript" &&
+      w.I18N.es["sym.sup"] === "Super\u00EDndice" &&
+      w.I18N.es["sym.sub"] === "Sub\u00EDndice"
     )
   );
   w.setEditorStaff(true);
@@ -2329,7 +2353,7 @@ function storageMigration(w) {
   editedNotes[0] = editedNotes[0] + " edited";
   check("older scales spelling differs", oldScaleLines[0] !== freshScales.lines[0]);
   check("older progressions spelling differs", oldProgLines[0] !== freshProg.lines[0]);
-  check("catalog birthdays", w.exercises.scales.rev === 3 && w.exercises.essentialProgressions.rev === 2 && w.exercises.allNotes.rev === 1);
+  check("catalog birthdays", w.exercises.scales.rev === 4 && w.exercises.essentialProgressions.rev === 2 && w.exercises.allNotes.rev === 2 && w.exercises.allChords.rev === 2);
   localStorage.setItem("eization-hello", "1");
   localStorage.setItem("eization-desk", JSON.stringify({
     bpm: 132,

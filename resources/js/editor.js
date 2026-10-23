@@ -23,6 +23,8 @@ var EDITOR_SYMBOLS = [
   { char: "\u00B0", key: "sym.dim" },
   { char: "\u00F8", key: "sym.half" },
   { char: "+", key: "sym.aug" },
+  { char: "^", key: "sym.sup" },
+  { char: "_", key: "sym.sub" },
   { char: "\u2193", key: "sym.down" },
   { char: "\u2191", key: "sym.up" },
   { char: "\u2192", key: "sym.arrow" },
@@ -95,19 +97,43 @@ function collapseEditorSpaces(text) {
   return (text || "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").replace(/^\s+|\s+$/g, "");
 }
 
+/* Walk display HTML back to the Edit spelling. <sup> / <sub> become ^ / _. */
+function htmlNodeToEditorText(node) {
+  var out = "";
+  var i;
+  var tag;
+  if (!node) {
+    return "";
+  }
+  if (node.nodeType === 3) {
+    return node.nodeValue || "";
+  }
+  if (node.nodeType !== 1) {
+    return "";
+  }
+  tag = String(node.tagName || "").toLowerCase();
+  if (tag === "sup" || tag === "sub") {
+    return (tag === "sup" ? "^" : "_") + (node.textContent || "");
+  }
+  for (i = 0; i < node.childNodes.length; i++) {
+    out += htmlNodeToEditorText(node.childNodes[i]);
+  }
+  return out;
+}
+
 function htmlToEditorLine(html) {
   var box = document.createElement("div");
   box.innerHTML = html;
   var changes = box.querySelector(".prog-changes");
   var name = box.querySelector(".prog-name");
   if (changes && name) {
-    var left = collapseEditorSpaces(changes.textContent);
+    var left = collapseEditorSpaces(htmlNodeToEditorText(changes));
     var right = collapseEditorSpaces(name.textContent);
     if (left && right) {
       return left + " \u00B7 " + right;
     }
   }
-  return collapseEditorSpaces(box.textContent);
+  return collapseEditorSpaces(htmlNodeToEditorText(box));
 }
 
 function lineLooksLikeHtml(raw) {
@@ -133,17 +159,60 @@ function withSimile(html) {
   return html.replace(/\uD834\uDD0E/g, '<span class="simile">\uD834\uDD0E</span>');
 }
 
-function stylePlainExample(text) {
-  var note = text.match(/^([A-G])([#b\u266F\u266D])$/);
-  var chord;
-  if (note) {
-    return escapeEditorHtml(note[1]) + "<sup><small>" + escapeEditorHtml(note[2]) + "</small></sup>";
+/*
+ * TEXT exercises: ^text is superscript, _text is subscript.
+ * A run ends at the next ^ or _, at whitespace, or at the end of the line.
+ * Staff lines use the same marks for above/under the staff; this path is display only.
+ */
+function formatTextAffixes(text) {
+  var s = String(text || "");
+  var out = "";
+  var i = 0;
+  var ch;
+  var mode = "";
+  var buf = "";
+  function flushPlain() {
+    if (buf) {
+      out += escapeEditorHtml(buf);
+      buf = "";
+    }
   }
-  chord = text.match(/^([A-G])((?:[#b\u266F\u266D])?(?:alt)?[\u2206\u00B0\u00F8+\-\u2212]?\d.*)$/);
-  if (chord && /7/.test(chord[2])) {
-    return escapeEditorHtml(chord[1]) + "<sup><small>" + escapeEditorHtml(chord[2]) + "</small></sup>";
+  function flushAffix() {
+    if (!mode) {
+      return;
+    }
+    var tag = mode === "^" ? "sup" : "sub";
+    out += "<" + tag + "><small>" + escapeEditorHtml(buf) + "</small></" + tag + ">";
+    buf = "";
+    mode = "";
   }
-  return escapeEditorHtml(text);
+  while (i < s.length) {
+    ch = s.charAt(i);
+    if (ch === "^" || ch === "_") {
+      if (mode) {
+        flushAffix();
+      } else {
+        flushPlain();
+      }
+      mode = ch;
+      i += 1;
+      continue;
+    }
+    if (mode && /\s/.test(ch)) {
+      flushAffix();
+      buf += ch;
+      i += 1;
+      continue;
+    }
+    buf += ch;
+    i += 1;
+  }
+  if (mode) {
+    flushAffix();
+  } else {
+    flushPlain();
+  }
+  return out;
 }
 
 function lineToItem(line) {
@@ -160,10 +229,10 @@ function lineToItem(line) {
     var left = text.slice(0, at).replace(/\s+$/g, "");
     var right = text.slice(at + dot.length).replace(/^\s+/g, "");
     if (left && right) {
-      return withSimile('<span class="prog-changes">' + escapeEditorHtml(left) + '</span><span class="prog-name">' + escapeEditorHtml(right) + '</span>');
+      return withSimile('<span class="prog-changes">' + formatTextAffixes(left) + '</span><span class="prog-name">' + escapeEditorHtml(right) + '</span>');
     }
   }
-  return withSimile(stylePlainExample(text));
+  return withSimile(formatTextAffixes(text));
 }
 
 function editorLinesFrom(value) {
@@ -1447,7 +1516,8 @@ function editorInsertSymbol(text, caretBack) {
     first !== ">" &&
     first !== "-" &&
     first !== "~" &&
-    first !== "^"
+    first !== "^" &&
+    first !== "_"
   ) {
     body = " " + body;
   }
@@ -1503,7 +1573,7 @@ function editorSyncSymbolKind() {
     button.setAttribute("title", t(titleKey));
     button.setAttribute("aria-label", t(titleKey));
     if (mark) {
-      mark.textContent = "\u266F\u2206\u00F8";
+      mark.textContent = staff ? "\u2669" : "\u266F\u2206\u00F8";
     }
     if (label) {
       label.textContent = t(staff ? "edit.notes" : "edit.symbols");
@@ -3824,7 +3894,13 @@ function editorOpenSheet(options) {
     editorDraft.name = desk ? exerciseDisplayName(desk) : editorDraft.label;
     editorDraft.bars = typeof exerciseBars === "number" && exerciseBars > 0 ? exerciseBars : 1;
     editorDraft.staff = !!(desk && desk.staff);
-    var source = typeof chromaticScale !== "undefined" && chromaticScale ? chromaticScale : [];
+    /* Prefer desk.lines (plain source). chromaticScale holds display HTML for text. */
+    var source =
+      desk && desk.lines && desk.lines.length
+        ? desk.lines
+        : typeof chromaticScale !== "undefined" && chromaticScale
+          ? chromaticScale
+          : [];
     var lines = [];
     for (var i = 0; i < source.length; i++) {
       var line = itemToLine(source[i]);

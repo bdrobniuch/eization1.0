@@ -3,42 +3,42 @@ registerExercise({
   label: "All Notes",
   staff: false,
   inMenu: true,
-  rev: 1,
+  rev: 2,
   items: [
-    "C<sup><small> </small></sup>",
-    "C<sup><small> </small></sup>",
+    "C",
+    "C",
 
-    "C<sup><small>&#9839</small></sup>",
-    "D<sup><small>&#9837</small></sup>",
+    "C^♯",
+    "D^♭",
 
-    "D<sup><small> </small></sup>",
-    "D<sup><small> </small></sup>",
+    "D",
+    "D",
 
-    "D<sup><small>&#9839</small></sup>",
-    "E<sup><small>&#9837</small></sup>",
+    "D^♯",
+    "E^♭",
 
-    "E<sup><small> </small></sup>",
-    "E<sup><small> </small></sup>",
+    "E",
+    "E",
 
-    "F<sup><small> </small></sup>",
-    "F<sup><small> </small></sup>",
+    "F",
+    "F",
 
-    "F<sup><small>&#9839</small></sup>",
-    "G<sup><small>&#9837</small></sup>",
+    "F^♯",
+    "G^♭",
 
-    "G<sup><small> </small></sup>",
-    "G<sup><small> </small></sup>",
+    "G",
+    "G",
 
-    "G<sup><small>&#9839</small></sup>",
-    "A<sup><small>&#9837</small></sup>",
+    "G^♯",
+    "A^♭",
 
-    "A<sup><small> </small></sup>",
-    "A<sup><small> </small></sup>",
+    "A",
+    "A",
 
-    "A<sup><small>&#9839</small></sup>",
-    "B<sup><small>&#9837</small></sup>",
+    "A^♯",
+    "B^♭",
 
-    "B<sup><small> </small></sup>",
-    "B<sup><small> </small></sup>"
+    "B",
+    "B"
   ]
 });

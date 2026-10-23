@@ -3,272 +3,270 @@ registerExercise({
   label: "All Chords",
   staff: false,
   inMenu: true,
-  rev: 1,
+  rev: 2,
   items: [
-    "C<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "C<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "C^∆7",
+    "C^∆7",
 
-    "C<sup><small>&#9839</small><small><small></sup>&#8710;7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>&#8710;7</small></small>",
+    "C^♯∆7",
+    "D^♭∆7",
 
-    "D<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "D<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "D^∆7",
+    "D^∆7",
 
-    "D<sup><small>&#9839</small><small><small></sup>&#8710;7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>&#8710;7</small></small>",
+    "D^♯∆7",
+    "E^♭∆7",
 
-    "E<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "E<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "E^∆7",
+    "E^∆7",
 
-    "F<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "F<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "F^∆7",
+    "F^∆7",
 
-    "F<sup><small>&#9839</small><small><small></sup>&#8710;7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>&#8710;7</small></small>",
+    "F^♯∆7",
+    "G^♭∆7",
 
-    "G<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "G<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "G^∆7",
+    "G^∆7",
 
-    "G<sup><small>&#9839</small><small><small></sup>&#8710;7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>&#8710;7</small></small>",
+    "G^♯∆7",
+    "A^♭∆7",
 
-    "A<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "A<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "A^∆7",
+    "A^∆7",
 
-    "A<sup><small>&#9839</small><small><small></sup>&#8710;7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>&#8710;7</small></small>",
+    "A^♯∆7",
+    "B^♭∆7",
 
-    "B<sup><small></small><small><small></sup>&#8710;7</small></small>",
-    "B<sup><small></small><small><small></sup>&#8710;7</small></small>",
+    "B^∆7",
+    "B^∆7",
 
 
 
-    "C<sup><small></small><small><small></sup>-7</small></small>",
-    "C<sup><small></small><small><small></sup>-7</small></small>",
+    "C^-7",
+    "C^-7",
 
-    "C<sup><small>&#9839</small><small><small></sup>-7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>-7</small></small>",
+    "C^♯-7",
+    "D^♭-7",
 
-    "D<sup><small></small><small><small></sup>-7</small></small>",
-    "D<sup><small></small><small><small></sup>-7</small></small>",
+    "D^-7",
+    "D^-7",
 
-    "D<sup><small>&#9839</small><small><small></sup>-7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>-7</small></small>",
+    "D^♯-7",
+    "E^♭-7",
 
-    "E<sup><small></small><small><small></sup>-7</small></small>",
-    "E<sup><small></small><small><small></sup>-7</small></small>",
+    "E^-7",
+    "E^-7",
 
-    "F<sup><small></small><small><small></sup>-7</small></small>",
-    "F<sup><small></small><small><small></sup>-7</small></small>",
+    "F^-7",
+    "F^-7",
 
-    "F<sup><small>&#9839</small><small><small></sup>-7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>-7</small></small>",
+    "F^♯-7",
+    "G^♭-7",
 
-    "G<sup><small></small><small><small></sup>-7</small></small>",
-    "G<sup><small></small><small><small></sup>-7</small></small>",
+    "G^-7",
+    "G^-7",
 
-    "G<sup><small>&#9839</small><small><small></sup>-7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>-7</small></small>",
+    "G^♯-7",
+    "A^♭-7",
 
-    "A<sup><small></small><small><small></sup>-7</small></small>",
-    "A<sup><small></small><small><small></sup>-7</small></small>",
+    "A^-7",
+    "A^-7",
 
-    "A<sup><small>&#9839</small><small><small></sup>-7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>-7</small></small>",
+    "A^♯-7",
+    "B^♭-7",
 
-    "B<sup><small></small><small><small></sup>-7</small></small>",
-    "B<sup><small></small><small><small></sup>-7</small></small>",
+    "B^-7",
+    "B^-7",
 
 
 
+    "C^7",
+    "C^7",
 
-    "C<sup><small></small><small><small></sup>7</small></small>",
-    "C<sup><small></small><small><small></sup>7</small></small>",
+    "C^♯7",
+    "D^♭7",
 
-    "C<sup><small>&#9839</small><small><small></sup>7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>7</small></small>",
+    "D^7",
+    "D^7",
 
-    "D<sup><small></small><small><small></sup>7</small></small>",
-    "D<sup><small></small><small><small></sup>7</small></small>",
+    "D^♯7",
+    "E^♭7",
 
-    "D<sup><small>&#9839</small><small><small></sup>7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>7</small></small>",
+    "E^7",
+    "E^7",
 
-    "E<sup><small></small><small><small></sup>7</small></small>",
-    "E<sup><small></small><small><small></sup>7</small></small>",
+    "F^7",
+    "F^7",
 
-    "F<sup><small></small><small><small></sup>7</small></small>",
-    "F<sup><small></small><small><small></sup>7</small></small>",
+    "F^♯7",
+    "G^♭7",
 
-    "F<sup><small>&#9839</small><small><small></sup>7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>7</small></small>",
+    "G^7",
+    "G^7",
 
-    "G<sup><small></small><small><small></sup>7</small></small>",
-    "G<sup><small></small><small><small></sup>7</small></small>",
+    "G^♯7",
+    "A^♭7",
 
-    "G<sup><small>&#9839</small><small><small></sup>7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>7</small></small>",
+    "A^7",
+    "A^7",
 
-    "A<sup><small></small><small><small></sup>7</small></small>",
-    "A<sup><small></small><small><small></sup>7</small></small>",
+    "A^♯7",
+    "B^♭7",
 
-    "A<sup><small>&#9839</small><small><small></sup>7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>7</small></small>",
+    "B^7",
+    "B^7",
 
-    "B<sup><small></small><small><small></sup>7</small></small>",
-    "B<sup><small></small><small><small></sup>7</small></small>",
 
 
+    "C^ø7",
+    "C^ø7",
 
+    "C^♯ø7",
+    "D^♭ø7",
 
-    "C<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "C<sup><small></small><small><small></sup>&#248;7</small></small>",
+    "D^ø7",
+    "D^ø7",
 
-    "C<sup><small>&#9839</small><small><small></sup>&#248;7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>&#248;7</small></small>",
+    "D^♯ø7",
+    "E^♭ø7",
 
-    "D<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "D<sup><small></small><small><small></sup>&#248;7</small></small>",
+    "E^ø7",
+    "E^ø7",
 
-    "D<sup><small>&#9839</small><small><small></sup>&#248;7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>&#248;7</small></small>",
+    "F^ø7",
+    "F^ø7",
 
-    "E<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "E<sup><small></small><small><small></sup>&#248;7</small></small>",
+    "F^♯ø7",
+    "G^♭ø7",
 
-    "F<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "F<sup><small></small><small><small></sup>&#248;7</small></small>",
+    "G^ø7",
+    "G^ø7",
 
-    "F<sup><small>&#9839</small><small><small></sup>&#248;7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>&#248;7</small></small>",
+    "G^♯ø7",
+    "A^♭ø7",
 
-    "G<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "G<sup><small></small><small><small></sup>&#248;7</small></small>",
+    "A^ø7",
+    "A^ø7",
 
-    "G<sup><small>&#9839</small><small><small></sup>&#248;7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>&#248;7</small></small>",
+    "A^♯ø7",
+    "B^♭ø7",
 
-    "A<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "A<sup><small></small><small><small></sup>&#248;7</small></small>",
+    "B^ø7",
+    "B^ø7",
 
-    "A<sup><small>&#9839</small><small><small></sup>&#248;7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>&#248;7</small></small>",
 
-    "B<sup><small></small><small><small></sup>&#248;7</small></small>",
-    "B<sup><small></small><small><small></sup>&#248;7</small></small>",
 
+    "C^alt7",
+    "C^alt7",
 
+    "C^♯alt7",
+    "D^♭alt7",
 
-    "C<sup><small></small><small><small></sup>alt7</small></small>",
-    "C<sup><small></small><small><small></sup>alt7</small></small>",
+    "D^alt7",
+    "D^alt7",
 
-    "C<sup><small>&#9839</small><small><small></sup>alt7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>alt7</small></small>",
+    "D^♯alt7",
+    "E^♭alt7",
 
-    "D<sup><small></small><small><small></sup>alt7</small></small>",
-    "D<sup><small></small><small><small></sup>alt7</small></small>",
+    "E^alt7",
+    "E^alt7",
 
-    "D<sup><small>&#9839</small><small><small></sup>alt7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>alt7</small></small>",
+    "F^alt7",
+    "F^alt7",
 
-    "E<sup><small></small><small><small></sup>alt7</small></small>",
-    "E<sup><small></small><small><small></sup>alt7</small></small>",
+    "F^♯alt7",
+    "G^♭alt7",
 
-    "F<sup><small></small><small><small></sup>alt7</small></small>",
-    "F<sup><small></small><small><small></sup>alt7</small></small>",
+    "G^alt7",
+    "G^alt7",
 
-    "F<sup><small>&#9839</small><small><small></sup>alt7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>alt7</small></small>",
+    "G^♯alt7",
+    "A^♭alt7",
 
-    "G<sup><small></small><small><small></sup>alt7</small></small>",
-    "G<sup><small></small><small><small></sup>alt7</small></small>",
+    "A^alt7",
+    "A^alt7",
 
-    "G<sup><small>&#9839</small><small><small></sup>alt7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>alt7</small></small>",
+    "A^♯alt7",
+    "B^♭alt7",
 
-    "A<sup><small></small><small><small></sup>alt7</small></small>",
-    "A<sup><small></small><small><small></sup>alt7</small></small>",
+    "B^alt7",
+    "B^alt7",
 
-    "A<sup><small>&#9839</small><small><small></sup>alt7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>alt7</small></small>",
 
-    "B<sup><small></small><small><small></sup>alt7</small></small>",
-    "B<sup><small></small><small><small></sup>alt7</small></small>",
 
+    "C^°7",
+    "C^°7",
 
+    "C^♯°7",
+    "D^♭°7",
 
-    "C<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "C<sup><small></small><small><small></sup>&#176;7</small></small>",
+    "D^°7",
+    "D^°7",
 
-    "C<sup><small>&#9839</small><small><small></sup>&#176;7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>&#176;7</small></small>",
+    "D^♯°7",
+    "E^♭°7",
 
-    "D<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "D<sup><small></small><small><small></sup>&#176;7</small></small>",
+    "E^°7",
+    "E^°7",
 
-    "D<sup><small>&#9839</small><small><small></sup>&#176;7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>&#176;7</small></small>",
+    "F^°7",
+    "F^°7",
 
-    "E<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "E<sup><small></small><small><small></sup>&#176;7</small></small>",
+    "F^♯°7",
+    "G^♭°7",
 
-    "F<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "F<sup><small></small><small><small></sup>&#176;7</small></small>",
+    "G^°7",
+    "G^°7",
 
-    "F<sup><small>&#9839</small><small><small></sup>&#176;7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>&#176;7</small></small>",
+    "G^♯°7",
+    "A^♭°7",
 
-    "G<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "G<sup><small></small><small><small></sup>&#176;7</small></small>",
+    "A^°7",
+    "A^°7",
 
-    "G<sup><small>&#9839</small><small><small></sup>&#176;7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>&#176;7</small></small>",
+    "A^♯°7",
+    "B^♭°7",
 
-    "A<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "A<sup><small></small><small><small></sup>&#176;7</small></small>",
+    "B^°7",
+    "B^°7",
 
-    "A<sup><small>&#9839</small><small><small></sup>&#176;7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>&#176;7</small></small>",
 
-    "B<sup><small></small><small><small></sup>&#176;7</small></small>",
-    "B<sup><small></small><small><small></sup>&#176;7</small></small>",
 
+    "C^+7",
+    "C^+7",
 
+    "C^♯+7",
+    "D^♭+7",
 
-    "C<sup><small></small><small><small></sup>+7</small></small>",
-    "C<sup><small></small><small><small></sup>+7</small></small>",
+    "D^+7",
+    "D^+7",
 
-    "C<sup><small>&#9839</small><small><small></sup>+7</small></small>",
-    "D<sup><small>&#9837</small><small><small></sup>+7</small></small>",
+    "D^♯+7",
+    "E^♭+7",
 
-    "D<sup><small></small><small><small></sup>+7</small></small>",
-    "D<sup><small></small><small><small></sup>+7</small></small>",
+    "E^+7",
+    "E^+7",
 
-    "D<sup><small>&#9839</small><small><small></sup>+7</small></small>",
-    "E<sup><small>&#9837</small><small><small></sup>+7</small></small>",
+    "F^+7",
+    "F^+7",
 
-    "E<sup><small></small><small><small></sup>+7</small></small>",
-    "E<sup><small></small><small><small></sup>+7</small></small>",
+    "F^♯+7",
+    "G^♭+7",
 
-    "F<sup><small></small><small><small></sup>+7</small></small>",
-    "F<sup><small></small><small><small></sup>+7</small></small>",
+    "G^+7",
+    "G^+7",
 
-    "F<sup><small>&#9839</small><small><small></sup>+7</small></small>",
-    "G<sup><small>&#9837</small><small><small></sup>+7</small></small>",
+    "G^♯+7",
+    "A^♭+7",
 
-    "G<sup><small></small><small><small></sup>+7</small></small>",
-    "G<sup><small></small><small><small></sup>+7</small></small>",
+    "A^+7",
+    "A^+7",
 
-    "G<sup><small>&#9839</small><small><small></sup>+7</small></small>",
-    "A<sup><small>&#9837</small><small><small></sup>+7</small></small>",
+    "A^♯+7",
+    "B^♭+7",
 
-    "A<sup><small></small><small><small></sup>+7</small></small>",
-    "A<sup><small></small><small><small></sup>+7</small></small>",
-
-    "A<sup><small>&#9839</small><small><small></sup>+7</small></small>",
-    "B<sup><small>&#9837</small><small><small></sup>+7</small></small>",
-
-    "B<sup><small></small><small><small></sup>+7</small></small>",
-    "B<sup><small></small><small><small></sup>+7</small></small>"
+    "B^+7",
+    "B^+7"
   ]
 });
