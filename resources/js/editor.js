@@ -326,29 +326,28 @@ function setEditorStaff(on) {
   if (write) {
     write.classList.toggle("is-text-kind", !pressed);
   }
+  if (!pressed) {
+    editorCloseStaffHelp({ focus: false });
+  }
+  editorPlaceExerciseExtras();
   editorSyncSymbolKind();
 }
 
 function editorReadDefaults() {
-  var clefBass = document.getElementById("editClefBass");
+  var write = document.getElementById("editWrite");
   var keyField = document.getElementById("editKey");
-  var presets = document.querySelectorAll(".edit-meter-preset");
-  var clef = clefBass && clefBass.getAttribute("aria-pressed") === "true" ? "bass" : "";
+  var meterField = document.getElementById("editMeter");
+  var clef = write && write.getAttribute("data-clef") === "bass" ? "bass" : "";
   var key = keyField ? String(keyField.value || "") : "";
+  var meterRaw = meterField ? String(meterField.value || "") : "";
   var meter = null;
-  var i;
-  var raw;
   if (typeof cleanDeskKey === "function") {
     key = cleanDeskKey(key);
   } else if (key === "C") {
     key = "";
   }
-  for (i = 0; i < presets.length; i++) {
-    if (presets[i].getAttribute("aria-pressed") === "true") {
-      raw = presets[i].getAttribute("data-meter") || "";
-      meter = typeof cleanDeskMeter === "function" ? cleanDeskMeter(raw) : null;
-      break;
-    }
+  if (meterRaw && typeof cleanDeskMeter === "function") {
+    meter = cleanDeskMeter(meterRaw);
   }
   return { clef: clef, key: key, meter: meter };
 }
@@ -357,18 +356,16 @@ function editorApplyDefaultsUi(spec) {
   var clef = spec && spec.clef === "bass" ? "bass" : "";
   var key = spec && spec.key ? String(spec.key) : "";
   var meter = spec && spec.meter ? spec.meter : null;
-  var treble = document.getElementById("editClefTreble");
-  var bass = document.getElementById("editClefBass");
+  var write = document.getElementById("editWrite");
   var keyField = document.getElementById("editKey");
-  var presets = document.querySelectorAll(".edit-meter-preset");
+  var meterField = document.getElementById("editMeter");
   var meterText = meter ? meter.beats + "/" + meter.unit : "";
-  var i;
-  var raw;
-  if (treble) {
-    treble.setAttribute("aria-pressed", clef === "bass" ? "false" : "true");
-  }
-  if (bass) {
-    bass.setAttribute("aria-pressed", clef === "bass" ? "true" : "false");
+  if (write) {
+    if (clef === "bass") {
+      write.setAttribute("data-clef", "bass");
+    } else {
+      write.removeAttribute("data-clef");
+    }
   }
   if (keyField) {
     if (key && !Array.prototype.some.call(keyField.options, function (opt) {
@@ -379,9 +376,37 @@ function editorApplyDefaultsUi(spec) {
       keyField.value = key;
     }
   }
-  for (i = 0; i < presets.length; i++) {
-    raw = presets[i].getAttribute("data-meter") || "";
-    presets[i].setAttribute("aria-pressed", raw === meterText ? "true" : "false");
+  if (meterField) {
+    if (meterText && !Array.prototype.some.call(meterField.options, function (opt) {
+      return opt.value === meterText;
+    })) {
+      meterField.value = "";
+    } else {
+      meterField.value = meterText;
+    }
+  }
+}
+
+/*
+ * Meter stays beside Bars (text and staff). Clef + key sit on Write notes for
+ * staff; key is parked hidden when the exercise is text.
+ */
+function editorPlaceExerciseExtras() {
+  var keyHost = document.getElementById("editKeyHost");
+  var setup = document.getElementById("editSetup");
+  var noteDefaults = document.getElementById("editNoteDefaults");
+  var staff = editorStaffOn();
+  if (!keyHost) {
+    return;
+  }
+  if (staff && noteDefaults) {
+    keyHost.hidden = false;
+    noteDefaults.appendChild(keyHost);
+  } else {
+    keyHost.hidden = true;
+    if (setup && setup.parentNode) {
+      setup.parentNode.insertBefore(keyHost, setup.nextSibling);
+    }
   }
 }
 
@@ -404,35 +429,13 @@ function editorRestorePracticeDefaults() {
   }
 }
 
-function editorCloseDefaults() {
-  var btn = document.getElementById("editDefaults");
-  var panel = document.getElementById("editDefaultsPanel");
-  if (panel) {
-    panel.hidden = true;
-  }
-  if (btn) {
-    btn.setAttribute("aria-expanded", "false");
-  }
-}
-
-function editorToggleDefaults() {
-  var btn = document.getElementById("editDefaults");
-  var panel = document.getElementById("editDefaultsPanel");
-  var open;
-  if (!panel || !btn) {
-    return;
-  }
-  open = panel.hidden;
-  panel.hidden = !open;
-  btn.setAttribute("aria-expanded", open ? "true" : "false");
-  if (open) {
-    editorAnalyticsMark("used_defaults");
-    if (typeof track === "function") {
-      track("edit_defaults", {
-        mode: editorIsCreateMode() ? "create" : "edit",
-        kind: editorAnalyticsKind()
-      });
-    }
+function editorMarkDefaultsUsed() {
+  editorAnalyticsMark("used_defaults");
+  if (typeof track === "function") {
+    track("edit_defaults", {
+      mode: editorIsCreateMode() ? "create" : "edit",
+      kind: editorAnalyticsKind()
+    });
   }
 }
 
@@ -458,11 +461,6 @@ function editorLeaveIfClean(message) {
 }
 
 function editorDismissEscape() {
-  var defaultsPanel = document.getElementById("editDefaultsPanel");
-  if (defaultsPanel && !defaultsPanel.hidden) {
-    editorCloseDefaults();
-    return;
-  }
   if (editorCloseStaffHelp()) {
     return;
   }
@@ -1081,6 +1079,10 @@ function editorOpenStaffHelp() {
 }
 
 function editorToggleStaffHelp() {
+  if (!editorStaffOn()) {
+    editorCloseStaffHelp({ focus: false });
+    return;
+  }
   if (editorStaffHelpIsOpen()) {
     editorCloseStaffHelp();
   } else {
@@ -1106,7 +1108,6 @@ function editorCloseQuiet() {
   editorFlushSession();
   editorCloseStaffHelp({ focus: false });
   editorCloseMore();
-  editorCloseDefaults();
   editorCloseSymbols();
   clearEditStaffNote();
   editorLastGoodStaffHtml = "";
@@ -1915,7 +1916,13 @@ function editorActiveField() {
 
 function editorClefName() {
   var lead = editorLineDirectives(currentEditorLine());
-  return lead.indexOf("@bass") >= 0 ? "bass" : "treble";
+  if (lead.indexOf("@bass") >= 0) {
+    return "bass";
+  }
+  if (lead.indexOf("@treble") >= 0) {
+    return "treble";
+  }
+  return editorReadDefaults().clef === "bass" ? "bass" : "treble";
 }
 
 function editorClampOctave(oct) {
@@ -1966,72 +1973,23 @@ function editorLineSpan() {
   return { field: field, value: value, lineStart: lineStart, lineEnd: lineEnd, caret: caret };
 }
 
-function editorSetClef(clef) {
-  var span = editorLineSpan();
-  var line;
-  var found;
-  var nextLine;
-  var after;
-  var removed;
-  var rel;
-  var caret;
-  if (!span) {
+/* Exercise default clef (not @bass on the line). Icon is the clef you get next. */
+function editorToggleDefaultClef(next) {
+  var cur = editorReadDefaults();
+  var clef = next === "bass" ? "bass" : "";
+  if ((cur.clef || "") === clef) {
     return;
   }
-  line = span.value.slice(span.lineStart, span.lineEnd);
-  found = /@bass|@treble/.exec(line);
-  if (clef === "bass") {
-    if (found && found[0] === "@bass") {
-      return;
-    }
-    editorPushSymbolUndo();
-    if (found) {
-      nextLine = line.slice(0, found.index) + "@bass" + line.slice(found.index + found[0].length);
-    } else if (!line) {
-      nextLine = "@bass ";
-    } else if (line.charAt(0) === " ") {
-      nextLine = "@bass" + line;
-    } else {
-      nextLine = "@bass " + line;
-    }
-  } else {
-    if (!found) {
-      return;
-    }
-    editorPushSymbolUndo();
-    after = line.slice(found.index + found[0].length);
-    if (after.charAt(0) === " ") {
-      after = after.slice(1);
-    }
-    nextLine = line.slice(0, found.index) + after;
-  }
-  span.field.value = span.value.slice(0, span.lineStart) + nextLine + span.value.slice(span.lineEnd);
-  rel = span.caret - span.lineStart;
-  if (rel < 0) {
-    rel = 0;
-  }
-  if (clef === "bass") {
-    if (found) {
-      if (rel >= found.index) {
-        rel += 5 - found[0].length;
-      }
-    } else {
-      rel += nextLine.length - line.length;
-    }
-  } else {
-    removed = found[0].length + (line.charAt(found.index + found[0].length) === " " ? 1 : 0);
-    if (rel > found.index) {
-      rel -= Math.min(rel - found.index, removed);
-    }
-  }
-  if (rel < 0) {
-    rel = 0;
-  }
-  if (rel > nextLine.length) {
-    rel = nextLine.length;
-  }
-  caret = span.lineStart + rel;
-  editorPlaceCaret(span.field, caret, caret, !!(editorPadCaret && editorSymbolsIsOpen()));
+  editorApplyDefaultsUi({
+    clef: clef,
+    key: cur.key,
+    meter: cur.meter
+  });
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+  editorMarkDefaultsUsed();
+  editorSyncStaffDefaults();
+  disarmEditorDelete();
   clearEditorNotice();
   refreshEditor();
 }
@@ -2234,6 +2192,7 @@ function editorLetterToken(letter) {
 
 function editorNotePadStampNow() {
   var field = editorActiveField();
+  var defaults = editorReadDefaults();
   return [
     editorStaffOn() ? "staff" : "text",
     editorNote.acc || "",
@@ -2242,6 +2201,8 @@ function editorNotePadStampNow() {
     editorNote.dur || "",
     String(editorWorkingOctave()),
     editorClefName(),
+    defaults.clef || "",
+    defaults.key || "",
     currentEditorLine(),
     field ? String(editorReadSelection(field).start) : "0",
     typeof eizationLang === "string" ? eizationLang : "",
@@ -3722,11 +3683,30 @@ function editorEraseStep(opts) {
   return true;
 }
 
-function editorPaintClefToggle(row) {
-  var next = editorClefName() === "bass" ? "treble" : "bass";
+function editorPaintDefaultClefToggle(row) {
+  var cur = editorReadDefaults().clef === "bass" ? "bass" : "treble";
+  var next = cur === "bass" ? "treble" : "bass";
   var label = next === "bass" ? t("edit.clefBass") : t("edit.clefTreble");
-  /* Icon is the clef you get next — one control, not two pressed states. */
-  editorPadButton(row, { "data-clef": next }, editorMusicIcon("clef-" + next), label);
+  var btn;
+  /* Icon is the clef you get next — exercise default, not @bass on the line. */
+  btn = editorPadButton(row, { "data-default-clef": next }, editorMusicIcon("clef-" + next), label);
+  if (btn && row.firstChild !== btn) {
+    row.insertBefore(btn, row.firstChild);
+  }
+}
+
+function editorPaintNoteDefaults() {
+  var host = document.getElementById("editNoteDefaults");
+  var old;
+  editorPlaceExerciseExtras();
+  if (!host || !editorStaffOn()) {
+    return;
+  }
+  old = host.querySelector("[data-default-clef]");
+  if (old && old.parentNode) {
+    old.parentNode.removeChild(old);
+  }
+  editorPaintDefaultClefToggle(host);
 }
 
 function editorPaintModifiers(row) {
@@ -3983,7 +3963,6 @@ function editorPaintNoteEvents(row) {
   editorPadButton(row, { "data-event": "slash" }, editorMusicIcon("slash-" + rhythm), t("edit.noteSlash") + " " + editorSlashToken());
   editorPadButton(row, { "data-event": "rest" }, editorMusicIcon("rest-" + rhythm), t("edit.noteRest") + " " + editorRestToken());
   editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"));
-  editorPaintClefToggle(row);
   editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"));
   editorPadButton(
     row,
@@ -4026,6 +4005,7 @@ function editorPaintNotePad() {
   chipsHost.innerHTML = "";
   durHost.innerHTML = "";
   eventsHost.innerHTML = "";
+  editorPaintNoteDefaults();
   editorPaintLetters(stepHost);
   editorPaintModifiers(chipsHost);
   editorPaintDurations(durHost);
@@ -4162,8 +4142,8 @@ function editorActivateSymbol(button, opts) {
     editorShiftOctave(parseInt(button.getAttribute("data-shift"), 10));
     return;
   }
-  if (button.hasAttribute("data-clef")) {
-    editorSetClef(button.getAttribute("data-clef") || "");
+  if (button.hasAttribute("data-default-clef")) {
+    editorToggleDefaultClef(button.getAttribute("data-default-clef") || "");
     return;
   }
   if (button.hasAttribute("data-dot")) {
@@ -4434,7 +4414,6 @@ function editorOpenSheet(options) {
   editorDraft.storedLines = editorIsCreateMode() ? null : editorStoredLinesNow(editorDraft.id);
   editorViewOverride = null;
   editorFocusIndex = 0;
-  editorCloseDefaults();
   var area = document.getElementById("allEdit");
   area.value = editorDraft.text;
   document.getElementById("editBars").value = String(editorDraft.bars);
@@ -4569,7 +4548,6 @@ function editorOpenSharePreview(spec) {
   editorViewOverride = null;
   editorFocusIndex = 0;
   editorClearSymbolHistory();
-  editorCloseDefaults();
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
   document.getElementById("editBars").value = String(spec.bars || 1);
@@ -5412,6 +5390,7 @@ function ToggleEdit() {
 
 function buildEditorNotePad(host) {
   var pad = document.createElement("div");
+  var defaults = document.createElement("div");
   var flow = document.createElement("div");
   var main = document.createElement("div");
   var letters = document.createElement("div");
@@ -5419,6 +5398,10 @@ function buildEditorNotePad(host) {
   var durations = document.createElement("div");
   var events = document.createElement("div");
   pad.id = "editNotePad";
+  defaults.id = "editNoteDefaults";
+  defaults.className = "edit-note-row edit-note-defaults";
+  defaults.setAttribute("role", "group");
+  defaults.setAttribute("aria-label", t("edit.defaultsTitle"));
   flow.id = "editNoteFlow";
   main.id = "editNoteMain";
   letters.id = "editNoteStep";
@@ -5433,9 +5416,11 @@ function buildEditorNotePad(host) {
   main.appendChild(modifiers);
   main.appendChild(durations);
   flow.appendChild(main);
+  pad.appendChild(defaults);
   pad.appendChild(flow);
   pad.appendChild(events);
   host.appendChild(pad);
+  editorPlaceExerciseExtras();
 }
 
 function editorPaintStaffSamples() {
@@ -6177,39 +6162,10 @@ function initEditor() {
       refreshEditor();
     });
   });
-  var editDefaultsBtn = document.getElementById("editDefaults");
-  if (editDefaultsBtn) {
-    editDefaultsBtn.addEventListener("click", function () {
-      editorToggleDefaults();
-      disarmEditorDelete();
-      clearEditorNotice();
-      refreshEditorHint();
-    });
-  }
-  ["editClefTreble", "editClefBass"].forEach(function (id) {
-    var button = document.getElementById(id);
-    if (!button) {
-      return;
-    }
-    button.addEventListener("click", function () {
-      editorApplyDefaultsUi({
-        clef: id === "editClefBass" ? "bass" : "",
-        key: editorReadDefaults().key,
-        meter: editorReadDefaults().meter
-      });
-      editorSyncStaffDefaults();
-      disarmEditorDelete();
-      clearEditorNotice();
-      refreshEditor();
-    });
-  });
-  var meterPresets = document.querySelectorAll(".edit-meter-preset");
-  for (var mi = 0; mi < meterPresets.length; mi++) {
-    meterPresets[mi].addEventListener("click", function () {
-      var raw = this.getAttribute("data-meter") || "";
-      var meter = typeof cleanDeskMeter === "function" ? cleanDeskMeter(raw) : null;
-      var cur = editorReadDefaults();
-      editorApplyDefaultsUi({ clef: cur.clef, key: cur.key, meter: meter });
+  var editMeter = document.getElementById("editMeter");
+  if (editMeter) {
+    editMeter.addEventListener("change", function () {
+      editorMarkDefaultsUsed();
       disarmEditorDelete();
       clearEditorNotice();
       refreshEditor();
@@ -6218,6 +6174,7 @@ function initEditor() {
   var editKey = document.getElementById("editKey");
   if (editKey) {
     editKey.addEventListener("change", function () {
+      editorMarkDefaultsUsed();
       editorSyncStaffDefaults();
       disarmEditorDelete();
       clearEditorNotice();

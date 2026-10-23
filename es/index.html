@@ -193,82 +193,72 @@
                         <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
                         <button type="button" class="step-up" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
                     </div>
-                    <button type="button" id="editDefaults" aria-expanded="false" aria-controls="editDefaultsPanel" data-i18n-title="edit.defaultsTitle" title="Clef, meter, and key for this exercise" data-i18n-aria="edit.defaultsTitle" aria-label="Clef, meter, and key for this exercise">
-                        <svg class="chrome-icon icon-meter" viewBox="0 0 24 24" aria-hidden="true">
-                            <text x="12" y="10.5" text-anchor="middle" fill="currentColor" font-size="9.5" font-weight="700" font-family="Georgia, 'Times New Roman', serif">4</text>
-                            <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M7.5 12.5h9"/>
-                            <text x="12" y="20.5" text-anchor="middle" fill="currentColor" font-size="9.5" font-weight="700" font-family="Georgia, 'Times New Roman', serif">4</text>
-                        </svg>
-                        <span class="btn-label" data-i18n="edit.defaults">Meter</span>
-                    </button>
+                    <div id="editMeterRow" class="edit-defaults-row">
+                        <label for="editMeter" class="edit-defaults-label" data-i18n="edit.meter">Meter</label>
+                        <select id="editMeter" data-i18n-aria="edit.meterAria" aria-label="Recommended meter">
+                            <option value="" data-i18n="edit.meterAny">Any</option>
+                            <option value="4/4">4/4</option>
+                            <option value="3/4">3/4</option>
+                            <option value="5/4">5/4</option>
+                            <option value="7/4">7/4</option>
+                            <option value="11/4">11/4</option>
+                            <option value="6/8">6/8</option>
+                        </select>
+                    </div>
                     <div id="editKind" role="group" data-i18n-aria="edit.kindAria" aria-label="Text or staff" data-i18n-title="edit.kindTitle" title="Words or staff, for every example">
                         <button type="button" id="editKindText" aria-pressed="true" data-i18n="edit.kindText">Text</button>
                         <button type="button" id="editKindStaff" aria-pressed="false" data-i18n="edit.kindStaff">Staff</button>
                     </div>
-                    <button type="button" id="editStaffHelp" data-i18n-title="edit.staffHelp" title="How to write on the staff" data-i18n-aria="edit.staffHelp" aria-label="How to write on the staff" aria-expanded="false" aria-controls="editStaffPanel">
-                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
-                        <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
-                    </button>
                 </div>
-                <div id="editDefaultsPanel" hidden>
-                    <div id="editDefaultClef" class="edit-defaults-row" role="group" data-i18n-aria="edit.clefAria" aria-label="Default clef">
-                        <span class="edit-defaults-label" data-i18n="edit.clef">Clef</span>
-                        <button type="button" id="editClefTreble" aria-pressed="true" data-i18n="edit.clefTreble">Treble</button>
-                        <button type="button" id="editClefBass" aria-pressed="false" data-i18n="edit.clefBass">Bass</button>
-                    </div>
-                    <div id="editDefaultMeter" class="edit-defaults-row" role="group" data-i18n-aria="edit.meterAria" aria-label="Recommended meter">
-                        <span class="edit-defaults-label" data-i18n="edit.meter">Meter</span>
-                        <button type="button" class="edit-meter-preset" data-meter="" aria-pressed="true" data-i18n="edit.meterAny">Any</button>
-                        <button type="button" class="edit-meter-preset" data-meter="4/4" aria-pressed="false">4/4</button>
-                        <button type="button" class="edit-meter-preset" data-meter="3/4" aria-pressed="false">3/4</button>
-                        <button type="button" class="edit-meter-preset" data-meter="5/4" aria-pressed="false">5/4</button>
-                        <button type="button" class="edit-meter-preset" data-meter="7/4" aria-pressed="false">7/4</button>
-                        <button type="button" class="edit-meter-preset" data-meter="6/8" aria-pressed="false">6/8</button>
-                    </div>
-                    <div id="editDefaultKey" class="edit-defaults-row">
-                        <label for="editKey" class="edit-defaults-label" data-i18n="edit.key">Key</label>
-                        <select id="editKey" data-i18n-aria="edit.keyAria" aria-label="Default key">
-                            <option value="">C</option>
-                            <option value="G">G</option>
-                            <option value="D">D</option>
-                            <option value="A">A</option>
-                            <option value="E">E</option>
-                            <option value="B">B</option>
-                            <option value="F#">F♯</option>
-                            <option value="Db">D♭</option>
-                            <option value="Ab">A♭</option>
-                            <option value="Eb">E♭</option>
-                            <option value="Bb">B♭</option>
-                            <option value="F">F</option>
-                            <option value="Am">Am</option>
-                            <option value="Em">Em</option>
-                            <option value="Bm">Bm</option>
-                            <option value="F#m">F♯m</option>
-                            <option value="Cm">Cm</option>
-                            <option value="Gm">Gm</option>
-                            <option value="Dm">Dm</option>
-                            <option value="Fm">Fm</option>
-                        </select>
-                    </div>
+                <div id="editKeyHost" hidden>
+                    <label for="editKey" class="edit-defaults-label" data-i18n="edit.key">Key</label>
+                    <select id="editKey" data-i18n-aria="edit.keyAria" aria-label="Default key">
+                        <option value="">C</option>
+                        <option value="G">G</option>
+                        <option value="D">D</option>
+                        <option value="A">A</option>
+                        <option value="E">E</option>
+                        <option value="B">B</option>
+                        <option value="F#">F♯</option>
+                        <option value="Db">D♭</option>
+                        <option value="Ab">A♭</option>
+                        <option value="Eb">E♭</option>
+                        <option value="Bb">B♭</option>
+                        <option value="F">F</option>
+                        <option value="Am">Am</option>
+                        <option value="Em">Em</option>
+                        <option value="Bm">Bm</option>
+                        <option value="F#m">F♯m</option>
+                        <option value="Cm">Cm</option>
+                        <option value="Gm">Gm</option>
+                        <option value="Dm">Dm</option>
+                        <option value="Fm">Fm</option>
+                    </select>
                 </div>
                 <button type="button" id="editViewToggle" aria-pressed="false" data-i18n-aria="edit.allExamples" aria-label="All examples">
                     <svg class="chrome-icon icon-list" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 7h14M5 12h14M5 17h14"/></svg>
                     <svg class="chrome-icon icon-one is-hidden" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 12h14"/></svg>
                     <span class="btn-label" data-i18n="edit.allExamples">All examples</span>
                 </button>
-                <button type="button" id="editSymbolsToggle" class="is-text" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert chart symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert chart symbols">
-                    <span class="btn-mark" aria-hidden="true">♯∆ø</span>
-                    <svg class="chrome-icon icon-staff-notes" viewBox="0 0 40 24" aria-hidden="true">
-                        <path fill="none" stroke="currentColor" stroke-width="1.15" d="M1 3.5h38M1 8h38M1 12.5h38M1 17h38M1 21.5h38"/>
-                        <ellipse cx="10" cy="17" rx="2.3" ry="1.65" fill="currentColor" transform="rotate(-22 10 17)"/>
-                        <path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M12.1 17V8.5"/>
-                        <ellipse cx="20" cy="12.5" rx="2.3" ry="1.65" fill="currentColor" transform="rotate(-22 20 12.5)"/>
-                        <path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M22.1 12.5V4"/>
-                        <ellipse cx="30" cy="14.5" rx="2.3" ry="1.65" fill="currentColor" transform="rotate(-22 30 14.5)"/>
-                        <path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M32.1 14.5V6"/>
-                    </svg>
-                    <span class="btn-label" data-i18n="edit.symbols">Symbols</span>
-                </button>
+                <div id="editAuthorTools">
+                    <button type="button" id="editSymbolsToggle" class="is-text" aria-expanded="false" aria-controls="editSymbols" data-i18n-title="edit.symbolsTitle" title="Insert chart symbols" data-i18n-aria="edit.symbolsTitle" aria-label="Insert chart symbols">
+                        <span class="btn-mark" aria-hidden="true">♯∆ø</span>
+                        <svg class="chrome-icon icon-staff-notes" viewBox="0 0 40 24" aria-hidden="true">
+                            <path fill="none" stroke="currentColor" stroke-width="1.15" d="M1 3.5h38M1 8h38M1 12.5h38M1 17h38M1 21.5h38"/>
+                            <ellipse cx="10" cy="17" rx="2.3" ry="1.65" fill="currentColor" transform="rotate(-22 10 17)"/>
+                            <path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M12.1 17V8.5"/>
+                            <ellipse cx="20" cy="12.5" rx="2.3" ry="1.65" fill="currentColor" transform="rotate(-22 20 12.5)"/>
+                            <path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M22.1 12.5V4"/>
+                            <ellipse cx="30" cy="14.5" rx="2.3" ry="1.65" fill="currentColor" transform="rotate(-22 30 14.5)"/>
+                            <path fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" d="M32.1 14.5V6"/>
+                        </svg>
+                        <span class="btn-label" data-i18n="edit.symbols">Symbols</span>
+                    </button>
+                    <button type="button" id="editStaffHelp" data-i18n-title="edit.staffHelp" title="How to write on the staff" data-i18n-aria="edit.staffHelp" aria-label="How to write on the staff" aria-expanded="false" aria-controls="editStaffPanel">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 11v6M12 7.5v.5"/></svg>
+                        <span class="btn-label" data-i18n="edit.staffHelpLabel">Staff</span>
+                    </button>
+                </div>
             </div>
         </div>
         <div id="editFocusChrome">

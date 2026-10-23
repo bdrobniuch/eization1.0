@@ -1391,7 +1391,17 @@ function shareCase(w) {
   check("staff lines pack", packedOk);
   check("left hand rootless defaults to bass", w.exercises.leftHandRootless && w.exercises.leftHandRootless.clef === "bass");
   check("comping 3/4 recommends 3/4", !!(w.exercises.compingRhythm34 && w.exercises.compingRhythm34.meter && w.exercises.compingRhythm34.meter.beats === 3 && w.exercises.compingRhythm34.meter.unit === 4));
-  check("exercise defaults edit is in the page", !!w.document.getElementById("editDefaults"));
+  check("exercise meter select is in the page", !!w.document.getElementById("editMeter"));
+  check("exercise key select is in the page", !!w.document.getElementById("editKey"));
+  check(
+    "edit meter lists 11/4",
+    !!(
+      w.document.getElementById("editMeter") &&
+      Array.prototype.some.call(w.document.getElementById("editMeter").options, function (opt) {
+        return opt.value === "11/4";
+      })
+    )
+  );
   check("meter ask stays out of the page", !w.document.getElementById("meterAsk"));
   minorKey = w.staffShareCanonical("@key=Am C4e D4e E4e F4e G4e A4e B4e C5e");
   check("minor key name stays", minorKey.indexOf("@key=Am") === 0 && w.staffShareCanonical(minorKey) === minorKey);
@@ -1633,7 +1643,15 @@ function chatCase(w) {
   var phoneEdit = w.matchMedia("(max-width: 640px), (orientation: landscape) and (max-height: 520px)").matches;
   check("exercise actions sit above the name", !!(exerciseRow && nameRow && (exerciseRow.compareDocumentPosition(nameRow) & 4)));
   check("share sits on the exercise row", !!(share && send && share.parentNode === send));
-  check("staff sits beside bars", !!(staffHelp && writeRow && writeRow.contains(staffHelp)));
+  check(
+    "staff help sits beside write notes",
+    !!(
+      staffHelp &&
+      w.document.getElementById("editAuthorTools") &&
+      w.document.getElementById("editAuthorTools").contains(staffHelp) &&
+      w.document.getElementById("editAuthorTools").contains(w.document.getElementById("editSymbolsToggle"))
+    )
+  );
   check(
     "symbols toggle sits on the write row",
     !!(w.document.getElementById("editSymbolsToggle") && writeRow && writeRow.contains(w.document.getElementById("editSymbolsToggle")))
@@ -2187,24 +2205,26 @@ function chatCase(w) {
     if (typeof w.setBeatUnit === "function") {
       w.setBeatUnit(4);
     }
-    var meterAny = w.document.querySelector('.edit-meter-preset[data-meter=""]');
-    var meter34 = w.document.querySelector('.edit-meter-preset[data-meter="3/4"]');
+    var meterField = w.document.getElementById("editMeter");
     var previewEl = w.document.getElementById("editPreview");
-    if (meterAny) {
-      meterAny.click();
+    function setEditMeter(value) {
+      if (!meterField) {
+        return;
+      }
+      meterField.value = value;
+      meterField.dispatchEvent(new w.Event("change", { bubbles: true }));
     }
+    setEditMeter("");
     w.refreshEditor();
     var previewAnyHtml = previewEl && previewEl.innerHTML;
     var expectedAny = w.renderMusicStaff("C4q", "current", { showMeter: false });
-    if (meter34) {
-      meter34.click();
-    }
+    setEditMeter("3/4");
     var preview34Html = previewEl && previewEl.innerHTML;
     var expected34 = w.renderMusicStaff("C4q", "current", { meter: { beats: 3, unit: 4 } });
     check(
-      "edit meter preset redraws the staff preview",
+      "edit meter select redraws the staff preview",
       !!(
-        meter34 &&
+        meterField &&
         previewAnyHtml &&
         preview34Html &&
         previewAnyHtml !== preview34Html &&
@@ -2215,9 +2235,7 @@ function chatCase(w) {
         previewEl.querySelector("svg").innerHTML === expected34.innerHTML
       )
     );
-    if (meterAny) {
-      meterAny.click();
-    }
+    setEditMeter("");
     placeCaret("C4q~");
     var pendingPreview = w.document.getElementById("editPreview");
     var staffNote = w.document.getElementById("editStaffNote");

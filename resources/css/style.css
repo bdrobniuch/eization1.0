@@ -1878,15 +1878,15 @@ body.is-editing #counter {
   display: contents;
 }
 
-#editDefaultsPanel {
-  flex: 1 0 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px 0 2px;
+#editAuthorTools {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
 }
 
-#editDefaultsPanel[hidden] {
+#editWrite.is-text-kind #editStaffHelp {
   display: none !important;
 }
 
@@ -1904,25 +1904,24 @@ body.is-editing #counter {
   opacity: 0.9;
 }
 
-#editDefaultClef button,
-.edit-meter-preset {
-  min-height: 40px;
-  padding: 0 12px;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
-  background: transparent;
-  color: #ffffff;
-  font: inherit;
-  font-size: 15px;
-  cursor: pointer;
+#editMeterRow {
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
-#editDefaultClef button[aria-pressed="true"],
-.edit-meter-preset[aria-pressed="true"] {
-  background: #ffffff;
-  color: #111111;
+#editKeyHost {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
 }
 
+#editKeyHost[hidden] {
+  display: none !important;
+}
+
+#editMeter,
 #editKey {
   min-height: 40px;
   min-width: 5.5em;
@@ -1935,13 +1934,22 @@ body.is-editing #counter {
   font-size: 15px;
 }
 
+#editMeter option,
 #editKey option {
   color: #111111;
 }
 
-#editWrite.is-text-kind #editDefaultClef,
-#editWrite.is-text-kind #editDefaultKey {
-  display: none;
+#editNoteDefaults {
+  width: 100%;
+  align-items: center;
+}
+
+#editSymbols #editKey {
+  min-height: 44px;
+}
+
+#editSymbols #editKeyHost .edit-defaults-label {
+  color: #ffffff;
 }
 
 #editMoreMenu {
@@ -2083,11 +2091,10 @@ body.is-editing #counter {
   cursor: pointer;
 }
 
-/* Compact chrome: Share / More / Staff / Defaults / view / Symbols / Add / Remove stay icon-only. */
+/* Compact chrome: Share / More / Staff / view / Symbols / Add / Remove stay icon-only. */
 #editShare,
 #editMore,
 #editStaffHelp,
-#editDefaults,
 #editSymbolsToggle,
 #editViewToggle,
 #editFocusAdd,
@@ -2119,7 +2126,6 @@ body.is-editing #counter {
 #editShare .btn-label,
 #editMore .btn-label,
 #editStaffHelp .btn-label,
-#editDefaults .btn-label,
 #editSymbolsToggle .btn-label,
 #editViewToggle .btn-label,
 #editFocusAdd .btn-label,
@@ -2130,7 +2136,6 @@ body.is-editing #counter {
 #editShare .chrome-icon,
 #editMore .chrome-icon,
 #editStaffHelp .chrome-icon,
-#editDefaults .chrome-icon,
 #editViewToggle .chrome-icon,
 #editFocusAdd .chrome-icon,
 #editFocusRemove .chrome-icon {
@@ -2140,17 +2145,7 @@ body.is-editing #counter {
   flex: 0 0 auto;
 }
 
-#editDefaults .icon-meter {
-  width: 1.2em;
-  height: 1.2em;
-}
-
-#editDefaults .icon-meter text {
-  dominant-baseline: alphabetic;
-}
-
 #editStaffHelp[aria-expanded="true"],
-#editDefaults[aria-expanded="true"],
 #editMore[aria-expanded="true"],
 #editSymbolsToggle[aria-expanded="true"] {
   background: #ffffff;
@@ -2998,6 +2993,7 @@ body.is-about #counter {
 
   #editExerciseLabel,
   #textdiv .step-label,
+  #editMeterRow .edit-defaults-label,
   #textdiv.is-edit-focus #editCount {
     display: none !important;
   }
@@ -3026,11 +3022,7 @@ body.is-about #counter {
     padding: 0 8px;
   }
 
-  #editStaffHelp {
-    margin-left: auto;
-  }
-
-  #editSymbolsToggle {
+  #editAuthorTools {
     grid-area: sym;
   }
 
