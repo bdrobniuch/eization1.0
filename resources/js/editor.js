@@ -2221,11 +2221,184 @@ function editorHistoryIcon(kind) {
   if (kind === "redo") {
     svg.appendChild(strokePath("M21 9l-4-4-4 4"));
     svg.appendChild(strokePath("M17 5v7a5 5 0 0 1-9 3.5"));
+  } else if (kind === "erase") {
+    svg.appendChild(strokePath("M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"));
+    svg.appendChild(strokePath("M18 9l-6 6"));
+    svg.appendChild(strokePath("M12 9l6 6"));
   } else {
     svg.appendChild(strokePath("M3 9l4-4 4 4"));
     svg.appendChild(strokePath("M7 5v7a5 5 0 0 0 9 3.5"));
   }
   return svg;
+}
+
+/* Token or selection Erase would remove on a staff line (field coordinates). */
+function editorStaffEraseTarget() {
+  var field = editorActiveField();
+  var value;
+  var sel;
+  var caret;
+  var lineStart;
+  var before;
+  var trimmed;
+  var spaceLen;
+  var match;
+  var token;
+  var start;
+  var patterns;
+  var i;
+  var re;
+  if (!field) {
+    return null;
+  }
+  value = String(field.value || "");
+  sel = editorReadSelection(field);
+  caret = sel.start;
+  if (sel.start !== sel.end) {
+    return {
+      start: sel.start,
+      end: sel.end,
+      token: value.slice(sel.start, sel.end),
+      kind: "selection"
+    };
+  }
+  lineStart = value.lastIndexOf("\n", caret - 1) + 1;
+  if (caret <= lineStart) {
+    return null;
+  }
+  before = value.slice(lineStart, caret);
+  trimmed = before.replace(/\s+$/, "");
+  spaceLen = before.length - trimmed.length;
+  if (!trimmed) {
+    return {
+      start: caret - 1,
+      end: caret,
+      token: " ",
+      kind: "char"
+    };
+  }
+  patterns = [
+    /@key=\S+$/,
+    /@bass$/,
+    /@treble$/,
+    /[A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?$/,
+    /\/[whqes]?\.?$/,
+    /r[whqes]?\.?$/i,
+    /\^[^\s|~{}[\]]+$/,
+    /_[^\s|~{}[\]]+$/,
+    /\|$/,
+    /~$/,
+    /\^$/,
+    /_$/,
+    /[{}\[\]]$/,
+    /\u00B7$/
+  ];
+  match = null;
+  token = "";
+  for (i = 0; i < patterns.length; i++) {
+    re = patterns[i].exec(trimmed);
+    if (re) {
+      match = re;
+      token = re[0];
+      break;
+    }
+  }
+  if (!match) {
+    re = /(\S+)$/.exec(trimmed);
+    if (!re) {
+      return {
+        start: caret - 1,
+        end: caret,
+        token: before.charAt(before.length - 1),
+        kind: "char"
+      };
+    }
+    match = re;
+    token = re[1];
+  }
+  start = lineStart + match.index;
+  if (start > lineStart && /\s/.test(value.charAt(start - 1))) {
+    start -= 1;
+  }
+  return {
+    start: start,
+    end: caret,
+    token: token,
+    kind: "token"
+  };
+}
+
+function editorEraseLabel() {
+  var target;
+  if (!editorStaffOn()) {
+    return t("edit.clearExample");
+  }
+  target = editorStaffEraseTarget();
+  if (!target) {
+    return t("edit.erase");
+  }
+  if (target.kind === "selection") {
+    return t("edit.eraseSelection");
+  }
+  if (target.token && target.token !== " ") {
+    return t("edit.eraseToken").replace("{token}", target.token);
+  }
+  return t("edit.erase");
+}
+
+function editorCanErase() {
+  var line;
+  if (!editorStaffOn()) {
+    line = currentEditorLine();
+    return !!collapseEditorSpaces(line);
+  }
+  return !!editorStaffEraseTarget();
+}
+
+function editorClearCurrentExample() {
+  var span = editorLineSpan();
+  var silent;
+  if (!span) {
+    return;
+  }
+  if (!span.value.slice(span.lineStart, span.lineEnd)) {
+    return;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  span.field.value = span.value.slice(0, span.lineStart) + span.value.slice(span.lineEnd);
+  editorPlaceCaret(span.field, span.lineStart, span.lineStart, silent);
+  clearEditorNotice();
+  refreshEditor();
+}
+
+function editorEraseStep() {
+  var field;
+  var target;
+  var value;
+  var silent;
+  if (!editorCanErase()) {
+    return;
+  }
+  if (!editorStaffOn()) {
+    editorPushSymbolUndo();
+    editorClearCurrentExample();
+    return;
+  }
+  target = editorStaffEraseTarget();
+  if (!target) {
+    return;
+  }
+  field = editorActiveField();
+  if (!field) {
+    return;
+  }
+  editorPushSymbolUndo();
+  value = String(field.value || "");
+  field.value = value.slice(0, target.start) + value.slice(target.end);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, target.start, target.start, silent);
+  clearEditorNotice();
+  refreshEditor();
 }
 
 function editorPaintClefToggle(row) {
@@ -2445,14 +2618,17 @@ function editorPaintUndoRedo() {
   var host = document.getElementById("editNoteHistory");
   var undoBtn;
   var redoBtn;
+  var eraseBtn;
   if (!host) {
     return;
   }
   host.innerHTML = "";
   undoBtn = editorPadButton(host, { "data-undo": "1" }, editorHistoryIcon("undo"), t("edit.undo"));
   redoBtn = editorPadButton(host, { "data-redo": "1" }, editorHistoryIcon("redo"), t("edit.redo"));
+  eraseBtn = editorPadButton(host, { "data-erase": "1" }, editorHistoryIcon("erase"), editorEraseLabel());
   undoBtn.disabled = !editorSymbolUndo.length && !editorCanUndoStaffTyping();
   redoBtn.disabled = !editorSymbolRedo.length;
+  eraseBtn.disabled = !editorCanErase();
 }
 
 function editorWithKeyboardStaffEdit(fn) {
@@ -2623,6 +2799,10 @@ function editorActivateSymbol(button) {
   }
   if (button.hasAttribute("data-redo")) {
     editorSymbolRedoStep();
+    return;
+  }
+  if (button.hasAttribute("data-erase")) {
+    editorEraseStep();
     return;
   }
   if (button.hasAttribute("data-note")) {

@@ -1800,6 +1800,7 @@ function chatCase(w) {
         !!symbolsPanel.querySelector("[data-note='C']") &&
         !!w.document.querySelector("#editNoteHistory [data-undo]") &&
         !!w.document.querySelector("#editNoteHistory [data-redo]") &&
+        !!w.document.querySelector("#editNoteHistory [data-erase]") &&
         w.I18N.en["edit.noteHigher"] === "Higher" &&
         w.I18N.es["edit.noteHigher"] === "M\u00E1s aguda" &&
         w.I18N.en["edit.noteLower"] === "Lower" &&
@@ -1807,7 +1808,11 @@ function chatCase(w) {
         w.I18N.en["edit.noteDotted"] === "Dot" &&
         w.I18N.es["edit.noteDotted"] === "Puntillo" &&
         w.I18N.en["edit.undo"] === "Undo" &&
-        w.I18N.es["edit.undo"] === "Deshacer"
+        w.I18N.es["edit.undo"] === "Deshacer" &&
+        w.I18N.en["edit.erase"] === "Erase" &&
+        w.I18N.es["edit.erase"] === "Borrar" &&
+        w.I18N.en["edit.clearExample"] === "Clear example" &&
+        w.I18N.es["edit.clearExample"] === "Borrar ejemplo"
     );
     poke(symbolsPanel.querySelector("[data-shift='-1']"));
     check("down moves the note just written", focusLine.value === "C4" && octaveNow() === "4");
@@ -1913,6 +1918,14 @@ function chatCase(w) {
     check("undo restores the bass clef", focusLine.value === "@bass C3");
     poke(w.document.querySelector("#editNoteHistory [data-redo]"));
     check("redo clears the clef again", focusLine.value === "C3");
+    placeCaret("C4 D4");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase removes the token before the caret", focusLine.value === "C4");
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    check("undo restores the erased token", focusLine.value === "C4 D4");
+    placeCaret("C4q~");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase clips a broken trailing tie", focusLine.value === "C4q");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(
@@ -1923,6 +1936,10 @@ function chatCase(w) {
     placeCaret("Cmaj");
     poke(symbolsPanel.querySelector("[data-symbol='\u266F']"));
     check("a chart mark stays glued", focusLine.value === "Cmaj\u266F");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase clears the text example", focusLine.value === "");
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    check("undo restores the cleared text example", focusLine.value === "Cmaj\u266F");
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-symbol='[ ]']"));
     check("text brackets stay open", focusLine.value === "[ ]" && focusLine.selectionStart === 1);
