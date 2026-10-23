@@ -25,6 +25,30 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/practice.html"/>
   </url>
   <url>
+    <loc>https://eization.com/terms.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/terms.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/terms.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/terms.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://eization.com/es/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://eization.com/privacy.html"/>
+  </url>
+  <url>
     <loc>https://eization.com/books.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://eization.com/books.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://eization.com/es/books.html"/>

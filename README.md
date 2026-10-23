@@ -45,6 +45,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/css/style.css` | Practice screen layout |
 | `notation.html` | How to write an example as staff notation. Each sample is the line, then the staff that line parses into. Try a line edits live and samples load into that box |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
+| `terms.html`, `privacy.html` | Terms of Service and Privacy Policy. Linked from About the author (Support). Spanish twins under `es/` |
 | `for-teachers.html` | Hub for teacher articles. Menu links here. Pieces live under `for-teachers/` and `es/for-teachers/` |
 | `more.html` | Extra exercises as share links. Discovery on top: Today, Surprise me, Start here, struggle chips, sticky category bar, search, Staff/Text filter. Each card shows the first example (staff or text), Open / Share / Embed, and About for bars and books. Text/Staff twins link to each other. Rebuild with `tools/build-more.ps1` from `tools/more-exercises.json` |
 | `resources/js/more-browse.js` | Filters and search on More exercises; Surprise me; marks exercises already on this device |

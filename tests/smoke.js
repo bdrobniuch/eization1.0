@@ -200,6 +200,8 @@ function exerciseMenu(w) {
   check("books page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./books.html']"));
   check("more page is linked from Menu", !!w.document.querySelector("#aboutNav a[href='./more.html']"));
   check("menu can buy a coffee", !!w.document.getElementById("aboutCoffee"));
+  check("terms page is linked from About the author", !!w.document.querySelector("#aboutAuthor a[href='./terms.html']"));
+  check("privacy page is linked from About the author", !!w.document.querySelector("#aboutAuthor a[href='./privacy.html']"));
   check("restore defaults lives in Menu", !!w.document.querySelector("#about #restoreDefaults"));
   check("download all lives in Menu", !!w.document.querySelector("#about #downloadAllExercises"));
   var packed = w.packDeskExercises();
