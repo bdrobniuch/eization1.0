@@ -2232,6 +2232,92 @@ function editorHistoryIcon(kind) {
   return svg;
 }
 
+/* Longest music-event prefix (pitch/rest/slash with affixes, or a mark). */
+function editorLongestEventPrefix(text) {
+  var s = String(text || "");
+  var best = null;
+  var i;
+  var slice;
+  var key;
+  var ch;
+  if (!s) {
+    return null;
+  }
+  ch = s.charAt(0);
+  if (ch === "|" || ch === "~" || ch === "{" || ch === "}" || ch === "[" || ch === "]" || ch === "\u00B7") {
+    return ch;
+  }
+  if (s.indexOf("@key=") === 0) {
+    key = /^@key=\S+/.exec(s);
+    return key ? key[0] : null;
+  }
+  if (s.indexOf("@bass") === 0) {
+    return "@bass";
+  }
+  if (s.indexOf("@treble") === 0) {
+    return "@treble";
+  }
+  for (i = 1; i <= s.length; i++) {
+    slice = s.slice(0, i);
+    if (typeof staffParsePitchToken === "function" && staffParsePitchToken(slice)) {
+      best = slice;
+      continue;
+    }
+    if (typeof staffParseRestToken === "function" && staffParseRestToken(slice)) {
+      best = slice;
+      continue;
+    }
+    if (typeof staffParseSlashToken === "function" && staffParseSlashToken(slice, "treble")) {
+      best = slice;
+    }
+  }
+  if (best) {
+    return best;
+  }
+  key = /^(?:\^[^\s|~{}[\]]+|_[^\s|~{}[\]]+)/.exec(s);
+  return key ? key[0] : null;
+}
+
+/* Split a glued run into events: C4q~ → C4q, ~ ; B4e_6 → B4e_6. */
+function editorMusicEventSpans(word) {
+  var s = String(word || "");
+  var spans = [];
+  var i = 0;
+  var prefix;
+  while (i < s.length) {
+    prefix = editorLongestEventPrefix(s.slice(i));
+    if (!prefix) {
+      spans.push({ start: i, end: i + 1, token: s.charAt(i) });
+      i += 1;
+      continue;
+    }
+    spans.push({ start: i, end: i + prefix.length, token: prefix });
+    i += prefix.length;
+  }
+  return spans;
+}
+
+function editorPickEventSpan(spans, caretInWord) {
+  var i;
+  var span;
+  if (!spans || !spans.length) {
+    return null;
+  }
+  for (i = 0; i < spans.length; i++) {
+    span = spans[i];
+    if (span.start < caretInWord && caretInWord <= span.end) {
+      return span;
+    }
+  }
+  for (i = 0; i < spans.length; i++) {
+    span = spans[i];
+    if (span.start <= caretInWord && caretInWord < span.end) {
+      return span;
+    }
+  }
+  return spans[spans.length - 1];
+}
+
 /* Token or selection Erase would remove on a staff line (field coordinates). */
 function editorStaffEraseTarget() {
   var field = editorActiveField();
@@ -2239,15 +2325,16 @@ function editorStaffEraseTarget() {
   var sel;
   var caret;
   var lineStart;
-  var before;
-  var trimmed;
-  var spaceLen;
-  var match;
-  var token;
+  var lineEnd;
+  var line;
+  var rel;
+  var wordStart;
+  var wordEnd;
+  var spans;
+  var span;
   var start;
-  var patterns;
-  var i;
-  var re;
+  var end;
+  var token;
   if (!field) {
     return null;
   }
@@ -2263,13 +2350,16 @@ function editorStaffEraseTarget() {
     };
   }
   lineStart = value.lastIndexOf("\n", caret - 1) + 1;
-  if (caret <= lineStart) {
+  lineEnd = value.indexOf("\n", caret);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  if (caret < lineStart || caret > lineEnd) {
     return null;
   }
-  before = value.slice(lineStart, caret);
-  trimmed = before.replace(/\s+$/, "");
-  spaceLen = before.length - trimmed.length;
-  if (!trimmed) {
+  line = value.slice(lineStart, lineEnd);
+  rel = caret - lineStart;
+  if (rel > 0 && !String(line.slice(0, rel)).replace(/\s+$/, "")) {
     return {
       start: caret - 1,
       end: caret,
@@ -2277,52 +2367,56 @@ function editorStaffEraseTarget() {
       kind: "char"
     };
   }
-  patterns = [
-    /@key=\S+$/,
-    /@bass$/,
-    /@treble$/,
-    /[A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?$/,
-    /\/[whqes]?\.?$/,
-    /r[whqes]?\.?$/i,
-    /\^[^\s|~{}[\]]+$/,
-    /_[^\s|~{}[\]]+$/,
-    /\|$/,
-    /~$/,
-    /\^$/,
-    /_$/,
-    /[{}\[\]]$/,
-    /\u00B7$/
-  ];
-  match = null;
-  token = "";
-  for (i = 0; i < patterns.length; i++) {
-    re = patterns[i].exec(trimmed);
-    if (re) {
-      match = re;
-      token = re[0];
-      break;
+  /* Word that contains the caret, or the previous word when the caret is in spaces. */
+  if (rel > 0 && !/\s/.test(line.charAt(rel - 1))) {
+    wordEnd = rel;
+    while (wordEnd < line.length && !/\s/.test(line.charAt(wordEnd))) {
+      wordEnd += 1;
     }
-  }
-  if (!match) {
-    re = /(\S+)$/.exec(trimmed);
-    if (!re) {
-      return {
-        start: caret - 1,
-        end: caret,
-        token: before.charAt(before.length - 1),
-        kind: "char"
-      };
+    wordStart = rel;
+    while (wordStart > 0 && !/\s/.test(line.charAt(wordStart - 1))) {
+      wordStart -= 1;
     }
-    match = re;
-    token = re[1];
+  } else if (rel < line.length && !/\s/.test(line.charAt(rel))) {
+    wordStart = rel;
+    wordEnd = rel;
+    while (wordEnd < line.length && !/\s/.test(line.charAt(wordEnd))) {
+      wordEnd += 1;
+    }
+  } else if (rel > 0) {
+    wordEnd = rel;
+    while (wordEnd > 0 && /\s/.test(line.charAt(wordEnd - 1))) {
+      wordEnd -= 1;
+    }
+    wordStart = wordEnd;
+    while (wordStart > 0 && !/\s/.test(line.charAt(wordStart - 1))) {
+      wordStart -= 1;
+    }
+  } else {
+    return null;
   }
-  start = lineStart + match.index;
+  if (wordEnd <= wordStart) {
+    return {
+      start: caret - 1,
+      end: caret,
+      token: " ",
+      kind: "char"
+    };
+  }
+  spans = editorMusicEventSpans(line.slice(wordStart, wordEnd));
+  span = editorPickEventSpan(spans, rel - wordStart);
+  if (!span) {
+    return null;
+  }
+  start = lineStart + wordStart + span.start;
+  end = lineStart + wordStart + span.end;
+  token = span.token;
   if (start > lineStart && /\s/.test(value.charAt(start - 1))) {
     start -= 1;
   }
   return {
     start: start,
-    end: caret,
+    end: end,
     token: token,
     kind: "token"
   };

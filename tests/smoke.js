@@ -1923,6 +1923,12 @@ function chatCase(w) {
     check("erase removes the token before the caret", focusLine.value === "C4");
     poke(w.document.querySelector("#editNoteHistory [data-undo]"));
     check("undo restores the erased token", focusLine.value === "C4 D4");
+    placeCaret("B4e_6");
+    focusLine.setSelectionRange(2, 2);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase removes the whole symbol when the caret is inside it", focusLine.value === "");
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    check("undo restores the mid-symbol erase", focusLine.value === "B4e_6");
     placeCaret("C4q~");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase clips a broken trailing tie", focusLine.value === "C4q");
