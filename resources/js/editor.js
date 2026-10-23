@@ -56,10 +56,11 @@ var editorStaffTypingDirty = false;
 var editorKeyboardStaffEdit = false;
 /* While Symbols/Notes is open, keep caret here and avoid focusing the field (no soft keyboard). */
 var editorPadCaret = null;
-/* Erase hold-to-repeat (one undo step for the whole hold). */
-var editorEraseRepeatDelay = null;
-var editorEraseRepeatTimer = null;
-var editorEraseHoldUndoPushed = false;
+/* Pad/Erase hold-to-repeat (one undo step for the whole hold). */
+var editorHoldRepeatDelay = null;
+var editorHoldRepeatTimer = null;
+var editorHoldUndoPushed = false;
+var editorHoldRepeatAction = null;
 var editorEraseLastAt = 0;
 
 var EDITOR_STAFF_SAMPLES = [
@@ -2878,16 +2879,116 @@ function editorSnapCaretBeforeGroupCloser(field, lineStart, preferred) {
   editorPlaceCaret(field, caret, caret, silent);
 }
 
+function editorStopHoldRepeat() {
+  if (editorHoldRepeatDelay) {
+    window.clearTimeout(editorHoldRepeatDelay);
+    editorHoldRepeatDelay = null;
+  }
+  if (editorHoldRepeatTimer) {
+    window.clearInterval(editorHoldRepeatTimer);
+    editorHoldRepeatTimer = null;
+  }
+  editorHoldUndoPushed = false;
+  editorHoldRepeatAction = null;
+}
+
 function editorStopEraseRepeat() {
-  if (editorEraseRepeatDelay) {
-    window.clearTimeout(editorEraseRepeatDelay);
-    editorEraseRepeatDelay = null;
+  editorStopHoldRepeat();
+}
+
+function editorSeedPitchToken(letter) {
+  /* Structure seeds stay plain; a lit accidental waits for the next letter tap. */
+  return String(letter || "C") + String(editorWorkingOctave()) + editorPitchSuffix();
+}
+
+function editorSeedPitchRun(count) {
+  var letters = ["C", "D", "E", "F", "G", "A", "B"];
+  var parts = [];
+  var i;
+  for (i = 0; i < count; i++) {
+    parts.push(editorSeedPitchToken(letters[i % letters.length]));
   }
-  if (editorEraseRepeatTimer) {
-    window.clearInterval(editorEraseRepeatTimer);
-    editorEraseRepeatTimer = null;
+  return parts.join(" ");
+}
+
+function editorForceShortDuration() {
+  if (editorNote.dur !== "e" && editorNote.dur !== "s") {
+    editorNote.dur = "e";
   }
-  editorEraseHoldUndoPushed = false;
+}
+
+/* If the caret has a same-line selection, wrap it and return true. */
+function editorWrapSelection(open, close) {
+  var field = editorActiveField();
+  var sel;
+  var value;
+  var raw;
+  var lead;
+  var trail;
+  var inner;
+  var start;
+  var end;
+  var silent;
+  if (!field) {
+    return false;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start === sel.end) {
+    return false;
+  }
+  value = String(field.value || "");
+  raw = value.slice(sel.start, sel.end);
+  if (!raw || raw.indexOf("\n") >= 0) {
+    return false;
+  }
+  lead = (raw.match(/^\s*/) || [""])[0].length;
+  trail = (raw.match(/\s*$/) || [""])[0].length;
+  if (lead + trail >= raw.length) {
+    return false;
+  }
+  inner = raw.slice(lead, raw.length - trail);
+  start = sel.start + lead;
+  end = sel.end - trail;
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, start, end, silent);
+  editorPushSymbolUndo();
+  insertEditorText(String(open || "") + inner + String(close || ""), String(close || "").length);
+  return true;
+}
+
+function editorInsertBeamGroup() {
+  editorForceShortDuration();
+  if (editorWrapSelection("{", "}")) {
+    editorPaintNotePad();
+    return;
+  }
+  editorPushSymbolUndo();
+  editorInsertSymbol("{" + editorSeedPitchRun(2) + "}", 1);
+  editorPaintNotePad();
+}
+
+function editorInsertTupletGroup() {
+  editorForceShortDuration();
+  if (editorWrapSelection("(3 ", ")")) {
+    editorPaintNotePad();
+    return;
+  }
+  editorPushSymbolUndo();
+  editorInsertSymbol("(3 " + editorSeedPitchRun(3) + ")", 1);
+  editorPaintNotePad();
+}
+
+function editorInsertStackGroup() {
+  if (editorWrapSelection("[", "]")) {
+    return;
+  }
+  editorPushSymbolUndo();
+  editorInsertSymbol(
+    "[" +
+      [editorSeedPitchToken("C"), editorSeedPitchToken("E"), editorSeedPitchToken("G")].join(" ") +
+      "]",
+    1
+  );
 }
 
 /* opts.skipUndo: hold-repeat steps share one undo pushed by the first tap. */
@@ -3275,9 +3376,11 @@ function editorPaintNotePad() {
   editorPaintUndoRedo();
 }
 
-function editorWriteLetter(letter) {
+function editorWriteLetter(letter, opts) {
   var token = editorLetterToken(letter);
-  editorPushSymbolUndo();
+  if (!(opts && opts.skipUndo)) {
+    editorPushSymbolUndo();
+  }
   editorNote.acc = "";
   editorNote.oct = null;
   editorInsertSymbol(token);
@@ -3370,8 +3473,9 @@ function editorShiftOctave(dir) {
   editorNote.oct = null;
 }
 
-function editorActivateSymbol(button) {
+function editorActivateSymbol(button, opts) {
   var eventName;
+  var skipUndo = !!(opts && opts.skipUndo);
   if (!button) {
     return;
   }
@@ -3384,11 +3488,11 @@ function editorActivateSymbol(button) {
     return;
   }
   if (button.hasAttribute("data-erase")) {
-    editorEraseStep();
+    editorEraseStep(opts);
     return;
   }
   if (button.hasAttribute("data-note")) {
-    editorWriteLetter(button.getAttribute("data-note"));
+    editorWriteLetter(button.getAttribute("data-note"), opts);
     return;
   }
   if (button.hasAttribute("data-acc")) {
@@ -3414,12 +3518,16 @@ function editorActivateSymbol(button) {
   eventName = button.getAttribute("data-event");
   if (eventName) {
     if (eventName === "slash") {
-      editorPushSymbolUndo();
+      if (!skipUndo) {
+        editorPushSymbolUndo();
+      }
       editorInsertSymbol(editorSlashToken());
       return;
     }
     if (eventName === "rest") {
-      editorPushSymbolUndo();
+      if (!skipUndo) {
+        editorPushSymbolUndo();
+      }
       editorInsertSymbol(editorRestToken());
       return;
     }
@@ -3434,21 +3542,11 @@ function editorActivateSymbol(button) {
       return;
     }
     if (eventName === "beam") {
-      /* Braces only beam eighths and sixteenths. A longer value would stay text. */
-      if (editorNote.dur !== "e" && editorNote.dur !== "s") {
-        editorNote.dur = "e";
-      }
-      editorPushSymbolUndo();
-      editorInsertSymbol("{ }", 2);
+      editorInsertBeamGroup();
       return;
     }
     if (eventName === "tuplet") {
-      /* Triplets are usually short notes; match the beam pad default. */
-      if (editorNote.dur !== "e" && editorNote.dur !== "s") {
-        editorNote.dur = "e";
-      }
-      editorPushSymbolUndo();
-      editorInsertSymbol("(3 )", 1);
+      editorInsertTupletGroup();
       return;
     }
     if (eventName === "chord") {
@@ -3457,8 +3555,7 @@ function editorActivateSymbol(button) {
       return;
     }
     if (eventName === "stack") {
-      editorPushSymbolUndo();
-      editorInsertSymbol("[ ]", 2);
+      editorInsertStackGroup();
       return;
     }
   }
@@ -4879,9 +4976,52 @@ function initEditor() {
       refreshEditorHint();
     });
   }
+  function editorPadButtonRepeatable(button) {
+    var eventName;
+    if (!button) {
+      return false;
+    }
+    if (button.hasAttribute("data-note")) {
+      return true;
+    }
+    eventName = button.getAttribute("data-event");
+    return eventName === "slash" || eventName === "rest";
+  }
+
+  function editorStartHoldRepeat(host, pointerId, action) {
+    try {
+      host.setPointerCapture(pointerId);
+    } catch (errCap) {}
+    editorStopHoldRepeat();
+    editorHoldUndoPushed = false;
+    editorHoldRepeatAction = action;
+    if (typeof action === "function") {
+      editorPushSymbolUndo();
+      editorHoldUndoPushed = true;
+      action({ skipUndo: true });
+    }
+    editorHoldRepeatDelay = window.setTimeout(function () {
+      editorHoldRepeatDelay = null;
+      editorHoldRepeatTimer = window.setInterval(function () {
+        if (typeof editorHoldRepeatAction !== "function") {
+          editorStopHoldRepeat();
+          return;
+        }
+        if (!editorHoldUndoPushed) {
+          editorPushSymbolUndo();
+          editorHoldUndoPushed = true;
+        }
+        editorHoldRepeatAction({ skipUndo: true });
+      }, 90);
+    }, 400);
+  }
+
   function editorBindPadPointer(host) {
     if (!host) {
       return;
+    }
+    function stopHold() {
+      editorStopHoldRepeat();
     }
     host.addEventListener("pointerdown", function (event) {
       var button = event.target.closest("button");
@@ -4902,15 +5042,24 @@ function initEditor() {
       window.setTimeout(function () {
         document.removeEventListener("click", swallowClick, true);
       }, 600);
+      if (editorPadButtonRepeatable(button)) {
+        editorStartHoldRepeat(host, event.pointerId, function (opts) {
+          editorActivateSymbol(button, opts);
+        });
+        return;
+      }
       editorActivateSymbol(button);
     });
+    host.addEventListener("pointerup", stopHold);
+    host.addEventListener("pointercancel", stopHold);
+    host.addEventListener("lostpointercapture", stopHold);
   }
   function editorBindHistoryPointer(host) {
     if (!host) {
       return;
     }
     function stopHold() {
-      editorStopEraseRepeat();
+      editorStopHoldRepeat();
     }
     host.addEventListener("pointerdown", function (event) {
       var button = event.target.closest("button");
@@ -4931,30 +5080,16 @@ function initEditor() {
         document.removeEventListener("click", swallowClick, true);
       }, 600);
       if (button.hasAttribute("data-erase")) {
-        try {
-          host.setPointerCapture(event.pointerId);
-        } catch (errCap) {}
-        editorStopEraseRepeat();
-        editorEraseHoldUndoPushed = false;
-        if (editorCanErase()) {
-          editorPushSymbolUndo();
-          editorEraseHoldUndoPushed = true;
-          editorEraseStep({ skipUndo: true });
+        if (!editorCanErase()) {
+          return;
         }
-        editorEraseRepeatDelay = window.setTimeout(function () {
-          editorEraseRepeatDelay = null;
-          editorEraseRepeatTimer = window.setInterval(function () {
-            if (!editorCanErase()) {
-              editorStopEraseRepeat();
-              return;
-            }
-            if (!editorEraseHoldUndoPushed) {
-              editorPushSymbolUndo();
-              editorEraseHoldUndoPushed = true;
-            }
-            editorEraseStep({ skipUndo: true });
-          }, 90);
-        }, 400);
+        editorStartHoldRepeat(host, event.pointerId, function (opts) {
+          if (!editorCanErase()) {
+            editorStopHoldRepeat();
+            return;
+          }
+          editorEraseStep(opts);
+        });
         return;
       }
       editorActivateSymbol(button);

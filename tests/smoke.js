@@ -1894,13 +1894,22 @@ function chatCase(w) {
     check("a tie stays glued", focusLine.value === "C4~");
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
-    check("a long note beams as an eighth", focusLine.value === "C4h { }" && w.editorNote.dur === "e");
+    check(
+      "a beam inserts a seeded group",
+      focusLine.value === "C4h {C4e D4e}" &&
+        focusLine.selectionStart === focusLine.value.length - 1 &&
+        w.editorNote.dur === "e"
+    );
+    placeCaret("C4e D4e");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check("a beam wraps the selection", focusLine.value === "{C4e D4e}");
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
-      "a tuplet inserts a triplet shell",
-      focusLine.value === "C4h (3 )" &&
-        focusLine.selectionStart === 7 &&
+      "a tuplet inserts a seeded triplet",
+      focusLine.value === "C4h (3 C4e D4e E4e)" &&
+        focusLine.selectionStart === focusLine.value.length - 1 &&
         w.editorNote.dur === "e"
     );
     placeCaret("C0");
@@ -1977,10 +1986,12 @@ function chatCase(w) {
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase removes an empty beam from the pad", focusLine.value === "");
     placeCaret("C4");
+    poke(symbolsPanel.querySelector("[data-dur='']"));
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(
-      "a stacked chord takes a space and stays open",
-      focusLine.value === "C4 [ ]" && focusLine.selectionStart === 4
+      "a stack inserts a seeded triad",
+      focusLine.value === "C4 [C4 E4 G4]" &&
+        focusLine.selectionStart === focusLine.value.length - 1
     );
     w.setEditorStaff(false);
     placeCaret("Cmaj");
