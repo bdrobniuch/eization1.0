@@ -1295,12 +1295,33 @@ function editorUpdateFocusChrome() {
   }
 }
 
-function editorSyncFocusFromArea() {
+/* Caret at end of the one-example field (and pad caret when Notes is open). */
+function editorPlaceFocusCaretEnd(field) {
+  var len;
+  if (!field) {
+    field = document.getElementById("editFocusLine");
+  }
+  if (!field) {
+    return;
+  }
+  len = String(field.value || "").length;
+  editorPlaceCaret(field, len, len, !!(editorPadCaret && editorSymbolsIsOpen()));
+}
+
+/*
+ * Load the current focus example into the one-line field.
+ * opts.caret === "end" when showing / switching examples so Backspace peels
+ * from the end; omit it on resize/refresh so a manual caret stays put.
+ */
+function editorSyncFocusFromArea(opts) {
   var field = document.getElementById("editFocusLine");
   var lines = editorRawLines();
   editorClampFocusIndex(lines.length);
   if (field) {
     field.value = lines[editorFocusIndex] || "";
+    if (opts && opts.caret === "end") {
+      editorPlaceFocusCaretEnd(field);
+    }
   }
   editorUpdateFocusChrome();
 }
@@ -1377,11 +1398,7 @@ function editorSetViewMode(mode) {
   editorApplyViewMode();
   refreshEditor();
   if (mode === "focus") {
-    var field = document.getElementById("editFocusLine");
-    if (field && window.matchMedia("(pointer: fine)").matches) {
-      field.focus();
-      field.select();
-    }
+    editorPlaceFocusCaretEnd();
   }
 }
 
@@ -1419,13 +1436,9 @@ function editorFocusGo(delta) {
     return;
   }
   editorFocusIndex = next;
-  editorSyncFocusFromArea();
+  editorSyncFocusFromArea({ caret: "end" });
   clearEditorNotice();
   refreshEditor();
-  var field = document.getElementById("editFocusLine");
-  if (field) {
-    field.focus();
-  }
 }
 
 function editorLineStartOffset(lines, index) {
@@ -1458,13 +1471,9 @@ function editorFocusAdd() {
     lines.splice(editorFocusIndex + 1, 0, "");
     editorSetRawLines(lines);
     editorFocusIndex += 1;
-    editorSyncFocusFromArea();
+    editorSyncFocusFromArea({ caret: "end" });
     clearEditorNotice();
     refreshEditor();
-    field = document.getElementById("editFocusLine");
-    if (field) {
-      field.focus();
-    }
     return;
   }
   area = document.getElementById("allEdit");
@@ -1519,13 +1528,9 @@ function editorFocusRemove() {
         editorFocusIndex = lines.length - 1;
       }
     }
-    editorSyncFocusFromArea();
+    editorSyncFocusFromArea({ caret: "end" });
     clearEditorNotice();
     refreshEditor();
-    field = document.getElementById("editFocusLine");
-    if (field) {
-      field.focus();
-    }
     return;
   }
   area = document.getElementById("allEdit");
@@ -4255,7 +4260,7 @@ function editorPutSample(line) {
       editorFocusIndex += 1;
     }
     editorSetRawLines(lines);
-    editorSyncFocusFromArea();
+    editorSyncFocusFromArea({ caret: "end" });
     editorStaffHelpSelection.start = sample.length;
     editorStaffHelpSelection.end = sample.length;
   } else {
@@ -4335,16 +4340,13 @@ function clearEditorList() {
   area.setSelectionRange(0, 0);
   editorFocusIndex = 0;
   if (editorIsFocusMode()) {
-    editorSyncFocusFromArea();
+    editorSyncFocusFromArea({ caret: "end" });
   }
   clearEditorNotice();
   refreshEditor();
   if (window.matchMedia("(pointer: fine)").matches) {
     if (editorIsFocusMode()) {
-      var field = document.getElementById("editFocusLine");
-      if (field) {
-        field.focus();
-      }
+      editorPlaceFocusCaretEnd();
     } else {
       area.focus();
     }
@@ -4444,16 +4446,12 @@ function editorOpenSheet(options) {
   }
   area.scrollTop = 0;
   area.setSelectionRange(0, 0);
-  if (window.matchMedia("(pointer: fine)").matches) {
+  if (editorIsFocusMode()) {
+    editorSyncFocusFromArea({ caret: "end" });
+  } else if (window.matchMedia("(pointer: fine)").matches) {
     if (editorIsCreateMode() && nameField) {
       nameField.focus();
       nameField.select();
-    } else if (editorIsFocusMode()) {
-      var focusField = document.getElementById("editFocusLine");
-      if (focusField) {
-        focusField.focus();
-        focusField.select();
-      }
     } else {
       area.focus();
     }
@@ -4834,14 +4832,18 @@ function editorOpenFile(file) {
       syncEditorFaceName();
     }
     if (editorIsFocusMode()) {
-      editorSyncFocusFromArea();
+      editorSyncFocusFromArea({ caret: "end" });
     }
     editorNotice(t("edit.uploadReplaced"));
     refreshEditor();
     if (typeof track === "function") {
       track("edit_upload");
     }
-    area.focus();
+    if (editorIsFocusMode()) {
+      editorPlaceFocusCaretEnd();
+    } else {
+      area.focus();
+    }
   };
   reader.onerror = function () {
     editorNotice(t("edit.badFile"));
@@ -5127,15 +5129,8 @@ function editorGoToRawLine(rawIndex) {
   if (editorIsFocusMode()) {
     editorFocusIndex = rawIndex;
     editorClampFocusIndex(editorRawLines().length);
-    editorSyncFocusFromArea();
+    editorSyncFocusFromArea({ caret: "end" });
     refreshEditor();
-    field = document.getElementById("editFocusLine");
-    if (field) {
-      field.focus();
-      try {
-        field.select();
-      } catch (errFocus) {}
-    }
     return;
   }
   area = document.getElementById("allEdit");
