@@ -1260,8 +1260,11 @@ function sendOpenExercise() {
     });
     return;
   }
-  if (typeof downloadExerciseFile === "function" && downloadExerciseFile(row)) {
-    showDeskNote(t("mail.exerciseSaved"));
+  if (typeof downloadExerciseFile === "function") {
+    var file = downloadExerciseFile(row);
+    if (file) {
+      showDeskNote(tr("mail.exerciseSaved", { file: file }));
+    }
   }
 }
 

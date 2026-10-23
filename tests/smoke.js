@@ -1095,6 +1095,10 @@ function editorFile(w) {
   check("exercise file keeps the lines", parsed.lines.length === 2 && parsed.lines[0] === "C \u00B7 File");
   check("exercise file keeps the bars", parsed.bars === 4);
   check("exercise file keeps the name", parsed.name === "Cadence");
+  check("download uses the exercise name", w.exerciseDownloadName("Cadence") === "Cadence.eiz");
+  check("download strips path marks", w.exerciseDownloadName("A/B:C*? D") === "ABC D.eiz");
+  check("empty name falls back", w.exerciseDownloadName("  ") === "eization.eiz");
+  check("download status names the file", w.tr("edit.downloaded", { file: "Cadence.eiz" }) === "Downloaded Cadence.eiz.");
   var older = w.readEditorFile("# eization\n# bars 2\nG\n");
   check("an unversioned file still opens", older.version === 1 && older.lines[0] === "G" && older.bars === 2);
   var plain = w.readEditorFile("E\nF\n");

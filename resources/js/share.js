@@ -2312,9 +2312,13 @@ function downloadExerciseFile(row) {
   var blob;
   var url;
   var link;
+  var file;
   if (!row || !row.lines || !row.lines.length || typeof editorFileText !== "function") {
-    return false;
+    return "";
   }
+  file = typeof exerciseDownloadName === "function"
+    ? exerciseDownloadName(row.name)
+    : "eization.eiz";
   blob = new Blob(
     [
       editorFileText(row.lines, row.bars, row.name, row.staff, {
@@ -2328,12 +2332,12 @@ function downloadExerciseFile(row) {
   url = URL.createObjectURL(blob);
   link = document.createElement("a");
   link.href = url;
-  link.download = "eization.eiz";
+  link.download = file;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   setTimeout(function () {
     URL.revokeObjectURL(url);
   }, 1500);
-  return true;
+  return file;
 }

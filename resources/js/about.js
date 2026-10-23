@@ -410,10 +410,17 @@ function sendThisExercise() {
   url = typeof exerciseShareUrl === "function" ? exerciseShareUrl(row) : "";
   if (url) {
     body = tr("mail.exerciseBody", { url: url });
-  } else if (typeof downloadExerciseFile === "function" && downloadExerciseFile(row)) {
-    body = t("mail.exerciseFile");
+  } else if (typeof downloadExerciseFile === "function") {
+    var file = downloadExerciseFile(row);
+    if (!file) {
+      if (typeof showDeskNote === "function") {
+        showDeskNote(t("contribute.none"));
+      }
+      return;
+    }
+    body = tr("mail.exerciseFile", { file: file });
     if (typeof showDeskNote === "function") {
-      showDeskNote(t("mail.exerciseSaved"));
+      showDeskNote(tr("mail.exerciseSaved", { file: file }));
     }
   } else {
     if (typeof showDeskNote === "function") {

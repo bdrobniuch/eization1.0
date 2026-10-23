@@ -4454,6 +4454,21 @@ function editorCancel() {
 
 var EDITOR_FILE_VERSION = 1;
 
+function exerciseDownloadName(name) {
+  var base = String(name || "")
+    .replace(/\s+/g, " ")
+    .replace(/^\s+|\s+$/g, "")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/[. ]+$/g, "");
+  if (!base) {
+    base = "eization";
+  }
+  if (base.length > 60) {
+    base = base.slice(0, 60).replace(/[. ]+$/g, "") || "eization";
+  }
+  return base + ".eiz";
+}
+
 function editorFileText(lines, bars, name, staff, defaults) {
   var out = "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n# staff " + (staff ? "1" : "0") + "\n";
   var clean = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
@@ -4572,6 +4587,7 @@ function editorSaveFile() {
   var bars = clampEditorBars(document.getElementById("editBars").value);
   document.getElementById("editBars").value = String(bars);
   var name = editorNameValue();
+  var file = exerciseDownloadName(name);
   var blob = new Blob(
     [editorFileText(lines, bars, name, editorStaffOn(), editorPartDefaults())],
     { type: "text/plain;charset=utf-8" }
@@ -4579,14 +4595,14 @@ function editorSaveFile() {
   var url = URL.createObjectURL(blob);
   var link = document.createElement("a");
   link.href = url;
-  link.download = "eization.eiz";
+  link.download = file;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   setTimeout(function () {
     URL.revokeObjectURL(url);
   }, 1500);
-  editorStatus(t("edit.downloaded"));
+  editorStatus(tr("edit.downloaded", { file: file }));
   if (typeof track === "function") {
     track("edit_download");
   }
