@@ -1275,6 +1275,10 @@ function staffParseEventAt(tokens, i, clef) {
       return { error: "junk after beam", tok: beamBuf.slice(beamClose + 1) };
     }
     var beamInner = beamBuf.slice(1, beamClose);
+    /* Soft-draw an empty {} while notes are still being typed. */
+    if (!String(beamInner || "").replace(/\s+/g, "")) {
+      return { event: { type: "beam", notes: [] }, next: i + 1 };
+    }
     var beamParsed = staffParseBeamInner(beamInner, clef);
     if (!beamParsed || beamParsed.error || !beamParsed.notes || beamParsed.notes.length < 1) {
       return {
@@ -1415,8 +1419,12 @@ function staffParseTupletAt(tokens, i, clef) {
   for (k = 0; k < events.length; k++) {
     count += events[k].type === "beam" ? events[k].notes.length : 1;
   }
+  /* Soft-draw an empty (N ) while notes are still being typed. */
   if (count < 1) {
-    return { error: "empty tuplet", tok: tokens[i] };
+    return {
+      event: { type: "tuplet", n: n, m: m, showRatio: !!open[2], events: [] },
+      next: j + 1
+    };
   }
   /*
    * One timed unit (note, rest, slash, stack, or single-note beam): keep the
@@ -2366,6 +2374,9 @@ function renderMusicStaff(source, role, opts) {
         duration: ev.duration || "q"
       };
     } else if (ev.type === "beam") {
+      if (!ev.notes || !ev.notes.length) {
+        return;
+      }
       var bid = nextBeamId++;
       var bi;
       var beamFirst = columns.length;
@@ -2423,6 +2434,9 @@ function renderMusicStaff(source, role, opts) {
       staffAdvanceSimile(staffEventQuarters(ev) * scale);
       return;
     } else if (ev.type === "tuplet") {
+      if (!ev.events || !ev.events.length) {
+        return;
+      }
       var braced = false;
       var ti;
       for (ti = 0; ti < ev.events.length; ti++) {

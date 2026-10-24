@@ -4620,9 +4620,9 @@ function editorStructureSeed(kind) {
 
 /*
  * Beam / Stack / Triplet: lit while the caret is inside that shell. First tap
- * wraps the note (or selection) or seeds one event; second tap closes (caret
- * after the closer) without removing the braces. A third tap with the caret
- * just after that shell re-enters instead of seeding another group.
+ * wraps the note (or selection) or opens an empty shell; second tap on an empty
+ * shell removes it, otherwise closes (caret after the closer). A third tap with
+ * the caret just after that shell re-enters instead of opening another group.
  */
 function editorToggleStructure(kind) {
   var span = editorLineSpan();
@@ -4661,6 +4661,15 @@ function editorToggleStructure(kind) {
     endRel = swap;
   }
   if (sel.start === sel.end && editorRelInsideStructure(line, rel, kind)) {
+    exact = editorInnermostGroupAt(line, rel, kind);
+    if (exact && editorStructureInnerEmpty(line, exact)) {
+      editorPushSymbolUndo();
+      editorRemoveStructureShell(exact);
+      clearEditorNotice();
+      refreshEditor();
+      editorPaintNotePad();
+      return;
+    }
     editorCloseStructure(kind);
     return;
   }

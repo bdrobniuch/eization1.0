@@ -764,7 +764,14 @@ function staffTuplets(w) {
       oneNoteTuplet.events[0].pitch.letter === "C"
     )
   );
-  check("empty tuplet is rejected", !w.parseMusicNotation("(3 )"));
+  check(
+    "an empty tuplet soft-draws",
+    !!(w.parseMusicNotation("(3 )") && w.renderMusicStaff("(3 )", "current"))
+  );
+  check(
+    "an empty beam soft-draws",
+    !!(w.parseMusicNotation("{}") && w.renderMusicStaff("{}", "current"))
+  );
   var mixed = w.parseMusicNotation("(3 /q /e)");
   check(
     "mixed triplet lasts one beat",
@@ -2114,6 +2121,11 @@ function chatCase(w) {
         focusLine.selectionStart === 1 &&
         w.editorNote.dur === "e"
     );
+    check("an empty beam shell still draws", !!w.parseMusicNotation(focusLine.value));
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check("a second beam tap removes an empty shell", focusLine.value === "");
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
     poke(symbolsPanel.querySelector("[data-event='rest']"));
     check("rest dissolves an empty beam", /^r[whqes]?\.?$/.test(focusLine.value));
     placeCaret("C4e D4e");
@@ -2184,6 +2196,9 @@ function chatCase(w) {
       focusLine.value === "(3 )" &&
         focusLine.selectionStart === focusLine.value.length - 1
     );
+    check("an empty tuplet shell still draws", !!w.parseMusicNotation(focusLine.value));
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check("a second tuplet tap removes an empty shell", focusLine.value === "");
     placeCaret("(3 C4e D4e E4e)");
     focusLine.setSelectionRange(6, 6);
     w.editorPadCaret = { start: 6, end: 6 };
@@ -2454,6 +2469,10 @@ function chatCase(w) {
       focusLine.value === "[]" &&
         focusLine.selectionStart === 1
     );
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check("a second stack tap removes an empty shell", focusLine.value === "");
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
     poke(symbolsPanel.querySelector("[data-event='bar']"));
     check("bar dissolves an empty stack", focusLine.value === "| ");
     placeCaret("[C4 E4 G4]");
