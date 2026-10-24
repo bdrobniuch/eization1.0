@@ -1872,8 +1872,8 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-event='chord'] .edit-music-icon") &&
       symbolsPanel.querySelector("[data-event='stack']") &&
       symbolsPanel.querySelector("[data-event='stack'] .edit-music-icon") &&
-      w.I18N.en["edit.noteTuplet"] === "Triplet" &&
-      w.I18N.es["edit.noteTuplet"] === "Tresillo" &&
+      w.I18N.en["edit.noteTuplet"] === "Tuplet" &&
+      w.I18N.es["edit.noteTuplet"] === "Grupo irregular" &&
       symbolsPanel.querySelector("[data-dur='']") &&
       symbolsPanel.querySelector("[data-dur='w']") &&
       symbolsPanel.querySelector("[data-dot]") &&
@@ -1982,7 +1982,9 @@ function chatCase(w) {
       symbolsToggle.click();
     }
     function poke(el) {
-      el.dispatchEvent(new w.PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse" }));
+      var opts = { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse" };
+      el.dispatchEvent(new w.PointerEvent("pointerdown", opts));
+      el.dispatchEvent(new w.PointerEvent("pointerup", opts));
     }
     function placeCaret(text) {
       focusLine.value = text;
@@ -2228,6 +2230,38 @@ function chatCase(w) {
     check("an empty tuplet shell still draws", !!w.parseMusicNotation(focusLine.value));
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check("a second tuplet tap removes an empty shell", focusLine.value === "");
+    w.editorTupletN = 3;
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-tuplet-menu]"));
+    check("tuplet combo opens a glyph menu", !!symbolsPanel.querySelector(".edit-tuplet-menu"));
+    poke(symbolsPanel.querySelector("[data-tuplet-pick='5']"));
+    check(
+      "tuplet combo arms a quintuplet",
+      w.editorTupletN === 5 && !symbolsPanel.querySelector(".edit-tuplet-menu")
+    );
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "a quintuplet empty shell uses the armed N",
+      focusLine.value === "(5 )" &&
+        focusLine.selectionStart === focusLine.value.length - 1
+    );
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(6, 6);
+    w.editorPadCaret = { start: 6, end: 6 };
+    w.editorTupletN = 3;
+    w.editorSetTupletN(5);
+    check(
+      "tuplet combo rewrites the opener inside a group",
+      focusLine.value === "(5 C4e D4e E4e)" && w.editorTupletN === 5
+    );
+    w.editorSetTupletN(7);
+    w.editorSetTupletN(4);
+    w.editorSetTupletN(3);
+    check(
+      "tuplet combo can arm 7, 4, and 3",
+      focusLine.value === "(3 C4e D4e E4e)" && w.editorTupletN === 3
+    );
     placeCaret("(3 C4e D4e E4e)");
     focusLine.setSelectionRange(6, 6);
     w.editorPadCaret = { start: 6, end: 6 };

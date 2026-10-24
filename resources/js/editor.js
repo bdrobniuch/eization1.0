@@ -51,6 +51,11 @@ var editorNote = {
   oct: null
 };
 
+/* Armed tuplet N for the pad: 3, 5, 7, or 4 (combo menu). */
+var editorTupletN = 3;
+var EDITOR_TUPLET_CYCLE = [3, 5, 7, 4];
+var editorTupletMenuOpen = false;
+
 var editorNotePadStamp = "";
 var editorIconCache = {};
 var editorSymbolUndo = [];
@@ -2760,6 +2765,8 @@ function editorNotePadStampNow() {
     defaults.key || "",
     currentEditorLine(),
     field ? String(editorReadSelection(field).start) : "0",
+    String(editorTupletN || 3),
+    editorTupletMenuOpen ? "menu" : "",
     typeof eizationLang === "string" ? eizationLang : "",
     t("edit.noteHigher")
   ].join("~");
@@ -3009,15 +3016,17 @@ function editorBuildIcon(kind) {
     }));
     return editorFitIcon(svg);
   }
-  if (kind === "tuplet") {
+  if (kind === "tuplet" || kind.indexOf("tuplet-") === 0) {
     var tupGap = head + 100;
     var tupI;
+    var tupN = kind.indexOf("tuplet-") === 0 ? kind.slice(7) : String(editorTupletN || 3);
+    var tupHeads = Math.min(Math.max(parseInt(tupN, 10) || 3, 3), 5);
     if (typeof staffPlaceGlyph === "function") {
-      for (tupI = 0; tupI < 3; tupI++) {
+      for (tupI = 0; tupI < tupHeads; tupI++) {
         staffPlaceGlyph(svg, "noteheadBlack", tupI * tupGap, 0, space);
       }
     }
-    for (tupI = 0; tupI < 3; tupI++) {
+    for (tupI = 0; tupI < tupHeads; tupI++) {
       svg.appendChild(editorSvgEl("line", {
         x1: String(tupI * tupGap + stemX),
         y1: "24",
@@ -3034,7 +3043,7 @@ function editorBuildIcon(kind) {
         " " +
         String(-stemLen * 0.85) +
         " L" +
-        String(2 * tupGap + stemX) +
+        String((tupHeads - 1) * tupGap + stemX) +
         " " +
         String(-stemLen * 0.85),
       fill: "none",
@@ -3043,15 +3052,15 @@ function editorBuildIcon(kind) {
       "stroke-linecap": "round"
     }));
     var tupLabel = editorSvgEl("text", {
-      x: String(tupGap + stemX),
-      y: String(-stemLen * 0.85 - 40),
+      x: String(((tupHeads - 1) * tupGap) / 2 + stemX),
+      y: String(-stemLen * 0.85 - 20),
       fill: "currentColor",
-      "font-size": "200",
+      "font-size": "360",
       "font-family": "system-ui, sans-serif",
-      "font-weight": "600",
+      "font-weight": "700",
       "text-anchor": "middle"
     });
-    tupLabel.textContent = "3";
+    tupLabel.textContent = tupN;
     svg.appendChild(tupLabel);
     return editorFitIcon(svg);
   }
@@ -3124,6 +3133,49 @@ function editorPadButton(row, attrs, face, label, pressed) {
   }
   row.appendChild(button);
   return button;
+}
+
+/* Main tuplet face + disclosure; open menu lists 3 / 5 / 7 / 4 glyphs. */
+function editorPaintTupletCombo(row) {
+  var wrap = document.createElement("span");
+  var menu;
+  var disclosure;
+  var i;
+  var n;
+  wrap.className = "edit-tuplet-combo" + (editorTupletMenuOpen ? " is-open" : "");
+  editorPadButton(
+    wrap,
+    { "data-event": "tuplet", "data-tuplet-n": String(editorTupletN || 3) },
+    editorMusicIcon("tuplet-" + (editorTupletN || 3)),
+    t("edit.noteTuplet") + " " + String(editorTupletN || 3),
+    editorCaretInsideStructure("tuplet")
+  );
+  disclosure = document.createElement("button");
+  disclosure.type = "button";
+  disclosure.className = "edit-tuplet-disclosure";
+  disclosure.setAttribute("data-tuplet-menu", "1");
+  disclosure.setAttribute("aria-expanded", editorTupletMenuOpen ? "true" : "false");
+  disclosure.setAttribute("aria-label", t("edit.noteTupletPick"));
+  disclosure.title = t("edit.noteTupletPick");
+  disclosure.textContent = "\u25BE";
+  wrap.appendChild(disclosure);
+  if (editorTupletMenuOpen) {
+    menu = document.createElement("span");
+    menu.className = "edit-tuplet-menu";
+    menu.setAttribute("role", "listbox");
+    for (i = 0; i < EDITOR_TUPLET_CYCLE.length; i++) {
+      n = EDITOR_TUPLET_CYCLE[i];
+      editorPadButton(
+        menu,
+        { "data-tuplet-pick": String(n), role: "option" },
+        editorMusicIcon("tuplet-" + n),
+        t("edit.noteTuplet") + " " + String(n),
+        n === editorTupletN
+      );
+    }
+    wrap.appendChild(menu);
+  }
+  row.appendChild(wrap);
 }
 
 function editorPaintLetters(row) {
@@ -3774,6 +3826,126 @@ function editorStopHoldRepeat() {
   editorHoldRepeatAction = null;
 }
 
+function editorClampTupletN(n) {
+  n = parseInt(n, 10);
+  if (EDITOR_TUPLET_CYCLE.indexOf(n) < 0) {
+    return 3;
+  }
+  return n;
+}
+
+function editorTupletOpenText(n) {
+  return "(" + editorClampTupletN(n || editorTupletN) + " ";
+}
+
+function editorEnclosingTupletNAtCaret() {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var g;
+  var open;
+  var m;
+  if (!span) {
+    return 0;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  g = editorInnermostGroupAt(line, rel, "tuplet");
+  if (!g) {
+    return 0;
+  }
+  open = line.slice(g.open, g.openEnd);
+  m = /^\((\d{1,2})/.exec(open);
+  return m ? editorClampTupletN(m[1]) : 0;
+}
+
+function editorSyncTupletNFromCaret() {
+  var n = editorEnclosingTupletNAtCaret();
+  if (n) {
+    editorTupletN = n;
+  }
+}
+
+/* Rewrite the innermost tuplet opener to (N ; drops a written :M ratio. */
+function editorRewriteEnclosingTupletN(n, opts) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var g;
+  var nextOpen;
+  var oldOpen;
+  var value;
+  var delta;
+  var silent;
+  var caret;
+  n = editorClampTupletN(n);
+  if (!span) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  g = editorInnermostGroupAt(line, rel, "tuplet");
+  if (!g) {
+    return false;
+  }
+  oldOpen = line.slice(g.open, g.openEnd);
+  nextOpen = "(" + n;
+  if (oldOpen === nextOpen) {
+    return false;
+  }
+  if (!(opts && opts.skipUndo)) {
+    editorPushSymbolUndo();
+  }
+  value = String(span.field.value || "");
+  span.field.value =
+    value.slice(0, span.lineStart + g.open) +
+    nextOpen +
+    value.slice(span.lineStart + g.openEnd);
+  delta = nextOpen.length - oldOpen.length;
+  caret = span.caret;
+  if (caret > span.lineStart + g.open) {
+    caret += delta;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  return true;
+}
+
+function editorCloseTupletMenu() {
+  if (!editorTupletMenuOpen) {
+    return;
+  }
+  editorTupletMenuOpen = false;
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+}
+
+function editorToggleTupletMenu() {
+  editorTupletMenuOpen = !editorTupletMenuOpen;
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+}
+
+/* Arm N from the combo; rewrite an enclosing tuplet opener when inside one. */
+function editorSetTupletN(n) {
+  n = editorClampTupletN(n);
+  editorTupletN = n;
+  editorTupletMenuOpen = false;
+  if (editorCaretInsideStructure("tuplet")) {
+    editorRewriteEnclosingTupletN(n);
+  }
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+}
+
 function editorStopEraseRepeat() {
   editorStopHoldRepeat();
 }
@@ -3802,7 +3974,7 @@ function editorStructureOpenClose(kind) {
     return { open: "[", close: "]" };
   }
   if (kind === "tuplet") {
-    return { open: "(3 ", close: ")" };
+    return { open: editorTupletOpenText(), close: ")" };
   }
   return null;
 }
@@ -4121,7 +4293,7 @@ function editorProperOrderFromStack(kind) {
     editorCloseStructure("stack");
     return editorStructureOpenEmpty("beam");
   }
-  return editorWrapExistingGroup(stack, "(3 ", ")");
+  return editorWrapExistingGroup(stack, editorTupletOpenText(), ")");
 }
 
 /*
@@ -4418,7 +4590,7 @@ function editorReplaceInBeam(hit, nextToken) {
   return true;
 }
 
-/* Wrap the enclosing beam as (3 {…}). */
+/* Wrap the enclosing beam as (N {…}). */
 function editorWrapEnclosingBeamAsTuplet() {
   var span = editorLineSpan();
   var line;
@@ -4427,7 +4599,7 @@ function editorWrapEnclosingBeamAsTuplet() {
   var value;
   var silent;
   var caret;
-  var open = "(3 ";
+  var open = editorTupletOpenText();
   var close = ")";
   if (!span) {
     return false;
@@ -4479,7 +4651,7 @@ function editorSelectionIsWrappable(kind, inner) {
     if (trimmed.indexOf("|") >= 0) {
       return false;
     }
-    probe = "(3 " + trimmed + ")";
+    probe = editorTupletOpenText() + trimmed + ")";
   } else {
     return false;
   }
@@ -4734,7 +4906,7 @@ function editorToggleStructure(kind) {
   if (sel.start !== sel.end && kind === "tuplet") {
     exact = editorExactGroupSelection(line, rel, endRel, "beam") ||
       editorExactGroupSelection(line, rel, endRel, "stack");
-    if (exact && editorWrapExistingGroup(exact, "(3 ", ")")) {
+    if (exact && editorWrapExistingGroup(exact, editorTupletOpenText(), ")")) {
       return;
     }
   }
@@ -5174,13 +5346,7 @@ function editorPaintNoteEvents(row) {
     t("edit.noteBeam"),
     editorCaretInsideStructure("beam")
   );
-  editorPadButton(
-    row,
-    { "data-event": "tuplet" },
-    editorMusicIcon("tuplet"),
-    t("edit.noteTuplet"),
-    editorCaretInsideStructure("tuplet")
-  );
+  editorPaintTupletCombo(row);
   editorPadButton(
     row,
     { "data-event": "chord" },
@@ -5206,6 +5372,7 @@ function editorPaintNotePad() {
   if (!stepHost || !chipsHost || !durHost || !eventsHost) {
     return;
   }
+  editorSyncTupletNFromCaret();
   stamp = editorNotePadStampNow();
   if (stamp === editorNotePadStamp) {
     return;
@@ -5930,19 +6097,31 @@ function editorActivateSymbol(button, opts) {
     return;
   }
   editorAnalyticsMark("used_pad");
+  if (button.hasAttribute("data-tuplet-menu")) {
+    editorToggleTupletMenu();
+    return;
+  }
+  if (button.hasAttribute("data-tuplet-pick")) {
+    editorSetTupletN(button.getAttribute("data-tuplet-pick"));
+    return;
+  }
   if (button.hasAttribute("data-undo")) {
+    editorCloseTupletMenu();
     editorSymbolUndoStep();
     return;
   }
   if (button.hasAttribute("data-redo")) {
+    editorCloseTupletMenu();
     editorSymbolRedoStep();
     return;
   }
   if (button.hasAttribute("data-erase")) {
+    editorCloseTupletMenu();
     editorEraseStep(opts);
     return;
   }
   if (button.hasAttribute("data-note")) {
+    editorCloseTupletMenu();
     editorWriteLetter(button.getAttribute("data-note"), opts);
     return;
   }
@@ -5968,6 +6147,11 @@ function editorActivateSymbol(button, opts) {
   }
   eventName = button.getAttribute("data-event");
   if (eventName) {
+    if (eventName !== "tuplet") {
+      editorCloseTupletMenu();
+    } else {
+      editorTupletMenuOpen = false;
+    }
     if (eventName === "slash") {
       if (!skipUndo) {
         editorPushSymbolUndo();

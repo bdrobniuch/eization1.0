@@ -2444,6 +2444,63 @@ body.is-editing #counter {
   border: 0;
 }
 
+/* Tuplet N combo: face + disclosure; menu lists glyph options. */
+.edit-tuplet-combo {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+#editSymbols .edit-tuplet-combo > button[data-event="tuplet"] {
+  border: 0;
+  border-radius: 0;
+  min-width: 44px;
+  height: 100%;
+  min-height: 0;
+}
+
+#editSymbols .edit-tuplet-disclosure {
+  box-sizing: border-box;
+  width: auto;
+  min-width: 28px;
+  height: 100%;
+  min-height: 0;
+  padding: 0 4px;
+  border: 0;
+  border-left: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.edit-tuplet-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 6;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  padding: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: #111111;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#editSymbols .edit-tuplet-menu button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 /* Wide edit: one flowing notes toolbar that wraps like the text symbols pad. */
 @media (min-width: 841px) {
   #editNotePad {
