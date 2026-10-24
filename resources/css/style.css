@@ -2492,7 +2492,9 @@ body.is-editing #counter {
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 4px;
-  background: #111111;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
