@@ -1861,20 +1861,90 @@ function staffSvgEl(name, attrs) {
 }
 
 /*
- * Tips for one beam group. Slope follows the first and last note.
- * The line then shifts outward until every stem is at least minStem,
- * so a note that sits off that slope still meets the beam.
+ * Octave stem, from the notehead on the tip side.
+ * Past an octave from the middle line, the stem lengthens to meet that line.
  * stemUp is in SVG coordinates (up is a smaller y).
  */
-function staffBeamTipYs(xs, ys, stemUp, minStem) {
+function staffStemReach(headY, midY, stemUp, standard) {
+  var toward = stemUp ? headY - midY : midY - headY;
+  if (toward > standard) {
+    return toward;
+  }
+  return standard;
+}
+
+/* Below the middle line the stem goes up. On the line, and above it, it goes down. */
+function staffStemUpFromY(headY, midY) {
+  return headY > midY;
+}
+
+/*
+ * The note farther from the middle line sets the stem. An even split goes down.
+ * steps are diatonic; a larger step sits higher on the staff.
+ */
+function staffStackStemUpFromSteps(steps, midStep) {
+  var above = 0;
+  var below = 0;
+  var i;
+  for (i = 0; i < steps.length; i++) {
+    var d = steps[i] - midStep;
+    if (d > above) {
+      above = d;
+    }
+    if (-d > below) {
+      below = -d;
+    }
+  }
+  return below > above;
+}
+
+/*
+ * Tips for one beam group. The slope leans with the outer notes and
+ * travels at most half a space. A nearly level group on the second ledger
+ * line or beyond is flat. The line then shifts outward until every stem
+ * is at least minStem. A beam that still sits clear of the staff moves in
+ * until its inner edge meets the outer staff line.
+ * minStem is an octave, so one staff space is minStem / 3.5.
+ * staffTop is the top staff line; omit it to skip the staff pull.
+ * stemUp is in SVG coordinates (up is a smaller y).
+ */
+function staffBeamTipYs(xs, ys, stemUp, minStem, staffTop) {
   var n = xs.length;
   var x0 = xs[0];
-  var span = xs[n - 1] - x0;
+  var span = n ? xs[n - 1] - x0 : 0;
   var dir = stemUp ? -1 : 1;
-  var yStart = ys[0] + dir * minStem;
-  var slope = span ? (ys[n - 1] - ys[0]) / span : 0;
-  var shift = stemUp ? Infinity : -Infinity;
+  var space = minStem / 3.5;
+  var halfSpace = space * 0.5;
+  var dy = n ? ys[n - 1] - ys[0] : 0;
+  var travel = dy;
   var i;
+  if (travel > halfSpace) {
+    travel = halfSpace;
+  }
+  if (travel < -halfSpace) {
+    travel = -halfSpace;
+  }
+  if (typeof staffTop === "number" && space > 0 && n) {
+    var midY = staffTop + 2 * space;
+    var outside = 4 * space;
+    var allAbove = true;
+    var allBelow = true;
+    for (i = 0; i < n; i++) {
+      if (!(ys[i] <= midY - outside + 0.01)) {
+        allAbove = false;
+      }
+      if (!(ys[i] >= midY + outside - 0.01)) {
+        allBelow = false;
+      }
+    }
+    /* A third or less: level. A wider leap keeps the capped slope. */
+    if ((allAbove || allBelow) && Math.abs(dy) <= space + 0.01) {
+      travel = 0;
+    }
+  }
+  var slope = span ? travel / span : 0;
+  var yStart = (n ? ys[0] : 0) + dir * minStem;
+  var shift = stemUp ? Infinity : -Infinity;
   for (i = 0; i < n; i++) {
     var room = ys[i] + dir * minStem - (yStart + slope * (xs[i] - x0));
     if (stemUp) {
@@ -1891,6 +1961,38 @@ function staffBeamTipYs(xs, ys, stemUp, minStem) {
   var tips = [];
   for (i = 0; i < n; i++) {
     tips.push(yStart + slope * (xs[i] - x0) + shift);
+  }
+  if (typeof staffTop === "number" && space > 0 && n) {
+    /* Half a space thick: the inner edge lands on the outer staff line. */
+    var edge = space * 0.25;
+    var staffBottom = staffTop + 4 * space;
+    var nearest = tips[0];
+    var pull;
+    if (stemUp) {
+      for (i = 1; i < n; i++) {
+        if (tips[i] < nearest) {
+          nearest = tips[i];
+        }
+      }
+      if (nearest > staffBottom + edge) {
+        pull = nearest - (staffBottom + edge);
+        for (i = 0; i < n; i++) {
+          tips[i] -= pull;
+        }
+      }
+    } else {
+      for (i = 1; i < n; i++) {
+        if (tips[i] > nearest) {
+          nearest = tips[i];
+        }
+      }
+      if (nearest < staffTop - edge) {
+        pull = staffTop - edge - nearest;
+        for (i = 0; i < n; i++) {
+          tips[i] += pull;
+        }
+      }
+    }
   }
   return tips;
 }
@@ -2103,7 +2205,7 @@ function renderMusicStaff(source, role, opts) {
           beamCount++;
         }
       }
-      var beamUp = beamCount ? beamSum / beamCount <= midStep : true;
+      var beamUp = beamCount ? beamSum / beamCount < midStep : true;
       for (bn = 0; bn < ev.notes.length; bn++) {
         if (ev.notes[bn].type === "stack" && ev.notes[bn].pitches) {
           beamSteps = ev.notes[bn].pitches;
@@ -2115,13 +2217,24 @@ function renderMusicStaff(source, role, opts) {
         }
       }
     } else if (ev.type === "note" && staffHasStem(ev.duration)) {
-      staffTipExtra(ev.pitch.step, ev.pitch.step <= midStep);
+      staffTipExtra(ev.pitch.step, ev.pitch.step < midStep);
     } else if (ev.type === "stack" && ev.pitches.length && staffHasStem(ev.duration)) {
-      var stSum = 0;
+      var stSteps = [];
       for (p = 0; p < ev.pitches.length; p++) {
-        stSum += ev.pitches[p].step;
+        stSteps.push(ev.pitches[p].step);
       }
-      staffTipExtra(stSum / ev.pitches.length, stSum / ev.pitches.length <= midStep);
+      var stUp = staffStackStemUpFromSteps(stSteps, midStep);
+      var stOuter = stSteps[0];
+      for (p = 1; p < stSteps.length; p++) {
+        if (stUp) {
+          if (stSteps[p] > stOuter) {
+            stOuter = stSteps[p];
+          }
+        } else if (stSteps[p] < stOuter) {
+          stOuter = stSteps[p];
+        }
+      }
+      staffTipExtra(stOuter, stUp);
     }
   }
   if (upStemExtra < 0) {
@@ -2628,21 +2741,19 @@ function renderMusicStaff(source, role, opts) {
    * so spacing tracks the ink actually used.
    */
   function staffEventStemUpGuess(ev) {
+    var midY = staffTop + 2 * lineGap;
     if (ev.type === "note") {
-      return staffPitchY(ev.pitch.step, ast.clef, staffTop, lineGap) >= staffTop + 2 * lineGap;
+      return staffStemUpFromY(staffPitchY(ev.pitch.step, ast.clef, staffTop, lineGap), midY);
     }
     if (ev.type !== "stack" || !ev.pitches.length) {
       return true;
     }
-    var sum = 0;
+    var steps = [];
     var pi;
     for (pi = 0; pi < ev.pitches.length; pi++) {
-      sum += ev.pitches[pi].step;
+      steps.push(ev.pitches[pi].step);
     }
-    return (
-      staffPitchY(sum / ev.pitches.length, ast.clef, staffTop, lineGap) >=
-      staffTop + 2 * lineGap
-    );
+    return staffStackStemUpFromSteps(steps, staffBottomLineStep(ast.clef) + 4);
   }
 
   function staffEventAccOverhang(ev) {
@@ -2993,6 +3104,27 @@ function renderMusicStaff(source, role, opts) {
   var predTip = [];
   var predUp = [];
   var predBeamed = [];
+  function staffInkAnchorY(colIndex, stemUp) {
+    var col = columns[colIndex];
+    var best;
+    var pi;
+    var y;
+    if (col && col.type === "stack" && col.pitches && col.pitches.length) {
+      best = stemUp ? Infinity : -Infinity;
+      for (pi = 0; pi < col.pitches.length; pi++) {
+        y = staffPitchY(col.pitches[pi].step, ast.clef, staffTop, lineGap);
+        if (stemUp) {
+          if (y < best) {
+            best = y;
+          }
+        } else if (y > best) {
+          best = y;
+        }
+      }
+      return best;
+    }
+    return predNy[colIndex];
+  }
   var inkGi;
   var inkGIdx;
   for (inkGIdx = 0; inkGIdx < beamGroups.length; inkGIdx++) {
@@ -3008,16 +3140,16 @@ function renderMusicStaff(source, role, opts) {
         inkSlash = true;
       }
     }
-    var inkUp = inkSlash ? false : inkSum / inkGrp.indices.length >= staffMidY;
+    var inkUp = inkSlash ? false : inkSum / inkGrp.indices.length > staffMidY;
     var inkStemLen = inkSlash ? slashStemLen : stemLen;
     var inkXs = [];
     var inkYs = [];
     for (inkGi = 0; inkGi < inkGrp.indices.length; inkGi++) {
       var inkCol = inkGrp.indices[inkGi];
       inkXs.push(staffStemX(colX[inkCol], inkUp, columns[inkCol].head === "slash"));
-      inkYs.push(predNy[inkCol]);
+      inkYs.push(staffInkAnchorY(inkCol, inkUp));
     }
-    var inkTips = staffBeamTipYs(inkXs, inkYs, inkUp, inkStemLen);
+    var inkTips = staffBeamTipYs(inkXs, inkYs, inkUp, inkStemLen, staffTop);
     for (inkGi = 0; inkGi < inkTips.length; inkGi++) {
       var inkTip = inkTips[inkGi];
       predTip[inkGrp.indices[inkGi]] = inkTip;
@@ -3043,8 +3175,10 @@ function renderMusicStaff(source, role, opts) {
       continue;
     }
     var inkNy = predNy[e];
-    var inkStemUp = columns[e].head === "slash" ? false : inkNy >= staffMidY;
-    var soloLen = columns[e].head === "slash" ? slashStemLen : stemLen;
+    var inkStemUp = columns[e].head === "slash" ? false : staffStemUpFromY(inkNy, staffMidY);
+    var soloLen = columns[e].head === "slash"
+      ? slashStemLen
+      : staffStemReach(inkNy, staffMidY, inkStemUp, stemLen);
     var soloTip = inkStemUp ? inkNy - soloLen : inkNy + soloLen;
     predTip[e] = soloTip;
     predUp[e] = inkStemUp;
@@ -3069,10 +3203,15 @@ function renderMusicStaff(source, role, opts) {
     for (p = 0; p < inkStack.pitches.length; p++) {
       stackYs.push(staffPitchY(inkStack.pitches[p].step, ast.clef, staffTop, lineGap));
     }
+    var stackBeamedInk =
+      colGroup[e] >= 0 && beamGroups[colGroup[e]] && beamGroups[colGroup[e]].indices.length >= 2;
+    if (stackBeamedInk) {
+      continue;
+    }
     var stackUp = staffEventStemUpGuess(inkStack);
-    var stackTip = stackUp
-      ? Math.min.apply(null, stackYs) - stemLen
-      : Math.max.apply(null, stackYs) + stemLen;
+    var stackOuterY = stackUp ? Math.min.apply(null, stackYs) : Math.max.apply(null, stackYs);
+    var stackReach = staffStemReach(stackOuterY, staffMidY, stackUp, stemLen);
+    var stackTip = stackUp ? stackOuterY - stackReach : stackOuterY + stackReach;
     predTip[e] = stackTip;
     predUp[e] = stackUp;
     if (stackUp) {
@@ -3513,8 +3652,10 @@ function renderMusicStaff(source, role, opts) {
         /* stems + beams drawn after all heads */
       } else {
         /* Rhythmic slash notation conventionally stems down from the left. */
-        var up = isSlash ? false : ny >= staffMidY;
-        var noteStemLen = isSlash ? slashStemLen : stemLen;
+        var up = isSlash ? false : staffStemUpFromY(ny, staffMidY);
+        var noteStemLen = isSlash
+          ? slashStemLen
+          : staffStemReach(ny, staffMidY, up, stemLen);
         var tip = up ? ny - noteStemLen : ny + noteStemLen;
         var stem = drawStemTo(cx, ny, tip, up, isSlash);
         colStem[e] = stem;
@@ -3600,13 +3741,16 @@ function renderMusicStaff(source, role, opts) {
           stackG >= 0 && beamGroups[stackG] && beamGroups[stackG].indices.length >= 2;
         if (staffHasStem(stackDur) && !stackBeamed) {
           /* Stem on the main column; cover all head centers vertically. */
+          var stackOuter = stemUp ? hiY : loY;
+          var stackReach = staffStemReach(stackOuter, staffMidY, stemUp, stemLen);
+          var stackTipY = stemUp ? hiY - stackReach : loY + stackReach;
           if (stemUp) {
             svg.appendChild(
               staffSvgEl("line", {
                 x1: String(cx + hxStem),
                 y1: String(loY),
                 x2: String(cx + hxStem),
-                y2: String(hiY - stemLen),
+                y2: String(stackTipY),
                 stroke: "currentColor",
                 "stroke-width": "1.4"
               })
@@ -3617,7 +3761,7 @@ function renderMusicStaff(source, role, opts) {
                 x1: String(cx - hxStem),
                 y1: String(hiY),
                 x2: String(cx - hxStem),
-                y2: String(loY + stemLen),
+                y2: String(stackTipY),
                 stroke: "currentColor",
                 "stroke-width": "1.4"
               })
@@ -3628,7 +3772,7 @@ function renderMusicStaff(source, role, opts) {
               svg,
               staffFlagGlyph(stackDur, stemUp),
               stemUp ? cx + hxStem : cx - hxStem,
-              stemUp ? hiY - stemLen : loY + stemLen,
+              stackTipY,
               lineGap
             );
           }
@@ -3667,7 +3811,7 @@ function renderMusicStaff(source, role, opts) {
         slashBeam = true;
       }
     }
-    var groupUp = slashBeam ? false : sumY / grp.indices.length >= staffMidY;
+    var groupUp = slashBeam ? false : sumY / grp.indices.length > staffMidY;
     var beamStemLen = slashBeam ? slashStemLen : stemLen;
     var beamXs = [];
     var beamYs = [];
@@ -3682,7 +3826,7 @@ function renderMusicStaff(source, role, opts) {
         beamYs.push(colNy[beamCol]);
       }
     }
-    var tipYs = staffBeamTipYs(beamXs, beamYs, groupUp, beamStemLen);
+    var tipYs = staffBeamTipYs(beamXs, beamYs, groupUp, beamStemLen, staffTop);
     var tips = [];
     for (gi = 0; gi < grp.indices.length; gi++) {
       var ci = grp.indices[gi];
@@ -3817,7 +3961,7 @@ function renderMusicStaff(source, role, opts) {
       return staffEventStemUpGuess(col);
     }
     if (typeof colNy[colIndex] === "number") {
-      return colNy[colIndex] >= staffMidY;
+      return staffStemUpFromY(colNy[colIndex], staffMidY);
     }
     return false;
   }

@@ -684,8 +684,8 @@ function staffNotation(w) {
     );
     var scale = w.staffBeamTipYs([0, 30, 60, 90], [18, 12, 6, 0], true, 42);
     check(
-      "a scale keeps one stem length",
-      scale[0] === -24 && scale[1] === -30 && scale[2] === -36 && scale[3] === -42
+      "a rising group keeps a shallow beam",
+      scale[0] === -36 && scale[1] === -38 && scale[2] === -40 && scale[3] === -42
     );
     var down = w.staffBeamTipYs([0, 30, 60, 90], [0, 24, 12, 0], false, 42);
     check(
@@ -694,10 +694,55 @@ function staffNotation(w) {
     );
     var jag = w.staffBeamTipYs([0, 34, 68, 102], [18, 6, 12, 0], true, 42);
     check(
-      "an off-line note sits on the sloped beam",
-      Math.abs(jag[1] - (6 - 42)) < 0.001 && Math.abs((jag[1] - jag[0]) - (jag[2] - jag[1])) < 0.001
+      "an off-line note sits on the shallow beam",
+      Math.abs(jag[3] - (0 - 42)) < 0.001 &&
+        Math.abs(jag[3] - jag[0] + 6) < 0.001 &&
+        Math.abs((jag[1] - jag[0]) - (jag[2] - jag[1])) < 0.001
+    );
+    var ledged = w.staffBeamTipYs([0, 40, 80], [0, 0, 0], false, 42, 80);
+    check(
+      "a ledger beam sits against the staff",
+      ledged.length === 3 && ledged[0] === 77 && ledged[1] === 77 && ledged[2] === 77
     );
   }
+  check(
+    "a note on the middle line stems down",
+    staffStemPointsDown(w.renderMusicStaff("B4q", "current"))
+  );
+  check(
+    "a second-ledger note reaches the middle line",
+    staffStemMeetsMiddle(w.renderMusicStaff("C6q", "current"))
+  );
+  check(
+    "a high note reaches the middle line",
+    staffStemMeetsMiddle(w.renderMusicStaff("G6q", "current"))
+  );
+  check(
+    "a first-ledger note keeps an octave stem",
+    staffStemIsOctave(w.renderMusicStaff("A5q", "current"))
+  );
+  check(
+    "a note inside the staff keeps an octave stem",
+    staffStemIsOctave(w.renderMusicStaff("C4q", "current")) &&
+      !staffStemPointsDown(w.renderMusicStaff("C4q", "current"))
+  );
+  check(
+    "a low bass note reaches the middle line",
+    staffStemMeetsMiddle(w.renderMusicStaff("@bass C2q", "current"))
+  );
+  check(
+    "an even chord stems down",
+    staffStemPointsDown(w.renderMusicStaff("[A3q C6q]", "current"))
+  );
+  check(
+    "a chord stems toward the note farther from the middle",
+    !staffStemPointsDown(w.renderMusicStaff("[C4q G5q]", "current")) &&
+      staffStemPointsDown(w.renderMusicStaff("[D4q C6q]", "current"))
+  );
+  check(
+    "a high chord reaches the middle line",
+    staffStemMeetsMiddle(w.renderMusicStaff("[C6q E6q G6q]", "current"))
+  );
   check("jagged up-stems meet the beam", staffBeamStemsMeet(w, "{G4e C4e E4e G4e}"));
   check("peaked up-stems meet the beam", staffBeamStemsMeet(w, "{C4e G4e E4e C4e}"));
   check("jagged down-stems meet the beam", staffBeamStemsMeet(w, "{G5e C5e E5e G5e}"));
@@ -706,9 +751,28 @@ function staffNotation(w) {
   check("accidental spacing still meets the beam", staffBeamStemsMeet(w, "{C4e F#4e D4e G4e}"));
   var scaleSvg = w.renderMusicStaff("{C4e D4e E4e F4e}", "current");
   var scaleLens = staffStemLengths(scaleSvg);
+  var scaleTips = staffStemTips(scaleSvg);
   check(
-    "a written scale keeps equal stems",
-    scaleLens.length === 4 && Math.max.apply(null, scaleLens) - Math.min.apply(null, scaleLens) < 0.05
+    "a written scale keeps a shallow beam",
+    scaleLens.length === 4 &&
+      scaleTips.length === 4 &&
+      Math.abs(Math.min.apply(null, scaleLens) - 42) < 0.6 &&
+      Math.abs(Math.max.apply(null, scaleLens) - Math.min.apply(null, scaleLens) - 12) < 0.6 &&
+      Math.abs(scaleTips[3] - scaleTips[0] + 6) < 0.6
+  );
+  var highBeam = w.renderMusicStaff("{G6e G6e G6e G6e}", "current");
+  var highTips = staffStemTips(highBeam);
+  var highTop = highBeam && highBeam._staffCaretLayout ? highBeam._staffCaretLayout.staffTop : 0;
+  check(
+    "a high level beam sits against the staff",
+    highTips.length === 4 && Math.abs(highTips[0] - (highTop - 3)) < 0.6 && highTips[0] === highTips[3]
+  );
+  var lowBeam = w.renderMusicStaff("{C3e C3e C3e C3e}", "current");
+  var lowTips = staffStemTips(lowBeam);
+  var lowBot = lowBeam && lowBeam._staffCaretLayout ? lowBeam._staffCaretLayout.staffBot : 0;
+  check(
+    "a low level beam sits against the staff",
+    lowTips.length === 4 && Math.abs(lowTips[0] - (lowBot + 3)) < 0.6 && lowTips[0] === lowTips[3]
   );
   staffTuplets(w);
 }
@@ -1005,6 +1069,61 @@ function staffTextY(svg, content) {
     }
   }
   return NaN;
+}
+
+function staffFirstStem(svg) {
+  var lines = svg ? svg.querySelectorAll("line") : [];
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    var x1 = parseFloat(lines[i].getAttribute("x1"));
+    var x2 = parseFloat(lines[i].getAttribute("x2"));
+    var sw = parseFloat(lines[i].getAttribute("stroke-width"));
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 1.5) {
+      return {
+        y1: parseFloat(lines[i].getAttribute("y1")),
+        y2: parseFloat(lines[i].getAttribute("y2"))
+      };
+    }
+  }
+  return null;
+}
+
+function staffStemPointsDown(svg) {
+  var stem = staffFirstStem(svg);
+  return !!(stem && stem.y2 > stem.y1);
+}
+
+function staffStemIsOctave(svg) {
+  var stem = staffFirstStem(svg);
+  if (!stem) {
+    return false;
+  }
+  return Math.abs(Math.abs(stem.y2 - stem.y1) - 42) < 0.6;
+}
+
+function staffStemMeetsMiddle(svg) {
+  var stem = staffFirstStem(svg);
+  var mid;
+  if (!stem || !svg || !svg._staffCaretLayout) {
+    return false;
+  }
+  mid = svg._staffCaretLayout.staffTop + 24;
+  return Math.abs(stem.y2 - mid) < 0.6 && Math.abs(stem.y2 - stem.y1) > 43;
+}
+
+function staffStemTips(svg) {
+  var lines = svg ? svg.querySelectorAll("line") : [];
+  var tips = [];
+  var i;
+  for (i = 0; i < lines.length; i++) {
+    var x1 = parseFloat(lines[i].getAttribute("x1"));
+    var x2 = parseFloat(lines[i].getAttribute("x2"));
+    var sw = parseFloat(lines[i].getAttribute("stroke-width"));
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2) {
+      tips.push(parseFloat(lines[i].getAttribute("y2")));
+    }
+  }
+  return tips;
 }
 
 function staffStemLengths(svg) {
