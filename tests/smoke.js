@@ -2089,6 +2089,29 @@ function chatCase(w) {
     placeCaret("Eb4");
     poke(symbolsPanel.querySelector("[data-note='C']"));
     check("a note takes a space when it would stick", focusLine.value === "Eb4 C4");
+    placeCaret("D4");
+    focusLine.setSelectionRange(0, 0);
+    w.editorPadCaret = { start: 0, end: 0 };
+    poke(symbolsPanel.querySelector("[data-note='C']"));
+    check("a note takes a space before the next word", focusLine.value === "C5 D4");
+    placeCaret("C4 D4");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-event='rest']"));
+    check("a rest takes a space before the next word", focusLine.value === "C4 rq D4");
+    placeCaret("C4 D4");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-event='slash']"));
+    check("a slash takes a space before the next word", focusLine.value === "C4 /q D4");
+    placeCaret("|");
+    focusLine.setSelectionRange(0, 0);
+    w.editorPadCaret = { start: 0, end: 0 };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "an empty beam takes a space before the next word",
+      focusLine.value === "{} |" && focusLine.selectionStart === 1
+    );
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='chord']"));
     check("a chord mark stays glued", focusLine.value === "C4^");

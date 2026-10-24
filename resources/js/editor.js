@@ -2336,27 +2336,58 @@ function editorTextBeforeCaret() {
   return String(field.value || "").slice(0, sel.start);
 }
 
-/* A pitch, slash, rest, bar, beam, or chord glued to the previous word is one token and fails. */
-function editorInsertSymbol(text, caretBack) {
+function editorTextAfterCaret() {
+  var field = document.getElementById(editorIsFocusMode() ? "editFocusLine" : "allEdit");
+  var sel;
+  if (!field) {
+    return "";
+  }
+  sel = editorReadSelection(field);
+  return String(field.value || "").slice(sel.end);
+}
+
+/*
+ * Keep pad inserts as separate words. A pitch, slash, rest, bar, or shell glued
+ * to the previous or next word is one token and fails. Affixes stay glued.
+ * Trailing space bumps caretBack so a caret parked inside {} / [] / (N ) stays put.
+ */
+function editorPadSymbolGaps(text, caretBack) {
   var body = String(text || "");
   var before = editorTextBeforeCaret();
+  var after = editorTextAfterCaret();
   var first = body.charAt(0);
   var prev = before ? before.charAt(before.length - 1) : "";
-  if (
-    body &&
-    !/^\s/.test(body) &&
-    prev &&
-    !/\s/.test(prev) &&
-    first !== "'" &&
-    first !== ">" &&
-    first !== "-" &&
-    first !== "~" &&
-    first !== "^" &&
-    first !== "_"
-  ) {
+  var next = after ? after.charAt(0) : "";
+  var back = caretBack > 0 ? caretBack : 0;
+  var glueAffix =
+    first === "'" ||
+    first === ">" ||
+    first === "-" ||
+    first === "~" ||
+    first === "^" ||
+    first === "_";
+  if (body && !/^\s/.test(body) && prev && !/\s/.test(prev) && !glueAffix) {
     body = " " + body;
   }
-  insertEditorText(body, caretBack);
+  if (
+    body &&
+    !/\s$/.test(body) &&
+    next &&
+    !/\s/.test(next) &&
+    next !== "}" &&
+    next !== "]" &&
+    next !== ")" &&
+    !glueAffix
+  ) {
+    body = body + " ";
+    back = back + 1;
+  }
+  return { text: body, caretBack: back };
+}
+
+function editorInsertSymbol(text, caretBack) {
+  var padded = editorPadSymbolGaps(text, caretBack);
+  insertEditorText(padded.text, padded.caretBack);
 }
 
 function editorDurCode(dur) {
@@ -6212,6 +6243,7 @@ function editorActivateSymbol(button, opts) {
 /* Text Symbols: | and simile leave beams / stacks / tuplets like the note pad. */
 function editorInsertTextSymbol(text, caretBack) {
   var raw = String(text || "");
+  var padded;
   var measure =
     raw === "|" ||
     raw.indexOf("|") === 0 ||
@@ -6223,7 +6255,13 @@ function editorInsertTextSymbol(text, caretBack) {
     editorDissolveEmptyForAction("bar");
     editorExitEnclosingStructures(["beam", "stack", "tuplet"]);
   }
-  insertEditorText(raw, caretBack);
+  /* Chart marks (♯, ^, …) stay glued; only measure marks pad like the note pad. */
+  if (measure) {
+    padded = editorPadSymbolGaps(raw, caretBack);
+    insertEditorText(padded.text, padded.caretBack);
+  } else {
+    insertEditorText(raw, caretBack);
+  }
 }
 
 function editorAreaCaret() {
