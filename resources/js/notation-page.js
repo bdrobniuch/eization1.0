@@ -82,9 +82,12 @@ var notationTryWarnTimer = null;
 var notationTryWarnLine = "";
 
 function notationTryWarnMessage() {
+  if (typeof t === "function") {
+    return t("edit.staffWarn");
+  }
   return document.documentElement.lang === "es"
-    ? "Esta línea no se dibujará como pentagrama. Se quedará en texto."
-    : "This line won't draw as a staff. It will stay text.";
+    ? "Este ejemplo no se dibujará como pentagrama. Se quedará en texto."
+    : "This example won't draw as a staff. It will stay text.";
 }
 
 function notationClearTryNote() {

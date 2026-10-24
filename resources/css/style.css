@@ -2823,6 +2823,28 @@ body.is-editing #counter {
   cursor: default;
 }
 
+#editNoteHistory button[data-undo].is-staff-undo-hint {
+  animation: staff-undo-hint 0.75s ease-out 1;
+}
+
+@keyframes staff-undo-hint {
+  0%,
+  100% {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.85);
+  }
+  40% {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: #ffffff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #editNoteHistory button[data-undo].is-staff-undo-hint {
+    animation: none;
+  }
+}
+
 #editNoteHistory .chrome-icon {
   width: 1.15em;
   height: 1.15em;

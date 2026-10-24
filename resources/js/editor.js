@@ -14,8 +14,10 @@ var editorDraft = {
 
 /* Last successful staff preview HTML; kept while the line is still notation-ish but broken. */
 var editorLastGoodStaffHtml = "";
-/* Line text last shown as pending — pulse the red frame only when it changes. */
+/* Example text last shown as pending — pulse the red frame only when it changes. */
 var editorStaffPendingLine = null;
+/* One-shot Undo hint for the current pending episode (not every keystroke). */
+var editorStaffPendingUndoHinted = false;
 var editorStaffHelpSelection = { start: 0, end: 0 };
 var editorFocusIndex = 0;
 var editorViewOverride = null;
@@ -1146,6 +1148,7 @@ function editorCloseQuiet() {
   clearEditStaffNote();
   editorLastGoodStaffHtml = "";
   editorStaffPendingLine = null;
+  editorStaffPendingUndoHinted = false;
   editorClearSymbolHistory();
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
@@ -1661,6 +1664,7 @@ function refreshEditor() {
   preview._staffCaretLayout = null;
   if (!line) {
     editorStaffPendingLine = null;
+    editorStaffPendingUndoHinted = false;
     preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
     if (editorStaffOn() && typeof renderMusicStaff === "function") {
@@ -1682,11 +1686,13 @@ function refreshEditor() {
       : { ok: false, notationIsh: false, music: line, caption: "" };
   if (editorStaffOn() && status.ok && typeof renderMusicStaff === "function") {
     editorStaffPendingLine = null;
+    editorStaffPendingUndoHinted = false;
     preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
     editorPaintStaffPreview(preview, status.music, status.caption);
   } else if (editorStaffOn()) {
     /* Staff mode: never flip to text preview — keep last good (or empty staff) + pending frame. */
+    var enteringPending = editorStaffPendingLine === null;
     var pendingPulse = editorStaffPendingLine !== line;
     editorStaffPendingLine = line;
     clearEditStaffNote();
@@ -1701,9 +1707,13 @@ function refreshEditor() {
     if (pendingPulse) {
       editorPulseStaffPending(preview);
     }
+    if (enteringPending) {
+      editorStaffPendingUndoHinted = false;
+    }
     editorUpdateStaffCaretMark();
   } else {
     editorStaffPendingLine = null;
+    editorStaffPendingUndoHinted = false;
     preview.classList.remove("is-staff-pending-pulse");
     editorLastGoodStaffHtml = "";
     preview.innerHTML = lineToItem(line);
@@ -4354,6 +4364,7 @@ function editorSymbolRedoStep() {
 
 function editorPaintUndoRedo() {
   var host = document.getElementById("editNoteHistory");
+  var preview = document.getElementById("editPreview");
   var undoBtn;
   var redoBtn;
   var eraseBtn;
@@ -4367,6 +4378,16 @@ function editorPaintUndoRedo() {
   undoBtn.disabled = !editorSymbolUndo.length && !editorCanUndoStaffTyping();
   redoBtn.disabled = !editorSymbolRedo.length;
   eraseBtn.disabled = !editorCanErase();
+  /* One gentle pulse when a staff example first fails to draw — not a constant nag. */
+  if (
+    !undoBtn.disabled &&
+    !editorStaffPendingUndoHinted &&
+    preview &&
+    preview.classList.contains("is-staff-pending")
+  ) {
+    editorStaffPendingUndoHinted = true;
+    undoBtn.classList.add("is-staff-undo-hint");
+  }
 }
 
 function editorWithKeyboardStaffEdit(fn) {
