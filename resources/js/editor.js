@@ -14,6 +14,8 @@ var editorDraft = {
 
 /* Last successful staff preview HTML; kept while the line is still notation-ish but broken. */
 var editorLastGoodStaffHtml = "";
+/* Line text last shown as pending — pulse the red frame only when it changes. */
+var editorStaffPendingLine = null;
 var editorStaffHelpSelection = { start: 0, end: 0 };
 var editorFocusIndex = 0;
 var editorViewOverride = null;
@@ -1143,6 +1145,7 @@ function editorCloseQuiet() {
   editorCloseSymbols();
   clearEditStaffNote();
   editorLastGoodStaffHtml = "";
+  editorStaffPendingLine = null;
   editorClearSymbolHistory();
   var sheet = document.getElementById("textdiv");
   sheet.classList.remove("is-open", "is-edit-focus", "is-edit-list");
@@ -1657,6 +1660,8 @@ function refreshEditor() {
   preview.innerHTML = "";
   preview._staffCaretLayout = null;
   if (!line) {
+    editorStaffPendingLine = null;
+    preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
     if (editorStaffOn() && typeof renderMusicStaff === "function") {
       preview.classList.remove("is-empty");
@@ -1676,10 +1681,14 @@ function refreshEditor() {
       ? staffNotationStatus(line)
       : { ok: false, notationIsh: false, music: line, caption: "" };
   if (editorStaffOn() && status.ok && typeof renderMusicStaff === "function") {
+    editorStaffPendingLine = null;
+    preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
     editorPaintStaffPreview(preview, status.music, status.caption);
   } else if (editorStaffOn()) {
     /* Staff mode: never flip to text preview — keep last good (or empty staff) + pending frame. */
+    var pendingPulse = editorStaffPendingLine !== line;
+    editorStaffPendingLine = line;
     clearEditStaffNote();
     preview.classList.add("is-staff", "is-staff-pending");
     if (editorLastGoodStaffHtml) {
@@ -1688,8 +1697,14 @@ function refreshEditor() {
       editorPaintStaffPreview(preview, "", "");
       preview.classList.add("is-staff-pending");
     }
+    editorPaintStaffPendingCue(preview);
+    if (pendingPulse) {
+      editorPulseStaffPending(preview);
+    }
     editorUpdateStaffCaretMark();
   } else {
+    editorStaffPendingLine = null;
+    preview.classList.remove("is-staff-pending-pulse");
     editorLastGoodStaffHtml = "";
     preview.innerHTML = lineToItem(line);
     clearEditStaffNote();
@@ -1706,6 +1721,59 @@ function editorPreviewMeterOpts() {
   }
   /* Any: layout still follows Setup, but do not print a time signature. */
   return { showMeter: false };
+}
+
+function editorStaffPendingWarnIcon() {
+  var svg = editorSvgEl("svg", {
+    viewBox: "0 0 16 16",
+    class: "edit-staff-pending-icon",
+    "aria-hidden": "true",
+    focusable: "false"
+  });
+  svg.appendChild(
+    editorSvgEl("path", {
+      d: "M8 1.6 L15.2 14.2 H0.8 Z",
+      fill: "currentColor"
+    })
+  );
+  svg.appendChild(
+    editorSvgEl("path", {
+      d: "M7.35 5.4 h1.3 v4.2 h-1.3 Z M7.35 11.1 h1.3 v1.3 h-1.3 Z",
+      fill: "#fff"
+    })
+  );
+  return svg;
+}
+
+function editorPaintStaffPendingCue(preview) {
+  var cue;
+  var msg;
+  if (!preview) {
+    return;
+  }
+  cue = preview.querySelector(".edit-staff-pending-cue");
+  if (cue && cue.parentNode) {
+    cue.parentNode.removeChild(cue);
+  }
+  cue = document.createElement("div");
+  cue.className = "edit-staff-pending-cue";
+  cue.setAttribute("role", "status");
+  cue.setAttribute("aria-live", "polite");
+  cue.appendChild(editorStaffPendingWarnIcon());
+  msg = document.createElement("span");
+  msg.className = "edit-staff-pending-msg";
+  msg.textContent = t("edit.staffPending");
+  cue.appendChild(msg);
+  preview.appendChild(cue);
+}
+
+function editorPulseStaffPending(preview) {
+  if (!preview) {
+    return;
+  }
+  preview.classList.remove("is-staff-pending-pulse");
+  void preview.offsetWidth;
+  preview.classList.add("is-staff-pending-pulse");
 }
 
 function editorPaintStaffPreview(preview, music, caption) {

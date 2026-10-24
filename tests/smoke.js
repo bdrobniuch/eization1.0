@@ -2255,7 +2255,11 @@ function chatCase(w) {
       !!(
         pendingPreview.classList.contains("is-staff") &&
         pendingPreview.classList.contains("is-staff-pending") &&
-        pendingPreview.querySelector("svg") &&
+        pendingPreview.querySelector("svg.music-staff") &&
+        pendingPreview.querySelector(".edit-staff-pending-cue") &&
+        pendingPreview.querySelector(".edit-staff-pending-msg") &&
+        pendingPreview.querySelector(".edit-staff-pending-msg").textContent ===
+          w.t("edit.staffPending") &&
         staffNote &&
         staffNote.hidden
       )
