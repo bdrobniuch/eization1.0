@@ -3762,6 +3762,11 @@ function editorForceShortDuration() {
   }
 }
 
+function editorDurationIsShort(dur) {
+  var code = editorDurCode(dur);
+  return code === "e" || code === "s";
+}
+
 function editorStructureOpenClose(kind) {
   if (kind === "beam") {
     return { open: "{", close: "}" };
@@ -3773,6 +3778,66 @@ function editorStructureOpenClose(kind) {
     return { open: "(3 ", close: ")" };
   }
   return null;
+}
+
+/* Smallest balanced group that contains rel (incl. caret on } ] )). */
+function editorInnermostEnclosingGroup(line, rel) {
+  var groups = editorFindBalancedGroups(line);
+  var best = null;
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (rel <= g.open || rel >= g.closeEnd) {
+      continue;
+    }
+    if (!best || g.closeEnd - g.open < best.closeEnd - best.open) {
+      best = g;
+    }
+  }
+  return best;
+}
+
+/*
+ * Park the caret after every enclosing shell whose kind is blocked, so the next
+ * insert stays legal (bar/simile leave beams, stacks, and tuplets).
+ */
+function editorExitEnclosingStructures(kinds) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var g;
+  var silent;
+  var guard;
+  if (!span || !kinds || !kinds.length) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  for (guard = 0; guard < 8; guard++) {
+    g = editorInnermostEnclosingGroup(line, rel);
+    if (!g || kinds.indexOf(g.kind) < 0) {
+      break;
+    }
+    rel = g.closeEnd;
+  }
+  if (rel === span.caret - span.lineStart) {
+    return false;
+  }
+  editorPlaceCaret(span.field, span.lineStart + rel, span.lineStart + rel, silent);
+  return true;
+}
+
+function editorInsertOutsideStructures(text, caretBack, kinds) {
+  editorExitEnclosingStructures(kinds || []);
+  editorInsertSymbol(text, caretBack);
 }
 
 /*
@@ -3865,18 +3930,16 @@ function editorCaretInsideStructure(kind) {
   return editorRelInsideStructure(line, rel, kind);
 }
 
-/* Beam↔stack and tuplet-inside-beam/stack are illegal; refuse those parents. */
+/*
+ * Beam inside stack stays illegal. Stack inside beam is allowed (short stacked
+ * chord under a beam). Tuplet inside beam wraps that beam instead of refusing.
+ */
 function editorStructureParentBlocks(kind, line, rel) {
   if (kind === "beam") {
     return editorRelInsideStructure(line, rel, "stack");
   }
-  if (kind === "stack") {
-    return editorRelInsideStructure(line, rel, "beam");
-  }
   if (kind === "tuplet") {
-    return (
-      editorRelInsideStructure(line, rel, "beam") || editorRelInsideStructure(line, rel, "stack")
-    );
+    return editorRelInsideStructure(line, rel, "stack");
   }
   return false;
 }
@@ -3898,6 +3961,46 @@ function editorInnermostGroupAt(line, rel, kind) {
   return best;
 }
 
+/* Caret parked just after a closer from a prior close tap. */
+function editorGroupJustAfter(line, rel, kind) {
+  var groups = editorFindBalancedGroups(line);
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind === kind && rel === g.closeEnd) {
+      return g;
+    }
+  }
+  return null;
+}
+
+/* Selection that is exactly one balanced shell (incl. stack affixes). */
+function editorExactGroupSelection(line, start, end, kind) {
+  var groups = editorFindBalancedGroups(line);
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind === kind && start === g.open && end === g.closeEnd) {
+      return g;
+    }
+  }
+  return null;
+}
+
+function editorEnterStructureGroup(g) {
+  var span = editorLineSpan();
+  var silent;
+  if (!span || !g) {
+    return false;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, span.lineStart + g.closeStart, span.lineStart + g.closeStart, silent);
+  editorPaintNotePad();
+  return true;
+}
+
 function editorRangeNestsStructure(line, start, end, kind) {
   var groups = editorFindBalancedGroups(line);
   var i;
@@ -3907,12 +4010,160 @@ function editorRangeNestsStructure(line, start, end, kind) {
     if (g.kind !== kind) {
       continue;
     }
-    /* Any overlap with a same-kind shell would nest or re-wrap it. */
+    /* Exact shell selection re-enters; any other overlap would nest. */
+    if (start === g.open && end === g.closeEnd) {
+      continue;
+    }
     if (start < g.closeEnd && end > g.open) {
       return true;
     }
   }
   return false;
+}
+
+/* Top-level pieces inside a beam (keeps [stack] groups whole). */
+function editorBeamPieces(line, beam) {
+  var inner = line.slice(beam.innerStart, beam.innerEnd);
+  var pieces = [];
+  var re = /\[(?:[^\]]*)\](?:[\^_][^\s\[\{]*)?|~|\S+/g;
+  var m;
+  while ((m = re.exec(inner))) {
+    if (m[0] === "~") {
+      continue;
+    }
+    pieces.push({
+      start: beam.innerStart + m.index,
+      end: beam.innerStart + m.index + m[0].length,
+      text: m[0]
+    });
+  }
+  return pieces;
+}
+
+function editorFormatBeamShell(pieceTexts) {
+  if (!pieceTexts || !pieceTexts.length) {
+    return "";
+  }
+  if (pieceTexts.length === 1) {
+    return pieceTexts[0];
+  }
+  return "{" + pieceTexts.join(" ") + "}";
+}
+
+/*
+ * A long duration under a beam peels that piece out (or splits the beam when
+ * it sits in the middle). Short rewrites stay inside the braces.
+ */
+function editorReplaceInBeam(hit, nextToken) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var beam;
+  var pieces;
+  var idx;
+  var i;
+  var before;
+  var after;
+  var pealed;
+  var mid;
+  var replacement;
+  var value;
+  var silent;
+  var caret;
+  var startInPiece;
+  if (!span || !hit || !hit.field) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = hit.start - span.lineStart;
+  beam = editorInnermostGroupAt(line, rel + 1, "beam") || editorInnermostGroupAt(line, rel, "beam");
+  if (!beam || rel < beam.innerStart || rel >= beam.closeStart) {
+    return false;
+  }
+  pieces = editorBeamPieces(line, beam);
+  idx = -1;
+  for (i = 0; i < pieces.length; i++) {
+    if (hit.start >= pieces[i].start && hit.start < pieces[i].end) {
+      idx = i;
+      break;
+    }
+  }
+  if (idx < 0) {
+    return false;
+  }
+  startInPiece = hit.start - pieces[idx].start;
+  pealed =
+    pieces[idx].text.slice(0, startInPiece) +
+    nextToken +
+    pieces[idx].text.slice(startInPiece + hit.token.length);
+  before = [];
+  after = [];
+  for (i = 0; i < idx; i++) {
+    before.push(pieces[i].text);
+  }
+  for (i = idx + 1; i < pieces.length; i++) {
+    after.push(pieces[i].text);
+  }
+  mid = pealed;
+  replacement = [editorFormatBeamShell(before), mid, editorFormatBeamShell(after)]
+    .filter(Boolean)
+    .join(" ");
+  editorPushSymbolUndo();
+  value = String(hit.field.value || "");
+  hit.field.value =
+    value.slice(0, span.lineStart + beam.open) +
+    replacement +
+    value.slice(span.lineStart + beam.closeEnd);
+  caret = span.lineStart + beam.open + replacement.indexOf(mid) + mid.length;
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(hit.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+/* Wrap the enclosing beam as (3 {…}). */
+function editorWrapEnclosingBeamAsTuplet() {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var beam;
+  var value;
+  var silent;
+  var caret;
+  var open = "(3 ";
+  var close = ")";
+  if (!span) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  beam = editorInnermostGroupAt(line, rel, "beam");
+  if (!beam) {
+    return false;
+  }
+  if (editorRelInsideStructure(line, rel, "tuplet")) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  span.field.value =
+    value.slice(0, span.lineStart + beam.open) +
+    open +
+    value.slice(span.lineStart + beam.open, span.lineStart + beam.closeEnd) +
+    close +
+    value.slice(span.lineStart + beam.closeEnd);
+  caret = span.lineStart + beam.open + open.length + (beam.closeStart - beam.open);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
 }
 
 /* If the caret has a same-line selection, wrap it and return true. */
@@ -4035,10 +4286,20 @@ function editorStructureWrapHit(kind, hit) {
   var value;
   var silent;
   var caret;
+  var span;
+  var line;
+  var rel;
   if (!pair || !hit || !hit.field) {
     return false;
   }
-  body = kind === "beam" ? editorRewriteShortToken(hit) : hit.token;
+  span = editorLineSpan();
+  line = span ? span.value.slice(span.lineStart, span.lineEnd) : "";
+  rel = span ? hit.start - span.lineStart : 0;
+  if (kind === "beam" || (kind === "stack" && editorRelInsideStructure(line, rel, "beam"))) {
+    body = editorRewriteShortToken(hit);
+  } else {
+    body = hit.token;
+  }
   editorPushSymbolUndo();
   value = String(hit.field.value || "");
   hit.field.value = value.slice(0, hit.start) + pair.open + body + pair.close + value.slice(hit.end);
@@ -4051,31 +4312,48 @@ function editorStructureWrapHit(kind, hit) {
   return true;
 }
 
+function editorSeedStackBody() {
+  var oct = String(editorWorkingOctave());
+  var suf = editorPitchSuffix();
+  return "C" + oct + suf + " E" + oct + suf + " G" + oct + suf;
+}
+
 function editorStructureSeed(kind) {
   var pair = editorStructureOpenClose(kind);
+  var body;
   if (!pair) {
     return;
   }
-  if (kind === "beam") {
+  if (kind === "beam" || kind === "stack") {
     editorForceShortDuration();
   }
+  if (kind === "stack") {
+    body = editorSeedStackBody();
+  } else {
+    body = editorSeedPitchToken("C");
+  }
   editorPushSymbolUndo();
-  editorInsertSymbol(pair.open + editorSeedPitchToken("C") + pair.close, pair.close.length);
+  editorInsertSymbol(pair.open + body + pair.close, pair.close.length);
   editorPaintNotePad();
 }
 
 /*
  * Beam / Stack / Triplet: lit while the caret is inside that shell. First tap
  * wraps the note (or selection) or seeds one event; second tap closes (caret
- * after the closer) without removing the braces.
+ * after the closer) without removing the braces. A third tap with the caret
+ * just after that shell re-enters instead of seeding another group.
  */
 function editorToggleStructure(kind) {
   var span = editorLineSpan();
   var line;
   var sel;
   var rel;
+  var endRel;
   var pair;
   var hit;
+  var exact;
+  var after;
+  var swap;
   pair = editorStructureOpenClose(kind);
   if (!span || !pair) {
     return;
@@ -4083,15 +4361,46 @@ function editorToggleStructure(kind) {
   line = span.value.slice(span.lineStart, span.lineEnd);
   sel = editorReadSelection(span.field);
   rel = sel.start - span.lineStart;
+  endRel = sel.end - span.lineStart;
   if (rel < 0) {
     rel = 0;
+  }
+  if (endRel < 0) {
+    endRel = 0;
   }
   if (rel > line.length) {
     rel = line.length;
   }
+  if (endRel > line.length) {
+    endRel = line.length;
+  }
+  if (rel > endRel) {
+    swap = rel;
+    rel = endRel;
+    endRel = swap;
+  }
   if (sel.start === sel.end && editorRelInsideStructure(line, rel, kind)) {
     editorCloseStructure(kind);
     return;
+  }
+  if (sel.start !== sel.end) {
+    exact = editorExactGroupSelection(line, rel, endRel, kind);
+    if (exact) {
+      editorEnterStructureGroup(exact);
+      return;
+    }
+  }
+  if (sel.start === sel.end) {
+    after = editorGroupJustAfter(line, rel, kind);
+    if (after) {
+      editorEnterStructureGroup(after);
+      return;
+    }
+  }
+  if (kind === "tuplet" && sel.start === sel.end && editorRelInsideStructure(line, rel, "beam")) {
+    if (editorWrapEnclosingBeamAsTuplet()) {
+      return;
+    }
   }
   if (sel.start === sel.end && editorStructureParentBlocks(kind, line, rel)) {
     editorPaintNotePad();
@@ -4101,7 +4410,7 @@ function editorToggleStructure(kind) {
     editorPaintNotePad();
     return;
   }
-  if (kind === "beam") {
+  if (kind === "beam" || (kind === "stack" && editorRelInsideStructure(line, rel, "beam"))) {
     editorForceShortDuration();
   }
   if (editorWrapSelection(pair.open, pair.close)) {
@@ -4110,6 +4419,11 @@ function editorToggleStructure(kind) {
   }
   hit = editorStructureHit(kind);
   if (hit) {
+    if (kind === "stack" && editorRelInsideStructure(line, rel, "beam")) {
+      editorForceShortDuration();
+      editorStructureWrapHit(kind, hit);
+      return;
+    }
     editorStructureWrapHit(kind, hit);
     return;
   }
@@ -4556,7 +4870,11 @@ function editorPaintNotePad() {
 }
 
 function editorWriteLetter(letter, opts) {
-  var token = editorLetterToken(letter);
+  var token;
+  if (editorCaretInsideStructure("beam")) {
+    editorForceShortDuration();
+  }
+  token = editorLetterToken(letter);
   if (!(opts && opts.skipUndo)) {
     editorPushSymbolUndo();
   }
@@ -4590,18 +4908,30 @@ function editorArmAcc(acc) {
   editorPaintNotePad();
 }
 
+function editorApplyDurationToHit(hit, dur, dot) {
+  var nextToken;
+  var short;
+  if (!hit) {
+    return false;
+  }
+  if (hit.kind === "pitch") {
+    nextToken = editorPitchTokenWith(hit, hit.acc || "", dur, dot);
+  } else {
+    nextToken = editorRhythmTokenWith(hit, dur, dot);
+  }
+  short = editorDurationIsShort(dur);
+  if (!short && editorReplaceInBeam(hit, nextToken)) {
+    return true;
+  }
+  return editorReplaceCaretToken(hit, nextToken);
+}
+
 function editorSetDuration(dur) {
   var next = editorDurCode(dur);
   var hit = editorPitchAtCaret() || editorRhythmAtCaret();
   editorNote.dur = next;
-  if (hit && hit.kind === "pitch") {
-    if (editorReplaceCaretToken(hit, editorPitchTokenWith(hit, hit.acc || "", next, editorNote.dot))) {
-      return;
-    }
-  } else if (hit) {
-    if (editorReplaceCaretToken(hit, editorRhythmTokenWith(hit, next, editorNote.dot))) {
-      return;
-    }
+  if (hit && editorApplyDurationToHit(hit, next, editorNote.dot)) {
+    return;
   }
   editorPaintNotePad();
 }
@@ -4610,14 +4940,8 @@ function editorToggleDot() {
   var next = !editorNote.dot;
   var hit = editorPitchAtCaret() || editorRhythmAtCaret();
   editorNote.dot = next;
-  if (hit && hit.kind === "pitch") {
-    if (editorReplaceCaretToken(hit, editorPitchTokenWith(hit, hit.acc || "", editorNote.dur, next))) {
-      return;
-    }
-  } else if (hit) {
-    if (editorReplaceCaretToken(hit, editorRhythmTokenWith(hit, editorNote.dur, next))) {
-      return;
-    }
+  if (hit && editorApplyDurationToHit(hit, editorNote.dur, next)) {
+    return;
   }
   editorPaintNotePad();
 }
@@ -4701,24 +5025,27 @@ function editorActivateSymbol(button, opts) {
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
-      editorInsertSymbol(editorSlashToken());
+      if (editorCaretInsideStructure("beam")) {
+        editorForceShortDuration();
+      }
+      editorInsertOutsideStructures(editorSlashToken(), 0, ["stack"]);
       return;
     }
     if (eventName === "rest") {
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
-      editorInsertSymbol(editorRestToken());
+      editorInsertOutsideStructures(editorRestToken(), 0, ["beam", "stack"]);
       return;
     }
     if (eventName === "bar") {
       editorPushSymbolUndo();
-      editorInsertSymbol("| ");
+      editorInsertOutsideStructures("| ", 0, ["beam", "stack", "tuplet"]);
       return;
     }
     if (eventName === "tie") {
       editorPushSymbolUndo();
-      editorInsertSymbol("~");
+      editorInsertOutsideStructures("~", 0, ["stack"]);
       return;
     }
     if (eventName === "beam") {
@@ -4730,8 +5057,7 @@ function editorActivateSymbol(button, opts) {
       return;
     }
     if (eventName === "chord") {
-      editorPushSymbolUndo();
-      editorInsertSymbol("^");
+      editorInsertChordMark();
       return;
     }
     if (eventName === "stack") {
@@ -4742,8 +5068,48 @@ function editorActivateSymbol(button, opts) {
   if (button.hasAttribute("data-symbol")) {
     editorDropNoteFlow();
     editorPushSymbolUndo();
-    insertEditorText(button.getAttribute("data-symbol") || "", parseInt(button.getAttribute("data-caret") || "0", 10) || 0);
+    editorInsertTextSymbol(
+      button.getAttribute("data-symbol") || "",
+      parseInt(button.getAttribute("data-caret") || "0", 10) || 0
+    );
   }
+}
+
+/* Chord symbol: glue ^ onto the beamed note at the caret when inside {…}. */
+function editorInsertChordMark() {
+  var hit = editorPitchAtCaret() || editorRhythmAtCaret();
+  var value;
+  var silent;
+  var caret;
+  editorPushSymbolUndo();
+  if (hit && hit.field && editorCaretInsideStructure("beam")) {
+    value = String(hit.field.value || "");
+    hit.field.value = value.slice(0, hit.end) + "^" + value.slice(hit.end);
+    caret = hit.end + 1;
+    silent = !!(editorPadCaret && editorSymbolsIsOpen());
+    editorPlaceCaret(hit.field, caret, caret, silent);
+    clearEditorNotice();
+    refreshEditor();
+    editorPaintNotePad();
+    return;
+  }
+  editorInsertSymbol("^");
+}
+
+/* Text Symbols: | and simile leave beams / stacks / tuplets like the note pad. */
+function editorInsertTextSymbol(text, caretBack) {
+  var raw = String(text || "");
+  var measure =
+    raw === "|" ||
+    raw.indexOf("|") === 0 ||
+    raw === "%" ||
+    raw === "\uD834\uDD0E" ||
+    raw.indexOf("%") >= 0 ||
+    raw.indexOf("\uD834\uDD0E") >= 0;
+  if (measure && editorStaffOn()) {
+    editorExitEnclosingStructures(["beam", "stack", "tuplet"]);
+  }
+  insertEditorText(raw, caretBack);
 }
 
 function editorAreaCaret() {

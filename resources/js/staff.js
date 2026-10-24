@@ -836,7 +836,7 @@ function staffIncomingKeys(ev) {
     return keys;
   }
   if (ev.type === "beam") {
-    return ev.notes.length ? [staffTieKey(ev.notes[0].pitch)] : keys;
+    return ev.notes.length ? staffIncomingKeys(ev.notes[0]) : keys;
   }
   if (ev.type === "tuplet") {
     return staffIncomingKeys(staffFirstEvent(ev.events));
@@ -861,7 +861,7 @@ function staffOutgoingKeys(ev) {
     return keys;
   }
   if (ev.type === "beam") {
-    return ev.notes.length ? [staffTieKey(ev.notes[ev.notes.length - 1].pitch)] : keys;
+    return ev.notes.length ? staffOutgoingKeys(ev.notes[ev.notes.length - 1]) : keys;
   }
   if (ev.type === "tuplet") {
     return staffOutgoingKeys(staffLastEvent(ev.events));
@@ -876,6 +876,10 @@ function staffTieEdgeIsStack(ev, dir) {
   }
   if (ev.type === "stack") {
     return true;
+  }
+  if (ev.type === "beam" && ev.notes && ev.notes.length) {
+    edge = dir === "in" ? ev.notes[0] : ev.notes[ev.notes.length - 1];
+    return !!(edge && edge.type === "stack");
   }
   if (ev.type === "tuplet") {
     edge = dir === "in" ? staffFirstEvent(ev.events) : staffLastEvent(ev.events);
@@ -969,15 +973,20 @@ function staffBindTies(events) {
     }
   }
   if (open) {
-    if (openAt < 0 || !staffOnlyBarlinesAfter(events, openAt + 1)) {
+    /*
+     * No following attack: hang the tie (over a trailing barline, or as a stub
+     * at the end of the line so Write notes can show the mark while editing).
+     */
+    if (openAt >= 0 && (staffOnlyBarlinesAfter(events, openAt + 1) || openAt === events.length - 1)) {
+      hangKeys = staffOutgoingKeys(open);
+      if (!hangKeys.length) {
+        return { error: "tie needs a note after it", tok: "~" };
+      }
+      open.tieOutKeys = hangKeys;
+      open.tieHang = true;
+    } else {
       return { error: "tie needs a note after it", tok: "~" };
     }
-    hangKeys = staffOutgoingKeys(open);
-    if (!hangKeys.length) {
-      return { error: "tie needs a note after it", tok: "~" };
-    }
-    open.tieOutKeys = hangKeys;
-    open.tieHang = true;
   }
   return { ok: true };
 }
@@ -1007,6 +1016,58 @@ function staffEventsHaveTie(events) {
   return false;
 }
 
+/* Reassemble [stack] tokens that were space-split inside a beam. */
+function staffTakeBeamStackParts(parts, start) {
+  var buf = parts[start];
+  var i = start;
+  var close;
+  var after;
+  var aff;
+  var pitches;
+  if (!buf || buf.charAt(0) !== "[") {
+    return null;
+  }
+  if (buf.indexOf("[", 1) >= 0) {
+    return { error: "nested stack brackets", tok: buf };
+  }
+  while (buf.indexOf("]") < 0 && i + 1 < parts.length) {
+    i++;
+    if (parts[i].indexOf("[") >= 0) {
+      return { error: "nested stack brackets", tok: parts[i] };
+    }
+    buf += " " + parts[i];
+  }
+  close = buf.indexOf("]");
+  if (close < 0) {
+    return { error: "unclosed stack", tok: parts[start] };
+  }
+  after = buf.slice(close + 1);
+  aff = staffParseAffixes(after);
+  if (!aff || aff.articulations.length) {
+    return { error: "stack label must use _ or ^", tok: after || buf };
+  }
+  pitches = staffParseStackInner(buf.slice(1, close));
+  if (!pitches) {
+    return { error: "bad stack pitches", tok: buf.slice(1, close) };
+  }
+  if (!pitches.length) {
+    return { error: "bad stack pitches", tok: buf.slice(1, close) };
+  }
+  if (!staffIsShortDuration(pitches[0].duration || "q")) {
+    return { error: "bad beam pitches (need e/s notes)", tok: buf };
+  }
+  return {
+    next: i + 1,
+    note: {
+      type: "stack",
+      pitches: pitches,
+      label: aff.label,
+      above: aff.above,
+      duration: pitches[0].duration || "q"
+    }
+  };
+}
+
 function staffParseBeamInner(inner, clef) {
   var parts = inner.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) {
@@ -1015,15 +1076,43 @@ function staffParseBeamInner(inner, clef) {
   var notes = [];
   var hangTie = false;
   var i;
-  for (i = 0; i < parts.length; i++) {
+  var stackTaken;
+  var p;
+  var prev;
+  var prevKey;
+  var nextKey;
+  for (i = 0; i < parts.length; ) {
     if (parts[i] === "~") {
       if (!notes.length || hangTie) {
         return { error: "tie needs a note before it", tok: "~" };
       }
       hangTie = true;
+      i++;
       continue;
     }
-    var p = staffParsePitchToken(parts[i]) || staffParseSlashToken(parts[i], clef || "treble");
+    if (parts[i].charAt(0) === "[") {
+      stackTaken = staffTakeBeamStackParts(parts, i);
+      if (!stackTaken || stackTaken.error) {
+        return stackTaken && stackTaken.error
+          ? { error: stackTaken.error, tok: stackTaken.tok }
+          : null;
+      }
+      if (hangTie) {
+        prev = notes[notes.length - 1];
+        prevKey = staffOutgoingKeys(prev)[0];
+        nextKey = staffIncomingKeys(stackTaken.note)[0];
+        if (!prevKey || prevKey !== nextKey) {
+          return { error: "tie needs the same pitch", tok: "~" };
+        }
+        prev.tieToNext = true;
+        prev.tieOutKey = nextKey;
+        hangTie = false;
+      }
+      notes.push(stackTaken.note);
+      i = stackTaken.next;
+      continue;
+    }
+    p = staffParsePitchToken(parts[i]) || staffParseSlashToken(parts[i], clef || "treble");
     if (!p) {
       return null;
     }
@@ -1031,12 +1120,14 @@ function staffParseBeamInner(inner, clef) {
       return null;
     }
     if (hangTie) {
-      var prev = notes[notes.length - 1];
-      if (staffTieKey(prev.pitch) !== staffTieKey(p)) {
+      prev = notes[notes.length - 1];
+      prevKey = staffOutgoingKeys(prev)[0];
+      nextKey = staffTieKey(p);
+      if (!prevKey || prevKey !== nextKey) {
         return { error: "tie needs the same pitch", tok: "~" };
       }
       prev.tieToNext = true;
-      prev.tieOutKey = staffTieKey(p);
+      prev.tieOutKey = nextKey;
       hangTie = false;
     }
     notes.push({
@@ -1050,6 +1141,7 @@ function staffParseBeamInner(inner, clef) {
     });
     p.label = "";
     p.above = "";
+    i++;
   }
   /* A trailing ~ leaves the group and ties into whatever follows the brace. */
   return { notes: notes, tieToNext: hangTie };
@@ -1894,12 +1986,30 @@ function renderMusicStaff(source, role, opts) {
       }
     } else if (ev.type === "beam") {
       for (var bn = 0; bn < ev.notes.length; bn++) {
-        staffTouchStep(ev.notes[bn].pitch.step);
-        if (ev.notes[bn].label) {
-          hasBelowLabels = true;
-        }
-        if (ev.notes[bn].above) {
-          hasAboveLabels = true;
+        if (ev.notes[bn].type === "stack" && ev.notes[bn].pitches) {
+          for (var bnp = 0; bnp < ev.notes[bn].pitches.length; bnp++) {
+            staffTouchStep(ev.notes[bn].pitches[bnp].step);
+            if (ev.notes[bn].pitches[bnp].label) {
+              hasBelowLabels = true;
+            }
+            if (ev.notes[bn].pitches[bnp].above) {
+              hasAboveLabels = true;
+            }
+          }
+          if (ev.notes[bn].above) {
+            hasStackChordLabels = true;
+          }
+          if (ev.notes[bn].label) {
+            hasBelowLabels = true;
+          }
+        } else if (ev.notes[bn].pitch) {
+          staffTouchStep(ev.notes[bn].pitch.step);
+          if (ev.notes[bn].label) {
+            hasBelowLabels = true;
+          }
+          if (ev.notes[bn].above) {
+            hasAboveLabels = true;
+          }
         }
       }
     } else if (ev.type === "stack") {
@@ -1955,12 +2065,30 @@ function renderMusicStaff(source, role, opts) {
     ev = spread[e];
     if (ev.type === "beam" && ev.notes.length) {
       var beamSum = 0;
+      var beamCount = 0;
+      var beamSteps;
+      var bsi;
       for (bn = 0; bn < ev.notes.length; bn++) {
-        beamSum += ev.notes[bn].pitch.step;
+        if (ev.notes[bn].type === "stack" && ev.notes[bn].pitches) {
+          for (bsi = 0; bsi < ev.notes[bn].pitches.length; bsi++) {
+            beamSum += ev.notes[bn].pitches[bsi].step;
+            beamCount++;
+          }
+        } else if (ev.notes[bn].pitch) {
+          beamSum += ev.notes[bn].pitch.step;
+          beamCount++;
+        }
       }
-      var beamUp = beamSum / ev.notes.length <= midStep;
+      var beamUp = beamCount ? beamSum / beamCount <= midStep : true;
       for (bn = 0; bn < ev.notes.length; bn++) {
-        staffTipExtra(ev.notes[bn].pitch.step, beamUp);
+        if (ev.notes[bn].type === "stack" && ev.notes[bn].pitches) {
+          beamSteps = ev.notes[bn].pitches;
+          for (bsi = 0; bsi < beamSteps.length; bsi++) {
+            staffTipExtra(beamSteps[bsi].step, beamUp);
+          }
+        } else if (ev.notes[bn].pitch) {
+          staffTipExtra(ev.notes[bn].pitch.step, beamUp);
+        }
       }
     } else if (ev.type === "note" && staffHasStem(ev.duration)) {
       staffTipExtra(ev.pitch.step, ev.pitch.step <= midStep);
@@ -2040,6 +2168,16 @@ function renderMusicStaff(source, role, opts) {
     if (ev.type === "beam" && ev.notes.length) {
       note = dir === "in" ? ev.notes[0] : ev.notes[ev.notes.length - 1];
       idx = dir === "in" ? first : last;
+      if (note.type === "stack") {
+        for (pi = 0; pi < note.pitches.length; pi++) {
+          edges.push({
+            index: idx,
+            step: note.pitches[pi].step,
+            key: staffTieKey(note.pitches[pi])
+          });
+        }
+        return edges;
+      }
       return [{ index: idx, step: note.pitch.step, key: staffTieKey(note.pitch) }];
     }
     return edges;
@@ -2216,29 +2354,53 @@ function renderMusicStaff(source, role, opts) {
       var bi;
       var beamFirst = columns.length;
       var prevTie = -1;
+      var beamNote;
+      var noteCol;
+      var prevStep;
       tupRunId = 0;
       for (bi = 0; bi < ev.notes.length; bi++) {
-        var noteCol = columns.length;
-        columns.push({
-          type: "note",
-          pitch: ev.notes[bi].pitch,
-          label: ev.notes[bi].label || "",
-          above: ev.notes[bi].above || "",
-          duration: ev.notes[bi].duration || "q",
-          head: ev.notes[bi].head || (ev.notes[bi].pitch && ev.notes[bi].pitch.head) || "",
-          beamId: bid,
-          explicit: true,
-          scale: tup ? tup.scale : 1,
-          articulations: ev.notes[bi].articulations || []
-        });
-        if (prevTie >= 0) {
-          drawTies.push({
-            from: prevTie,
-            to: noteCol,
-            step: ev.notes[bi - 1].pitch.step
+        beamNote = ev.notes[bi];
+        noteCol = columns.length;
+        if (beamNote.type === "stack") {
+          stackCount++;
+          columns.push({
+            type: "stack",
+            pitches: beamNote.pitches,
+            label: beamNote.label || "",
+            above: beamNote.above || "",
+            duration: beamNote.duration || "q",
+            beamId: bid,
+            explicit: true,
+            scale: tup ? tup.scale : 1
+          });
+        } else {
+          columns.push({
+            type: "note",
+            pitch: beamNote.pitch,
+            label: beamNote.label || "",
+            above: beamNote.above || "",
+            duration: beamNote.duration || "q",
+            head: beamNote.head || (beamNote.pitch && beamNote.pitch.head) || "",
+            beamId: bid,
+            explicit: true,
+            scale: tup ? tup.scale : 1,
+            articulations: beamNote.articulations || []
           });
         }
-        prevTie = ev.notes[bi].tieToNext ? noteCol : -1;
+        if (prevTie >= 0) {
+          prevStep =
+            ev.notes[bi - 1].type === "stack"
+              ? ev.notes[bi - 1].pitches[0] && ev.notes[bi - 1].pitches[0].step
+              : ev.notes[bi - 1].pitch && ev.notes[bi - 1].pitch.step;
+          if (typeof prevStep === "number") {
+            drawTies.push({
+              from: prevTie,
+              to: noteCol,
+              step: prevStep
+            });
+          }
+        }
+        prevTie = beamNote.tieToNext ? noteCol : -1;
       }
       staffRememberTies(ev, beamFirst, columns.length - 1);
       staffMarkHeadTail(ev, beamFirst, columns.length - 1);
@@ -2299,10 +2461,15 @@ function renderMusicStaff(source, role, opts) {
   for (e = 0; e < ast.events.length; e++) {
     pushColumnEvent(ast.events[e], null);
   }
+  /* Dangling ~ at end of line: hang stub past the last column. */
+  if (openTie && openTie.hang) {
+    columns.push({ type: "hangTarget" });
+    staffCloseHangTie(columns.length - 1);
+  }
   var noteEvents = [];
   var noteEventCols = [];
   for (e = 0; e < columns.length; e++) {
-    if (columns[e].type !== "barline") {
+    if (columns[e].type !== "barline" && columns[e].type !== "hangTarget") {
       noteEvents.push(columns[e]);
       noteEventCols.push(e);
     }
@@ -2667,7 +2834,10 @@ function renderMusicStaff(source, role, opts) {
   }
   var explicitMap = {};
   for (e = 0; e < columns.length; e++) {
-    if (columns[e].type === "note" && columns[e].beamId) {
+    if (
+      (columns[e].type === "note" || columns[e].type === "stack") &&
+      columns[e].beamId
+    ) {
       if (!explicitMap[columns[e].beamId]) {
         explicitMap[columns[e].beamId] = [];
       }
@@ -2710,6 +2880,11 @@ function renderMusicStaff(source, role, opts) {
         ? col.quarters
         : staffDurationQuarters(col.duration || "q") * (col.scale || 1);
     if (col.type === "stack") {
+      if (col.beamId) {
+        flushAutoRun();
+        posQ += colDur;
+        continue;
+      }
       flushAutoRun();
       posQ += colDur;
       continue;
@@ -2746,7 +2921,11 @@ function renderMusicStaff(source, role, opts) {
   var layoutX = notesStartX;
   var layoutIndex = 0;
   for (e = 0; e < columns.length; e++) {
-    if (columns[e].type === "barline") {
+    if (columns[e].type === "barline" || columns[e].type === "hangTarget") {
+      /* Hang stubs sit a little past the last note so the curve is visible. */
+      if (columns[e].type === "hangTarget") {
+        layoutX += slot * 0.55;
+      }
       colX[e] = layoutX;
       continue;
     }
@@ -3194,6 +3373,7 @@ function renderMusicStaff(source, role, opts) {
 
   /* Per-column stem stubs filled while drawing. colX is already set. */
   var colNy = [];
+  var colStackExtent = [];
   var colStem = [];
   /* Notehead edges per column, keyed by staff step, so a tie can find its pitch. */
   var headInk = [];
@@ -3243,6 +3423,9 @@ function renderMusicStaff(source, role, opts) {
 
   for (e = 0; e < columns.length; e++) {
     ev = columns[e];
+    if (ev.type === "hangTarget") {
+      continue;
+    }
     if (ev.type === "barline") {
       var bx = colX[e];
       svg.appendChild(staffSvgEl("line", {
@@ -3337,6 +3520,8 @@ function renderMusicStaff(source, role, opts) {
         stackAccGap
       );
       var stemYs = [];
+      var stackBeamed;
+      var stackG;
       for (p = 0; p < ev.pitches.length; p++) {
         var drawnP = drawNotehead(
           cx + offsets[p],
@@ -3374,41 +3559,49 @@ function renderMusicStaff(source, role, opts) {
           accCols[p].acc
         );
       }
-      if (staffHasStem(stackDur) && stemYs.length) {
+      if (stemYs.length) {
         var hiY = Math.min.apply(null, stemYs);
         var loY = Math.max.apply(null, stemYs);
-        /* Stem on the main column; cover all head centers vertically. */
-        if (stemUp) {
-          svg.appendChild(
-            staffSvgEl("line", {
-              x1: String(cx + hxStem),
-              y1: String(loY),
-              x2: String(cx + hxStem),
-              y2: String(hiY - stemLen),
-              stroke: "currentColor",
-              "stroke-width": "1.4"
-            })
-          );
-        } else {
-          svg.appendChild(
-            staffSvgEl("line", {
-              x1: String(cx - hxStem),
-              y1: String(hiY),
-              x2: String(cx - hxStem),
-              y2: String(loY + stemLen),
-              stroke: "currentColor",
-              "stroke-width": "1.4"
-            })
-          );
-        }
-        if (staffIsShortDuration(stackDur)) {
-          staffPlaceGlyph(
-            svg,
-            staffFlagGlyph(stackDur, stemUp),
-            stemUp ? cx + hxStem : cx - hxStem,
-            stemUp ? hiY - stemLen : loY + stemLen,
-            lineGap
-          );
+        /* Beam tip helper uses the mid of the stack; stem still covers all heads. */
+        colNy[e] = (hiY + loY) / 2;
+        colStackExtent[e] = { hi: hiY, lo: loY };
+        stackG = colGroup[e];
+        stackBeamed =
+          stackG >= 0 && beamGroups[stackG] && beamGroups[stackG].indices.length >= 2;
+        if (staffHasStem(stackDur) && !stackBeamed) {
+          /* Stem on the main column; cover all head centers vertically. */
+          if (stemUp) {
+            svg.appendChild(
+              staffSvgEl("line", {
+                x1: String(cx + hxStem),
+                y1: String(loY),
+                x2: String(cx + hxStem),
+                y2: String(hiY - stemLen),
+                stroke: "currentColor",
+                "stroke-width": "1.4"
+              })
+            );
+          } else {
+            svg.appendChild(
+              staffSvgEl("line", {
+                x1: String(cx - hxStem),
+                y1: String(hiY),
+                x2: String(cx - hxStem),
+                y2: String(loY + stemLen),
+                stroke: "currentColor",
+                "stroke-width": "1.4"
+              })
+            );
+          }
+          if (staffIsShortDuration(stackDur)) {
+            staffPlaceGlyph(
+              svg,
+              staffFlagGlyph(stackDur, stemUp),
+              stemUp ? cx + hxStem : cx - hxStem,
+              stemUp ? hiY - stemLen : loY + stemLen,
+              lineGap
+            );
+          }
         }
       }
       if (ev.above) {
@@ -3448,24 +3641,36 @@ function renderMusicStaff(source, role, opts) {
     var beamStemLen = slashBeam ? slashStemLen : stemLen;
     var beamXs = [];
     var beamYs = [];
+    var stemFromY;
     for (gi = 0; gi < grp.indices.length; gi++) {
       var beamCol = grp.indices[gi];
       beamXs.push(staffStemX(colX[beamCol], groupUp, columns[beamCol].head === "slash"));
-      beamYs.push(colNy[beamCol]);
+      if (colStackExtent[beamCol]) {
+        /* Stack: beam meets the outer head on the beam side. */
+        beamYs.push(groupUp ? colStackExtent[beamCol].hi : colStackExtent[beamCol].lo);
+      } else {
+        beamYs.push(colNy[beamCol]);
+      }
     }
     var tipYs = staffBeamTipYs(beamXs, beamYs, groupUp, beamStemLen);
     var tips = [];
     for (gi = 0; gi < grp.indices.length; gi++) {
       var ci = grp.indices[gi];
-      tips.push(
-        drawStemTo(
-          colX[ci],
-          colNy[ci],
-          tipYs[gi],
-          groupUp,
-          columns[ci].head === "slash"
-        )
-      );
+      if (colStackExtent[ci]) {
+        /* Stem covers every head in the stack, then meets the beam. */
+        stemFromY = groupUp ? colStackExtent[ci].lo : colStackExtent[ci].hi;
+        tips.push(drawStemTo(colX[ci], stemFromY, tipYs[gi], groupUp, false));
+      } else {
+        tips.push(
+          drawStemTo(
+            colX[ci],
+            colNy[ci],
+            tipYs[gi],
+            groupUp,
+            columns[ci].head === "slash"
+          )
+        );
+      }
     }
     var t0 = tips[0];
     var t1 = tips[tips.length - 1];
@@ -3940,7 +4145,7 @@ function renderMusicStaff(source, role, opts) {
   var openHairpin = null;
   for (e = 0; e < columns.length; e++) {
     ev = columns[e];
-    if (ev.type === "barline") {
+    if (ev.type === "barline" || ev.type === "hangTarget") {
       continue;
     }
     if (ev.chord) {

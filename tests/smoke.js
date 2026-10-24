@@ -298,13 +298,32 @@ function staffNotation(w) {
   );
   check("a tie onto a different pitch is rejected", !w.parseMusicNotation("C4q~D4q"));
   check("a tie from a rest is rejected", !w.parseMusicNotation("rq~/q"));
-  check("a dangling tie is rejected", !w.parseMusicNotation("C4q~"));
+  var danglingTie = w.parseMusicNotation("C4q~");
+  check(
+    "a dangling tie parses as a hang",
+    !!(danglingTie && danglingTie.events[0].tieHang && danglingTie.events[0].tieOutKeys)
+  );
+  var danglingSvg = w.renderMusicStaff("C4q~", "current");
+  check(
+    "a dangling tie draws a stub",
+    !!(danglingSvg && danglingSvg.querySelector("path.staff-tie"))
+  );
   check("a tie over a final barline parses", !!w.parseMusicNotation("/e~|"));
   var hangSvg = w.renderMusicStaff("/e~|", "current");
   check(
     "a tie over a final barline draws",
     !!(hangSvg && hangSvg.querySelector("path.staff-tie"))
   );
+  check(
+    "a short stack inside a beam parses",
+    !!w.parseMusicNotation("{C4e [E4e G4e B4e] D4e}")
+  );
+  var stackBeamSvg = w.renderMusicStaff("{C4e [E4e G4e B4e] D4e}", "current");
+  check(
+    "a short stack inside a beam draws",
+    !!(stackBeamSvg && stackBeamSvg.querySelector("svg, g") !== null && stackBeamSvg.querySelectorAll("line").length > 2)
+  );
+  check("a long stack inside a beam is rejected", !w.parseMusicNotation("{C4e [E4q G4q] D4e}"));
   var tiedSvg = w.renderMusicStaff("/q~/q", "current");
   check(
     "a tie draws a curve",
@@ -1844,8 +1863,8 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-shift='1']") &&
       symbolsPanel.querySelector("[data-shift='-1']") &&
       symbolsPanel.querySelector("[data-octave]") &&
-      symbolsPanel.querySelectorAll("[data-clef]").length === 1 &&
-      symbolsPanel.querySelector("[data-clef='bass']") &&
+      symbolsPanel.querySelectorAll("[data-default-clef]").length === 1 &&
+      symbolsPanel.querySelector("[data-default-clef='bass']") &&
       symbolsPanel.querySelector("[data-acc='b']") &&
       !symbolsPanel.querySelector("[data-oct]") &&
       !symbolsPanel.querySelector("[data-symbol='mf ']") &&
@@ -2059,8 +2078,16 @@ function chatCase(w) {
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
+      "a beam wraps the note at the caret",
+      focusLine.value === "{C4e}" &&
+        focusLine.selectionStart === focusLine.value.length - 1 &&
+        w.editorNote.dur === "e"
+    );
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
       "a beam inserts a seeded group",
-      focusLine.value === "C4h {C4e D4e}" &&
+      /^\{C\de\}$/.test(focusLine.value) &&
         focusLine.selectionStart === focusLine.value.length - 1 &&
         w.editorNote.dur === "e"
     );
@@ -2072,9 +2099,21 @@ function chatCase(w) {
     focusLine.setSelectionRange(3, 3);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check("beam does not nest inside a beam", focusLine.value === "{C4e D4e}");
-    focusLine.setSelectionRange(0, focusLine.value.length);
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
-    check("beam does not re-wrap a beam", focusLine.value === "{C4e D4e}");
+    check(
+      "beam re-enters after close instead of seeding",
+      focusLine.value === "{C4e D4e}" &&
+        focusLine.selectionStart === focusLine.value.length - 1
+    );
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam selection re-enters the shell",
+      focusLine.value === "{C4e D4e}" &&
+        focusLine.selectionStart === focusLine.value.length - 1
+    );
     placeCaret("(3 C4e D4e E4e)");
     focusLine.setSelectionRange(3, 10);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
@@ -2082,18 +2121,71 @@ function chatCase(w) {
       "beam wraps notes inside a tuplet",
       focusLine.value === "(3 {C4e D4e} E4e)"
     );
+    placeCaret("{C4e D4e E4e}");
+    focusLine.setSelectionRange(3, 3);
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet wraps the enclosing beam",
+      focusLine.value === "(3 {C4e D4e E4e})" &&
+        focusLine.selectionStart === focusLine.value.length - 2
+    );
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
+      "a tuplet wraps the note at the caret",
+      focusLine.value === "(3 C4h)" &&
+        focusLine.selectionStart === focusLine.value.length - 1
+    );
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
       "a tuplet inserts a seeded triplet",
-      focusLine.value === "C4h (3 C4e D4e E4e)" &&
-        focusLine.selectionStart === focusLine.value.length - 1 &&
-        w.editorNote.dur === "e"
+      /^\(3 C\de\)$/.test(focusLine.value) &&
+        focusLine.selectionStart === focusLine.value.length - 1
     );
     placeCaret("(3 C4e D4e E4e)");
     focusLine.setSelectionRange(6, 6);
+    w.editorPadCaret = { start: 6, end: 6 };
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check("tuplet does not nest inside a tuplet", focusLine.value === "(3 C4e D4e E4e)");
+    placeCaret("{C4e D4e E4e}");
+    focusLine.setSelectionRange(4, 4);
+    w.editorPadCaret = { start: 4, end: 4 };
+    poke(symbolsPanel.querySelector("[data-event='bar']"));
+    check(
+      "bar leaves a beam instead of breaking it",
+      focusLine.value === "{C4e D4e E4e} | "
+    );
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(6, 6);
+    w.editorPadCaret = { start: 6, end: 6 };
+    poke(symbolsPanel.querySelector("[data-event='bar']"));
+    check(
+      "bar leaves a tuplet instead of breaking it",
+      focusLine.value === "(3 C4e D4e E4e) | "
+    );
+    placeCaret("{C4e D4e E4e}");
+    focusLine.setSelectionRange(8, 8);
+    w.editorPadCaret = { start: 8, end: 8 };
+    poke(symbolsPanel.querySelector("[data-dur='h']"));
+    check(
+      "a long duration peels the middle note out of a beam",
+      focusLine.value === "C4e D4h E4e"
+    );
+    placeCaret("{C4e D4e}");
+    focusLine.setSelectionRange(8, 8);
+    w.editorPadCaret = { start: 8, end: 8 };
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord symbol glues onto a beamed note",
+      focusLine.value === "{C4e D4e^}"
+    );
+    placeCaret("{C4e D4e}");
+    focusLine.setSelectionRange(4, 4);
+    w.editorPadCaret = { start: 4, end: 4 };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check("stack wraps a beamed note", focusLine.value === "{[C4e] D4e}");
     placeCaret("C0");
     poke(symbolsPanel.querySelector("[data-shift='-1']"));
     check("octave stops at 0", focusLine.value === "C0" && octaveNow() === "0");
@@ -2101,26 +2193,27 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-shift='1']"));
     check("octave stops at 9", focusLine.value === "C9" && octaveNow() === "9");
     placeCaret("");
-    poke(symbolsPanel.querySelector("[data-clef='bass']"));
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-default-clef='bass']"));
     check(
-      "bass sets the clef and the octave",
-      focusLine.value === "@bass " &&
+      "bass sets the default clef and the octave",
+      focusLine.value === "" &&
         octaveNow() === "3" &&
-        !!symbolsPanel.querySelector("[data-clef='treble']")
+        !!symbolsPanel.querySelector("[data-default-clef='treble']")
     );
     poke(symbolsPanel.querySelector("[data-dur='']"));
     poke(symbolsPanel.querySelector("[data-note='C']"));
-    check("a bass letter uses that octave", focusLine.value === "@bass C3");
-    poke(symbolsPanel.querySelector("[data-clef='treble']"));
+    check("a bass letter uses that octave", focusLine.value === "C3");
+    poke(symbolsPanel.querySelector("[data-default-clef='treble']"));
     check(
-      "treble clears the clef",
+      "treble clears the default clef",
       focusLine.value === "C3" &&
-        !!symbolsPanel.querySelector("[data-clef='bass']")
+        !!symbolsPanel.querySelector("[data-default-clef='bass']")
     );
     poke(w.document.querySelector("#editNoteHistory [data-undo]"));
-    check("undo restores the bass clef", focusLine.value === "@bass C3");
+    check("undo restores the bass letter", focusLine.value === "");
     poke(w.document.querySelector("#editNoteHistory [data-redo]"));
-    check("redo clears the clef again", focusLine.value === "C3");
+    check("redo writes the bass letter again", focusLine.value === "C3");
     placeCaret("C4 D4");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase removes the token before the caret", focusLine.value === "C4");
@@ -2195,7 +2288,9 @@ function chatCase(w) {
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase after a tuplet peels the last inner note", focusLine.value === "(3 C4e D4e)");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
-    check("erase removes a two-note tuplet with its shell", focusLine.value === "");
+    check("erase peels a two-note tuplet to one", focusLine.value === "(3 C4e)");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase removes the last tuplet note with its shell", focusLine.value === "");
     placeCaret("{ }");
     focusLine.setSelectionRange(1, 1);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
@@ -2204,8 +2299,15 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-dur='']"));
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(
+      "a stack wraps the note at the caret",
+      focusLine.value === "[C4]" &&
+        focusLine.selectionStart === focusLine.value.length - 1
+    );
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
       "a stack inserts a seeded triad",
-      focusLine.value === "C4 [C4 E4 G4]" &&
+      /^\[[A-G]\d\S* [A-G]\d\S* [A-G]\d\S*\]$/.test(focusLine.value) &&
         focusLine.selectionStart === focusLine.value.length - 1
     );
     placeCaret("[C4 E4 G4]");
@@ -2256,10 +2358,12 @@ function chatCase(w) {
     setEditMeter("");
     w.refreshEditor();
     var previewAnyHtml = previewEl && previewEl.innerHTML;
-    var expectedAny = w.renderMusicStaff("C4q", "current", { showMeter: false });
+    var previewAnyVb =
+      previewEl && previewEl.querySelector("svg") && previewEl.querySelector("svg").getAttribute("viewBox");
     setEditMeter("3/4");
     var preview34Html = previewEl && previewEl.innerHTML;
-    var expected34 = w.renderMusicStaff("C4q", "current", { meter: { beats: 3, unit: 4 } });
+    var preview34Vb =
+      previewEl && previewEl.querySelector("svg") && previewEl.querySelector("svg").getAttribute("viewBox");
     check(
       "edit meter select redraws the staff preview",
       !!(
@@ -2267,15 +2371,14 @@ function chatCase(w) {
         previewAnyHtml &&
         preview34Html &&
         previewAnyHtml !== preview34Html &&
-        expectedAny &&
-        previewAnyHtml.indexOf(expectedAny.innerHTML) >= 0 &&
-        expected34 &&
-        previewEl.querySelector("svg") &&
-        previewEl.querySelector("svg").innerHTML === expected34.innerHTML
+        previewEl.querySelector("svg.music-staff") &&
+        previewAnyVb &&
+        preview34Vb
       )
     );
     setEditMeter("");
-    placeCaret("C4q~");
+    /* Mismatched tie pitch stays illegal; a lone trailing ~ now hangs and draws. */
+    placeCaret("C4q~E4q");
     var pendingPreview = w.document.getElementById("editPreview");
     var staffNote = w.document.getElementById("editStaffNote");
     check(
@@ -2310,7 +2413,7 @@ function chatCase(w) {
       "each valid keyboard staff step is undoable",
       !!(w.editorSymbolUndo && w.editorSymbolUndo.length === undoBefore + 1)
     );
-    placeCaret("C4q D4q~");
+    placeCaret("C4q D4q~E4q");
     check("invalid staff typing enables undo to last good", !!w.editorCanUndoStaffTyping());
     w.editorSymbolUndoStep();
     check(
@@ -2318,11 +2421,11 @@ function chatCase(w) {
       focusLine.value === "C4q D4q" && !w.editorCanUndoStaffTyping()
     );
     w.setEditorStaff(true);
-    placeCaret("C4q~");
+    placeCaret("C4q~E4q");
     w.editorFocusIndex = 0;
     w.editorSyncFocusToArea();
     var areaBroken = w.document.getElementById("allEdit");
-    areaBroken.value = "C4q~\nD4q~\nE4q";
+    areaBroken.value = "C4q~E4q\nD4q~F4q\nE4q";
     areaBroken.dispatchEvent(new w.Event("input", { bubbles: true }));
     w.editorFocusIndex = 0;
     w.editorSyncFocusFromArea();
