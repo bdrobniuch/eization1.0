@@ -257,10 +257,40 @@ function clampEditorBars(value) {
   if (isNaN(bars) || bars < 1) {
     return 1;
   }
-  if (bars > 16) {
-    return 16;
+  if (bars > 32) {
+    return 32;
   }
   return bars;
+}
+
+function editorReadBars() {
+  var el = document.getElementById("editBars");
+  if (!el) {
+    return 1;
+  }
+  return clampEditorBars(el.getAttribute("data-bars") || el.textContent);
+}
+
+function editorWriteBars(value) {
+  var el = document.getElementById("editBars");
+  var bars = clampEditorBars(value);
+  var label;
+  if (!el) {
+    return bars;
+  }
+  el.setAttribute("data-bars", String(bars));
+  el.textContent = String(bars);
+  label = t("edit.barsAria");
+  el.setAttribute("aria-label", label);
+  el.title = t("edit.barsTitle");
+  return bars;
+}
+
+function editorNudgeBars(delta) {
+  editorWriteBars(editorReadBars() + (delta || 0));
+  disarmEditorDelete();
+  clearEditorNotice();
+  refreshEditorHint();
 }
 
 function editorNameValue() {
@@ -281,7 +311,7 @@ function editorIsDirty() {
   }
   editorFlushFocus();
   var area = document.getElementById("allEdit");
-  var bars = clampEditorBars(document.getElementById("editBars").value);
+  var bars = editorReadBars();
   var text = editorLinesFrom(area.value).join("\n");
   var name = editorNameValue().replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
   var draftName = (editorDraft.name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
@@ -4051,6 +4081,8 @@ function editorPaintModifiers(row) {
   var litAcc = hit ? hit.acc || "" : editorNote.acc || "";
   var octaveGroup = document.createElement("div");
   octaveGroup.className = "edit-note-octave-group";
+  octaveGroup.setAttribute("role", "group");
+  octaveGroup.setAttribute("aria-label", t("edit.noteOctave").replace("{n}", String(editorWorkingOctave())));
   editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), litAcc === "b");
   editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), litAcc === "#");
   editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), litAcc === "n");
@@ -4750,7 +4782,7 @@ function editorOpenSheet(options) {
   editorFocusIndex = 0;
   var area = document.getElementById("allEdit");
   area.value = editorDraft.text;
-  document.getElementById("editBars").value = String(editorDraft.bars);
+  editorWriteBars(editorDraft.bars);
   setEditorStaff(editorDraft.staff);
   editorApplyDefaultsUi(editorDraft);
   editorSyncStaffDefaults();
@@ -4880,7 +4912,7 @@ function editorOpenSharePreview(spec) {
   editorClearSymbolHistory();
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
-  document.getElementById("editBars").value = String(spec.bars || 1);
+  editorWriteBars(spec.bars || 1);
   setEditorStaff(editorDraft.staff);
   editorApplyDefaultsUi(editorDraft);
   editorSyncStaffDefaults();
@@ -5098,8 +5130,8 @@ function editorSaveFile() {
     editorNotice(t("edit.tooMany"));
     return;
   }
-  var bars = clampEditorBars(document.getElementById("editBars").value);
-  document.getElementById("editBars").value = String(bars);
+  var bars = editorReadBars();
+  editorWriteBars(bars);
   var name = editorNameValue();
   var file = exerciseDownloadName(name);
   var blob = new Blob(
@@ -5145,7 +5177,7 @@ function editorOpenFile(file) {
     area.value = parsed.lines.join("\n");
     editorFocusIndex = 0;
     if (parsed.bars) {
-      document.getElementById("editBars").value = String(parsed.bars);
+      editorWriteBars(parsed.bars);
     }
     if (parsed.staff === true || parsed.staff === false) {
       setEditorStaff(parsed.staff);
@@ -5524,8 +5556,8 @@ function editorUpdate() {
   if (editorRejectBrokenStaff()) {
     return;
   }
-  var bars = clampEditorBars(document.getElementById("editBars").value);
-  document.getElementById("editBars").value = String(bars);
+  var bars = editorReadBars();
+  editorWriteBars(bars);
   var name = resolveEditorName(editorNameValue());
   var updateButton = document.getElementById("editUpdate");
   if (editorLinesChangedUnderfoot() && (!updateButton || !updateButton.classList.contains("is-armed"))) {
@@ -5600,8 +5632,8 @@ function editorSaveAsNew() {
     editorNotice(t("edit.removeFirst"));
     return;
   }
-  var bars = clampEditorBars(document.getElementById("editBars").value);
-  document.getElementById("editBars").value = String(bars);
+  var bars = editorReadBars();
+  editorWriteBars(bars);
   var name = resolveEditorName(editorNameValue());
   var fromShare = typeof sharePreview !== "undefined" && !!sharePreview;
   var defaults = editorPartDefaults();
@@ -5946,8 +5978,8 @@ function editorOpenChat(target) {
     editorNotice(t("edit.tooMany"));
     return;
   }
-  bars = clampEditorBars(document.getElementById("editBars").value);
-  document.getElementById("editBars").value = String(bars);
+  bars = editorReadBars();
+  editorWriteBars(bars);
   prompt = buildChatPrompt({
     name: editorNameValue(),
     bars: bars,
@@ -5984,8 +6016,8 @@ function editorShare() {
     editorNotice(t("edit.tooMany"));
     return;
   }
-  var bars = clampEditorBars(document.getElementById("editBars").value);
-  document.getElementById("editBars").value = String(bars);
+  var bars = editorReadBars();
+  editorWriteBars(bars);
   var shareId = "";
   var saved = null;
   if (!editorIsCreateMode() && editorDraft.id && typeof getDeskExercise === "function") {
@@ -6461,11 +6493,18 @@ function initEditor() {
       editorUpdate();
     }
   });
-  document.getElementById("editBars").addEventListener("input", function () {
-    disarmEditorDelete();
-    clearEditorNotice();
-    refreshEditorHint();
-  });
+  var editBarsDown = document.getElementById("editBarsDown");
+  var editBarsUp = document.getElementById("editBarsUp");
+  if (editBarsDown) {
+    editBarsDown.addEventListener("click", function () {
+      editorNudgeBars(-1);
+    });
+  }
+  if (editBarsUp) {
+    editBarsUp.addEventListener("click", function () {
+      editorNudgeBars(1);
+    });
+  }
   ["editKindText", "editKindStaff"].forEach(function (id) {
     var button = document.getElementById(id);
     if (!button) {

@@ -1890,48 +1890,54 @@ body.is-editing #counter {
   display: none !important;
 }
 
-.edit-defaults-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.edit-defaults-label {
-  flex: 0 0 auto;
-  min-width: 3.5em;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-#editMeterRow {
-  flex: 0 0 auto;
-  min-width: 0;
-}
-
-#editKeyHost {
+/* Value-first Meter/Key: one shell; kicker on wide layouts only. */
+.edit-field {
   display: inline-flex;
   flex: 0 0 auto;
   flex-wrap: nowrap;
-  align-items: center;
-  gap: 8px;
-}
-
-#editKeyHost[hidden] {
-  display: none !important;
-}
-
-#editMeter,
-#editKey {
-  min-height: 40px;
-  min-width: 5.5em;
-  padding: 0 10px;
+  align-items: stretch;
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  min-width: 0;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 4px;
   background: transparent;
   color: #ffffff;
+  overflow: hidden;
+}
+
+.edit-field[hidden] {
+  display: none !important;
+}
+
+.edit-field .edit-field-kicker {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 0 0 10px;
+  margin: 0;
+  min-width: 0;
+  color: inherit;
+  cursor: default;
+}
+
+.edit-field select {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  min-width: 4.5em;
+  margin: 0;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
+  line-height: 1.2;
+  cursor: pointer;
 }
 
 #editMeter option,
@@ -1944,12 +1950,42 @@ body.is-editing #counter {
   align-items: center;
 }
 
-#editSymbols #editKey {
-  min-height: 44px;
+/* Bars nudge: same shell as Meter/Key + octave (kicker · − · n · +). */
+.edit-bars {
+  gap: 0;
 }
 
-#editSymbols #editKeyHost .edit-defaults-label {
-  color: #ffffff;
+.edit-bars button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 28px;
+  height: 100%;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.edit-bars-value {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 28px;
+  height: 100%;
+  padding: 0 2px;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 #editMoreMenu {
@@ -2348,12 +2384,31 @@ body.is-editing #counter {
   min-width: 0;
 }
 
+/* Octave nudge: one stepper shell (↓ · n · ↑), like Bars. */
 .edit-note-octave-group {
   display: inline-flex;
   flex: 0 0 auto;
   flex-wrap: nowrap;
-  align-items: center;
-  gap: 6px;
+  align-items: stretch;
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  overflow: hidden;
+  gap: 0;
+}
+
+#editSymbols .edit-note-octave-group button {
+  box-sizing: border-box;
+  width: auto;
+  min-width: 28px;
+  height: 100%;
+  min-height: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  font-size: 16px;
 }
 
 .edit-note-octave {
@@ -2361,10 +2416,11 @@ body.is-editing #counter {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 4px;
-  font-size: 20px;
+  box-sizing: border-box;
+  min-width: 28px;
+  height: 100%;
+  padding: 0 2px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -2835,26 +2891,6 @@ body.is-editing #counter {
   color: #143024;
 }
 
-#textdiv .stepper {
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  height: 44px;
-  min-height: 44px;
-  border-width: 2px;
-  opacity: 1;
-}
-
-#textdiv .stepper button,
-#textdiv .stepper input,
-#textdiv .stepper .step-label {
-  box-sizing: border-box;
-  min-height: 0;
-  height: 100%;
-}
-
-#textdiv .step-label {
-  font-size: 13px;
-}
 
 .checkbox-label {
   cursor: pointer;
@@ -3020,8 +3056,7 @@ body.is-about #counter {
   }
 
   #editExerciseLabel,
-  #textdiv .step-label,
-  #editMeterRow .edit-defaults-label,
+  .edit-field .edit-field-kicker,
   #textdiv.is-edit-focus #editCount {
     display: none !important;
   }

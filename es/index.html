@@ -187,14 +187,14 @@
             <div id="editWrite">
                 <p id="editCount">0 examples</p>
                 <div id="editSetup">
-                    <div class="stepper stepper-sm" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
-                        <span class="step-label" data-i18n="edit.bars">Bars</span>
-                        <button type="button" class="step-down" data-i18n-aria="edit.fewerBars" aria-label="Fewer bars" data-i18n-title="edit.fewerBars" title="Fewer bars">−</button>
-                        <input id="editBars" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
-                        <button type="button" class="step-up" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
+                    <div id="editBarsStepper" class="edit-field edit-bars" role="group" data-i18n-aria="edit.barsAria" aria-label="Bars on each example" data-i18n-title="edit.barsTitle" title="How many bars each example lasts">
+                        <span class="combo-kicker edit-field-kicker" data-i18n="edit.bars">Bars</span>
+                        <button type="button" id="editBarsDown" data-i18n-aria="edit.fewerBars" aria-label="Fewer bars" data-i18n-title="edit.fewerBars" title="Fewer bars">−</button>
+                        <span id="editBars" class="edit-bars-value" data-bars="1" data-i18n-aria="edit.barsAria" aria-label="Bars on each example">1</span>
+                        <button type="button" id="editBarsUp" data-i18n-aria="edit.moreBars" aria-label="More bars" data-i18n-title="edit.moreBars" title="More bars">+</button>
                     </div>
-                    <div id="editMeterRow" class="edit-defaults-row">
-                        <label for="editMeter" class="edit-defaults-label" data-i18n="edit.meter">Meter</label>
+                    <div id="editMeterRow" class="edit-field">
+                        <label for="editMeter" class="combo-kicker edit-field-kicker" data-i18n="edit.meter">Meter</label>
                         <select id="editMeter" data-i18n-aria="edit.meterAria" aria-label="Recommended meter">
                             <option value="" data-i18n="edit.meterAny">Any</option>
                             <option value="4/4">4/4</option>
@@ -210,8 +210,8 @@
                         <button type="button" id="editKindStaff" aria-pressed="false" data-i18n="edit.kindStaff">Staff</button>
                     </div>
                 </div>
-                <div id="editKeyHost" hidden>
-                    <label for="editKey" class="edit-defaults-label" data-i18n="edit.key">Key</label>
+                <div id="editKeyHost" class="edit-field" hidden>
+                    <label for="editKey" class="combo-kicker edit-field-kicker" data-i18n="edit.key">Key</label>
                     <select id="editKey" data-i18n-aria="edit.keyAria" aria-label="Default key">
                         <option value="">C</option>
                         <option value="G">G</option>

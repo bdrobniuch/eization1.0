@@ -1927,7 +1927,15 @@ function sharePackExercise(snap) {
   }
   sharePushU16(raw, nameBytes.length);
   sharePush(raw, nameBytes);
-  var barsByte = snap.bars & 31;
+  /* Low 5 bits: bars 1–31 as-is; 0 means 32 (bit 6/7 stay staff flags). */
+  var barsN = snap.bars | 0;
+  if (barsN < 1) {
+    barsN = 1;
+  }
+  if (barsN > 32) {
+    barsN = 32;
+  }
+  var barsByte = barsN === 32 ? 0 : barsN;
   if (snap.staff === true) {
     barsByte |= 64;
   } else if (snap.staff === false) {
@@ -2024,8 +2032,11 @@ function shareUnpackExercise(bytes) {
   name = shareReadU16Str(cur);
   barsByte = cur.u8();
   bars = barsByte & 31;
+  if (bars === 0) {
+    bars = 32;
+  }
   count = cur.u16();
-  if (name == null || bars < 1 || bars > 16 || count < 1 || count > 500) {
+  if (name == null || bars < 1 || bars > 32 || count < 1 || count > 500) {
     return null;
   }
   for (i = 0; i < count; i++) {

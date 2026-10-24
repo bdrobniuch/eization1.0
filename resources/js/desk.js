@@ -433,7 +433,7 @@ function normalizeDeskExercise(raw) {
   var record = {
     id: id,
     name: cleanDeskName(raw.name, t("menu.kicker")),
-    bars: clampDeskInt(raw.bars, 1, 16, 1),
+    bars: clampDeskInt(raw.bars, 1, 32, 1),
     staff: deskStaffValue(raw, lines),
     lines: lines
   };
@@ -538,7 +538,7 @@ function shareSnapshot(part) {
   var snap = {
     shareId: shareId,
     name: cleanDeskName(part.name, t("edit.defaultName")),
-    bars: clampDeskInt(part.bars, 1, 16, 1),
+    bars: clampDeskInt(part.bars, 1, 32, 1),
     staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
@@ -628,7 +628,7 @@ function catalogExerciseRecord(seedId) {
     seedRev: exerciseRev(seedId),
     touched: false,
     name: cleanDeskName(ex.label, seedId),
-    bars: clampDeskInt(ex.bars, 1, 16, 1),
+    bars: clampDeskInt(ex.bars, 1, 32, 1),
     staff: exerciseUsesStaff(ex),
     lines: lines
   };
@@ -734,7 +734,7 @@ function legacyCustomRecord(data) {
   return {
     id: "ex:legacy-custom",
     name: t("edit.defaultName"),
-    bars: clampDeskInt(custom.bars, 1, 16, 1),
+    bars: clampDeskInt(custom.bars, 1, 32, 1),
     staff: linesLookLikeStaff(lines),
     lines: lines
   };
@@ -1121,7 +1121,7 @@ function updateDeskExercise(id, part) {
     var next = {
       id: id,
       name: cleanDeskName(part.name != null ? part.name : list[i].name, list[i].name),
-      bars: clampDeskInt(part.bars != null ? part.bars : list[i].bars, 1, 16, 1),
+      bars: clampDeskInt(part.bars != null ? part.bars : list[i].bars, 1, 32, 1),
       staff: part.staff === true || part.staff === false ? part.staff : !!list[i].staff,
       lines: part.lines != null ? cleanDeskLines(part.lines) : list[i].lines.slice()
     };
@@ -1196,7 +1196,7 @@ function createDeskExercise(part) {
   var row = {
     id: newDeskExerciseId(),
     name: cleanDeskName(part.name, t("edit.defaultName")),
-    bars: clampDeskInt(part.bars, 1, 16, 1),
+    bars: clampDeskInt(part.bars, 1, 32, 1),
     staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
@@ -1299,7 +1299,7 @@ function parseDeskExercisesBackup(text) {
     var row = {
       id: newDeskExerciseId() + String(i),
       name: cleanDeskName(raw.name, t("menu.kicker")),
-      bars: clampDeskInt(raw.bars, 1, 16, 1),
+      bars: clampDeskInt(raw.bars, 1, 32, 1),
       lines: lines
     };
     row.staff = deskStaffValue(raw, lines);
