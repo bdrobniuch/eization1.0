@@ -319,6 +319,17 @@ function staffNotation(w) {
       emptyStaffSvg.querySelectorAll("path").length >= 2
     )
   );
+  var emptyBassSvg = w.staffRunWithDefaults({ clef: "bass", key: "Eb" }, function () {
+    return w.renderMusicStaff("", "current");
+  });
+  check(
+    "empty source respects exercise clef and key defaults",
+    !!(
+      emptyBassSvg &&
+      emptyStaffSvg &&
+      emptyBassSvg.innerHTML !== emptyStaffSvg.innerHTML
+    )
+  );
   var meterOverride34 = w.renderMusicStaff("", "current", { meter: { beats: 3, unit: 4 } });
   var meterOverride44 = w.renderMusicStaff("", "current", { meter: { beats: 4, unit: 4 } });
   check(

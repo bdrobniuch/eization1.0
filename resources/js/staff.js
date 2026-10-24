@@ -1806,12 +1806,12 @@ function renderMusicStaff(source, role, opts) {
   var ast;
   var showMeter = !(opts && opts.showMeter === false);
   if (!raw) {
-    /* Empty line: default treble, key C, meter from Setup (or opts.meter) — clef + time + staff only. */
+    /* Empty line: exercise defaults (clef + key), meter from Setup (or opts.meter) — clef + time + staff only. */
     ast = {
       source: "",
-      clef: "treble",
-      keyName: "C",
-      keyAlts: staffKeyAlterations("C"),
+      clef: staffActiveDefaults.clef,
+      keyName: staffActiveDefaults.keyName,
+      keyAlts: staffKeyAlterations(staffActiveDefaults.keyName),
       chordSymbol: "",
       events: []
     };
