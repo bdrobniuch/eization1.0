@@ -2072,9 +2072,21 @@ function chatCase(w) {
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='chord']"));
     check("a chord mark stays glued", focusLine.value === "C4^");
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check("a second chord tap removes the mark", focusLine.value === "C4");
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='tie']"));
     check("a tie stays glued", focusLine.value === "C4~");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check("a second tie tap removes the mark", focusLine.value === "C4");
+    placeCaret("C4 | ");
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='bar']"));
+    check("a second bar tap removes the mark", focusLine.value === "C4");
+    placeCaret("rq");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check("a tie after a rest is refused", focusLine.value === "rq");
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
@@ -2181,11 +2193,41 @@ function chatCase(w) {
       "chord symbol glues onto a beamed note",
       focusLine.value === "{C4e D4e^}"
     );
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord symbol toggles off a beamed note",
+      focusLine.value === "{C4e D4e}"
+    );
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(4, 4);
     w.editorPadCaret = { start: 4, end: 4 };
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check("stack wraps a beamed note", focusLine.value === "{[C4e] D4e}");
+    placeCaret("[C4 E4 G4]");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-dur='h']"));
+    check(
+      "a duration rewrites every pitch in a stack",
+      focusLine.value === "[C4h E4h G4h]"
+    );
+    placeCaret("{C4e [E4e G4e] D4e}");
+    focusLine.setSelectionRange(8, 8);
+    w.editorPadCaret = { start: 8, end: 8 };
+    poke(symbolsPanel.querySelector("[data-dur='h']"));
+    check(
+      "a long stack duration peels out of a beam",
+      focusLine.value === "C4e [E4h G4h] D4e" || focusLine.value === "{C4e} [E4h G4h] {D4e}"
+    );
+    placeCaret("[C4]");
+    poke(symbolsPanel.querySelector("[data-dur='']"));
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-note='C']"));
+    check(
+      "a duplicate stack pitch bumps the octave",
+      focusLine.value === "[C4 C5]" || /^\[[A-G]\d\S* [A-G]\d\S*\]$/.test(focusLine.value)
+    );
     placeCaret("C0");
     poke(symbolsPanel.querySelector("[data-shift='-1']"));
     check("octave stops at 0", focusLine.value === "C0" && octaveNow() === "0");
