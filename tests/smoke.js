@@ -534,7 +534,11 @@ function staffNotation(w) {
       dyn.events[2].hairpinEnd
     )
   );
-  check("a dangling dynamic is rejected", !w.parseMusicNotation("mf"));
+  check("a dangling dynamic alone is rejected", !w.parseMusicNotation("mf"));
+  check(
+    "a dangling dynamic after a note soft-draws",
+    !!(w.parseMusicNotation("C4q mf") && w.parseMusicNotation("C4q mf").events.length === 1)
+  );
   check("a hairpin with no note is rejected", !w.parseMusicNotation("cresc"));
   var chords = w.parseMusicNotation("^G /q /q ^D /q /q");
   check(
@@ -581,8 +585,15 @@ function staffNotation(w) {
     "a chord with no note is a line chord",
     !!(w.parseMusicNotation("^G") && w.parseMusicNotation("^G").chordSymbol === "G")
   );
-  check("a trailing chord after a note is rejected", !w.parseMusicNotation("C4q ^G"));
-  check("an empty chord mark is rejected", !w.parseMusicNotation("^"));
+  check(
+    "a trailing chord after a note soft-draws",
+    !!(w.parseMusicNotation("C4q ^G") && w.parseMusicNotation("C4q ^G").events.length === 1)
+  );
+  check("an empty chord mark alone is rejected", !w.parseMusicNotation("^"));
+  check(
+    "an empty chord mark after a note soft-draws",
+    !!(w.parseMusicNotation("C4q ^") && w.parseMusicNotation("C4q ^").events.length === 1)
+  );
   var simile = w.parseMusicNotation("^II- /q /q %");
   check(
     "a simile fills the rest of the bar",
@@ -2098,11 +2109,13 @@ function chatCase(w) {
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
-      "a beam inserts a seeded group",
-      /^\{C\de\}$/.test(focusLine.value) &&
-        focusLine.selectionStart === focusLine.value.length - 1 &&
+      "a beam inserts an empty shell",
+      focusLine.value === "{}" &&
+        focusLine.selectionStart === 1 &&
         w.editorNote.dur === "e"
     );
+    poke(symbolsPanel.querySelector("[data-event='rest']"));
+    check("rest dissolves an empty beam", /^r[whqes]?\.?$/.test(focusLine.value));
     placeCaret("C4e D4e");
     focusLine.setSelectionRange(0, focusLine.value.length);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
@@ -2152,8 +2165,8 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-dur='e']"));
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
-      "a tuplet inserts a seeded triplet",
-      /^\(3 C\de\)$/.test(focusLine.value) &&
+      "a tuplet inserts an empty shell",
+      focusLine.value === "(3 )" &&
         focusLine.selectionStart === focusLine.value.length - 1
     );
     placeCaret("(3 C4e D4e E4e)");
@@ -2185,6 +2198,39 @@ function chatCase(w) {
       "a long duration peels the middle note out of a beam",
       focusLine.value === "C4e D4h E4e"
     );
+    placeCaret("{C4e D4e E4e}");
+    focusLine.setSelectionRange(5, 5);
+    w.editorPadCaret = { start: 5, end: 5 };
+    poke(symbolsPanel.querySelector("[data-event='rest']"));
+    check(
+      "a rest splits a beam at the caret",
+      /^C4e r[whqes]?\.? \{D4e E4e\}$/.test(focusLine.value)
+    );
+    placeCaret("[E4e G4e]");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam wraps a short stack from inside",
+      focusLine.value === "{[E4e G4e]}" &&
+        focusLine.selectionStart === focusLine.value.length - 2
+    );
+    placeCaret("[C4h E4h]");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam after a long stack opens an empty shell",
+      focusLine.value === "[C4h E4h]{}" || focusLine.value === "[C4h E4h] {}"
+    );
+    placeCaret("{C4e D4e}");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet wraps a selected beam",
+      focusLine.value === "(3 {C4e D4e})"
+    );
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(8, 8);
     w.editorPadCaret = { start: 8, end: 8 };
@@ -2197,6 +2243,32 @@ function chatCase(w) {
     check(
       "chord symbol toggles off a beamed note",
       focusLine.value === "{C4e D4e}"
+    );
+    placeCaret("[C4 E4 G4]");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord symbol on a stack goes after the closer",
+      focusLine.value === "[C4 E4 G4]^" &&
+        focusLine.selectionStart === focusLine.value.length
+    );
+    check(
+      "a bare stack chord mark still draws",
+      !!w.parseMusicNotation("[C4 E4 G4]^")
+    );
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord symbol toggles off a stack",
+      focusLine.value === "[C4 E4 G4]"
+    );
+    placeCaret("[C4 E4 G4]^Dm7");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord toggle from inside a stack removes the label",
+      focusLine.value === "[C4 E4 G4]"
     );
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(4, 4);
@@ -2348,10 +2420,12 @@ function chatCase(w) {
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(
-      "a stack inserts a seeded triad",
-      /^\[[A-G]\d\S* [A-G]\d\S* [A-G]\d\S*\]$/.test(focusLine.value) &&
-        focusLine.selectionStart === focusLine.value.length - 1
+      "a stack inserts an empty shell",
+      focusLine.value === "[]" &&
+        focusLine.selectionStart === 1
     );
+    poke(symbolsPanel.querySelector("[data-event='bar']"));
+    check("bar dissolves an empty stack", focusLine.value === "| ");
     placeCaret("[C4 E4 G4]");
     focusLine.setSelectionRange(3, 3);
     poke(symbolsPanel.querySelector("[data-event='stack']"));

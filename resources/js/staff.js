@@ -1042,9 +1042,14 @@ function staffTakeBeamStackParts(parts, start) {
     return { error: "unclosed stack", tok: parts[start] };
   }
   after = buf.slice(close + 1);
-  aff = staffParseAffixes(after);
-  if (!aff || aff.articulations.length) {
-    return { error: "stack label must use _ or ^", tok: after || buf };
+  /* Soft-draw a bare ]^ while the name is still being typed. */
+  if (after === "^") {
+    aff = { label: "", above: "", articulations: [] };
+  } else {
+    aff = staffParseAffixes(after);
+    if (!aff || aff.articulations.length) {
+      return { error: "stack label must use _ or ^", tok: after || buf };
+    }
   }
   pitches = staffParseStackInner(buf.slice(1, close));
   if (!pitches) {
@@ -1300,9 +1305,15 @@ function staffParseEventAt(tokens, i, clef) {
       return { error: "unclosed stack", tok: tok };
     }
     var after = buf.slice(close + 1);
-    var stackAff = staffParseAffixes(after);
-    if (!stackAff || stackAff.articulations.length) {
-      return { error: "stack label must use _ or ^", tok: after || tok };
+    var stackAff;
+    /* Soft-draw a bare ]^ while the name is still being typed. */
+    if (after === "^") {
+      stackAff = { label: "", above: "", articulations: [] };
+    } else {
+      stackAff = staffParseAffixes(after);
+      if (!stackAff || stackAff.articulations.length) {
+        return { error: "stack label must use _ or ^", tok: after || tok };
+      }
     }
     var inner = buf.slice(1, close);
     var pitches = staffParseStackInner(inner);
@@ -1458,22 +1469,27 @@ function staffFinishMarks(marks, events) {
   var last;
   var i;
   var hasHost;
+  hasHost = false;
+  for (i = 0; i < events.length; i++) {
+    if (events[i].type !== "barline") {
+      hasHost = true;
+      break;
+    }
+  }
   if (marks.dynamic) {
-    return { error: "dangling dynamic", tok: marks.dynamic };
+    if (!hasHost) {
+      return { error: "dangling dynamic", tok: marks.dynamic };
+    }
+    /* Soft-draw: drop an unfinished dynamic after notes while editing. */
+    marks.dynamic = "";
   }
   if (marks.chord) {
-    hasHost = false;
-    for (i = 0; i < events.length; i++) {
-      if (events[i].type !== "barline") {
-        hasHost = true;
-        break;
-      }
-    }
     /* No timed event: park as a line chord (empty staff / directives only). */
     if (!hasHost) {
       return { chordSymbol: marks.chord };
     }
-    return { error: "dangling chord symbol", tok: "^" + marks.chord };
+    /* Soft-draw: drop a trailing ^… that never found its next host. */
+    marks.chord = "";
   }
   if (marks.hairpin && !marks.hairpin.start) {
     return { error: "hairpin needs a note", tok: marks.hairpin.kind };
@@ -1514,19 +1530,19 @@ function staffParseSequence(tokens, clef, opts) {
     var tok = tokens[i];
     if (tok.charAt(0) === "^") {
       if (tok.length < 2) {
-        return { error: "empty chord symbol", tok: tok };
+        /* Soft-draw a bare ^ after music; alone it stays illegal. */
+        if (!sawMusic && !events.length) {
+          return { error: "empty chord symbol", tok: tok };
+        }
+        i++;
+        continue;
       }
-      if (marks.chord) {
-        return { error: "dangling chord symbol", tok: marks.chord };
-      }
+      /* Replace an unused prior ^ while editing. */
       marks.chord = tok.slice(1);
       i++;
       continue;
     }
     if (staffIsDynamic(tok)) {
-      if (marks.dynamic) {
-        return { error: "dangling dynamic", tok: marks.dynamic };
-      }
       marks.dynamic = tok;
       i++;
       continue;

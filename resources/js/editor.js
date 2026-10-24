@@ -3958,17 +3958,247 @@ function editorCaretInsideStructure(kind) {
 }
 
 /*
- * Beam inside stack stays illegal. Stack inside beam is allowed (short stacked
- * chord under a beam). Tuplet inside beam wraps that beam instead of refusing.
+ * Stack inside beam is allowed. Beam/tuplet while inside a stack use proper-order
+ * exit-or-wrap instead of a hard refuse (see editorProperOrderFromStack).
  */
 function editorStructureParentBlocks(kind, line, rel) {
-  if (kind === "beam") {
-    return editorRelInsideStructure(line, rel, "stack");
-  }
-  if (kind === "tuplet") {
-    return editorRelInsideStructure(line, rel, "stack");
-  }
   return false;
+}
+
+function editorStructureInnerEmpty(line, g) {
+  if (!g) {
+    return false;
+  }
+  return !/\S/.test(String(line || "").slice(g.innerStart, g.innerEnd));
+}
+
+/* Remove one shell (and a leading space) from the active line; park caret at start. */
+function editorRemoveStructureShell(g) {
+  var span = editorLineSpan();
+  var line;
+  var start;
+  var end;
+  var edited;
+  var value;
+  var silent;
+  if (!span || !g) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  start = g.open;
+  end = g.closeEnd;
+  if (start > 0 && /\s/.test(line.charAt(start - 1))) {
+    start -= 1;
+  }
+  edited = line.slice(0, start) + line.slice(end);
+  value = String(span.field.value || "");
+  span.field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, span.lineStart + start, span.lineStart + start, silent);
+  return true;
+}
+
+/*
+ * Drop empty shells that cannot hold the next pad action (rest/bar/slash), then
+ * leave the caret where the insert should land.
+ */
+function editorDissolveEmptyForAction(action) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var g;
+  var guard;
+  var blocked;
+  if (!span || !action) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  for (guard = 0; guard < 6; guard++) {
+    g = editorInnermostEnclosingGroup(line, rel);
+    if (!g || !editorStructureInnerEmpty(line, g)) {
+      break;
+    }
+    blocked =
+      action === "bar" ||
+      action === "rest" ||
+      (action === "slash" && g.kind === "stack") ||
+      (action === "tie" && (g.kind === "beam" || g.kind === "stack" || g.kind === "tuplet"));
+    if (!blocked) {
+      break;
+    }
+    if (!editorRemoveStructureShell(g)) {
+      break;
+    }
+    span = editorLineSpan();
+    if (!span) {
+      return true;
+    }
+    line = span.value.slice(span.lineStart, span.lineEnd);
+    rel = span.caret - span.lineStart;
+  }
+  return true;
+}
+
+function editorStackAllShort(line, stack) {
+  var spans;
+  var i;
+  var m;
+  var dur;
+  if (!stack) {
+    return false;
+  }
+  spans = editorStackPitchSpans(line, stack);
+  if (!spans.length) {
+    return true;
+  }
+  for (i = 0; i < spans.length; i++) {
+    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?|\.)?)/.exec(spans[i].token);
+    dur = String((m && m[1]) || "q").replace(".", "");
+    if (dur !== "e" && dur !== "s") {
+      return false;
+    }
+  }
+  return true;
+}
+
+/* Wrap an existing group with open/close; caret stays just before the old closer. */
+function editorWrapExistingGroup(g, open, close) {
+  var span = editorLineSpan();
+  var value;
+  var silent;
+  var caret;
+  var body;
+  if (!span || !g) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  body = value.slice(span.lineStart + g.open, span.lineStart + g.closeEnd);
+  span.field.value =
+    value.slice(0, span.lineStart + g.open) +
+    open +
+    body +
+    close +
+    value.slice(span.lineStart + g.closeEnd);
+  caret = span.lineStart + g.open + open.length + (g.closeStart - g.open);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+/*
+ * Beam/Triplet while inside a stack: wrap a short stack, otherwise leave the
+ * stack and open an empty shell after it. An empty stack dissolves first.
+ */
+function editorProperOrderFromStack(kind) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var stack;
+  if (!span || (kind !== "beam" && kind !== "tuplet")) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  stack = editorInnermostGroupAt(line, rel, "stack");
+  if (!stack) {
+    return false;
+  }
+  if (editorStructureInnerEmpty(line, stack)) {
+    editorPushSymbolUndo();
+    editorRemoveStructureShell(stack);
+    return editorStructureOpenEmpty(kind, { skipUndo: true });
+  }
+  if (kind === "beam") {
+    if (editorStackAllShort(line, stack)) {
+      editorForceShortDuration();
+      return editorWrapExistingGroup(stack, "{", "}");
+    }
+    editorCloseStructure("stack");
+    return editorStructureOpenEmpty("beam");
+  }
+  return editorWrapExistingGroup(stack, "(3 ", ")");
+}
+
+/*
+ * Insert a rest at the caret inside a beam by splitting the braces around it
+ * ({C4e} re {D4e E4e}) instead of exiting the whole group.
+ */
+function editorInsertRestInBeam() {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var beam;
+  var pieces;
+  var idx;
+  var i;
+  var before;
+  var after;
+  var replacement;
+  var value;
+  var silent;
+  var caret;
+  var rest;
+  var at;
+  if (!span) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  beam = editorInnermostGroupAt(line, rel, "beam");
+  if (!beam || editorStructureInnerEmpty(line, beam)) {
+    return false;
+  }
+  pieces = editorBeamPieces(line, beam);
+  if (!pieces.length) {
+    return false;
+  }
+  idx = 0;
+  for (i = 0; i < pieces.length; i++) {
+    if (rel <= pieces[i].start) {
+      idx = i;
+      break;
+    }
+    if (rel < pieces[i].end) {
+      /* Caret inside a piece: split after that piece. */
+      idx = i + 1;
+      break;
+    }
+    idx = i + 1;
+  }
+  before = [];
+  after = [];
+  for (i = 0; i < pieces.length; i++) {
+    if (i < idx) {
+      before.push(pieces[i].text);
+    } else {
+      after.push(pieces[i].text);
+    }
+  }
+  rest = editorRestToken();
+  replacement = [editorFormatBeamShell(before), rest, editorFormatBeamShell(after)]
+    .filter(Boolean)
+    .join(" ");
+  value = String(span.field.value || "");
+  span.field.value =
+    value.slice(0, span.lineStart + beam.open) +
+    replacement +
+    value.slice(span.lineStart + beam.closeEnd);
+  at = replacement.indexOf(rest);
+  caret = span.lineStart + beam.open + (at < 0 ? replacement.length : at + rest.length);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
 }
 
 function editorInnermostGroupAt(line, rel, kind) {
@@ -4339,29 +4569,25 @@ function editorStructureWrapHit(kind, hit) {
   return true;
 }
 
-function editorSeedStackBody() {
-  var oct = String(editorWorkingOctave());
-  var suf = editorPitchSuffix();
-  return "C" + oct + suf + " E" + oct + suf + " G" + oct + suf;
+/* Open an empty shell ({}, [], (3 )); caret sits before the closer. */
+function editorStructureOpenEmpty(kind, opts) {
+  var pair = editorStructureOpenClose(kind);
+  if (!pair) {
+    return false;
+  }
+  if (kind === "beam") {
+    editorForceShortDuration();
+  }
+  if (!(opts && opts.skipUndo)) {
+    editorPushSymbolUndo();
+  }
+  editorInsertSymbol(pair.open + pair.close, pair.close.length);
+  editorPaintNotePad();
+  return true;
 }
 
 function editorStructureSeed(kind) {
-  var pair = editorStructureOpenClose(kind);
-  var body;
-  if (!pair) {
-    return;
-  }
-  if (kind === "beam" || kind === "stack") {
-    editorForceShortDuration();
-  }
-  if (kind === "stack") {
-    body = editorSeedStackBody();
-  } else {
-    body = editorSeedPitchToken("C");
-  }
-  editorPushSymbolUndo();
-  editorInsertSymbol(pair.open + body + pair.close, pair.close.length);
-  editorPaintNotePad();
+  return editorStructureOpenEmpty(kind);
 }
 
 /*
@@ -4426,6 +4652,18 @@ function editorToggleStructure(kind) {
   }
   if (kind === "tuplet" && sel.start === sel.end && editorRelInsideStructure(line, rel, "beam")) {
     if (editorWrapEnclosingBeamAsTuplet()) {
+      return;
+    }
+  }
+  if (sel.start !== sel.end && kind === "tuplet") {
+    exact = editorExactGroupSelection(line, rel, endRel, "beam") ||
+      editorExactGroupSelection(line, rel, endRel, "stack");
+    if (exact && editorWrapExistingGroup(exact, "(3 ", ")")) {
+      return;
+    }
+  }
+  if (sel.start === sel.end && (kind === "beam" || kind === "tuplet") && editorRelInsideStructure(line, rel, "stack")) {
+    if (editorProperOrderFromStack(kind)) {
       return;
     }
   }
@@ -5272,9 +5510,39 @@ function editorCaretHasBarMark() {
   return before.charAt(before.length - 1) === "|";
 }
 
+/* Index just after ] (stack closeEnd may already include ]^… / ]_…). */
+function editorStackCloserEnd(stack) {
+  if (!stack) {
+    return 0;
+  }
+  return stack.closeStart + 1;
+}
+
+/* Stack-level ]^… label range (field offsets), or null. */
+function editorStackChordMarkRange(span, stack) {
+  var line;
+  var after;
+  var m;
+  var closer;
+  if (!span || !stack) {
+    return null;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  closer = editorStackCloserEnd(stack);
+  after = line.slice(closer);
+  m = /^\^[^\s]*/.exec(after);
+  if (!m) {
+    return null;
+  }
+  return {
+    start: span.lineStart + closer,
+    end: span.lineStart + closer + m[0].length
+  };
+}
+
 /*
- * Chord mark at the caret: bare ^ (marcato / empty entry), or a glued ^name
- * affix on the note/slash/rest/stack under the caret.
+ * Chord mark at the caret: stack ]^… (preferred), bare ^, or a glued ^name
+ * affix on the note/slash/rest under the caret.
  */
 function editorCaretChordMarkRange() {
   var field = editorActiveField();
@@ -5287,6 +5555,11 @@ function editorCaretChordMarkRange() {
   var tok;
   var aff;
   var at;
+  var span;
+  var line;
+  var rel;
+  var stack;
+  var stackMark;
   if (!field) {
     return null;
   }
@@ -5298,6 +5571,24 @@ function editorCaretChordMarkRange() {
   caret = sel.start;
   before = value.slice(0, caret);
   trimmed = before.replace(/\s+$/, "");
+  span = editorLineSpan();
+  if (span) {
+    line = span.value.slice(span.lineStart, span.lineEnd);
+    rel = caret - span.lineStart;
+    if (rel < 0) {
+      rel = 0;
+    }
+    if (rel > line.length) {
+      rel = line.length;
+    }
+    stack =
+      editorInnermostGroupAt(line, rel, "stack") ||
+      editorGroupJustAfter(line, rel, "stack");
+    stackMark = editorStackChordMarkRange(span, stack);
+    if (stackMark) {
+      return stackMark;
+    }
+  }
   if (trimmed.charAt(trimmed.length - 1) === "^") {
     return { start: trimmed.length - 1, end: trimmed.length + (before.length - trimmed.length) };
   }
@@ -5365,6 +5656,7 @@ function editorToggleOrInsertTie() {
     return;
   }
   editorPushSymbolUndo();
+  editorDissolveEmptyForAction("tie");
   editorInsertOutsideStructures("~", 0, ["stack"]);
 }
 
@@ -5385,6 +5677,7 @@ function editorToggleOrInsertBar() {
     return;
   }
   editorPushSymbolUndo();
+  editorDissolveEmptyForAction("bar");
   editorInsertOutsideStructures("| ", 0, ["beam", "stack", "tuplet"]);
 }
 
@@ -5394,13 +5687,18 @@ function editorToggleOrInsertChord() {
   var value;
   var silent;
   var caret;
+  var span;
+  var line;
+  var rel;
+  var stack;
+  var insertAt;
   if (mark) {
     editorRemoveRangeBeforeCaret(mark.start, mark.end);
     return;
   }
   hit = editorPitchAtCaret() || editorRhythmAtCaret();
   editorPushSymbolUndo();
-  if (hit && hit.field && editorCaretInsideStructure("beam")) {
+  if (hit && hit.field && editorCaretInsideStructure("beam") && !editorCaretInsideStructure("stack")) {
     value = String(hit.field.value || "");
     hit.field.value = value.slice(0, hit.end) + "^" + value.slice(hit.end);
     caret = hit.end + 1;
@@ -5410,6 +5708,33 @@ function editorToggleOrInsertChord() {
     refreshEditor();
     editorPaintNotePad();
     return;
+  }
+  /* Inside (or just after) a stack: chord name belongs after ], not on one pitch. */
+  span = editorLineSpan();
+  if (span) {
+    line = span.value.slice(span.lineStart, span.lineEnd);
+    rel = span.caret - span.lineStart;
+    if (rel < 0) {
+      rel = 0;
+    }
+    if (rel > line.length) {
+      rel = line.length;
+    }
+    stack =
+      editorInnermostGroupAt(line, rel, "stack") ||
+      editorGroupJustAfter(line, rel, "stack");
+    if (stack) {
+      insertAt = span.lineStart + editorStackCloserEnd(stack);
+      value = String(span.field.value || "");
+      span.field.value = value.slice(0, insertAt) + "^" + value.slice(insertAt);
+      caret = insertAt + 1;
+      silent = !!(editorPadCaret && editorSymbolsIsOpen());
+      editorPlaceCaret(span.field, caret, caret, silent);
+      clearEditorNotice();
+      refreshEditor();
+      editorPaintNotePad();
+      return;
+    }
   }
   editorInsertSymbol("^");
 }
@@ -5514,6 +5839,7 @@ function editorActivateSymbol(button, opts) {
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
+      editorDissolveEmptyForAction("slash");
       if (editorCaretInsideStructure("beam")) {
         editorForceShortDuration();
       }
@@ -5523,6 +5849,10 @@ function editorActivateSymbol(button, opts) {
     if (eventName === "rest") {
       if (!skipUndo) {
         editorPushSymbolUndo();
+      }
+      editorDissolveEmptyForAction("rest");
+      if (editorInsertRestInBeam()) {
+        return;
       }
       editorInsertOutsideStructures(editorRestToken(), 0, ["beam", "stack"]);
       return;
@@ -5573,6 +5903,7 @@ function editorInsertTextSymbol(text, caretBack) {
     raw.indexOf("%") >= 0 ||
     raw.indexOf("\uD834\uDD0E") >= 0;
   if (measure && editorStaffOn()) {
+    editorDissolveEmptyForAction("bar");
     editorExitEnclosingStructures(["beam", "stack", "tuplet"]);
   }
   insertEditorText(raw, caretBack);
