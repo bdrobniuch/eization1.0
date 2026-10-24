@@ -2120,6 +2120,21 @@ function chatCase(w) {
     focusLine.setSelectionRange(0, focusLine.value.length);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check("a beam wraps the selection", focusLine.value === "{C4e D4e}");
+    placeCaret("C4q D4q");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check("beam refuses a long-note selection", focusLine.value === "C4q D4q");
+    placeCaret("C4 rq");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check("stack refuses a rest in the selection", focusLine.value === "C4 rq");
+    placeCaret("C4 | D4");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check("tuplet refuses a bar in the selection", focusLine.value === "C4 | D4");
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(3, 3);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
@@ -2306,6 +2321,21 @@ function chatCase(w) {
     placeCaret("C9");
     poke(symbolsPanel.querySelector("[data-shift='1']"));
     check("octave stops at 9", focusLine.value === "C9" && octaveNow() === "9");
+    placeCaret("C4e D4e^G [E3_3 G3_5]");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-shift='1']"));
+    check(
+      "octave shift moves every pitch in the selection",
+      focusLine.value === "C5e D5e^G [E4_3 G4_5]" &&
+        focusLine.selectionStart === 0 &&
+        focusLine.selectionEnd === focusLine.value.length
+    );
+    poke(symbolsPanel.querySelector("[data-shift='-1']"));
+    check(
+      "octave shift down restores the selection",
+      focusLine.value === "C4e D4e^G [E3_3 G3_5]"
+    );
     placeCaret("");
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-default-clef='bass']"));

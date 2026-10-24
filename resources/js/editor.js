@@ -4423,8 +4423,33 @@ function editorWrapEnclosingBeamAsTuplet() {
   return true;
 }
 
+/*
+ * True when wrapping inner as kind still parses (beam needs e/s, stack pitches
+ * only, tuplet no barline, etc.).
+ */
+function editorSelectionIsWrappable(kind, inner) {
+  var probe;
+  var trimmed = String(inner || "").replace(/^\s+|\s+$/g, "");
+  if (!trimmed || typeof parseMusicNotation !== "function") {
+    return false;
+  }
+  if (kind === "beam") {
+    probe = "{" + trimmed + "}";
+  } else if (kind === "stack") {
+    probe = "[" + trimmed + "]";
+  } else if (kind === "tuplet") {
+    if (trimmed.indexOf("|") >= 0) {
+      return false;
+    }
+    probe = "(3 " + trimmed + ")";
+  } else {
+    return false;
+  }
+  return !!parseMusicNotation(probe);
+}
+
 /* If the caret has a same-line selection, wrap it and return true. */
-function editorWrapSelection(open, close) {
+function editorWrapSelection(open, close, kind) {
   var field = editorActiveField();
   var sel;
   var value;
@@ -4453,6 +4478,9 @@ function editorWrapSelection(open, close) {
     return false;
   }
   inner = raw.slice(lead, raw.length - trail);
+  if (kind && !editorSelectionIsWrappable(kind, inner)) {
+    return false;
+  }
   start = sel.start + lead;
   end = sel.end - trail;
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
@@ -4678,7 +4706,12 @@ function editorToggleStructure(kind) {
   if (kind === "beam" || (kind === "stack" && editorRelInsideStructure(line, rel, "beam"))) {
     editorForceShortDuration();
   }
-  if (editorWrapSelection(pair.open, pair.close)) {
+  if (sel.start !== sel.end) {
+    if (editorWrapSelection(pair.open, pair.close, kind)) {
+      editorPaintNotePad();
+      return;
+    }
+    /* Selection present but illegal for this shell: do not seed. */
     editorPaintNotePad();
     return;
   }
@@ -5739,6 +5772,55 @@ function editorToggleOrInsertChord() {
   editorInsertSymbol("^");
 }
 
+/*
+ * Shift every pitch octave in text. Boundaries avoid ^chord / _label letters
+ * (only after space, start, or openers).
+ */
+function editorShiftOctavesInText(text, dir) {
+  dir = dir < 0 ? -1 : 1;
+  return String(text || "").replace(
+    /(^|[\s\[{(])([A-G](?:#|b|n)?)(\d)/g,
+    function (all, boundary, head, octDigit) {
+      var oct = editorClampOctave(parseInt(octDigit, 10) + dir);
+      return boundary + head + String(oct);
+    }
+  );
+}
+
+/* Selection ↑↓: move every pitch, keep durations and marks; keep the selection. */
+function editorShiftSelectionOctaves(dir) {
+  var field = editorActiveField();
+  var sel;
+  var value;
+  var raw;
+  var next;
+  var silent;
+  if (!field) {
+    return false;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start === sel.end) {
+    return false;
+  }
+  value = String(field.value || "");
+  raw = value.slice(sel.start, sel.end);
+  if (!raw || raw.indexOf("\n") >= 0) {
+    return false;
+  }
+  next = editorShiftOctavesInText(raw, dir);
+  if (next === raw) {
+    return true;
+  }
+  editorPushSymbolUndo();
+  field.value = value.slice(0, sel.start) + next + value.slice(sel.end);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, sel.start, sel.start + next.length, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
 function editorShiftOctave(dir) {
   var hit;
   var oct;
@@ -5751,6 +5833,9 @@ function editorShiftOctave(dir) {
   var key;
   var selfKey;
   dir = dir < 0 ? -1 : 1;
+  if (editorShiftSelectionOctaves(dir)) {
+    return;
+  }
   hit = editorPitchAtCaret();
   if (!hit) {
     /* No note at the caret: seed a C at the aimed octave. */
