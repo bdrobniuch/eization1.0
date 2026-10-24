@@ -2059,6 +2059,89 @@ function editorStaffCaretInsertionIndex(music, caret) {
   return idx;
 }
 
+/* Music-string caret stops for pad Left/Right (column edges + start/end). */
+function editorStaffCaretStops(music) {
+  var raw = String(music || "");
+  var starts = editorStaffColumnStarts(raw);
+  var stops = [0];
+  var i;
+  for (i = 0; i < starts.length; i++) {
+    if (starts[i] > stops[stops.length - 1]) {
+      stops.push(starts[i]);
+    }
+  }
+  if (raw.length > stops[stops.length - 1]) {
+    stops.push(raw.length);
+  }
+  return stops;
+}
+
+/*
+ * Move the caret by one drawn column. Used when Notes is open (pad inputmode)
+ * so hardware arrows match Erase's token grain — not every character.
+ * dir < 0 is Left, dir > 0 is Right.
+ */
+function editorStaffMoveCaret(dir) {
+  var span;
+  var line;
+  var mapped;
+  var stops;
+  var at;
+  var i;
+  var next;
+  var musicAt;
+  var fieldCaret;
+  var sel;
+  var step = dir < 0 ? -1 : 1;
+  if (!editorStaffOn()) {
+    return false;
+  }
+  span = editorLineSpan();
+  if (!span || !span.field) {
+    return false;
+  }
+  sel = editorReadSelection(span.field);
+  if (sel.start !== sel.end) {
+    fieldCaret = step < 0 ? sel.start : sel.end;
+    editorPlaceCaret(span.field, fieldCaret, fieldCaret, !!(editorPadCaret && editorSymbolsIsOpen()));
+    editorPaintNotePad();
+    return true;
+  }
+  line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
+  mapped = editorMusicCaretInLine(line, span.caret - span.lineStart);
+  stops = editorStaffCaretStops(mapped.music);
+  if (stops.length < 2) {
+    return false;
+  }
+  at = 0;
+  for (i = 0; i < stops.length; i++) {
+    if (stops[i] <= mapped.caret) {
+      at = i;
+    }
+  }
+  if (step < 0) {
+    if (mapped.caret > stops[at]) {
+      next = stops[at];
+    } else if (at > 0) {
+      next = stops[at - 1];
+    } else {
+      return false;
+    }
+  } else if (at < stops.length - 1) {
+    next = stops[at + 1];
+  } else {
+    return false;
+  }
+  musicAt = String(line || "").indexOf(mapped.music);
+  if (musicAt < 0) {
+    musicAt = 0;
+  }
+  fieldCaret = span.lineStart + musicAt + next;
+  editorPlaceCaret(span.field, fieldCaret, fieldCaret, !!(editorPadCaret && editorSymbolsIsOpen()));
+  editorPaintNotePad();
+  return true;
+}
+
 function editorStaffCaretX(layout, insertIndex) {
   var cols;
   var half;
@@ -6424,6 +6507,28 @@ function initEditor() {
       }
       event.preventDefault();
       editorEraseStep();
+      return;
+    }
+    /* Pad mode: Left/Right step by drawn column (same grain as Erase). */
+    if (
+      editorStaffOn() &&
+      editorSymbolsIsOpen() &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      (event.key === "ArrowLeft" || event.key === "ArrowRight" || key === "arrowleft" || key === "arrowright")
+    ) {
+      active = document.activeElement;
+      if (
+        active &&
+        (active.id === "editFocusLine" || active.id === "allEdit") &&
+        active.getAttribute("inputmode") !== "none"
+      ) {
+        return;
+      }
+      if (editorStaffMoveCaret(event.key === "ArrowLeft" || key === "arrowleft" ? -1 : 1)) {
+        event.preventDefault();
+      }
     }
   });
   var viewToggle = document.getElementById("editViewToggle");

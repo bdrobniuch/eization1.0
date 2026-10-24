@@ -2126,6 +2126,34 @@ function chatCase(w) {
     check("erase removes the token before the caret", focusLine.value === "C4");
     poke(w.document.querySelector("#editNoteHistory [data-undo]"));
     check("undo restores the erased token", focusLine.value === "C4 D4");
+    placeCaret("C4 D4");
+    w.editorSetPadInputMode(true);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    focusLine.dispatchEvent(
+      new w.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, cancelable: true })
+    );
+    check(
+      "pad ArrowLeft steps back one staff column",
+      !!(
+        w.editorPadCaret &&
+        w.editorPadCaret.start === 3 &&
+        focusLine.value === "C4 D4"
+      )
+    );
+    focusLine.dispatchEvent(
+      new w.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, cancelable: true })
+    );
+    check(
+      "pad ArrowLeft again reaches the first column",
+      !!(w.editorPadCaret && w.editorPadCaret.start === 0)
+    );
+    focusLine.dispatchEvent(
+      new w.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true })
+    );
+    check(
+      "pad ArrowRight steps forward one staff column",
+      !!(w.editorPadCaret && w.editorPadCaret.start === 3)
+    );
     placeCaret("B4e_6");
     focusLine.setSelectionRange(2, 2);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
