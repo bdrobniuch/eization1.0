@@ -2162,9 +2162,38 @@ function chatCase(w) {
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
-      "beam selection re-enters the shell",
-      focusLine.value === "{C4e D4e}" &&
-        focusLine.selectionStart === focusLine.value.length - 1
+      "beam selection unwraps the shell",
+      focusLine.value === "C4e D4e" &&
+        focusLine.selectionStart === 0 &&
+        focusLine.selectionEnd === focusLine.value.length
+    );
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check("tuplet selection unwraps the shell", focusLine.value === "C4e D4e E4e");
+    placeCaret("[C4 E4 G4]^C");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "stack selection unwraps and keeps the label",
+      focusLine.value === "C4 E4 G4^C"
+    );
+    placeCaret("(3 re {F5e [A5e C5e F5e]})");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet unwrap keeps the inner beam and stack",
+      focusLine.value === "re {F5e [A5e C5e F5e]}"
+    );
+    focusLine.setSelectionRange(3, focusLine.value.length);
+    w.editorPadCaret = { start: 3, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam unwrap keeps the inner stack",
+      focusLine.value === "re F5e [A5e C5e F5e]"
     );
     placeCaret("(3 C4e D4e E4e)");
     focusLine.setSelectionRange(3, 10);

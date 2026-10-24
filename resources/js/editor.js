@@ -4258,6 +4258,44 @@ function editorEnterStructureGroup(g) {
   return true;
 }
 
+/*
+ * Drop open/close of a group; keep the inner text (and a stack ]^… / ]_… label
+ * glued after the last pitch). Selection covers the unwrapped span.
+ */
+function editorUnwrapStructureGroup(g) {
+  var span = editorLineSpan();
+  var line;
+  var body;
+  var affix;
+  var edited;
+  var value;
+  var silent;
+  var start;
+  var end;
+  if (!span || !g) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  /* Tuplet open is "(3" / "(3 "; trim the gap so unwrap does not leave a lead space. */
+  body = line.slice(g.innerStart, g.innerEnd).replace(/^\s+|\s+$/g, "");
+  affix = "";
+  if (g.kind === "stack" && g.closeEnd > g.closeStart + 1) {
+    affix = line.slice(g.closeStart + 1, g.closeEnd);
+  }
+  edited = line.slice(0, g.open) + body + affix + line.slice(g.closeEnd);
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  span.field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
+  start = span.lineStart + g.open;
+  end = start + body.length + affix.length;
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, start, end, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
 function editorRangeNestsStructure(line, start, end, kind) {
   var groups = editorFindBalancedGroups(line);
   var i;
@@ -4267,7 +4305,7 @@ function editorRangeNestsStructure(line, start, end, kind) {
     if (g.kind !== kind) {
       continue;
     }
-    /* Exact shell selection re-enters; any other overlap would nest. */
+    /* Exact shell selection unwraps; any other overlap would nest. */
     if (start === g.open && end === g.closeEnd) {
       continue;
     }
@@ -4621,8 +4659,9 @@ function editorStructureSeed(kind) {
 /*
  * Beam / Stack / Triplet: lit while the caret is inside that shell. First tap
  * wraps the note (or selection) or opens an empty shell; second tap on an empty
- * shell removes it, otherwise closes (caret after the closer). A third tap with
- * the caret just after that shell re-enters instead of opening another group.
+ * shell removes it, otherwise closes (caret after the closer). Selecting the
+ * whole shell and tapping again unwraps it. A tap with the caret just after
+ * that shell re-enters instead of opening another group.
  */
 function editorToggleStructure(kind) {
   var span = editorLineSpan();
@@ -4676,7 +4715,7 @@ function editorToggleStructure(kind) {
   if (sel.start !== sel.end) {
     exact = editorExactGroupSelection(line, rel, endRel, kind);
     if (exact) {
-      editorEnterStructureGroup(exact);
+      editorUnwrapStructureGroup(exact);
       return;
     }
   }
