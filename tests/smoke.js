@@ -1057,6 +1057,15 @@ function staffEngraving(w) {
     "rhythm eighths and sixteenths clear the bar",
     staffRhythmClearsBar("| /s /s /s /s | /e /e /e /e")
   );
+  var namedTrip = w.renderMusicStaff("^C_Major (3 C4e_1 D4e_2 E4e_3) {F4e_4 G4e_5}", "current");
+  var nameEl = namedTrip ? namedTrip.querySelector(".staff-chord") : null;
+  var threeEl = namedTrip ? namedTrip.querySelector('[data-glyph="tuplet3"]') : null;
+  var nameY = nameEl ? parseFloat(nameEl.getAttribute("y")) : 0;
+  var threeAt = threeEl ? staffGlyphAt(threeEl) : null;
+  check(
+    "a tuplet number clears the chord name",
+    !!(threeAt && nameY < threeAt.y - 14)
+  );
   check(
     "a later natural is printed",
     !!(

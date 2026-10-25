@@ -2356,6 +2356,22 @@ function renderMusicStaff(source, role, opts) {
   var spread = [];
   for (e = 0; e < ast.events.length; e++) {
     if (ast.events[e].type === "tuplet") {
+      /* ^Name before a tuplet hangs on the group, which this loop unwraps. */
+      if (ast.events[e].chord) {
+        hasEventChords = true;
+      }
+      if (ast.events[e].above) {
+        hasAboveLabels = true;
+      }
+      if (ast.events[e].label) {
+        hasBelowLabels = true;
+      }
+      if (ast.events[e].dynamic) {
+        hasDynamics = true;
+      }
+      if (ast.events[e].hairpin || ast.events[e].hairpinEnd) {
+        hasHairpin = true;
+      }
       spread = spread.concat(ast.events[e].events);
     } else {
       spread.push(ast.events[e]);

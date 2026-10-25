@@ -72,7 +72,8 @@ var approvalCases = [
   { group: "Lines", title: "Ledger seconds", meter: [4, 4], source: "{G5e A5e B5e C6e} {[D6e E6e] F6e G6e}" },
   { group: "Lines", title: "Double dot, then a half", meter: [4, 4], source: "C4q.. D4s E4q. F4e | G4h A4h" },
   { group: "Lines", title: "Repeat the voicing", meter: [4, 4], source: "^G7 [G4q B4q D5q F5q] [F4q A4q C5q Eb5q] | %" },
-  { group: "Lines", title: "Rhythm after the bar", meter: [4, 4], source: "| /s /s /s /s | /e /e /e /e" }
+  { group: "Lines", title: "Rhythm after the bar", meter: [4, 4], source: "| /s /s /s /s | /e /e /e /e" },
+  { group: "Lines", title: "A name over a triplet", meter: [4, 4], source: "^C_Major (3 C4e_1 D4e_2 E4e_3) {F4e_4 G4e_5}" }
 ];
 
 function approvalSetMeter(meter) {
