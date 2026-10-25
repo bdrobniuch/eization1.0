@@ -266,10 +266,14 @@
         </div>
         <div id="editFocusChrome">
             <div id="editFocusBar">
-                <button type="button" id="editFocusAdd" data-i18n-aria="edit.focusAdd" aria-label="Add" data-i18n-title="edit.focusAddTitle" title="Add an example after this one">
-                    <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                    <span class="btn-label" data-i18n="edit.focusAdd">Add</span>
-                </button>
+                <div id="editAddCombo" class="edit-add-combo">
+                    <button type="button" id="editFocusAdd" data-i18n-aria="edit.focusAdd" aria-label="Add" data-i18n-title="edit.focusAddTitle" title="Add an example after this one">
+                        <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                        <span class="btn-label" data-i18n="edit.focusAdd">Add</span>
+                    </button>
+                    <button type="button" id="editTranspose" class="edit-add-disclosure" hidden aria-expanded="false" aria-controls="editTransposeMenu" data-i18n-aria="edit.transpose" aria-label="Transpose" data-i18n-title="edit.transpose" title="Transpose">&#9662;</button>
+                    <div id="editTransposeMenu" class="edit-transpose-menu" hidden role="menu" aria-labelledby="editTransposeTitle"></div>
+                </div>
                 <button type="button" id="editFocusRemove" data-i18n-aria="edit.focusRemove" aria-label="Remove" data-i18n-title="edit.focusRemoveTitle" title="Remove this example">
                     <svg class="chrome-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 12h14"/></svg>
                     <span class="btn-label" data-i18n="edit.focusRemove">Remove</span>

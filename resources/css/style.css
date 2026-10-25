@@ -2632,6 +2632,189 @@ body.is-editing #counter {
   cursor: default;
 }
 
+/* Add, and on a staff the transpose disclosure, in the same 44px square as Remove. */
+.edit-add-combo {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  height: 44px;
+}
+
+.edit-add-combo.is-staff {
+  box-sizing: border-box;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.edit-add-combo.is-staff #editFocusAdd {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+
+.edit-add-combo.is-staff #editFocusAdd .chrome-icon {
+  width: 1em;
+  height: 1em;
+}
+
+.edit-add-combo.is-open {
+  z-index: 7;
+}
+
+#editTranspose {
+  box-sizing: border-box;
+  flex: 0 0 16px;
+  width: 16px;
+  min-width: 16px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#editTranspose[hidden] {
+  display: none !important;
+}
+
+.edit-add-combo.is-open #editTranspose {
+  background: #ffffff;
+  color: #111111;
+}
+
+.edit-note-interval-group {
+  position: relative;
+  overflow: visible;
+}
+
+#editSymbols .edit-note-interval-group > .edit-note-interval {
+  box-sizing: border-box;
+  min-width: 36px;
+  height: 100%;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.edit-interval-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  width: 248px;
+  gap: 6px;
+  padding: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#editSymbols .edit-interval-menu button {
+  height: auto;
+  min-width: 44px;
+  min-height: 44px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: transparent;
+  color: #ffffff;
+}
+
+#editTransposeMenu {
+  z-index: 30;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+}
+
+#editTransposeMenu[hidden] {
+  display: none !important;
+}
+
+.edit-transpose-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.3;
+  opacity: 0.8;
+}
+
+.edit-transpose-moves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.edit-transpose-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+#editTransposeMenu button {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 8px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--face-font);
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+  text-align: center;
+}
+
+.edit-transpose-keys button {
+  min-width: 44px;
+  padding: 0 8px;
+}
+
+#editTransposeMenu button[aria-pressed="true"] {
+  background: #ffffff;
+  color: #111111;
+}
+
 #editFocusLine {
   width: 100%;
   min-height: 48px;
@@ -2685,7 +2868,7 @@ body.is-editing #counter {
   flex: 0 0 0;
 }
 
-#textdiv.is-edit-list #editFocusBar > :not(#editFocusAdd):not(#editFocusRemove):not(#editNoteHistory),
+#textdiv.is-edit-list #editFocusBar > :not(#editAddCombo):not(#editFocusRemove):not(#editNoteHistory),
 #textdiv.is-edit-list #editFocusLine {
   display: none !important;
 }

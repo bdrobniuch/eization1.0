@@ -56,6 +56,10 @@ var editorNote = {
 var editorTupletN = 3;
 var EDITOR_TUPLET_CYCLE = [3, 5, 7, 4];
 var editorTupletMenuOpen = false;
+var editorTransposeOpen = false;
+var editorMoveMenuOpen = false;
+/* Armed interval for the Write notes stepper, in semitones. 12 is an octave. */
+var editorMoveSemis = 12;
 
 var editorNotePadStamp = "";
 var editorIconCache = {};
@@ -418,6 +422,7 @@ function setEditorStaff(on) {
   }
   editorPlaceExerciseExtras();
   editorSyncSymbolKind();
+  editorSyncAddCombo();
 }
 
 function editorReadDefaults() {
@@ -548,6 +553,12 @@ function editorLeaveIfClean(message) {
 }
 
 function editorDismissEscape() {
+  if (editorCloseMoveMenu()) {
+    return;
+  }
+  if (editorCloseTransposeMenu()) {
+    return;
+  }
   if (editorCloseStaffHelp()) {
     return;
   }
@@ -1235,6 +1246,8 @@ function editorCloseQuiet() {
   }
   editorFlushSession();
   editorCloseStaffHelp({ focus: false });
+  editorCloseMoveMenu();
+  editorCloseTransposeMenu();
   editorCloseMore();
   editorCloseSymbols();
   editorStaffCloseClipMenu();
@@ -1574,6 +1587,8 @@ function editorToggleViewMode() {
 }
 
 function editorFocusGo(delta) {
+  editorCloseMoveMenu();
+  editorCloseTransposeMenu();
   if (!editorIsFocusMode()) {
     return;
   }
@@ -1600,6 +1615,8 @@ function editorLineStartOffset(lines, index) {
 }
 
 function editorFocusAdd() {
+  editorCloseMoveMenu();
+  editorCloseTransposeMenu();
   var lines;
   var area;
   var caret;
@@ -1752,6 +1769,10 @@ function refreshEditor() {
     editorSyncFocusToArea();
   }
   editorUpdateFocusChrome();
+  if (editorResetIntervalUnlessSelected()) {
+    editorNotePadStamp = "";
+    editorPaintNotePad();
+  }
   editorSyncSymbolKind();
   var total = visibleLineCount(area.value);
   if (count) {
@@ -4389,6 +4410,7 @@ function editorLetterToken(letter) {
 function editorNotePadStampNow() {
   var field = editorActiveField();
   var defaults = editorReadDefaults();
+  editorResetIntervalUnlessSelected();
   return [
     editorStaffOn() ? "staff" : "text",
     editorNote.acc || "",
@@ -4403,6 +4425,8 @@ function editorNotePadStampNow() {
     field ? String(editorReadSelection(field).start) + ":" + String(editorReadSelection(field).end) : "0",
     String(editorTupletN || 3),
     editorTupletMenuOpen ? "menu" : "",
+    String(editorMoveSemis || 12),
+    editorMoveMenuOpen ? "move" : "",
     typeof eizationLang === "string" ? eizationLang : "",
     t("edit.noteHigher")
   ].join("~");
@@ -8863,17 +8887,53 @@ function editorPaintModifiers(row) {
       : hit
         ? hit.acc || ""
         : editorNote.acc || "";
-  var octaveGroup = document.createElement("div");
-  octaveGroup.className = "edit-note-octave-group";
-  octaveGroup.setAttribute("role", "group");
-  octaveGroup.setAttribute("aria-label", t("edit.noteOctave").replace("{n}", String(editorWorkingOctave())));
   editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), litAcc === "b");
   editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), litAcc === "#");
   editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), litAcc === "n");
-  editorPadButton(octaveGroup, { "data-shift": "-1" }, "\u2193", t("edit.noteLower"));
-  editorPaintOctave(octaveGroup);
-  editorPadButton(octaveGroup, { "data-shift": "1" }, "\u2191", t("edit.noteHigher"));
-  row.appendChild(octaveGroup);
+  editorPaintIntervalStepper(row);
+}
+
+/* ↓ · 8ve · ↑ . The middle picks the interval. With no selection it stays an octave. */
+function editorPaintIntervalStepper(row) {
+  var group = document.createElement("div");
+  var current = editorMoveInterval();
+  var face;
+  var menu;
+  var i;
+  var item;
+  var name;
+  group.className = "edit-note-octave-group edit-note-interval-group" + (editorMoveMenuOpen ? " is-open" : "");
+  group.setAttribute("role", "group");
+  group.setAttribute("aria-label", t("edit.move"));
+  editorPadButton(group, { "data-move-by": "-1" }, "\u2193", t("edit.moveDown").replace("{n}", current.short));
+  face = document.createElement("button");
+  face.type = "button";
+  face.className = "edit-note-interval";
+  face.setAttribute("data-move-menu", "1");
+  face.setAttribute("aria-expanded", editorMoveMenuOpen ? "true" : "false");
+  face.setAttribute("aria-label", t(current.name));
+  face.title = t(current.name);
+  face.textContent = current.short;
+  group.appendChild(face);
+  editorPadButton(group, { "data-move-by": "1" }, "\u2191", t("edit.moveUp").replace("{n}", current.short));
+  if (editorMoveMenuOpen) {
+    menu = document.createElement("span");
+    menu.className = "edit-interval-menu";
+    menu.setAttribute("role", "listbox");
+    for (i = 0; i < EDITOR_MOVE_INTERVALS.length; i++) {
+      item = EDITOR_MOVE_INTERVALS[i];
+      name = t(item.name);
+      editorPadButton(
+        menu,
+        { "data-move-pick": String(item.semis), role: "option" },
+        item.short,
+        name,
+        item.semis === current.semis
+      );
+    }
+    group.appendChild(menu);
+  }
+  row.appendChild(group);
 }
 
 function editorClearSymbolHistory() {
@@ -9907,6 +9967,1071 @@ function editorToggleOrInsertChord() {
 }
 
 /*
+ * Transpose on Add always copies the whole example. Move appears only while a
+ * passage is selected and shifts that passage by an interval inside the octave.
+ * Octave arrows stay a register nudge.
+ * Letter chord roots move. Roman numerals, degree numbers, tempo, and captions stay.
+ * A copy is spelled in the destination key and carries @key=. A selection stays
+ * in the example's key. Ties pull the other end along. A note past octave 0–9,
+ * or a stack that would share one pitch, is refused.
+ */
+var EDITOR_LETTER_SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+var EDITOR_SHARP_PC = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+var EDITOR_FLAT_PC = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+/* One name per pitch class, matching the key control and the fourths/fifths pivot (F# / Db). */
+var EDITOR_MAJOR_BY_PC = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+var EDITOR_MINOR_BY_PC = ["Cm", "C#m", "Dm", "Ebm", "Em", "Fm", "F#m", "Gm", "Abm", "Am", "Bbm", "Bm"];
+var EDITOR_TRANSPOSE_KEYS = ["C", "G", "D", "A", "E", "B", "F#", "Db", "Ab", "Eb", "Bb", "F", "Am", "Em", "Bm", "F#m", "Cm", "Gm", "Dm", "Fm"];
+var EDITOR_TRANSPOSE_MOVES = [
+  { semis: 5, up: "edit.upFourth", down: "edit.downFourth" },
+  { semis: 7, up: "edit.upFifth", down: "edit.downFifth" },
+  { semis: 2, up: "edit.upStep", down: "edit.downStep" },
+  { semis: 1, up: "edit.upHalf", down: "edit.downHalf" }
+];
+/* Intervals inside the octave. short is the face; the octave itself stays on the other arrows. */
+var EDITOR_MOVE_INTERVALS = [
+  { semis: 1, short: "m2", name: "edit.ivlHalf" },
+  { semis: 2, short: "M2", name: "edit.ivlStep" },
+  { semis: 3, short: "m3", name: "edit.ivlMin3" },
+  { semis: 4, short: "M3", name: "edit.ivlMaj3" },
+  { semis: 5, short: "P4", name: "edit.ivlFourth" },
+  { semis: 6, short: "TT", name: "edit.ivlTritone" },
+  { semis: 7, short: "P5", name: "edit.ivlFifth" },
+  { semis: 8, short: "m6", name: "edit.ivlMin6" },
+  { semis: 9, short: "M6", name: "edit.ivlMaj6" },
+  { semis: 10, short: "m7", name: "edit.ivlMin7" },
+  { semis: 11, short: "M7", name: "edit.ivlMaj7" },
+  { semis: 12, short: "8ve", name: "edit.ivlOctave" }
+];
+var EDITOR_PITCH_HEAD = /^([A-Ga-g])(##|bb|\uD834\uDD2A|\uD834\uDD2B|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whqesn]?)(\.{0,2})(!?)/;
+
+function editorKeyPitch(raw) {
+  var s = String(raw || "C").replace(/\u266F/g, "#").replace(/\u266D/g, "b").replace(/^\s+|\s+$/g, "");
+  var m = /^([A-Ga-g])([#b]?)(m)?$/.exec(s);
+  var letter;
+  var alt;
+  if (!m) {
+    return { pc: 0, minor: false };
+  }
+  letter = m[1].toUpperCase();
+  alt = m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0;
+  return {
+    pc: (EDITOR_LETTER_SEMI[letter] + alt + 12) % 12,
+    minor: !!m[3]
+  };
+}
+
+function editorDestinationKey(sourceRaw, semitones) {
+  var info = editorKeyPitch(sourceRaw);
+  var pc = (((info.pc + semitones) % 12) + 12) % 12;
+  return info.minor ? EDITOR_MINOR_BY_PC[pc] : EDITOR_MAJOR_BY_PC[pc];
+}
+
+/* Shortest route, -5..+6. A tritone goes up. */
+function editorStepsBetweenKeys(fromRaw, toRaw) {
+  var from = editorKeyPitch(fromRaw);
+  var to = editorKeyPitch(toRaw);
+  var up = (to.pc - from.pc + 12) % 12;
+  if (up > 6) {
+    return up - 12;
+  }
+  return up;
+}
+
+function editorSpellMajor(keyRaw) {
+  var parsed;
+  if (typeof staffParseKeyName === "function") {
+    parsed = staffParseKeyName(keyRaw);
+    if (parsed) {
+      return parsed;
+    }
+  }
+  return "C";
+}
+
+function editorKeyFlats(majorName) {
+  var key = typeof STAFF_MAJOR_KEYS !== "undefined" ? STAFF_MAJOR_KEYS[majorName] : null;
+  return !!(key && key.kind === "flat");
+}
+
+function editorAccValue(raw) {
+  var acc = typeof staffNormAccidental === "function" ? staffNormAccidental(raw || "") : raw || "";
+  if (acc === "##") {
+    return 2;
+  }
+  if (acc === "#") {
+    return 1;
+  }
+  if (acc === "bb") {
+    return -2;
+  }
+  if (acc === "b") {
+    return -1;
+  }
+  return 0;
+}
+
+function editorPitchAbs(letter, acc, oct) {
+  return oct * 12 + EDITOR_LETTER_SEMI[letter] + editorAccValue(acc);
+}
+
+function editorSpellPc(semi, flats) {
+  var pc = ((semi % 12) + 12) % 12;
+  return (flats ? EDITOR_FLAT_PC : EDITOR_SHARP_PC)[pc];
+}
+
+function editorSpellAbs(abs, flats) {
+  var pc;
+  var name;
+  var letter;
+  var acc;
+  var alt;
+  var oct;
+  if (abs < 0) {
+    return null;
+  }
+  pc = abs % 12;
+  name = (flats ? EDITOR_FLAT_PC : EDITOR_SHARP_PC)[pc];
+  letter = name.charAt(0);
+  acc = name.slice(1);
+  alt = acc === "#" ? 1 : acc === "b" ? -1 : 0;
+  oct = (abs - EDITOR_LETTER_SEMI[letter] - alt) / 12;
+  if (Math.abs(oct - Math.round(oct)) > 0.001 || oct < 0 || oct > 9) {
+    return null;
+  }
+  return { letter: letter, acc: acc, oct: oct };
+}
+
+function editorChordRoman(raw) {
+  var s = String(raw || "");
+  s = s.replace(
+    /^(?:bb|##|\uD834\uDD2B|\uD834\uDD2A|\u266D\u266D|\u266F\u266F|b|#|\u266D|\u266F|\u266E|x|X)/,
+    ""
+  );
+  return /^(?:III|II|IV|VII|VI|V|I|iii|ii|iv|vii|vi|v|i)/.test(s);
+}
+
+function editorTransposeChordRaw(raw, semitones, flats) {
+  var m;
+  var rest;
+  var slash;
+  var bassMatch;
+  var root;
+  var bass;
+  if (!raw || (typeof staffTempoLabel === "function" && staffTempoLabel(raw))) {
+    return raw;
+  }
+  if (editorChordRoman(raw)) {
+    return raw;
+  }
+  m = /^([A-Ga-g])(##|bb|x|X|#|b|\u266F|\u266D|\uD834\uDD2A|\uD834\uDD2B)?([\s\S]*)$/.exec(raw);
+  if (!m) {
+    return raw;
+  }
+  rest = m[3] || "";
+  root = editorSpellPc(
+    EDITOR_LETTER_SEMI[m[1].toUpperCase()] + editorAccValue(m[2]) + semitones,
+    flats
+  );
+  slash = rest.indexOf("/");
+  if (slash >= 0) {
+    bassMatch = /^([A-Ga-g])(##|bb|x|X|#|b|\u266F|\u266D|\uD834\uDD2A|\uD834\uDD2B)?/.exec(
+      rest.slice(slash + 1)
+    );
+    if (bassMatch) {
+      bass = editorSpellPc(
+        EDITOR_LETTER_SEMI[bassMatch[1].toUpperCase()] + editorAccValue(bassMatch[2]) + semitones,
+        flats
+      );
+      rest =
+        rest.slice(0, slash + 1) + bass + rest.slice(slash + 1 + bassMatch[0].length);
+    }
+  }
+  return root + rest;
+}
+
+function editorStripUnmatchedClose(raw) {
+  var opens = 0;
+  var closes = 0;
+  var i;
+  for (i = 0; i < raw.length; i++) {
+    if (raw.charAt(i) === "(") {
+      opens++;
+    } else if (raw.charAt(i) === ")") {
+      closes++;
+    }
+  }
+  if (closes > opens && raw.charAt(raw.length - 1) === ")") {
+    return raw.slice(0, -1);
+  }
+  return raw;
+}
+
+/* tokenStart: a chord word until whitespace. Otherwise an affix until _ or the next mark. */
+function editorReadChord(text, i, tokenStart) {
+  var j = i + 1;
+  var raw = "";
+  var depth = 0;
+  var ch;
+  if (tokenStart) {
+    while (j < text.length && !/\s/.test(text.charAt(j))) {
+      raw += text.charAt(j);
+      j++;
+    }
+    raw = editorStripUnmatchedClose(raw);
+    return { start: i, end: i + 1 + raw.length, raw: raw };
+  }
+  while (j < text.length) {
+    ch = text.charAt(j);
+    if (ch === "(") {
+      depth++;
+      raw += ch;
+      j++;
+      continue;
+    }
+    if (ch === ")") {
+      if (depth === 0) {
+        break;
+      }
+      depth--;
+      raw += ch;
+      j++;
+      continue;
+    }
+    if (
+      depth === 0 &&
+      (/\s/.test(ch) || ch === "_" || ch === "'" || ch === ">" || ch === "-" || ch === "^" || ch === "]" || ch === "}")
+    ) {
+      break;
+    }
+    raw += ch;
+    j++;
+  }
+  return { start: i, end: j, raw: raw };
+}
+
+function editorTransposeBoundary(text, i) {
+  var prev;
+  if (i <= 0) {
+    return true;
+  }
+  prev = text.charAt(i - 1);
+  return /[\s|[{~()\]}]/.test(prev);
+}
+
+function editorScanTranspose(music) {
+  var i = 0;
+  var pitches = [];
+  var chords = [];
+  var ties = [];
+  var tokenStart = true;
+  var stackId = 0;
+  var stackDepth = 0;
+  var ch;
+  var chord;
+  var head;
+  while (i < music.length) {
+    ch = music.charAt(i);
+    if (/\s/.test(ch)) {
+      tokenStart = true;
+      i++;
+      continue;
+    }
+    if (tokenStart && ch === "@") {
+      while (i < music.length && !/\s/.test(music.charAt(i))) {
+        i++;
+      }
+      tokenStart = false;
+      continue;
+    }
+    if (ch === "[") {
+      stackDepth++;
+      stackId++;
+      tokenStart = false;
+      i++;
+      continue;
+    }
+    if (ch === "]") {
+      if (stackDepth > 0) {
+        stackDepth--;
+      }
+      tokenStart = false;
+      i++;
+      continue;
+    }
+    if (ch === "^") {
+      chord = editorReadChord(music, i, tokenStart);
+      if (chord.raw) {
+        chords.push(chord);
+      }
+      i = chord.end;
+      tokenStart = false;
+      continue;
+    }
+    if (ch === "~") {
+      ties.push(i);
+      tokenStart = false;
+      i++;
+      continue;
+    }
+    if (editorTransposeBoundary(music, i)) {
+      head = EDITOR_PITCH_HEAD.exec(music.slice(i));
+      if (head) {
+        pitches.push({
+          start: i,
+          end: i + head[0].length,
+          letter: head[1].toUpperCase(),
+          acc: head[2] || "",
+          oct: parseInt(head[3], 10),
+          dur: head[4] || "",
+          dots: head[5] || "",
+          bang: head[6] || "",
+          stack: stackDepth > 0 ? stackId : 0
+        });
+        i += head[0].length;
+        tokenStart = false;
+        continue;
+      }
+    }
+    tokenStart = false;
+    i++;
+  }
+  return { pitches: pitches, chords: chords, ties: ties };
+}
+
+function editorTransposeAttacks(pitches) {
+  var attacks = [];
+  var i;
+  var p;
+  var last;
+  for (i = 0; i < pitches.length; i++) {
+    p = pitches[i];
+    last = attacks.length ? attacks[attacks.length - 1] : null;
+    if (p.stack && last && last.stack === p.stack) {
+      last.indexes.push(i);
+      last.end = p.end;
+      continue;
+    }
+    attacks.push({ stack: p.stack, indexes: [i], start: p.start, end: p.end });
+  }
+  return attacks;
+}
+
+function editorAttackBefore(attacks, tieAt) {
+  var i;
+  var best = null;
+  for (i = 0; i < attacks.length; i++) {
+    if (attacks[i].end <= tieAt) {
+      best = attacks[i];
+    }
+  }
+  return best;
+}
+
+function editorAttackAfter(attacks, tieAt) {
+  var i;
+  for (i = 0; i < attacks.length; i++) {
+    if (attacks[i].start > tieAt) {
+      return attacks[i];
+    }
+  }
+  return null;
+}
+
+function editorMapTransposeIndex(index, reps) {
+  var delta = 0;
+  var i;
+  var rep;
+  for (i = 0; i < reps.length; i++) {
+    rep = reps[i];
+    if (rep.end <= index) {
+      delta += rep.text.length - (rep.end - rep.start);
+    } else if (rep.start < index && index < rep.end) {
+      return rep.start + delta + rep.text.length;
+    }
+  }
+  return index + delta;
+}
+
+function editorApplyTransposeReps(music, reps) {
+  var ordered = reps.slice().sort(function (a, b) {
+    return b.start - a.start;
+  });
+  var out = music;
+  var i;
+  for (i = 0; i < ordered.length; i++) {
+    out = out.slice(0, ordered[i].start) + ordered[i].text + out.slice(ordered[i].end);
+  }
+  return out;
+}
+
+/* range null rewrites the whole line. Otherwise only pitches the range covers, plus tied partners. */
+function editorTransposeMusic(text, semitones, majorKey, range) {
+  var dot = " \u00B7 ";
+  var captionAt = String(text || "").indexOf(dot);
+  var music = captionAt < 0 ? String(text || "") : String(text || "").slice(0, captionAt);
+  var caption = captionAt < 0 ? "" : String(text || "").slice(captionAt);
+  var useRange = null;
+  var flats;
+  var scanned;
+  var pitches;
+  var include;
+  var attacks;
+  var i;
+  var grew;
+  var guard;
+  var before;
+  var after;
+  var onBefore;
+  var onAfter;
+  var n;
+  var seen;
+  var abs;
+  var stackKey;
+  var reps;
+  var anchors;
+  var head;
+  var chordText;
+  var between;
+  var glued;
+  var lo;
+  var hi;
+  var ns;
+  var ne;
+  var changed;
+  if (range) {
+    useRange = {
+      start: range.start < 0 ? 0 : range.start,
+      end: range.end > music.length ? music.length : range.end
+    };
+    if (useRange.end < useRange.start) {
+      useRange.end = useRange.start;
+    }
+  }
+  flats = editorKeyFlats(majorKey || "C");
+  scanned = editorScanTranspose(music);
+  pitches = scanned.pitches;
+  include = [];
+  for (i = 0; i < pitches.length; i++) {
+    include.push(!useRange || (pitches[i].start < useRange.end && pitches[i].end > useRange.start));
+  }
+  attacks = editorTransposeAttacks(pitches);
+  grew = true;
+  guard = 0;
+  while (grew && guard < 16) {
+    grew = false;
+    guard++;
+    for (i = 0; i < scanned.ties.length; i++) {
+      before = editorAttackBefore(attacks, scanned.ties[i]);
+      after = editorAttackAfter(attacks, scanned.ties[i]);
+      if (!before || !after) {
+        continue;
+      }
+      onBefore = false;
+      onAfter = false;
+      for (n = 0; n < before.indexes.length; n++) {
+        if (include[before.indexes[n]]) {
+          onBefore = true;
+        }
+      }
+      for (n = 0; n < after.indexes.length; n++) {
+        if (include[after.indexes[n]]) {
+          onAfter = true;
+        }
+      }
+      if (onBefore === onAfter) {
+        continue;
+      }
+      before = onBefore ? after : before;
+      for (n = 0; n < before.indexes.length; n++) {
+        if (!include[before.indexes[n]]) {
+          include[before.indexes[n]] = true;
+          grew = true;
+        }
+      }
+    }
+  }
+  seen = {};
+  for (i = 0; i < pitches.length; i++) {
+    abs = editorPitchAbs(pitches[i].letter, pitches[i].acc, pitches[i].oct);
+    if (include[i]) {
+      pitches[i].spelled = editorSpellAbs(abs + semitones, flats);
+      if (!pitches[i].spelled) {
+        return { ok: false, reason: "range", text: text, changed: false, selStart: 0, selEnd: 0 };
+      }
+      abs += semitones;
+    }
+    if (!pitches[i].stack) {
+      continue;
+    }
+    stackKey = String(pitches[i].stack);
+    if (!seen[stackKey]) {
+      seen[stackKey] = {};
+    }
+    if (seen[stackKey][abs]) {
+      return { ok: false, reason: "stack", text: text, changed: false, selStart: 0, selEnd: 0 };
+    }
+    seen[stackKey][abs] = true;
+  }
+  reps = [];
+  anchors = [];
+  for (i = 0; i < pitches.length; i++) {
+    if (!include[i]) {
+      continue;
+    }
+    head =
+      pitches[i].spelled.letter +
+      pitches[i].spelled.acc +
+      String(pitches[i].spelled.oct) +
+      pitches[i].dur +
+      pitches[i].dots +
+      pitches[i].bang;
+    anchors.push({ start: pitches[i].start, end: pitches[i].end, text: head });
+    if (head !== music.slice(pitches[i].start, pitches[i].end)) {
+      reps.push({ start: pitches[i].start, end: pitches[i].end, text: head });
+    }
+  }
+  for (i = 0; i < scanned.chords.length; i++) {
+    glued = !useRange || (scanned.chords[i].start < useRange.end && scanned.chords[i].end > useRange.start);
+    if (!glued) {
+      for (n = 0; n < pitches.length; n++) {
+        if (!include[n] || scanned.chords[i].start < pitches[n].end) {
+          continue;
+        }
+        if (scanned.chords[i].start - pitches[n].end > 8) {
+          continue;
+        }
+        between = music.slice(pitches[n].end, scanned.chords[i].start);
+        if (/^[\]'>\-]*$/.test(between)) {
+          glued = true;
+        }
+      }
+    }
+    if (!glued) {
+      continue;
+    }
+    chordText = "^" + editorTransposeChordRaw(scanned.chords[i].raw, semitones, flats);
+    anchors.push({ start: scanned.chords[i].start, end: scanned.chords[i].end, text: chordText });
+    if (chordText !== music.slice(scanned.chords[i].start, scanned.chords[i].end)) {
+      reps.push({ start: scanned.chords[i].start, end: scanned.chords[i].end, text: chordText });
+    }
+  }
+  changed = reps.length > 0;
+  lo = null;
+  hi = null;
+  for (i = 0; i < anchors.length; i++) {
+    ns = editorMapTransposeIndex(anchors[i].start, reps);
+    ne = ns + anchors[i].text.length;
+    if (lo === null || ns < lo) {
+      lo = ns;
+    }
+    if (hi === null || ne > hi) {
+      hi = ne;
+    }
+  }
+  if (lo === null) {
+    lo = useRange ? useRange.start : 0;
+    hi = useRange ? useRange.end : 0;
+  }
+  return {
+    ok: true,
+    text: editorApplyTransposeReps(music, reps) + caption,
+    changed: changed,
+    selStart: lo,
+    selEnd: hi,
+    reason: ""
+  };
+}
+
+function editorStampLineKey(line, keyName) {
+  var dot = " \u00B7 ";
+  var at = String(line || "").indexOf(dot);
+  var music = at < 0 ? String(line || "") : String(line || "").slice(0, at);
+  var caption = at < 0 ? "" : String(line || "").slice(at);
+  var lead;
+  var clef;
+  if (/@key=\S+/.test(music)) {
+    music = music.replace(/@key=\S+/, "@key=" + keyName);
+  } else {
+    clef = /^(\s*)(@(?:bass|treble)\b\s*)/.exec(music);
+    if (clef) {
+      music = clef[1] + clef[2] + "@key=" + keyName + " " + music.slice(clef[0].length);
+    } else {
+      lead = /^(\s*)/.exec(music);
+      music = (lead ? lead[1] : "") + "@key=" + keyName + " " + music.slice(lead ? lead[1].length : 0);
+    }
+  }
+  return music + caption;
+}
+
+function editorExampleKeyRaw(line) {
+  var m = /@key=(\S+)/.exec(String(line || ""));
+  var key;
+  if (m) {
+    return m[1].replace(/\u266F/g, "#").replace(/\u266D/g, "b");
+  }
+  key = editorReadDefaults().key || "";
+  return key || "C";
+}
+
+function editorTransposeBounds(field) {
+  var value = String(field.value || "");
+  var sel = editorReadSelection(field);
+  var start = sel.start;
+  var end = sel.end;
+  var swap;
+  var anchor;
+  var lineStart;
+  var lineEnd;
+  if (start > end) {
+    swap = start;
+    start = end;
+    end = swap;
+  }
+  if (!editorIsFocusMode() && value.slice(start, end).indexOf("\n") >= 0) {
+    return { cross: true };
+  }
+  if (editorIsFocusMode()) {
+    return { value: value, lineStart: 0, lineEnd: value.length, selStart: start, selEnd: end };
+  }
+  anchor = start;
+  lineStart = value.lastIndexOf("\n", anchor - 1) + 1;
+  lineEnd = value.indexOf("\n", anchor);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  return { value: value, lineStart: lineStart, lineEnd: lineEnd, selStart: start, selEnd: end };
+}
+
+function editorTransposeScope() {
+  var field = editorActiveField();
+  var bounds;
+  if (!field) {
+    return { whole: true, line: "" };
+  }
+  bounds = editorTransposeBounds(field);
+  if (!bounds || bounds.cross) {
+    return { whole: !bounds || !!bounds.cross ? false : true, line: "", cross: !!(bounds && bounds.cross) };
+  }
+  return {
+    whole: bounds.selStart === bounds.selEnd,
+    line: bounds.value.slice(bounds.lineStart, bounds.lineEnd),
+    cross: false
+  };
+}
+
+function editorKeyFace(name) {
+  return String(name || "C").replace(/#/g, "\u266F").replace(/b/g, "\u266D");
+}
+
+function editorTransposeLineIndex(bounds) {
+  var i;
+  var n = 0;
+  if (editorIsFocusMode()) {
+    return editorFocusIndex;
+  }
+  for (i = 0; i < bounds.lineStart; i++) {
+    if (bounds.value.charAt(i) === "\n") {
+      n++;
+    }
+  }
+  return n;
+}
+
+function editorApplyTranspose(opts) {
+  var field;
+  var bounds;
+  var line;
+  var sourceKey;
+  var destKey;
+  var steps;
+  var whole;
+  var spellMajor;
+  var range;
+  var result;
+  var newLine;
+  var srcMusic;
+  var nextMusic;
+  var lines;
+  var index;
+  var caret;
+  var silent;
+  opts = opts || {};
+  if (!editorStaffOn()) {
+    return;
+  }
+  field = editorActiveField();
+  if (!field) {
+    return;
+  }
+  bounds = editorTransposeBounds(field);
+  if (!bounds) {
+    return;
+  }
+  if (bounds.cross) {
+    editorNotice(t("edit.refuseTransposeLine"));
+    return;
+  }
+  line = bounds.value.slice(bounds.lineStart, bounds.lineEnd);
+  if (!String(line).replace(/\s/g, "")) {
+    editorNotice(t("edit.refuseTransposeEmpty"));
+    return;
+  }
+  sourceKey = editorExampleKeyRaw(line);
+  if (opts.scope === "example") {
+    whole = true;
+  } else if (opts.scope === "selection") {
+    whole = false;
+    if (typeof opts.rangeStart === "number" && typeof opts.rangeEnd === "number") {
+      bounds.selStart = opts.rangeStart;
+      bounds.selEnd = opts.rangeEnd;
+    }
+    if (bounds.selStart === bounds.selEnd) {
+      return;
+    }
+  } else {
+    whole = bounds.selStart === bounds.selEnd;
+  }
+  if (opts.key && whole) {
+    destKey = String(opts.key);
+    steps = editorStepsBetweenKeys(sourceKey, destKey);
+  } else {
+    steps = parseInt(opts.semitones, 10);
+    if (isNaN(steps)) {
+      steps = 0;
+    }
+    destKey = editorDestinationKey(sourceKey, steps);
+  }
+  if (whole) {
+    if (
+      steps === 0 &&
+      editorSpellMajor(destKey) === editorSpellMajor(sourceKey) &&
+      !!editorKeyPitch(destKey).minor === !!editorKeyPitch(sourceKey).minor
+    ) {
+      return;
+    }
+    spellMajor = editorSpellMajor(destKey);
+    range = null;
+  } else {
+    if (steps === 0) {
+      return;
+    }
+    spellMajor = editorSpellMajor(sourceKey);
+    range = {
+      start: bounds.selStart - bounds.lineStart,
+      end: bounds.selEnd - bounds.lineStart
+    };
+  }
+  result = editorTransposeMusic(line, steps, spellMajor, range);
+  if (!result.ok) {
+    editorNotice(t(result.reason === "stack" ? "edit.refuseTransposeStack" : "edit.refuseTransposeRange"));
+    return;
+  }
+  newLine = whole ? editorStampLineKey(result.text, destKey) : result.text;
+  if (whole && newLine === line) {
+    return;
+  }
+  if (!whole && !result.changed) {
+    return;
+  }
+  if (typeof staffExampleParts === "function" && typeof parseMusicNotation === "function") {
+    srcMusic = staffExampleParts(line).music;
+    nextMusic = staffExampleParts(newLine).music;
+    if (parseMusicNotation(srcMusic) && !parseMusicNotation(nextMusic)) {
+      editorNotice(t("edit.refuseTransposeDraw"));
+      return;
+    }
+  }
+  if (whole) {
+    if (editorIsFocusMode()) {
+      editorSyncFocusToArea();
+    }
+    lines = editorRawLines();
+    if (lines.length >= 500) {
+      editorNotice(t("edit.tooMany"));
+      return;
+    }
+  }
+  editorPushSymbolUndo();
+  if (whole) {
+    lines = editorRawLines();
+    index = editorTransposeLineIndex(bounds);
+    lines.splice(index + 1, 0, newLine);
+    editorSetRawLines(lines);
+    if (editorIsFocusMode()) {
+      editorFocusIndex = index + 1;
+      editorSyncFocusFromArea({ caret: "end" });
+    } else {
+      caret = editorLineStartOffset(lines, index + 1) + newLine.length;
+      editorPlaceCaret(field, caret, caret, true);
+    }
+  } else {
+    field.value = bounds.value.slice(0, bounds.lineStart) + newLine + bounds.value.slice(bounds.lineEnd);
+    silent = !!(editorPadCaret && editorSymbolsIsOpen());
+    editorPlaceCaret(
+      field,
+      bounds.lineStart + result.selStart,
+      bounds.lineStart + result.selEnd,
+      silent
+    );
+    if (editorIsFocusMode()) {
+      editorSyncFocusToArea();
+    }
+  }
+  clearEditorNotice();
+  refreshEditor();
+  if (editorTransposeOpen) {
+    editorPaintTransposeMenu();
+  }
+}
+
+function editorSyncAddCombo() {
+  var combo = document.getElementById("editAddCombo");
+  var button = document.getElementById("editTranspose");
+  var staff = editorStaffOn();
+  if (combo) {
+    combo.classList.toggle("is-staff", staff);
+  }
+  if (!staff) {
+    editorCloseTransposeMenu();
+    editorCloseMoveMenu();
+  }
+  if (button) {
+    button.hidden = !staff;
+  }
+}
+
+function editorPlaceAnchoredMenu(menu, anchor) {
+  var rect;
+  var top;
+  var left;
+  var width;
+  if (!menu || !anchor || menu.hidden) {
+    return;
+  }
+  rect = anchor.getBoundingClientRect();
+  width = Math.min(352, window.innerWidth - 16);
+  left = rect.left;
+  if (left + width > window.innerWidth - 8) {
+    left = window.innerWidth - 8 - width;
+  }
+  if (left < 8) {
+    left = 8;
+  }
+  top = rect.bottom + 6;
+  menu.style.position = "fixed";
+  menu.style.left = left + "px";
+  menu.style.top = top + "px";
+  menu.style.width = width + "px";
+  menu.style.maxHeight = Math.max(160, window.innerHeight - top - 12) + "px";
+}
+
+function editorPlaceTransposeMenu() {
+  editorPlaceAnchoredMenu(
+    document.getElementById("editTransposeMenu"),
+    document.getElementById("editAddCombo")
+  );
+}
+
+function editorPaintTransposeMenu() {
+  var menu = document.getElementById("editTransposeMenu");
+  var scope;
+  var title;
+  var moves;
+  var keys;
+  var source;
+  var sourceInfo;
+  var i;
+  var move;
+  var button;
+  var name;
+  var info;
+  var label;
+  if (!menu) {
+    return;
+  }
+  scope = editorTransposeScope();
+  source = editorExampleKeyRaw(scope.line);
+  sourceInfo = editorKeyPitch(source);
+  menu.textContent = "";
+  title = document.createElement("p");
+  title.id = "editTransposeTitle";
+  title.className = "edit-transpose-title";
+  title.textContent = t("edit.transposeExample");
+  menu.appendChild(title);
+  moves = document.createElement("div");
+  moves.className = "edit-transpose-moves";
+  for (i = 0; i < EDITOR_TRANSPOSE_MOVES.length; i++) {
+    move = EDITOR_TRANSPOSE_MOVES[i];
+    button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("data-transpose", String(move.semis));
+    button.setAttribute("role", "menuitem");
+    label = t(move.up);
+    button.textContent = label;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    moves.appendChild(button);
+    button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("data-transpose", String(-move.semis));
+    button.setAttribute("role", "menuitem");
+    label = t(move.down);
+    button.textContent = label;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    moves.appendChild(button);
+  }
+  menu.appendChild(moves);
+  keys = document.createElement("div");
+  keys.className = "edit-transpose-keys";
+  keys.setAttribute("role", "group");
+  keys.setAttribute("aria-label", t("edit.transpose"));
+  for (i = 0; i < EDITOR_TRANSPOSE_KEYS.length; i++) {
+    name = EDITOR_TRANSPOSE_KEYS[i];
+    info = editorKeyPitch(name);
+    button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("data-transpose-key", name);
+    button.setAttribute("role", "menuitem");
+    label = t("edit.transposeTo").replace("{key}", editorKeyFace(name));
+    button.textContent = editorKeyFace(name);
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    if (scope.line && info.pc === sourceInfo.pc && info.minor === sourceInfo.minor) {
+      button.setAttribute("aria-pressed", "true");
+    }
+    keys.appendChild(button);
+  }
+  menu.appendChild(keys);
+  editorPlaceTransposeMenu();
+}
+
+function editorOpenTransposeMenu() {
+  var button = document.getElementById("editTranspose");
+  var menu = document.getElementById("editTransposeMenu");
+  var combo = document.getElementById("editAddCombo");
+  if (!editorStaffOn() || !menu) {
+    return;
+  }
+  editorCloseMoveMenu();
+  editorTransposeOpen = true;
+  if (menu.parentNode !== document.body) {
+    document.body.appendChild(menu);
+  }
+  menu.hidden = false;
+  if (button) {
+    button.setAttribute("aria-expanded", "true");
+  }
+  if (combo) {
+    combo.classList.add("is-open");
+  }
+  editorPaintTransposeMenu();
+}
+
+function editorCloseTransposeMenu() {
+  var button = document.getElementById("editTranspose");
+  var menu = document.getElementById("editTransposeMenu");
+  var combo = document.getElementById("editAddCombo");
+  var was = editorTransposeOpen;
+  editorTransposeOpen = false;
+  if (menu) {
+    menu.hidden = true;
+    menu.style.position = "";
+    menu.style.left = "";
+    menu.style.top = "";
+    menu.style.width = "";
+    menu.style.maxHeight = "";
+  }
+  if (button) {
+    button.setAttribute("aria-expanded", "false");
+  }
+  if (combo) {
+    combo.classList.remove("is-open");
+  }
+  return was;
+}
+
+function editorToggleTransposeMenu() {
+  if (editorTransposeOpen) {
+    editorCloseTransposeMenu();
+    return;
+  }
+  editorOpenTransposeMenu();
+}
+
+function editorMoveInterval() {
+  var i;
+  for (i = 0; i < EDITOR_MOVE_INTERVALS.length; i++) {
+    if (EDITOR_MOVE_INTERVALS[i].semis === editorMoveSemis) {
+      return EDITOR_MOVE_INTERVALS[i];
+    }
+  }
+  editorMoveSemis = 12;
+  return EDITOR_MOVE_INTERVALS[EDITOR_MOVE_INTERVALS.length - 1];
+}
+
+/* A passage may keep another interval. A bare caret returns the stepper to an octave. */
+function editorResetIntervalUnlessSelected() {
+  var field;
+  var bounds;
+  var prev = editorMoveSemis;
+  field = editorActiveField();
+  if (!field) {
+    editorMoveSemis = 12;
+    return prev !== editorMoveSemis;
+  }
+  bounds = editorTransposeBounds(field);
+  if (!bounds || bounds.cross || bounds.selStart === bounds.selEnd) {
+    editorMoveSemis = 12;
+  }
+  return prev !== editorMoveSemis;
+}
+
+function editorCloseMoveMenu() {
+  if (!editorMoveMenuOpen) {
+    return false;
+  }
+  editorMoveMenuOpen = false;
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+  return true;
+}
+
+/* Arrows move the selection, or the note under the caret, by the armed interval. */
+function editorApplyIntervalStep(dir) {
+  var field;
+  var bounds;
+  var hit;
+  var semis;
+  semis = editorMoveInterval().semis;
+  /* An octave keeps the written spelling. Other intervals are respelled for the key. */
+  if (semis === 12) {
+    editorShiftOctave(dir < 0 ? -1 : 1);
+    return;
+  }
+  if (dir < 0) {
+    semis = -semis;
+  }
+  field = editorActiveField();
+  bounds = field ? editorTransposeBounds(field) : null;
+  if (bounds && !bounds.cross && bounds.selStart !== bounds.selEnd) {
+    editorApplyTranspose({ scope: "selection", semitones: semis });
+    return;
+  }
+  hit = editorPitchAtCaret();
+  if (!hit) {
+    return;
+  }
+  editorApplyTranspose({
+    scope: "selection",
+    semitones: semis,
+    rangeStart: hit.start,
+    rangeEnd: hit.end
+  });
+}
+
+/*
  * Shift every pitch octave in text. Boundaries avoid ^chord / _label letters
  * (only after space, start, or openers).
  */
@@ -9972,13 +11097,6 @@ function editorShiftOctave(dir) {
   }
   hit = editorPitchAtCaret();
   if (!hit) {
-    /* No note at the caret: seed a C at the aimed octave. */
-    editorNote.oct = editorClampOctave(editorWorkingOctave() + dir);
-    editorPushSymbolUndo();
-    editorInsertSymbol(editorLetterToken("C"));
-    editorNote.acc = "";
-    editorNote.oct = null;
-    editorPaintNotePad();
     return;
   }
   oct = editorClampOctave(hit.oct + dir);
@@ -10058,7 +11176,29 @@ function editorActivateSymbol(button, opts) {
     return;
   }
   if (button.hasAttribute("data-shift")) {
+    editorCloseMoveMenu();
     editorShiftOctave(parseInt(button.getAttribute("data-shift"), 10));
+    return;
+  }
+  if (button.hasAttribute("data-move-menu")) {
+    editorMoveMenuOpen = !editorMoveMenuOpen;
+    editorNotePadStamp = "";
+    editorPaintNotePad();
+    return;
+  }
+  if (button.hasAttribute("data-move-pick")) {
+    editorMoveSemis = parseInt(button.getAttribute("data-move-pick"), 10);
+    if (isNaN(editorMoveSemis) || editorMoveSemis < 1 || editorMoveSemis > 12) {
+      editorMoveSemis = 12;
+    }
+    editorMoveMenuOpen = false;
+    editorNotePadStamp = "";
+    editorPaintNotePad();
+    return;
+  }
+  if (button.hasAttribute("data-move-by")) {
+    editorCloseMoveMenu();
+    editorApplyIntervalStep(parseInt(button.getAttribute("data-move-by"), 10));
     return;
   }
   if (button.hasAttribute("data-default-clef")) {
@@ -11936,7 +13076,23 @@ function initEditor() {
   editorBindPadPointer(symbols);
   editorBindHistoryPointer(document.getElementById("editNoteHistory"));
   document.addEventListener("pointerdown", function (event) {
+    var transposeMenu = document.getElementById("editTransposeMenu");
+    var transposeCombo = document.getElementById("editAddCombo");
+    var intervalGroup = document.querySelector(".edit-note-interval-group");
     var menu = document.getElementById("editClipMenu");
+    var insideTranspose =
+      event.target &&
+      ((transposeCombo && transposeCombo.contains(event.target)) ||
+        (transposeMenu && transposeMenu.contains(event.target)));
+    if (editorTransposeOpen && !insideTranspose) {
+      editorCloseTransposeMenu();
+    }
+    if (
+      editorMoveMenuOpen &&
+      (!intervalGroup || !event.target || !intervalGroup.contains(event.target))
+    ) {
+      editorCloseMoveMenu();
+    }
     if (!editorStaffClipMenuOpen) {
       return;
     }
@@ -11945,6 +13101,17 @@ function initEditor() {
     }
     editorStaffCloseClipMenu();
   });
+  var transposeSheet = document.getElementById("textdiv");
+  if (transposeSheet) {
+    transposeSheet.addEventListener("scroll", function () {
+      if (editorTransposeOpen) {
+        editorCloseTransposeMenu();
+      }
+      if (editorMoveMenuOpen) {
+        editorCloseMoveMenu();
+      }
+    });
+  }
   function editorOnFieldFocusForPad(event) {
     var target = event && event.target;
     if (!target) {
@@ -12072,6 +13239,35 @@ function initEditor() {
   if (focusAdd) {
     focusAdd.addEventListener("click", editorFocusAdd);
   }
+  var transposeButton = document.getElementById("editTranspose");
+  if (transposeButton) {
+    transposeButton.addEventListener("mousedown", function (event) {
+      event.preventDefault();
+    });
+    transposeButton.addEventListener("click", editorToggleTransposeMenu);
+  }
+  var transposeMenu = document.getElementById("editTransposeMenu");
+  if (transposeMenu) {
+    transposeMenu.addEventListener("mousedown", function (event) {
+      event.preventDefault();
+    });
+    transposeMenu.addEventListener("click", function (event) {
+      var picked = event.target.closest("button");
+      if (!picked || !transposeMenu.contains(picked)) {
+        return;
+      }
+      if (picked.hasAttribute("data-transpose")) {
+        editorApplyTranspose({
+          scope: "example",
+          semitones: parseInt(picked.getAttribute("data-transpose"), 10)
+        });
+        return;
+      }
+      if (picked.hasAttribute("data-transpose-key")) {
+        editorApplyTranspose({ scope: "example", key: picked.getAttribute("data-transpose-key") });
+      }
+    });
+  }
   var focusRemove = document.getElementById("editFocusRemove");
   if (focusRemove) {
     focusRemove.addEventListener("click", editorFocusRemove);
@@ -12127,6 +13323,12 @@ function initEditor() {
     focusField.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
         event.preventDefault();
+        if (editorCloseMoveMenu()) {
+          return;
+        }
+        if (editorCloseTransposeMenu()) {
+          return;
+        }
         if (editorCloseStaffHelp()) {
           return;
         }

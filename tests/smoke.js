@@ -2599,9 +2599,12 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-dur='w']") &&
       symbolsPanel.querySelector("[data-dot]") &&
       !symbolsPanel.querySelector("[data-dur='e.']") &&
-      symbolsPanel.querySelector("[data-shift='1']") &&
-      symbolsPanel.querySelector("[data-shift='-1']") &&
-      symbolsPanel.querySelector("[data-octave]") &&
+      symbolsPanel.querySelector("[data-move-by='1']") &&
+      symbolsPanel.querySelector("[data-move-by='-1']") &&
+      symbolsPanel.querySelector("[data-move-menu]") &&
+      symbolsPanel.querySelector("[data-move-menu]").textContent === "8ve" &&
+      !symbolsPanel.querySelector("[data-octave]") &&
+      !symbolsPanel.querySelector("[data-shift]") &&
       symbolsPanel.querySelectorAll("[data-default-clef]").length === 1 &&
       symbolsPanel.querySelector("[data-default-clef='bass']") &&
       symbolsPanel.querySelector("[data-acc='b']") &&
@@ -2713,10 +2716,6 @@ function chatCase(w) {
       focusLine.focus();
       focusLine.setSelectionRange(text.length, text.length);
     }
-    function octaveNow() {
-      var mark = symbolsPanel.querySelector("[data-octave]");
-      return mark ? mark.getAttribute("data-octave") : "";
-    }
     /* Notes open: field selection may paint the token; pad caret is the insert point. */
     function insertCaret() {
       if (w.editorPadCaret && w.document.activeElement !== focusLine) {
@@ -2728,7 +2727,6 @@ function chatCase(w) {
     check(
       "a letter writes the note",
       focusLine.value === "C5" &&
-        octaveNow() === "5" &&
         w.document.activeElement !== focusLine &&
         !w.document.getElementById("editNotePreview") &&
         !!symbolsPanel.querySelector("[data-dur='w']") &&
@@ -2758,16 +2756,15 @@ function chatCase(w) {
         w.I18N.en["edit.clearExample"] === "Clear example" &&
         w.I18N.es["edit.clearExample"] === "Borrar ejemplo"
     );
-    poke(symbolsPanel.querySelector("[data-shift='-1']"));
-    check("down moves the note just written", focusLine.value === "C4" && octaveNow() === "4");
+    poke(symbolsPanel.querySelector("[data-move-by='-1']"));
+    check("down moves the note just written", focusLine.value === "C4");
     poke(symbolsPanel.querySelector("[data-note='D']"));
     check("the next letter stays close", focusLine.value === "C4 D4");
     poke(symbolsPanel.querySelector("[data-acc='b']"));
     check(
       "a sign rewrites the note at the caret",
       focusLine.value === "C4 Db4" &&
-        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
-        octaveNow() === "4"
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true"
     );
     poke(symbolsPanel.querySelector("[data-acc='b']"));
     check(
@@ -2780,15 +2777,11 @@ function chatCase(w) {
     check(
       "a sign writes C when the caret is not on a note",
       focusLine.value === "C4 D4 | Cb4" &&
-        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true" &&
-        octaveNow() === "4"
+        symbolsPanel.querySelector("[data-acc='b']").getAttribute("aria-pressed") === "true"
     );
     placeCaret("C4 D4 |");
-    poke(symbolsPanel.querySelector("[data-shift='1']"));
-    check(
-      "up writes C when the caret is not on a note",
-      focusLine.value === "C4 D4 | C5" && octaveNow() === "5"
-    );
+    poke(symbolsPanel.querySelector("[data-move-by='1']"));
+    check("up leaves the line when the caret is not on a note", focusLine.value === "C4 D4 |");
     placeCaret("C4 D4 | Eb5");
     poke(symbolsPanel.querySelector("[data-dur='e']"));
     check(
@@ -3178,22 +3171,22 @@ function chatCase(w) {
       focusLine.value === "[C4 C5]" || /^\[[A-G]\d\S* [A-G]\d\S*\]$/.test(focusLine.value)
     );
     placeCaret("C0");
-    poke(symbolsPanel.querySelector("[data-shift='-1']"));
-    check("octave stops at 0", focusLine.value === "C0" && octaveNow() === "0");
+    poke(symbolsPanel.querySelector("[data-move-by='-1']"));
+    check("octave stops at 0", focusLine.value === "C0");
     placeCaret("C9");
-    poke(symbolsPanel.querySelector("[data-shift='1']"));
-    check("octave stops at 9", focusLine.value === "C9" && octaveNow() === "9");
+    poke(symbolsPanel.querySelector("[data-move-by='1']"));
+    check("octave stops at 9", focusLine.value === "C9");
     placeCaret("C4e D4e^G [E3_3 G3_5]");
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
-    poke(symbolsPanel.querySelector("[data-shift='1']"));
+    poke(symbolsPanel.querySelector("[data-move-by='1']"));
     check(
       "octave shift moves every pitch in the selection",
       focusLine.value === "C5e D5e^G [E4_3 G4_5]" &&
         focusLine.selectionStart === 0 &&
         focusLine.selectionEnd === focusLine.value.length
     );
-    poke(symbolsPanel.querySelector("[data-shift='-1']"));
+    poke(symbolsPanel.querySelector("[data-move-by='-1']"));
     check(
       "octave shift down restores the selection",
       focusLine.value === "C4e D4e^G [E3_3 G3_5]"
@@ -3204,7 +3197,6 @@ function chatCase(w) {
     check(
       "bass sets the default clef and the octave",
       focusLine.value === "" &&
-        octaveNow() === "3" &&
         !!symbolsPanel.querySelector("[data-default-clef='treble']")
     );
     poke(symbolsPanel.querySelector("[data-dur='']"));
@@ -4432,14 +4424,13 @@ function chatCase(w) {
       check(
         "a mixed duration still shares the accidental and octave",
         litDur() === null &&
-          symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true" &&
-          octaveNow() === "4"
+          symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true"
       );
       poke(symbolsPanel.querySelector("[data-acc='b']"));
       check("flat sets every pitch", focusLine.value === "Cb4q Db4q Eb4e" && draws());
       selectSpan("C4q D5q", "C4q D5q");
-      check("mixed octaves blank the number and light the duration", litDur() === "" && octaveNow() === "");
-      poke(symbolsPanel.querySelector("[data-shift='1']"));
+      check("mixed octaves leave the interval at an octave and light the duration", litDur() === "" && symbolsPanel.querySelector("[data-move-menu]").textContent === "8ve");
+      poke(symbolsPanel.querySelector("[data-move-by='1']"));
       check("up moves each pitch from its own octave", focusLine.value === "C5q D6q" && draws());
       selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e");
       check("a whole beam lights eighth and beam", litDur() === "e" && symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "true");
@@ -4765,6 +4756,186 @@ function chatCase(w) {
       w.document.getElementById("editError").textContent.indexOf("1") >= 0 &&
         w.document.getElementById("editError").hidden === false
     );
+    (function transposeChecks() {
+      var cycle = ["C", "F", "Bb", "Eb", "Ab", "Db", "F#", "B", "E", "A", "D", "G", "C"];
+      var cur = "C";
+      var ci;
+      var cycleOk = true;
+      var cVoicing = "@key=C [E3h G3h B3h D4h]^C\u22067";
+      var upFourth;
+      var toG;
+      var stampedF;
+      var stampedG;
+      var tieLine;
+      var tieAt;
+      var tied;
+      var clash;
+      var high;
+      var half;
+      var caption;
+      var roman;
+      var focusLineT;
+      var areaT;
+      var tMenu;
+      var parsedF;
+      for (ci = 0; ci < cycle.length - 1; ci++) {
+        if (w.editorDestinationKey(cur, 5) !== cycle[ci + 1]) {
+          cycleOk = false;
+        }
+        cur = cycle[ci + 1];
+      }
+      check("fourths cycle uses the key list", cycleOk && w.editorDestinationKey("Am", 5) === "Dm");
+      upFourth = w.editorTransposeMusic(cVoicing, 5, "F", null);
+      stampedF = w.editorStampLineKey(upFourth.text, "F");
+      toG = w.editorTransposeMusic(cVoicing, -5, "G", null);
+      stampedG = w.editorStampLineKey(toG.text, "G");
+      parsedF = w.parseMusicNotation(w.staffExampleParts(stampedF).music);
+      check(
+        "up a fourth spells the F voicing",
+        upFourth.ok &&
+          stampedF === "@key=F [A3h C4h E4h G4h]^F\u22067" &&
+          !!parsedF
+      );
+      check(
+        "to G keeps the voicing in range",
+        toG.ok && stampedG === "@key=G [B2h D3h F#3h A3h]^G\u22067" && !!w.parseMusicNotation(w.staffExampleParts(stampedG).music)
+      );
+      check(
+        "the leading tone in F sharp is written F",
+        w.editorTransposeMusic("B4", 6, "F#", null).text === "F5"
+      );
+      half = w.editorTransposeMusic("B4", 1, "C", null);
+      check("a half step crosses the octave", half.ok && half.text === "C5");
+      high = w.editorTransposeMusic("G9", 7, "D", null);
+      check("a note past octave 9 is refused", high.ok === false && high.reason === "range");
+      clash = w.editorTransposeMusic("[C#4 Db4]", 1, "C", null);
+      check("a stack that would share a pitch is refused", clash.ok === false && clash.reason === "stack");
+      roman = w.editorTransposeMusic("^G/B ^ii7 ^t=100 C4_3 \u00B7 Hello", 5, "F", null);
+      caption = roman.text;
+      check(
+        "chords move and romans, tempo, degrees, and the caption stay",
+        roman.ok && caption === "^C/E ^ii7 ^t=100 F4_3 \u00B7 Hello"
+      );
+      tieLine = "C4q~ | C4q D4q";
+      tieAt = tieLine.indexOf("| C4q") + 2;
+      tied = w.editorTransposeMusic(tieLine, 2, "C", { start: tieAt, end: tieAt + 3 });
+      check("a tie brings the other note along", tied.ok && tied.text === "D4q~ | D4q D4q");
+      if (!w.editorIsFocusMode()) {
+        w.editorSetViewMode("focus");
+      }
+      w.setEditorStaff(true);
+      focusLineT = w.document.getElementById("editFocusLine");
+      areaT = w.document.getElementById("allEdit");
+      check("transpose hides on a text exercise", (w.setEditorStaff(false), w.document.getElementById("editTranspose").hidden === true));
+      w.setEditorStaff(true);
+      check(
+        "transpose sits on Add, not on the note pad",
+        w.document.getElementById("editTranspose").hidden === false &&
+          !w.document.querySelector("#editSymbols [data-transpose]") &&
+          w.I18N.en["edit.transpose"] === "Transpose" &&
+          w.I18N.es["edit.transpose"] === "Transportar" &&
+          w.I18N.en["edit.upFourth"] === "Up a fourth" &&
+          w.I18N.es["edit.upFourth"] === "Subir una cuarta" &&
+          w.I18N.en["edit.downFourth"] === "Down a fourth" &&
+          w.I18N.es["edit.downHalf"] === "Bajar un semitono"
+      );
+      focusLineT.value = "C4 E4 G4 ^C\u22067 ^ii7";
+      focusLineT.dispatchEvent(new w.Event("input", { bubbles: true }));
+      w.editorSyncFocusToArea();
+      focusLineT.setSelectionRange(focusLineT.value.length, focusLineT.value.length);
+      w.document.getElementById("editTranspose").click();
+      tMenu = w.document.getElementById("editTransposeMenu");
+      check(
+        "transpose menu names the example",
+        !!(
+          tMenu &&
+          tMenu.hidden === false &&
+          w.document.getElementById("editTransposeTitle").textContent === w.t("edit.transposeExample") &&
+          tMenu.querySelector("[data-transpose='5']") &&
+          tMenu.querySelector("[data-transpose='-5']") &&
+          tMenu.querySelector("[data-transpose-key='Eb']")
+        )
+      );
+      tMenu.querySelector("[data-transpose='5']").click();
+      check(
+        "up a fourth copies the example and lands on it",
+        focusLineT.value.indexOf("@key=F") === 0 &&
+          focusLineT.value.indexOf("F4 A4 C5") >= 0 &&
+          focusLineT.value.indexOf("^ii7") >= 0 &&
+          areaT.value.indexOf("C4 E4 G4") >= 0 &&
+          w.editorFocusIndex > 0
+      );
+      w.editorSymbolUndoStep();
+      check(
+        "undo removes the transposed copy",
+        focusLineT.value.indexOf("@key=F") < 0 && areaT.value.indexOf("@key=F") < 0
+      );
+      w.editorCloseTransposeMenu();
+      focusLineT.value = "C4 D4 E4 F4";
+      focusLineT.dispatchEvent(new w.Event("input", { bubbles: true }));
+      w.editorSyncFocusToArea();
+      focusLineT.focus();
+      focusLineT.setSelectionRange(focusLineT.value.length, focusLineT.value.length);
+      w.editorPadCaret = null;
+      if (symbolsPanel.hidden) {
+        symbolsToggle.click();
+      }
+      w.editorNotePadStamp = "";
+      w.editorPaintNotePad();
+      var intervalFace = symbolsPanel.querySelector("[data-move-menu]");
+      check(
+        "the interval stepper sits on Write notes like the octave arrows",
+        !w.document.getElementById("editMoveCombo") &&
+          !!symbolsPanel.querySelector("[data-move-by='1']") &&
+          !!symbolsPanel.querySelector("[data-move-by='-1']") &&
+          !!intervalFace &&
+          intervalFace.textContent === "8ve" &&
+          w.I18N.en["edit.ivlMin3"] === "Minor third" &&
+          w.I18N.es["edit.ivlTritone"] === "Tritono" &&
+          w.I18N.en["edit.moveUp"] === "Up {n}" &&
+          w.I18N.es["edit.moveDown"] === "Bajar {n}"
+      );
+      focusLineT.focus();
+      focusLineT.setSelectionRange(3, 8);
+      w.editorPadCaret = { start: 3, end: 8 };
+      poke(intervalFace);
+      var intervalMenu = symbolsPanel.querySelector(".edit-interval-menu");
+      check(
+        "the interval list is short values, not sentences or keys",
+        !!(
+          intervalMenu &&
+          intervalMenu.querySelector("[data-move-pick='1']") &&
+          intervalMenu.querySelector("[data-move-pick='1']").textContent === "m2" &&
+          intervalMenu.querySelector("[data-move-pick='3']").textContent === "m3" &&
+          intervalMenu.querySelector("[data-move-pick='6']").textContent === "TT" &&
+          intervalMenu.querySelector("[data-move-pick='11']").textContent === "M7" &&
+          intervalMenu.querySelector("[data-move-pick='12']").textContent === "8ve" &&
+          !intervalMenu.querySelector("[data-transpose-key]")
+        )
+      );
+      poke(intervalMenu.querySelector("[data-move-pick='2']"));
+      poke(symbolsPanel.querySelector("[data-move-by='1']"));
+      check(
+        "a selection moves and stays selected",
+        focusLineT.value === "C4 E4 F#4 F4" &&
+          focusLineT.value.indexOf("@key=") < 0 &&
+          focusLineT.selectionStart !== focusLineT.selectionEnd
+      );
+      w.document.getElementById("editTranspose").click();
+      check(
+        "transpose still copies the whole example while a passage is selected",
+        w.document.getElementById("editTransposeTitle").textContent === w.t("edit.transposeExample")
+      );
+      tMenu.querySelector("[data-transpose='5']").click();
+      check(
+        "the copy is the whole line, not the passage",
+        focusLineT.value.indexOf("@key=F") === 0 &&
+          areaT.value.indexOf("C4 E4 F#4 F4") >= 0 &&
+          focusLineT.value !== "C4 E4 F#4 F4"
+      );
+      w.editorCloseTransposeMenu();
+      w.editorCloseMoveMenu();
+    })();
     w.editorCancel();
   }
 }
