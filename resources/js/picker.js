@@ -456,6 +456,32 @@ function cancelSheetSlide() {
   sheet.style.transform = "none";
 }
 
+function sheetLiftFace(el) {
+  var face = document.createDocumentFragment();
+  var staff = !!(el && el.classList.contains("is-staff"));
+  if (el) {
+    while (el.firstChild) {
+      face.appendChild(el.firstChild);
+    }
+    el.classList.remove("is-staff");
+  }
+  return { face: face, staff: staff };
+}
+
+function sheetPlaceFace(el, lifted) {
+  if (!el) {
+    return;
+  }
+  while (el.firstChild) {
+    el.removeChild(el.firstChild);
+  }
+  if (lifted && lifted.face) {
+    el.appendChild(lifted.face);
+  }
+  el.classList.toggle("is-staff", !!(lifted && lifted.staff));
+  el.style.fontSize = el.classList.contains("is-staff") ? "" : sheetFontPx + "px";
+}
+
 function beginSheetSlide() {
   var sheet = document.getElementById("scoreSheet");
   var note = document.getElementById("note");
@@ -471,7 +497,8 @@ function beginSheetSlide() {
     return;
   }
   var incoming = document.createElement("p");
-  incoming.className = "score-row";
+  /* Same box as the row this drawing will land in, so the slide does not jump. */
+  incoming.className = lookAhead ? "reel-face reel-next score-row" : "score-row";
   incoming.setAttribute("aria-hidden", "true");
   var incomingSource = lookAhead ? (peekNextItem() || "") : (currentNoteSource || "");
   fillExampleFace(incoming, incomingSource, "sheet");
@@ -485,6 +512,12 @@ function beginSheetSlide() {
   sheetMoving = true;
   var finished = false;
   function finish(event) {
+    var nextEl;
+    var prevEl;
+    var live;
+    var incomingFace;
+    var nextFace;
+    var noteFace;
     if (finished || token !== sheetToken) {
       return;
     }
@@ -497,15 +530,46 @@ function beginSheetSlide() {
     finished = true;
     sheet.removeEventListener("transitionend", finish);
     clearTimeout(timer);
-    if (incoming.parentNode) {
+    nextEl = document.getElementById("noteNext");
+    prevEl = document.getElementById("notePrev");
+    live = document.getElementById("note");
+    if (
+      lookAhead &&
+      incoming.parentNode === sheet &&
+      nextEl &&
+      prevEl &&
+      live &&
+      nextEl.parentNode === sheet &&
+      prevEl.parentNode === sheet &&
+      live.parentNode === sheet
+    ) {
+      /* Move the drawings that already slid. Drawing them again shifts the staff. */
+      incomingFace = sheetLiftFace(incoming);
+      nextFace = sheetLiftFace(nextEl);
+      noteFace = sheetLiftFace(live);
+      sheetLiftFace(prevEl);
+      sheetPlaceFace(nextEl, incomingFace);
+      sheetPlaceFace(live, nextFace);
+      sheetPlaceFace(prevEl, noteFace);
       incoming.remove();
+    } else if (!lookAhead && live && incoming.parentNode === sheet) {
+      incomingFace = sheetLiftFace(incoming);
+      sheetPlaceFace(live, incomingFace);
+      incoming.remove();
+    } else {
+      if (incoming.parentNode) {
+        incoming.remove();
+      }
+      sheetMoving = false;
+      if (live) {
+        fillExampleFace(live, currentNoteSource, "current");
+      }
+      renderPreview();
+      return;
     }
+    sheet.style.transition = "none";
+    sheet.style.transform = "none";
     sheetMoving = false;
-    var live = document.getElementById("note");
-    if (live) {
-      fillExampleFace(live, currentNoteSource, "current");
-    }
-    renderPreview();
   }
   sheet.addEventListener("transitionend", finish);
   var timer = setTimeout(function () {

@@ -284,6 +284,15 @@ body.is-count-in {
     color: #1a1a1a;
 }
 
+#noteStack.sheet-on #scoreSheet > .is-staff .prog-name {
+    flex: 0 0 auto;
+    line-height: 1.15;
+    font-size: max(11px, 0.85rem);
+    margin-top: 0.15em;
+    text-align: center;
+    white-space: nowrap;
+}
+
 #noteStack.sheet-on.is-turning #note,
 #noteStack.sheet-on.is-turning .reel-next,
 #noteStack.sheet-on.is-turning .reel-prev {
