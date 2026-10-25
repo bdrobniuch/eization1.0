@@ -70,6 +70,8 @@ var editorStaffTypingDirty = false;
 var editorKeyboardStaffEdit = false;
 /* While Symbols/Notes is open, keep caret here and avoid focusing the field (no soft keyboard). */
 var editorPadCaret = null;
+/* After Chord ^, allow typing the name until the next pad action. */
+var editorLabelTyping = false;
 /* Pad/Erase hold-to-repeat (one undo step for the whole hold). */
 var editorHoldRepeatDelay = null;
 var editorHoldRepeatTimer = null;
@@ -767,6 +769,7 @@ function editorCloseSymbols() {
   if (button) {
     button.setAttribute("aria-expanded", "false");
   }
+  editorLabelTyping = false;
   editorPadCaret = null;
   editorSetPadInputMode(false);
   editorDropNoteFlow();
@@ -858,12 +861,14 @@ function editorPlaceCaret(field, start, end, silent) {
       field.setSelectionRange(start, end);
     } catch (errSilentCaret) {}
     editorUpdateStaffCaretMark();
+    editorSyncTokenHighlight();
     return;
   }
   field.focus();
   try {
     field.setSelectionRange(start, end);
   } catch (errFocusCaret) {}
+  field.classList.remove("has-token-highlight");
   editorUpdateStaffCaretMark();
 }
 
@@ -892,6 +897,9 @@ function editorBeginPadInput() {
   if (!editorSymbolsIsOpen()) {
     return;
   }
+  if (editorLabelTyping) {
+    return;
+  }
   field = editorActiveField();
   if (!field) {
     return;
@@ -902,6 +910,39 @@ function editorBeginPadInput() {
   editorSetPadInputMode(true);
   if (document.activeElement === field) {
     field.blur();
+  }
+}
+
+/* Let the musician type ^chord / _label text while Notes stays open. */
+function editorAllowLabelTyping() {
+  var field = editorActiveField();
+  var caret;
+  editorLabelTyping = true;
+  editorSetPadInputMode(false);
+  if (!field) {
+    return;
+  }
+  caret = editorPadCaret ? editorPadCaret.start : editorReadSelection(field).start;
+  try {
+    field.focus();
+    field.setSelectionRange(caret, caret);
+  } catch (errLabel) {}
+  editorStatus(t("edit.chordTypeHint"));
+}
+
+function editorEndLabelTyping() {
+  var field;
+  if (!editorLabelTyping) {
+    return;
+  }
+  editorLabelTyping = false;
+  if (editorSymbolsIsOpen()) {
+    editorCapturePadCaret();
+    editorSetPadInputMode(true);
+    field = editorActiveField();
+    if (field && document.activeElement === field) {
+      field.blur();
+    }
   }
 }
 
@@ -1708,7 +1749,7 @@ function refreshEditor() {
       editorPaintStaffPreview(preview, "", "");
       preview.classList.add("is-staff-pending");
     }
-    editorPaintStaffPendingCue(preview);
+    editorPaintStaffPendingCue(preview, status && status.error);
     if (pendingPulse) {
       editorPulseStaffPending(preview);
     }
@@ -1760,9 +1801,10 @@ function editorStaffPendingWarnIcon() {
   return svg;
 }
 
-function editorPaintStaffPendingCue(preview) {
+function editorPaintStaffPendingCue(preview, why) {
   var cue;
   var msg;
+  var text;
   if (!preview) {
     return;
   }
@@ -1777,7 +1819,13 @@ function editorPaintStaffPendingCue(preview) {
   cue.appendChild(editorStaffPendingWarnIcon());
   msg = document.createElement("span");
   msg.className = "edit-staff-pending-msg";
-  msg.textContent = t("edit.staffPending");
+  why = String(why || "").replace(/^\s+|\s+$/g, "");
+  if (why && why.length < 80) {
+    text = t("edit.staffPendingWhy").replace("{why}", why);
+  } else {
+    text = t("edit.staffPending");
+  }
+  msg.textContent = text;
   cue.appendChild(msg);
   preview.appendChild(cue);
 }
@@ -1913,17 +1961,29 @@ function editorStaffCaretNoiseTok(tok) {
 }
 
 function editorStaffBeamInnerNote(tok) {
-  var inner = String(tok || "").replace(/^\{/, "").replace(/\}$/, "");
+  /* Strip beam braces and a tuplet closer glued on the last note: E4e) / E4e}). */
+  var inner = String(tok || "")
+    .replace(/^\{/, "")
+    .replace(/[})]+$/, "");
   if (!inner || inner === "~") {
     return false;
   }
   if (typeof staffParsePitchToken === "function" && staffParsePitchToken(inner)) {
     return true;
   }
+  if (typeof staffParseRestToken === "function" && staffParseRestToken(inner)) {
+    return true;
+  }
   if (typeof staffParseSlashToken === "function" && staffParseSlashToken(inner, "treble")) {
     return true;
   }
   return false;
+}
+
+/* Tuplet opener or a lone ratio token — not a drawn note column. */
+function editorStaffTupletOpenerTok(tok) {
+  return /^\((\d{1,2})(?::(\d{1,2}))?$/.test(String(tok || "")) ||
+    /^\d{1,2}(:\d{1,2})?$/.test(String(tok || ""));
 }
 
 /*
@@ -1943,6 +2003,13 @@ function editorStaffColumnStarts(music) {
     }
   }
 
+  function tokenClosesBeamOrTuplet(tok) {
+    return (
+      String(tok || "").indexOf("}") >= 0 ||
+      (typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(tok))
+    );
+  }
+
   function consumeBeam() {
     skipNoise();
     if (i >= ranges.length || ranges[i].tok.indexOf("{") < 0) {
@@ -1950,11 +2017,20 @@ function editorStaffColumnStarts(music) {
     }
     while (i < ranges.length) {
       t = ranges[i].tok;
+      /* Stack inside a beam is one drawn column (same as staff.js). */
+      if (t.charAt(0) === "[" || (t.charAt(0) === "{" && t.charAt(1) === "[")) {
+        consumeStack();
+        if (i > 0 && tokenClosesBeamOrTuplet(ranges[i - 1].tok)) {
+          break;
+        }
+        continue;
+      }
       if (editorStaffBeamInnerNote(t)) {
         starts.push(ranges[i].start + (t.charAt(0) === "{" ? 1 : 0));
       }
       i += 1;
-      if (t.indexOf("}") >= 0) {
+      /* Beam may close with } or a tuplet-glued } on the last note — also }) forms. */
+      if (tokenClosesBeamOrTuplet(t)) {
         break;
       }
     }
@@ -1962,10 +2038,21 @@ function editorStaffColumnStarts(music) {
 
   function consumeStack() {
     skipNoise();
-    if (i >= ranges.length || ranges[i].tok.charAt(0) !== "[") {
+    if (i >= ranges.length) {
       return;
     }
-    openStart = ranges[i].start;
+    t = ranges[i].tok;
+    /* Allow {[E4e… when the beam opener is glued to the stack. */
+    if (t.charAt(0) === "{") {
+      if (t.charAt(1) !== "[") {
+        return;
+      }
+      openStart = ranges[i].start + 1;
+    } else if (t.charAt(0) === "[") {
+      openStart = ranges[i].start;
+    } else {
+      return;
+    }
     while (i < ranges.length) {
       t = ranges[i].tok;
       i += 1;
@@ -1981,6 +2068,7 @@ function editorStaffColumnStarts(music) {
     if (i >= ranges.length || ranges[i].tok.charAt(0) !== "(") {
       return;
     }
+    /* Skip (3 / (5:4 — the number is not a drawn column. */
     i += 1;
     while (i < ranges.length) {
       t = ranges[i].tok;
@@ -1990,22 +2078,29 @@ function editorStaffColumnStarts(music) {
       }
       if (typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(t)) {
         /* Glued close: E4e) still counts as a note column. */
-        if (t.length > 1) {
+        if (editorStaffBeamInnerNote(t) || (t.length > 1 && !editorStaffTupletOpenerTok(t))) {
           starts.push(ranges[i].start);
         }
         i += 1;
         break;
       }
-      if (editorStaffCaretNoiseTok(t)) {
+      if (editorStaffCaretNoiseTok(t) || editorStaffTupletOpenerTok(t)) {
         i += 1;
         continue;
       }
       if (t.indexOf("{") >= 0) {
         consumeBeam();
+        /* Beam token may glue }) — do not keep scanning as if still inside (N. */
+        if (i > 0 && typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(ranges[i - 1].tok)) {
+          break;
+        }
         continue;
       }
       if (t.charAt(0) === "[") {
         consumeStack();
+        if (i > 0 && typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(ranges[i - 1].tok)) {
+          break;
+        }
         continue;
       }
       starts.push(ranges[i].start);
@@ -2064,12 +2159,24 @@ function editorStaffCaretInsertionIndex(music, caret) {
   return idx;
 }
 
-/* Music-string caret stops for pad Left/Right (column edges + start/end). */
+/* Music-string caret stops for pad Left/Right (column edges + end). */
 function editorStaffCaretStops(music) {
   var raw = String(music || "");
   var starts = editorStaffColumnStarts(raw);
-  var stops = [0];
+  var stops = [];
   var i;
+  if (!starts.length) {
+    stops.push(0);
+    if (raw.length > 0) {
+      stops.push(raw.length);
+    }
+    return stops;
+  }
+  /*
+   * Skip a structural prefix ((3, {, [) — the tuplet number is not a note
+   * column, so arrows should not park on it.
+   */
+  stops.push(starts[0] > 0 ? starts[0] : 0);
   for (i = 0; i < starts.length; i++) {
     if (starts[i] > stops[stops.length - 1]) {
       stops.push(starts[i]);
@@ -2172,6 +2279,227 @@ function editorStaffCaretX(layout, insertIndex) {
   return (left.x + right.x) / 2;
 }
 
+/* Inverse of editorStaffCaretX: nearest insert index (ties keep the left slot). */
+function editorStaffInsertIndexFromX(layout, x) {
+  var n;
+  var best = 0;
+  var bestDist = Infinity;
+  var i;
+  var ix;
+  var d;
+  if (!layout || typeof x !== "number" || isNaN(x)) {
+    return 0;
+  }
+  n = (layout.cols || []).length;
+  for (i = 0; i <= n; i++) {
+    ix = editorStaffCaretX(layout, i);
+    if (ix === null || isNaN(ix)) {
+      continue;
+    }
+    d = Math.abs(ix - x);
+    if (d < bestDist) {
+      bestDist = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/* End of the drawn column's token (stack through ]), no trailing space. */
+function editorMusicColumnContentEnd(music, colStart) {
+  var ranges = editorMusicTokenRanges(music);
+  var i;
+  var t;
+  var end = colStart;
+  for (i = 0; i < ranges.length; i++) {
+    t = String(ranges[i].tok || "");
+    if (ranges[i].start === colStart || (ranges[i].start < colStart && ranges[i].end > colStart)) {
+      if (t.charAt(0) === "[" && ranges[i].start === colStart) {
+        while (i < ranges.length) {
+          end = ranges[i].end;
+          if (String(ranges[i].tok || "").indexOf("]") >= 0) {
+            return end;
+          }
+          i += 1;
+        }
+        return end;
+      }
+      return ranges[i].end;
+    }
+  }
+  return colStart;
+}
+
+/*
+ * Music-string caret for a drawn insert index.
+ * Gaps park after the left column so Erase hits that symbol. When the gap is
+ * only spaces / } ] ), park after those closers (e.g. after a tuplet before
+ * the next beam). An opener ( { [ in the gap keeps the caret after the left
+ * token, before the space.
+ */
+function editorMusicCaretFromInsertIndex(music, insertIndex) {
+  var raw = String(music || "");
+  var starts = editorStaffColumnStarts(raw);
+  var prevEnd;
+  var next;
+  var gapEnd;
+  var gap;
+  var pos;
+  if (!starts.length) {
+    return insertIndex <= 0 ? 0 : raw.length;
+  }
+  if (insertIndex <= 0) {
+    return starts[0];
+  }
+  if (insertIndex >= starts.length) {
+    return raw.length;
+  }
+  prevEnd = editorMusicColumnContentEnd(raw, starts[insertIndex - 1]);
+  next = starts[insertIndex];
+  gapEnd = next;
+  /* Next column may sit inside {Note / [stack — that wrapper is not gap content. */
+  while (
+    gapEnd > prevEnd &&
+    (raw.charAt(gapEnd - 1) === "{" || raw.charAt(gapEnd - 1) === "[")
+  ) {
+    gapEnd -= 1;
+  }
+  gap = raw.slice(prevEnd, gapEnd);
+  if (/^[\s}\])]*$/.test(gap)) {
+    pos = gapEnd;
+    while (pos > prevEnd && /\s/.test(raw.charAt(pos - 1))) {
+      pos -= 1;
+    }
+    return pos;
+  }
+  return prevEnd;
+}
+
+/* Pitch / slash / rest only — not `{` `}` `(` `)` `|` shells. */
+function editorTokenIsHighlightable(current) {
+  var token;
+  var kind;
+  if (!current || current.start >= current.end) {
+    return false;
+  }
+  kind = current.kind || (current.hit && current.hit.kind) || "";
+  if (kind === "pitch" || kind === "slash" || kind === "rest") {
+    return true;
+  }
+  token = String(current.token || "");
+  if (/^[A-G](?:#|b|n)?\d/.test(token)) {
+    return true;
+  }
+  if (/^\/[whqes]?\.?$/.test(token) || /^r[whqes]?\.?$/i.test(token)) {
+    return true;
+  }
+  return false;
+}
+
+/*
+ * Highlight the current note/rest token in the example field while Notes is
+ * open (field blurred). Pad caret stays the insertion point for logic.
+ */
+function editorSyncTokenHighlight() {
+  var field = editorActiveField();
+  var current;
+  var pad;
+  if (!field) {
+    return;
+  }
+  if (!editorStaffOn() || !editorSymbolsIsOpen() || editorLabelTyping) {
+    field.classList.remove("has-token-highlight");
+    return;
+  }
+  if (document.activeElement === field) {
+    field.classList.remove("has-token-highlight");
+    return;
+  }
+  pad = editorPadCaret;
+  if (!pad) {
+    field.classList.remove("has-token-highlight");
+    return;
+  }
+  current = editorCurrentEventAtCaret();
+  if (editorTokenIsHighlightable(current)) {
+    try {
+      field.setSelectionRange(current.start, current.end);
+    } catch (errTok) {}
+    field.classList.add("has-token-highlight");
+    return;
+  }
+  try {
+    field.setSelectionRange(pad.start, pad.end);
+  } catch (errPad) {}
+  field.classList.remove("has-token-highlight");
+}
+
+/* Tap/click the staff preview to move the caret to that column. */
+function editorStaffPreviewPointer(event) {
+  var preview = document.getElementById("editPreview");
+  var svg;
+  var layout;
+  var pt;
+  var ctm;
+  var local;
+  var insertIndex;
+  var span;
+  var line;
+  var lineCaret;
+  var mapped;
+  var musicAt;
+  var fieldCaret;
+  var silent;
+  if (!event || !preview || !editorIsOpen() || !editorStaffOn()) {
+    return;
+  }
+  if (!preview.classList.contains("is-staff")) {
+    return;
+  }
+  svg = preview.querySelector("svg.music-staff");
+  layout = preview._staffCaretLayout || (svg && svg._staffCaretLayout) || null;
+  if (!svg || !layout) {
+    return;
+  }
+  if (typeof svg.createSVGPoint !== "function" || typeof svg.getScreenCTM !== "function") {
+    return;
+  }
+  ctm = svg.getScreenCTM();
+  if (!ctm) {
+    return;
+  }
+  pt = svg.createSVGPoint();
+  pt.x = event.clientX;
+  pt.y = event.clientY;
+  local = pt.matrixTransform(ctm.inverse());
+  insertIndex = editorStaffInsertIndexFromX(layout, local.x);
+  span = editorLineSpan();
+  if (!span || !span.field) {
+    return;
+  }
+  line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
+  lineCaret = span.caret - span.lineStart;
+  mapped = editorMusicCaretInLine(line, lineCaret);
+  musicAt = String(line || "").indexOf(mapped.music);
+  if (musicAt < 0) {
+    musicAt = 0;
+  }
+  fieldCaret = span.lineStart + musicAt + editorMusicCaretFromInsertIndex(mapped.music, insertIndex);
+  silent = !!(editorSymbolsIsOpen() && !editorLabelTyping);
+  if (silent && !editorPadCaret) {
+    editorCapturePadCaret();
+  }
+  editorPlaceCaret(span.field, fieldCaret, fieldCaret, silent);
+  if (silent) {
+    editorBeginPadInput();
+  }
+  editorPaintNotePad();
+  editorSyncTokenHighlight();
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+}
+
 function editorClearStaffCaretMark(preview) {
   var svg;
   var mark;
@@ -2203,7 +2531,8 @@ function editorUpdateStaffCaretMark() {
     editorClearStaffCaretMark(preview);
     return;
   }
-  if (preview.classList.contains("is-staff-pending") || !preview.classList.contains("is-staff")) {
+  /* Keep the mark while pending so the musician can still see the caret. */
+  if (!preview.classList.contains("is-staff")) {
     editorClearStaffCaretMark(preview);
     return;
   }
@@ -2240,7 +2569,7 @@ function editorUpdateStaffCaretMark() {
     mark = document.createElementNS("http://www.w3.org/2000/svg", "line");
     mark.setAttribute("class", "staff-caret-mark");
     mark.setAttribute("stroke", "currentColor");
-    mark.setAttribute("stroke-width", "1.6");
+    mark.setAttribute("stroke-width", "2");
     mark.setAttribute("stroke-linecap", "round");
     mark.setAttribute("pointer-events", "none");
     svg.appendChild(mark);
@@ -2249,6 +2578,7 @@ function editorUpdateStaffCaretMark() {
   mark.setAttribute("x2", String(x));
   mark.setAttribute("y1", String(layout.staffTop - 3));
   mark.setAttribute("y2", String(layout.staffBot + 3));
+  editorSyncTokenHighlight();
 }
 
 function insertEditorText(text, caretBack) {
@@ -2289,6 +2619,9 @@ function insertEditorText(text, caretBack) {
         caret = 0;
       }
       editorPlaceCaret(field, caret, caret, silent);
+      if (parts.length > 1) {
+        editorStatus(t("edit.pasteAdded").replace("{n}", String(parts.length)));
+      }
     } else {
       var value = field.value || "";
       field.value = value.slice(0, start) + single + value.slice(end);
@@ -2607,13 +2940,76 @@ function editorPitchTail(text) {
   return hit;
 }
 
-function editorPitchAtCaret() {
+/*
+ * Word bounds on a line at rel — same grain as Erase: token under the caret
+ * when parked on it, else the previous word when in trailing spaces.
+ */
+function editorWordBoundsAt(line, rel) {
+  var wordStart;
+  var wordEnd;
+  line = String(line || "");
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  if (rel > 0 && !editorEraseWordStop(line.charAt(rel - 1))) {
+    wordEnd = rel;
+    while (wordEnd < line.length && !editorEraseWordStop(line.charAt(wordEnd))) {
+      wordEnd += 1;
+    }
+    wordStart = rel;
+    while (wordStart > 0 && !editorEraseWordStop(line.charAt(wordStart - 1))) {
+      wordStart -= 1;
+    }
+    return { start: wordStart, end: wordEnd, caretInWord: rel - wordStart };
+  }
+  if (rel < line.length && !editorEraseWordStop(line.charAt(rel))) {
+    wordStart = rel;
+    wordEnd = rel;
+    while (wordEnd < line.length && !editorEraseWordStop(line.charAt(wordEnd))) {
+      wordEnd += 1;
+    }
+    return { start: wordStart, end: wordEnd, caretInWord: 0 };
+  }
+  if (rel > 0) {
+    wordEnd = rel;
+    while (wordEnd > 0 && /\s/.test(line.charAt(wordEnd - 1))) {
+      wordEnd -= 1;
+    }
+    wordStart = wordEnd;
+    while (wordStart > 0 && !editorEraseWordStop(line.charAt(wordStart - 1))) {
+      wordStart -= 1;
+    }
+    if (wordEnd > wordStart) {
+      return { start: wordStart, end: wordEnd, caretInWord: wordEnd - wordStart };
+    }
+  }
+  return null;
+}
+
+/*
+ * Pitch or rhythm under the caret (field coords). Prefers the token at/after
+ * a column start so Acc/Dur match Erase and the insertion mark.
+ */
+function editorMusicHitAtCaret() {
   var field = editorActiveField();
   var value;
   var caret;
-  var before;
-  var hit;
   var sel;
+  var lineStart;
+  var lineEnd;
+  var line;
+  var rel;
+  var bounds;
+  var spans;
+  var span;
+  var token;
+  var hit;
+  var pitchM;
+  var rhythmM;
+  var before;
   if (!field) {
     return null;
   }
@@ -2623,17 +3019,145 @@ function editorPitchAtCaret() {
   }
   value = String(field.value || "");
   caret = sel.start;
+  lineStart = value.lastIndexOf("\n", caret - 1) + 1;
+  lineEnd = value.indexOf("\n", caret);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  line = value.slice(lineStart, lineEnd);
+  rel = caret - lineStart;
+  bounds = editorWordBoundsAt(line, rel);
+  if (bounds) {
+    spans = editorMusicEventSpans(line.slice(bounds.start, bounds.end));
+    span = editorPickEventSpan(spans, bounds.caretInWord);
+    if (span) {
+      token = span.token;
+      pitchM = /^([A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/.exec(token);
+      if (pitchM) {
+        hit = editorParsePitchToken(pitchM[1]);
+        if (hit) {
+          hit.token = token;
+          hit.affix = pitchM[2] || "";
+          hit.field = field;
+          hit.start = lineStart + bounds.start + span.start;
+          hit.end = hit.start + token.length;
+          hit.caret = caret;
+          hit.kind = "pitch";
+          return hit;
+        }
+      }
+      rhythmM = /^(\/[whqes]?\.?|r[whqes]?\.?)((?:[\^_']|[>\-])[^\s]*)?$/i.exec(token);
+      if (rhythmM) {
+        hit = editorParseRhythmToken(rhythmM[1]);
+        if (hit) {
+          hit.token = token;
+          hit.affix = rhythmM[2] || "";
+          hit.field = field;
+          hit.start = lineStart + bounds.start + span.start;
+          hit.end = hit.start + token.length;
+          hit.caret = caret;
+          return hit;
+        }
+      }
+      /* Word under the caret is | ~ % (3 etc. — not an earlier note. */
+      return null;
+    }
+  }
   before = value.slice(0, caret);
   hit = editorPitchTail(before);
-  if (!hit) {
+  if (hit) {
+    hit.field = field;
+    hit.start = before.replace(/\s+$/, "").length - hit.token.length;
+    hit.end = hit.start + hit.token.length;
+    hit.caret = caret;
+    hit.kind = "pitch";
+    return hit;
+  }
+  hit = editorRhythmTail(before);
+  if (hit) {
+    hit.field = field;
+    hit.start = before.replace(/\s+$/, "").length - hit.token.length;
+    hit.end = hit.start + hit.token.length;
+    hit.caret = caret;
+    return hit;
+  }
+  return null;
+}
+
+function editorPitchAtCaret() {
+  var hit = editorMusicHitAtCaret();
+  if (!hit || hit.kind !== "pitch") {
     return null;
   }
-  hit.field = field;
-  hit.start = before.replace(/\s+$/, "").length - hit.token.length;
-  hit.end = hit.start + hit.token.length;
-  hit.caret = caret;
-  hit.kind = "pitch";
   return hit;
+}
+
+/*
+ * One current-event view for rewrite + erase (field coords).
+ * Group peel / selection stay separate on top of this.
+ * Prefer pitch/rhythm; else the music-event span under the same word bounds (| ~ %).
+ */
+function editorCurrentEventAtCaret() {
+  var hit = editorMusicHitAtCaret();
+  var field;
+  var value;
+  var caret;
+  var sel;
+  var lineStart;
+  var lineEnd;
+  var line;
+  var rel;
+  var bounds;
+  var spans;
+  var span;
+  var start;
+  if (hit && hit.field) {
+    return {
+      field: hit.field,
+      start: hit.start,
+      end: hit.end,
+      token: hit.token,
+      kind: hit.kind === "pitch" ? "pitch" : hit.kind || "token",
+      hit: hit,
+      caret: hit.caret
+    };
+  }
+  field = editorActiveField();
+  if (!field) {
+    return null;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start !== sel.end) {
+    return null;
+  }
+  value = String(field.value || "");
+  caret = sel.start;
+  lineStart = value.lastIndexOf("\n", caret - 1) + 1;
+  lineEnd = value.indexOf("\n", caret);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  line = value.slice(lineStart, lineEnd);
+  rel = caret - lineStart;
+  bounds = editorWordBoundsAt(line, rel);
+  if (!bounds) {
+    return null;
+  }
+  spans = editorMusicEventSpans(line.slice(bounds.start, bounds.end));
+  span = editorPickEventSpan(spans, bounds.caretInWord);
+  if (!span || !span.token) {
+    return null;
+  }
+  start = lineStart + bounds.start + span.start;
+  return {
+    field: field,
+    start: start,
+    end: start + span.token.length,
+    token: span.token,
+    kind: "token",
+    hit: null,
+    caret: caret
+  };
 }
 
 function editorParseRhythmToken(token) {
@@ -2682,30 +3206,10 @@ function editorRhythmTail(text) {
 }
 
 function editorRhythmAtCaret() {
-  var field = editorActiveField();
-  var value;
-  var caret;
-  var before;
-  var hit;
-  var sel;
-  if (!field) {
+  var hit = editorMusicHitAtCaret();
+  if (!hit || hit.kind === "pitch") {
     return null;
   }
-  sel = editorReadSelection(field);
-  if (sel.start !== sel.end) {
-    return null;
-  }
-  value = String(field.value || "");
-  caret = sel.start;
-  before = value.slice(0, caret);
-  hit = editorRhythmTail(before);
-  if (!hit) {
-    return null;
-  }
-  hit.field = field;
-  hit.start = before.replace(/\s+$/, "").length - hit.token.length;
-  hit.end = hit.start + hit.token.length;
-  hit.caret = caret;
   return hit;
 }
 
@@ -3522,11 +4026,47 @@ function editorStaffGroupShellTarget(line, g) {
 }
 
 /*
- * On a drawn staff, Erase after } ] ) peels the last inner event. The last
- * inner event takes the shell with it so the line does not sit on empty
- * braces. A one-note tuplet stays legal (drawn plain), so peeling from two
- * leaves `(3 C4e)`. An empty pad shell ({ } / [ ] / (3 )) still clears in
- * one tap.
+ * Climb to the outermost {} / [] / (N…) that still has no music beyond
+ * optional onlySpan (the note about to be peeled). Collapses (3 {}) in one erase.
+ */
+function editorOutermostCollapsibleGroup(line, groups, inner, onlySpan) {
+  var outer = inner;
+  var i;
+  var parent;
+  var music;
+  var expanded = true;
+  while (expanded) {
+    expanded = false;
+    for (i = 0; i < groups.length; i++) {
+      parent = groups[i];
+      if (parent.open >= outer.open || parent.closeEnd < outer.closeEnd) {
+        continue;
+      }
+      music = editorInnerMusicSpans(line, parent);
+      if (!music.length) {
+        outer = parent;
+        expanded = true;
+        break;
+      }
+      if (
+        onlySpan &&
+        music.length === 1 &&
+        music[0].start === onlySpan.start &&
+        music[0].end === onlySpan.end
+      ) {
+        outer = parent;
+        expanded = true;
+        break;
+      }
+    }
+  }
+  return outer;
+}
+
+/*
+ * On a drawn staff, Erase after } ] ) peels the last inner event for {}, [],
+ * and (N…). The last note (or an empty shell) clears nested empty parents in
+ * one tap — so (3 {}) and (3 {F#4s}) do not leave a bare (3).
  */
 function editorStaffGroupEraseTarget(line, rel) {
   var groups;
@@ -3536,17 +4076,15 @@ function editorStaffGroupEraseTarget(line, rel) {
   var last;
   var start;
   var end;
-  var statusOk;
   var onCloser;
   var inside;
   var probe;
-  var clearShell;
+  var clear;
   line = String(line || "");
   groups = editorFindBalancedGroups(line);
   if (!groups.length) {
     return null;
   }
-  statusOk = editorLineMusicOk(line);
   g = null;
   for (i = groups.length - 1; i >= 0; i--) {
     if (groups[i].open < rel && rel <= groups[i].closeEnd) {
@@ -3582,22 +4120,21 @@ function editorStaffGroupEraseTarget(line, rel) {
   inside = rel > g.open && rel < g.closeStart;
   if (!music.length) {
     if (onCloser || inside || rel === g.closeEnd) {
-      return editorStaffGroupShellTarget(line, g);
+      clear = editorOutermostCollapsibleGroup(line, groups, g, null);
+      return editorStaffGroupShellTarget(line, clear);
     }
     return null;
   }
-  if (!statusOk) {
-    return null;
-  }
+  /* Peel last inner even while the line is pending — recovery for stuck shells. */
   if (!onCloser) {
     return null;
   }
-  /* Last remaining inner event removes the whole group. */
-  clearShell = music.length <= 1;
-  if (clearShell) {
-    return editorStaffGroupShellTarget(line, g);
-  }
   last = music[music.length - 1];
+  /* Last music event: drop the shell (and empty nested parents) in one tap. */
+  if (music.length === 1) {
+    clear = editorOutermostCollapsibleGroup(line, groups, g, last);
+    return editorStaffGroupShellTarget(line, clear);
+  }
   start = last.start;
   end = last.end;
   if (start > g.innerStart && /\s/.test(line.charAt(start - 1))) {
@@ -3616,14 +4153,10 @@ function editorStaffEraseTarget() {
   var lineEnd;
   var line;
   var rel;
-  var wordStart;
-  var wordEnd;
-  var spans;
-  var span;
+  var groupTarget;
+  var current;
   var start;
   var end;
-  var token;
-  var groupTarget;
   if (!field) {
     return null;
   }
@@ -3665,18 +4198,7 @@ function editorStaffEraseTarget() {
       kind: "char"
     };
   }
-  /* Word that contains the caret, or the previous word when the caret is in spaces.
-   * Stop before a group closer so B4e_7} does not become one erasable run. */
-  if (rel > 0 && !editorEraseWordStop(line.charAt(rel - 1))) {
-    wordEnd = rel;
-    while (wordEnd < line.length && !editorEraseWordStop(line.charAt(wordEnd))) {
-      wordEnd += 1;
-    }
-    wordStart = rel;
-    while (wordStart > 0 && !editorEraseWordStop(line.charAt(wordStart - 1))) {
-      wordStart -= 1;
-    }
-  } else if (rel > 0 && (line.charAt(rel - 1) === "}" || line.charAt(rel - 1) === "]" || line.charAt(rel - 1) === ")")) {
+  if (rel > 0 && (line.charAt(rel - 1) === "}" || line.charAt(rel - 1) === "]" || line.charAt(rel - 1) === ")")) {
     /* Alone on a closer with no group peel: delete just that mark. */
     return {
       start: caret - 1,
@@ -3684,33 +4206,23 @@ function editorStaffEraseTarget() {
       token: line.charAt(rel - 1),
       kind: "token"
     };
-  } else if (rel < line.length && !editorEraseWordStop(line.charAt(rel))) {
-    wordStart = rel;
-    wordEnd = rel;
-    while (wordEnd < line.length && !editorEraseWordStop(line.charAt(wordEnd))) {
-      wordEnd += 1;
-    }
-  } else if (rel > 0) {
-    wordEnd = rel;
-    while (wordEnd > 0 && /\s/.test(line.charAt(wordEnd - 1))) {
-      wordEnd -= 1;
-    }
-    if (wordEnd > 0 && (line.charAt(wordEnd - 1) === "}" || line.charAt(wordEnd - 1) === "]" || line.charAt(wordEnd - 1) === ")")) {
-      return {
-        start: lineStart + wordEnd - 1,
-        end: lineStart + wordEnd,
-        token: line.charAt(wordEnd - 1),
-        kind: "token"
-      };
-    }
-    wordStart = wordEnd;
-    while (wordStart > 0 && !editorEraseWordStop(line.charAt(wordStart - 1))) {
-      wordStart -= 1;
-    }
-  } else {
-    return null;
   }
-  if (wordEnd <= wordStart) {
+  /* Same event Acc/Dur would rewrite — one resolver for mark grain + erase. */
+  current = editorCurrentEventAtCaret();
+  if (current) {
+    start = current.start;
+    end = current.end;
+    if (start > lineStart && /\s/.test(value.charAt(start - 1))) {
+      start -= 1;
+    }
+    return {
+      start: start,
+      end: end,
+      token: current.token,
+      kind: "token"
+    };
+  }
+  if (rel > 0 && /\s/.test(line.charAt(rel - 1))) {
     return {
       start: caret - 1,
       end: caret,
@@ -3718,23 +4230,7 @@ function editorStaffEraseTarget() {
       kind: "char"
     };
   }
-  spans = editorMusicEventSpans(line.slice(wordStart, wordEnd));
-  span = editorPickEventSpan(spans, rel - wordStart);
-  if (!span) {
-    return null;
-  }
-  start = lineStart + wordStart + span.start;
-  end = lineStart + wordStart + span.end;
-  token = span.token;
-  if (start > lineStart && /\s/.test(value.charAt(start - 1))) {
-    start -= 1;
-  }
-  return {
-    start: start,
-    end: end,
-    token: token,
-    kind: "token"
-  };
+  return null;
 }
 
 function editorEraseLabel() {
@@ -4947,10 +5443,12 @@ function editorToggleStructure(kind) {
     }
   }
   if (sel.start === sel.end && editorStructureParentBlocks(kind, line, rel)) {
+    editorNotice(t("edit.refuseWrap"));
     editorPaintNotePad();
     return;
   }
   if (editorStructureWouldNest(kind)) {
+    editorNotice(t("edit.refuseNest"));
     editorPaintNotePad();
     return;
   }
@@ -4963,6 +5461,7 @@ function editorToggleStructure(kind) {
       return;
     }
     /* Selection present but illegal for this shell: do not seed. */
+    editorNotice(t("edit.refuseWrap"));
     editorPaintNotePad();
     return;
   }
@@ -5446,6 +5945,7 @@ function editorWriteLetter(letter, opts) {
       occupied = editorStackOccupiedKeys(line, stack);
       free = editorNextFreeStackOctave(letter, acc, oct, occupied);
       if (free === null) {
+        editorNotice(t("edit.refuseStackFull"));
         editorPaintNotePad();
         return;
       }
@@ -5931,6 +6431,7 @@ function editorToggleOrInsertTie() {
     return;
   }
   if (editorCaretBeforeRest()) {
+    editorNotice(t("edit.refuseTieRest"));
     editorPaintNotePad();
     return;
   }
@@ -5983,9 +6484,9 @@ function editorToggleOrInsertChord() {
     caret = hit.end + 1;
     silent = !!(editorPadCaret && editorSymbolsIsOpen());
     editorPlaceCaret(hit.field, caret, caret, silent);
-    clearEditorNotice();
     refreshEditor();
     editorPaintNotePad();
+    editorAllowLabelTyping();
     return;
   }
   /* Inside (or just after) a stack: chord name belongs after ], not on one pitch. */
@@ -6009,13 +6510,14 @@ function editorToggleOrInsertChord() {
       caret = insertAt + 1;
       silent = !!(editorPadCaret && editorSymbolsIsOpen());
       editorPlaceCaret(span.field, caret, caret, silent);
-      clearEditorNotice();
       refreshEditor();
       editorPaintNotePad();
+      editorAllowLabelTyping();
       return;
     }
   }
   editorInsertSymbol("^");
+  editorAllowLabelTyping();
 }
 
 /*
@@ -6095,6 +6597,7 @@ function editorShiftOctave(dir) {
   }
   oct = editorClampOctave(hit.oct + dir);
   if (oct === hit.oct) {
+    editorNotice(t("edit.refuseOctave"));
     editorPaintNotePad();
     return;
   }
@@ -6108,6 +6611,7 @@ function editorShiftOctave(dir) {
       key = hit.letter + (hit.acc || "") + String(oct);
       delete occupied[selfKey];
       if (occupied[key]) {
+        editorNotice(t("edit.refuseStackFull"));
         editorPaintNotePad();
         return;
       }
@@ -6126,6 +6630,12 @@ function editorActivateSymbol(button, opts) {
   var skipUndo = !!(opts && opts.skipUndo);
   if (!button) {
     return;
+  }
+  /* Any pad tap ends chord-name typing (except we re-enter after Chord). */
+  if (!button.hasAttribute("data-event") || button.getAttribute("data-event") !== "chord") {
+    editorEndLabelTyping();
+  } else if (editorCaretChordMarkRange()) {
+    editorEndLabelTyping();
   }
   editorAnalyticsMark("used_pad");
   if (button.hasAttribute("data-tuplet-menu")) {
@@ -7983,10 +8493,15 @@ function initEditor() {
     if (target.id === "editFocusLine" || target.id === "allEdit") {
       editorPadCaret = null;
       editorSetPadInputMode(false);
+      target.classList.remove("has-token-highlight");
       editorEnsureFieldVisible(target);
     }
   }
   document.addEventListener("focusin", editorOnFieldFocusForPad);
+  var editPreview = document.getElementById("editPreview");
+  if (editPreview) {
+    editPreview.addEventListener("click", editorStaffPreviewPointer);
+  }
   document.addEventListener("keydown", function (event) {
     var key;
     var undoKey;

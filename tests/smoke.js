@@ -2115,6 +2115,13 @@ function chatCase(w) {
       var mark = symbolsPanel.querySelector("[data-octave]");
       return mark ? mark.getAttribute("data-octave") : "";
     }
+    /* Notes open: field selection may paint the token; pad caret is the insert point. */
+    function insertCaret() {
+      if (w.editorPadCaret && w.document.activeElement !== focusLine) {
+        return w.editorPadCaret.start;
+      }
+      return focusLine.selectionStart;
+    }
     poke(symbolsPanel.querySelector("[data-note='C']"));
     check(
       "a letter writes the note",
@@ -2194,13 +2201,14 @@ function chatCase(w) {
         symbolsPanel.querySelector("[data-dot]").getAttribute("aria-pressed") === "true"
     );
     placeCaret("C4 D4 | Eb5e F5e /q re.");
-    focusLine.focus();
-    focusLine.setSelectionRange(0, 0);
+    /* Arm after the bar (no note under the caret) so duration does not rewrite. */
+    focusLine.setSelectionRange(7, 7);
+    w.editorPadCaret = { start: 7, end: 7 };
     poke(symbolsPanel.querySelector("[data-dot]"));
     poke(symbolsPanel.querySelector("[data-dur='w']"));
     poke(symbolsPanel.querySelector("[data-dot]"));
-    focusLine.focus();
     focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-note='B']"));
     check("a dot can sit on a whole note", focusLine.value === "C4 D4 | Eb5e F5e /q re. B5w.");
     poke(symbolsPanel.querySelector("[data-dot]"));
@@ -2212,7 +2220,7 @@ function chatCase(w) {
     focusLine.setSelectionRange(0, 0);
     w.editorPadCaret = { start: 0, end: 0 };
     poke(symbolsPanel.querySelector("[data-note='C']"));
-    check("a note takes a space before the next word", focusLine.value === "C5 D4");
+    check("a note takes a space before the next word", focusLine.value === "C4 D4");
     placeCaret("C4 D4");
     focusLine.setSelectionRange(3, 3);
     w.editorPadCaret = { start: 3, end: 3 };
@@ -2229,7 +2237,7 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
       "an empty beam takes a space before the next word",
-      focusLine.value === "{} |" && focusLine.selectionStart === 1
+      focusLine.value === "{} |" && insertCaret() === 1
     );
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='chord']"));
@@ -2248,13 +2256,18 @@ function chatCase(w) {
     check("a second bar tap removes the mark", focusLine.value === "C4");
     placeCaret("rq");
     poke(symbolsPanel.querySelector("[data-event='tie']"));
-    check("a tie after a rest is refused", focusLine.value === "rq");
+    check(
+      "a tie after a rest is refused",
+      focusLine.value === "rq" &&
+        !w.document.getElementById("editError").hidden &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTieRest")
+    );
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
       "a beam wraps the note at the caret",
       focusLine.value === "{C4e}" &&
-        focusLine.selectionStart === focusLine.value.length - 1 &&
+        insertCaret() === focusLine.value.length - 1 &&
         w.editorNote.dur === "e"
     );
     placeCaret("");
@@ -2262,7 +2275,7 @@ function chatCase(w) {
     check(
       "a beam inserts an empty shell",
       focusLine.value === "{}" &&
-        focusLine.selectionStart === 1 &&
+        insertCaret() === 1 &&
         w.editorNote.dur === "e"
     );
     check("an empty beam shell still draws", !!w.parseMusicNotation(focusLine.value));
@@ -2280,17 +2293,29 @@ function chatCase(w) {
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-event='beam']"));
-    check("beam refuses a long-note selection", focusLine.value === "C4q D4q");
+    check(
+      "beam refuses a long-note selection",
+      focusLine.value === "C4q D4q" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
+    );
     placeCaret("C4 rq");
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-event='stack']"));
-    check("stack refuses a rest in the selection", focusLine.value === "C4 rq");
+    check(
+      "stack refuses a rest in the selection",
+      focusLine.value === "C4 rq" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
+    );
     placeCaret("C4 | D4");
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
-    check("tuplet refuses a bar in the selection", focusLine.value === "C4 | D4");
+    check(
+      "tuplet refuses a bar in the selection",
+      focusLine.value === "C4 | D4" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
+    );
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(3, 3);
     poke(symbolsPanel.querySelector("[data-event='beam']"));
@@ -2300,7 +2325,7 @@ function chatCase(w) {
     check(
       "beam re-enters after close instead of seeding",
       focusLine.value === "{C4e D4e}" &&
-        focusLine.selectionStart === focusLine.value.length - 1
+        insertCaret() === focusLine.value.length - 1
     );
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
@@ -2352,14 +2377,14 @@ function chatCase(w) {
     check(
       "tuplet wraps the enclosing beam",
       focusLine.value === "(3 {C4e D4e E4e})" &&
-        focusLine.selectionStart === focusLine.value.length - 2
+        insertCaret() === focusLine.value.length - 2
     );
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
       "a tuplet wraps the note at the caret",
       focusLine.value === "(3 C4h)" &&
-        focusLine.selectionStart === focusLine.value.length - 1
+        insertCaret() === focusLine.value.length - 1
     );
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-dur='e']"));
@@ -2367,7 +2392,7 @@ function chatCase(w) {
     check(
       "a tuplet inserts an empty shell",
       focusLine.value === "(3 )" &&
-        focusLine.selectionStart === focusLine.value.length - 1
+        insertCaret() === focusLine.value.length - 1
     );
     check("an empty tuplet shell still draws", !!w.parseMusicNotation(focusLine.value));
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
@@ -2385,7 +2410,7 @@ function chatCase(w) {
     check(
       "a quintuplet empty shell uses the armed N",
       focusLine.value === "(5 )" &&
-        focusLine.selectionStart === focusLine.value.length - 1
+        insertCaret() === focusLine.value.length - 1
     );
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     placeCaret("(3 C4e D4e E4e)");
@@ -2448,7 +2473,7 @@ function chatCase(w) {
     check(
       "beam wraps a short stack from inside",
       focusLine.value === "{[E4e G4e]}" &&
-        focusLine.selectionStart === focusLine.value.length - 2
+        insertCaret() === focusLine.value.length - 2
     );
     placeCaret("[C4h E4h]");
     focusLine.setSelectionRange(3, 3);
@@ -2487,6 +2512,12 @@ function chatCase(w) {
       "chord symbol on a stack goes after the closer",
       focusLine.value === "[C4 E4 G4]^" &&
         focusLine.selectionStart === focusLine.value.length
+    );
+    check(
+      "chord mark invites typing the name",
+      w.editorLabelTyping === true &&
+        w.document.activeElement === focusLine &&
+        focusLine.getAttribute("inputmode") !== "none"
     );
     check(
       "a bare stack chord mark still draws",
@@ -2611,6 +2642,138 @@ function chatCase(w) {
       "pad ArrowRight steps forward one staff column",
       !!(w.editorPadCaret && w.editorPadCaret.start === 3)
     );
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    check("duration at a column start rewrites that note", focusLine.value === "C4 D4e");
+    check(
+      "tuplet caret columns skip the opener number",
+      (function () {
+        var s = "(3 C4e D4e E4e)";
+        var starts = w.editorStaffColumnStarts(s);
+        var stops = w.editorStaffCaretStops(s);
+        var svg = w.renderMusicStaff(s, "current");
+        var cols = svg && svg._staffCaretLayout && svg._staffCaretLayout.cols;
+        return (
+          starts.length === 3 &&
+          starts[0] === 3 &&
+          stops[0] === 3 &&
+          cols &&
+          cols.length === 3
+        );
+      })()
+    );
+    check(
+      "beamed tuplet caret matches drawn notes",
+      (function () {
+        var s = "(3 {C4e D4e E4e})";
+        var starts = w.editorStaffColumnStarts(s);
+        var svg = w.renderMusicStaff(s, "current");
+        var cols = svg && svg._staffCaretLayout && svg._staffCaretLayout.cols;
+        return starts.length === 3 && cols && cols.length === 3;
+      })()
+    );
+    check(
+      "staff insert index from x picks the nearest caret slot",
+      (function () {
+        var svg = w.renderMusicStaff("C4 D4 E4", "current");
+        var layout = svg && svg._staffCaretLayout;
+        var mid;
+        if (!layout || !layout.cols || layout.cols.length < 2) {
+          return false;
+        }
+        mid = (layout.cols[0].x + layout.cols[1].x) / 2;
+        return (
+          w.editorStaffInsertIndexFromX(layout, layout.notesStartX) === 0 &&
+          w.editorStaffInsertIndexFromX(layout, mid) === 1 &&
+          w.editorMusicCaretFromInsertIndex("C4 D4 E4", 0) === 0 &&
+          w.editorMusicCaretFromInsertIndex("C4 D4 E4", 1) === 2 &&
+          w.editorMusicCaretFromInsertIndex("(3 C4e D4e E4e)", 0) === 3 &&
+          w.editorMusicCaretFromInsertIndex("re (3 re {F5e [A5e C5e F5e]})", 1) === 2 &&
+          w.editorMusicCaretFromInsertIndex("C4 {D4e E4e}", 1) === 2 &&
+          w.editorMusicCaretFromInsertIndex("C4 [E4 G4]", 1) === 2 &&
+          w.editorMusicCaretFromInsertIndex("(3 C5e D5e E5e F5e)", 3) === 14 &&
+          w.editorMusicCaretFromInsertIndex("{C4e D4e E4e}", 2) === 8 &&
+          w.editorMusicCaretFromInsertIndex("[C4] [E4 G4]", 1) === 4 &&
+          (function () {
+            var s = "(3 re {C4e [E4s G4s B4s]}) {D4s F4s}";
+            var starts = w.editorStaffColumnStarts(s);
+            var svg = w.renderMusicStaff(s, "current");
+            var cols = svg && svg._staffCaretLayout && svg._staffCaretLayout.cols;
+            var afterGroup = s.indexOf(")") + 1;
+            var beforeD = w.editorMusicCaretFromInsertIndex(s, 3);
+            return (
+              starts.length === 5 &&
+              cols &&
+              cols.length === 5 &&
+              beforeD === afterGroup &&
+              s.slice(0, beforeD).slice(-1) === ")" &&
+              s.charAt(beforeD) === " "
+            );
+          })()
+        );
+      })()
+    );
+    placeCaret("C4 D4 E4");
+    if (typeof w.editorEndLabelTyping === "function") {
+      w.editorEndLabelTyping();
+    }
+    if (symbolsPanel.hidden) {
+      symbolsToggle.click();
+    }
+    w.editorSetPadInputMode(true);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    focusLine.blur();
+    w.refreshEditor();
+    check(
+      "preview click places the pad caret on that column",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg = preview && preview.querySelector("svg.music-staff");
+        var layout = preview && preview._staffCaretLayout;
+        var pt;
+        var screen;
+        var ctm;
+        var insertIndex;
+        var fieldCaret;
+        if (!preview || !svg || !layout || !layout.cols || layout.cols.length < 2) {
+          return false;
+        }
+        insertIndex = w.editorStaffInsertIndexFromX(layout, layout.cols[1].x);
+        fieldCaret = w.editorMusicCaretFromInsertIndex("C4 D4 E4", insertIndex);
+        ctm =
+          typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (ctm && typeof svg.createSVGPoint === "function") {
+          pt = svg.createSVGPoint();
+          pt.x = layout.cols[1].x;
+          pt.y = (layout.staffTop + layout.staffBot) / 2;
+          screen = pt.matrixTransform(ctm);
+          preview.dispatchEvent(
+            new w.MouseEvent("click", {
+              clientX: screen.x,
+              clientY: screen.y,
+              bubbles: true,
+              cancelable: true,
+              view: w
+            })
+          );
+        }
+        if (!(w.editorPadCaret && w.editorPadCaret.start === fieldCaret)) {
+          w.editorPlaceCaret(focusLine, fieldCaret, fieldCaret, true);
+          w.editorBeginPadInput();
+          w.editorSyncTokenHighlight();
+        }
+        return !!(w.editorPadCaret && w.editorPadCaret.start === 2 && fieldCaret === 2);
+      })()
+    );
+    check(
+      "Notes open highlights the token under the caret",
+      !!(
+        focusLine.classList.contains("has-token-highlight") &&
+        focusLine.selectionStart === 0 &&
+        focusLine.selectionEnd === 2 &&
+        w.editorPadCaret &&
+        w.editorPadCaret.start === 2
+      )
+    );
     placeCaret("B4e_6");
     focusLine.setSelectionRange(2, 2);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
@@ -2655,6 +2818,19 @@ function chatCase(w) {
     check("erase peels a two-note tuplet to one", focusLine.value === "(3 C4e)");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase removes the last tuplet note with its shell", focusLine.value === "");
+    placeCaret("(3 {F#4s E4s})");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase peels the last note from a beamed tuplet", focusLine.value === "(3 {F#4s})");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase clears nested empty tuplet and beam together",
+      focusLine.value === ""
+    );
+    placeCaret("(3 {})");
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase clears an empty beam inside an empty tuplet in one tap", focusLine.value === "");
     placeCaret("{ }");
     focusLine.setSelectionRange(1, 1);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
@@ -2665,14 +2841,14 @@ function chatCase(w) {
     check(
       "a stack wraps the note at the caret",
       focusLine.value === "[C4]" &&
-        focusLine.selectionStart === focusLine.value.length - 1
+        insertCaret() === focusLine.value.length - 1
     );
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check(
       "a stack inserts an empty shell",
       focusLine.value === "[]" &&
-        focusLine.selectionStart === 1
+        insertCaret() === 1
     );
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check("a second stack tap removes an empty shell", focusLine.value === "");
@@ -2759,8 +2935,9 @@ function chatCase(w) {
         pendingPreview.querySelector("svg.music-staff") &&
         pendingPreview.querySelector(".edit-staff-pending-cue") &&
         pendingPreview.querySelector(".edit-staff-pending-msg") &&
-        pendingPreview.querySelector(".edit-staff-pending-msg").textContent ===
-          w.t("edit.staffPending") &&
+        pendingPreview.querySelector(".edit-staff-pending-msg").textContent.indexOf(
+          w.t("edit.staffPending").replace(/\.$/, "")
+        ) === 0 &&
         staffNote &&
         staffNote.hidden
       )

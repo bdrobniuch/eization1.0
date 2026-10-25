@@ -49,6 +49,8 @@ var STAFF_KEY_POS_BASS = {
 };
 
 var staffAstCache = new Map();
+/* Last parseMusicNotation fail reason (for Edit pending cue). Cleared on each parse. */
+var staffLastParseError = "";
 /* Whole-exercise defaults applied before line @treble / @bass / @key=. */
 var staffActiveDefaults = { clef: "treble", keyName: "C" };
 
@@ -1681,7 +1683,12 @@ function parseMusicNotation(source) {
     return null;
   }
   var notationIsh = staffLooksNotationIsh(tokens);
+  staffLastParseError = "";
   function fail(reason, tok) {
+    staffLastParseError = String(reason || "");
+    if (tok) {
+      staffLastParseError += staffLastParseError ? " · " + tok : String(tok);
+    }
     if (notationIsh && typeof console !== "undefined" && console.warn) {
       console.warn(
         "[staff] parse failed:",
@@ -1822,19 +1829,21 @@ function staffNotationStatus(source) {
   var parts = staffExampleParts(source);
   var music = parts.music || "";
   if (!music) {
-    return { ok: false, notationIsh: false, music: "", caption: parts.caption || "" };
+    return { ok: false, notationIsh: false, music: "", caption: parts.caption || "", error: "" };
   }
   if (/[<&]/.test(music)) {
-    return { ok: false, notationIsh: false, music: music, caption: parts.caption || "" };
+    return { ok: false, notationIsh: false, music: music, caption: parts.caption || "", error: "" };
   }
   var tokens = staffTokenize(music);
   var notationIsh = staffLooksNotationIsh(tokens);
+  staffLastParseError = "";
   var ast = parseMusicNotation(music);
   return {
     ok: !!ast,
     notationIsh: notationIsh,
     music: music,
-    caption: parts.caption || ""
+    caption: parts.caption || "",
+    error: ast ? "" : staffLastParseError
   };
 }
 

@@ -2727,6 +2727,7 @@ body.is-editing #counter {
   border-radius: 2px;
   line-height: 0;
   white-space: normal;
+  cursor: text;
 }
 
 /* Broken / mid-typing staff: keep last good SVG, red inset frame + cue instead of text flip. */
@@ -2822,14 +2823,14 @@ body.is-editing #counter {
 
 /* Soft insertion mark: tracks text/pad caret between staff columns. */
 #editPreview.is-staff .staff-caret-mark {
-  opacity: 0.55;
+  opacity: 0.78;
   animation: staff-caret-blink 1.1s steps(1, end) infinite;
 }
 
 @keyframes staff-caret-blink {
   0%,
   45% {
-    opacity: 0.55;
+    opacity: 0.78;
   }
   50%,
   100% {
@@ -2840,12 +2841,20 @@ body.is-editing #counter {
 @media (prefers-reduced-motion: reduce) {
   #editPreview.is-staff .staff-caret-mark {
     animation: none;
-    opacity: 0.45;
+    opacity: 0.65;
   }
 }
 
 #editPreview.is-staff.is-staff-pending .staff-caret-mark {
-  display: none;
+  opacity: 0.5;
+  animation: none;
+}
+
+/* Notes open: show the current token in the example field (pad caret stays the insert point). */
+#editFocusLine.has-token-highlight::selection,
+#allEdit.has-token-highlight::selection {
+  background: rgba(47, 110, 180, 0.38);
+  color: inherit;
 }
 
 #editNoteHistory {
