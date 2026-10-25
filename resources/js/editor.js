@@ -4782,14 +4782,14 @@ function editorBuildIcon(kind) {
   return editorFitIcon(svg);
 }
 
-/* Short quarter note with the mark beside the head, so the mark stays readable. */
+/* Quarter note, same stem as the duration row, with the mark under the head. */
 function editorArticulationIcon(svg, id) {
   var space = 250;
   var head = 1.18 * space;
   var stemX = head * 0.925;
-  var stemLen = 1.7 * space;
-  var x = stemX + space * 0.72;
-  var y = space * 0.05;
+  var stemLen = 3.5 * space;
+  var x = head * 0.42;
+  var y = space * 1.15;
   function stroke(x1, y1, x2, y2) {
     svg.appendChild(editorSvgEl("line", {
       x1: String(x1),
@@ -4797,7 +4797,7 @@ function editorArticulationIcon(svg, id) {
       x2: String(x2),
       y2: String(y2),
       stroke: "currentColor",
-      "stroke-width": "32",
+      "stroke-width": "28",
       "stroke-linecap": "round"
     }));
   }
@@ -4816,22 +4816,22 @@ function editorArticulationIcon(svg, id) {
     svg.appendChild(editorSvgEl("circle", {
       cx: String(x),
       cy: String(y),
-      r: String(space * 0.2),
+      r: String(space * 0.13),
       fill: "currentColor"
     }));
     return svg;
   }
   if (id === "tenuto") {
-    stroke(x - space * 0.42, y, x + space * 0.42, y);
+    stroke(x - space * 0.34, y, x + space * 0.34, y);
     return svg;
   }
   if (id === "accent") {
-    stroke(x - space * 0.42, y - space * 0.2, x + space * 0.46, y);
-    stroke(x - space * 0.42, y + space * 0.2, x + space * 0.46, y);
+    stroke(x - space * 0.36, y - space * 0.12, x + space * 0.36, y);
+    stroke(x - space * 0.36, y + space * 0.12, x + space * 0.36, y);
     return svg;
   }
-  stroke(x - space * 0.38, y - space * 0.16, x, y + space * 0.28);
-  stroke(x + space * 0.38, y - space * 0.16, x, y + space * 0.28);
+  stroke(x - space * 0.28, y - space * 0.08, x, y + space * 0.22);
+  stroke(x + space * 0.28, y - space * 0.08, x, y + space * 0.22);
   return svg;
 }
 
