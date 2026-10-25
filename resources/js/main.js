@@ -1651,4 +1651,23 @@ function init() {
   }
 }
 
+/* The app stays at one size. Articles are other pages and keep pinch and double-tap. */
+function lockAppZoom() {
+  function blockGesture(event) {
+    event.preventDefault();
+  }
+  document.addEventListener("gesturestart", blockGesture, { passive: false });
+  document.addEventListener("gesturechange", blockGesture, { passive: false });
+  document.addEventListener(
+    "touchmove",
+    function (event) {
+      if (event.touches && event.touches.length > 1) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+}
+
+lockAppZoom();
 init();

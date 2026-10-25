@@ -79,6 +79,9 @@ var EDITOR_STAFF_DRAG_SLOP = 6;
 /* Finger this close to the preview's left or right edge scrolls the staff while selecting. */
 var EDITOR_STAFF_EDGE_ZONE = 36;
 var editorStaffEdgeScrollTimer = null;
+var editorStaffScrollBar = null;
+var editorStaffScrollDrag = null;
+var editorStaffScrollBarFrame = 0;
 /* Music stored by Copy. Paste inserts it at the caret. */
 var editorStaffCopy = "";
 var editorStaffClipMenuOpen = false;
@@ -1764,6 +1767,7 @@ function refreshEditor() {
     }
     editorSyncStaffHistoryAfterRefresh("", { ok: true });
     refreshEditorHint();
+    editorStaffPreviewScheduleScrollBar();
     return;
   }
   preview.classList.remove("is-empty");
@@ -1809,6 +1813,7 @@ function refreshEditor() {
   }
   editorSyncStaffHistoryAfterRefresh(line, status);
   refreshEditorHint();
+  editorStaffPreviewScheduleScrollBar();
 }
 
 function editorPreviewMeterOpts() {
@@ -1939,6 +1944,7 @@ function editorScrollPreviewToEnd(preview) {
   window.requestAnimationFrame(function () {
     preview.scrollLeft = preview.scrollWidth;
     preview.scrollTop = preview.scrollHeight;
+    editorStaffPreviewSyncScrollBar();
   });
 }
 
@@ -2971,9 +2977,178 @@ function editorStaffPreviewContextMenu(event) {
   editorStaffOpenClipMenu(event.clientX, event.clientY);
 }
 
+function editorStaffPreviewViewWidth(preview) {
+  var style;
+  var padL;
+  var padR;
+  var view;
+  style = window.getComputedStyle(preview);
+  padL = parseFloat(style.paddingLeft) || 0;
+  padR = parseFloat(style.paddingRight) || 0;
+  view = preview.clientWidth - padL - padR;
+  if (view < 1) {
+    view = preview.clientWidth;
+  }
+  return view;
+}
+
+function editorStaffPreviewScheduleScrollBar() {
+  if (editorStaffScrollBarFrame) {
+    return;
+  }
+  editorStaffScrollBarFrame = window.requestAnimationFrame(function () {
+    editorStaffScrollBarFrame = 0;
+    editorStaffPreviewSyncScrollBar();
+  });
+}
+
+/* A bar under the staff moves a line that is wider than the preview. Dragging the notes selects. */
+function editorStaffPreviewSyncScrollBar() {
+  var preview = document.getElementById("editPreview");
+  var bar = editorStaffScrollBar;
+  var thumb;
+  var max;
+  var view;
+  var thumbW;
+  var travel;
+  var x;
+  if (!preview) {
+    return;
+  }
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "editPreviewScroll";
+    bar.setAttribute("role", "scrollbar");
+    bar.setAttribute("aria-orientation", "horizontal");
+    bar.setAttribute("aria-valuemin", "0");
+    bar.setAttribute("aria-label", t("edit.staffScroll"));
+    thumb = document.createElement("div");
+    thumb.id = "editPreviewScrollThumb";
+    bar.appendChild(thumb);
+    bar.addEventListener("pointerdown", editorStaffPreviewScrollPointerDown);
+    bar.addEventListener("pointermove", editorStaffPreviewScrollPointerMove);
+    bar.addEventListener("pointerup", editorStaffPreviewScrollPointerUp);
+    bar.addEventListener("pointercancel", editorStaffPreviewScrollPointerUp);
+    editorStaffScrollBar = bar;
+  }
+  thumb = bar.firstChild;
+  if (!preview.classList.contains("is-staff")) {
+    if (bar.parentNode) {
+      bar.parentNode.removeChild(bar);
+    }
+    return;
+  }
+  max = preview.scrollWidth - preview.clientWidth;
+  if (max <= 8) {
+    bar.classList.remove("is-on");
+    if (bar.parentNode) {
+      bar.parentNode.removeChild(bar);
+    }
+    return;
+  }
+  if (bar.parentNode !== preview) {
+    preview.appendChild(bar);
+  }
+  view = editorStaffPreviewViewWidth(preview);
+  bar.style.width = view + "px";
+  bar.classList.add("is-on");
+  bar.setAttribute("aria-valuemax", String(Math.round(max)));
+  bar.setAttribute("aria-valuenow", String(Math.round(preview.scrollLeft)));
+  thumbW = Math.round(view * preview.clientWidth / preview.scrollWidth);
+  if (thumbW < 44) {
+    thumbW = 44;
+  }
+  if (thumbW > view) {
+    thumbW = view;
+  }
+  thumb.style.width = thumbW + "px";
+  travel = view - thumbW;
+  x = travel > 0 ? Math.round(travel * preview.scrollLeft / max) : 0;
+  thumb.style.transform = "translateX(" + x + "px)";
+}
+
+function editorStaffPreviewScrollToClient(clientX) {
+  var preview = document.getElementById("editPreview");
+  var bar = editorStaffScrollBar;
+  var thumb;
+  var rect;
+  var travel;
+  var max;
+  var ratio;
+  var x;
+  if (!preview || !bar) {
+    return;
+  }
+  thumb = bar.firstChild;
+  rect = bar.getBoundingClientRect();
+  max = preview.scrollWidth - preview.clientWidth;
+  travel = rect.width - (thumb ? thumb.offsetWidth : 0);
+  x = clientX - rect.left - (thumb ? thumb.offsetWidth / 2 : 0);
+  ratio = travel <= 0 ? 0 : x / travel;
+  if (ratio < 0) {
+    ratio = 0;
+  }
+  if (ratio > 1) {
+    ratio = 1;
+  }
+  preview.scrollLeft = ratio * max;
+  editorStaffPreviewSyncScrollBar();
+}
+
+function editorStaffPreviewScrollPointerDown(event) {
+  var bar;
+  if (!event || (typeof event.button === "number" && event.button !== 0)) {
+    return;
+  }
+  bar = editorStaffScrollBar;
+  if (!bar) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  editorStaffPreviewClearClipHold();
+  editorStaffPreviewStopEdgeScroll();
+  editorStaffDrag = null;
+  editorStaffScrollDrag = event.pointerId;
+  if (typeof bar.setPointerCapture === "function") {
+    try {
+      bar.setPointerCapture(event.pointerId);
+    } catch (errScrollCap) {}
+  }
+  editorStaffPreviewScrollToClient(event.clientX);
+}
+
+function editorStaffPreviewScrollPointerMove(event) {
+  if (editorStaffScrollDrag == null || !event || event.pointerId !== editorStaffScrollDrag) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  editorStaffPreviewScrollToClient(event.clientX);
+}
+
+function editorStaffPreviewScrollPointerUp(event) {
+  var bar;
+  if (editorStaffScrollDrag == null || !event || event.pointerId !== editorStaffScrollDrag) {
+    return;
+  }
+  editorStaffScrollDrag = null;
+  bar = editorStaffScrollBar;
+  if (bar && typeof bar.releasePointerCapture === "function" && event.pointerId != null) {
+    try {
+      if (bar.hasPointerCapture && bar.hasPointerCapture(event.pointerId)) {
+        bar.releasePointerCapture(event.pointerId);
+      }
+    } catch (errScrollRel) {}
+  }
+}
+
 function editorStaffPreviewPointerDown(event) {
   var hit;
   if (!event || (typeof event.button === "number" && event.button !== 0)) {
+    return;
+  }
+  if (event.target && event.target.closest && event.target.closest("#editPreviewScroll")) {
     return;
   }
   hit = editorStaffPreviewHitContext(event);
@@ -3014,12 +3189,6 @@ function editorStaffPreviewPointerMove(event) {
       return;
     }
     editorStaffPreviewClearClipHold();
-    /* A vertical finger scrolls the Edit sheet. A sideways finger selects. */
-    if (Math.abs(dy) > Math.abs(dx)) {
-      editorStaffPreviewStopEdgeScroll();
-      editorStaffDrag = null;
-      return;
-    }
     drag.dragging = true;
     editorStaffPreviewBeginEdit();
     preview = document.getElementById("editPreview");
@@ -9824,6 +9993,7 @@ function initEditor() {
   var editPreview = document.getElementById("editPreview");
   if (editPreview) {
     editPreview.addEventListener("pointerdown", editorStaffPreviewPointerDown);
+    editPreview.addEventListener("scroll", editorStaffPreviewSyncScrollBar);
     editPreview.addEventListener("pointermove", editorStaffPreviewPointerMove);
     editPreview.addEventListener("pointerup", editorStaffPreviewPointerUp);
     editPreview.addEventListener("pointercancel", editorStaffPreviewPointerCancel);

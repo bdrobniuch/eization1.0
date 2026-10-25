@@ -31,6 +31,11 @@
     --chrome: max(44px, calc(var(--s) * 11));
 }
 
+html.is-app,
+html.is-app body {
+    touch-action: manipulation;
+}
+
 html,
 body  {
     height: 100%;
@@ -2729,6 +2734,40 @@ body.is-editing #counter {
   white-space: normal;
   cursor: text;
   -webkit-touch-callout: none;
+  touch-action: none;
+  scrollbar-width: none;
+}
+
+#editPreview.is-staff::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+/* Shown only when the line is wider than the preview. Dragging it moves the line. */
+#editPreviewScroll {
+  display: none;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  box-sizing: border-box;
+  height: 32px;
+  margin-top: 6px;
+  padding: 12px 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+#editPreviewScroll.is-on {
+  display: block;
+}
+
+#editPreviewScrollThumb {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(17, 17, 17, 0.55);
+  pointer-events: none;
 }
 
 /* Broken / mid-typing staff: keep last good SVG, red inset frame + cue instead of text flip. */

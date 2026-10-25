@@ -2294,6 +2294,8 @@ function chatCase(w) {
         w.I18N.es["edit.paste"] === "Pegar" &&
         w.I18N.en["edit.clipMenu"] === "Copy and paste" &&
         w.I18N.es["edit.clipMenu"] === "Copiar y pegar" &&
+        w.I18N.en["edit.staffScroll"] === "Move along the staff" &&
+        w.I18N.es["edit.staffScroll"] === "Mover el pentagrama" &&
         w.I18N.en["edit.clearExample"] === "Clear example" &&
         w.I18N.es["edit.clearExample"] === "Borrar ejemplo"
     );
@@ -3071,7 +3073,7 @@ function chatCase(w) {
       w.editorStaffCopy === ""
     );
     check(
-      "a vertical finger on the staff does not select",
+      "a vertical finger on the staff selects that column",
       (function () {
         var preview = w.document.getElementById("editPreview");
         var svg = preview && preview.querySelector("svg.music-staff");
@@ -3108,9 +3110,12 @@ function chatCase(w) {
         fire("pointerup", a.y + 48, 0);
         return (
           w.editorStaffDrag === null &&
+          focusLine.value === "C4 D4 E4" &&
           w.editorPadCaret &&
-          w.editorPadCaret.end === before &&
-          focusLine.value === "C4 D4 E4"
+          w.editorPadCaret.start === 0 &&
+          w.editorPadCaret.end > 0 &&
+          w.editorPadCaret.end < focusLine.value.length &&
+          before >= 0
         );
       })()
     );
@@ -3198,6 +3203,75 @@ function chatCase(w) {
           preview.style.width = "";
           w.refreshEditor();
         }
+      })()
+    );
+    check(
+      "a bar under the staff moves a long line",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var bar;
+        var rect;
+        var before;
+        var caret;
+        placeCaret("C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 A5 B5 C6 D6 E6 F6");
+        w.refreshEditor();
+        preview.style.width = "160px";
+        try {
+          w.editorStaffPreviewSyncScrollBar();
+          if (preview.scrollWidth <= preview.clientWidth + 8) {
+            return false;
+          }
+          preview.scrollLeft = 0;
+          w.editorStaffPreviewSyncScrollBar();
+          bar = w.document.getElementById("editPreviewScroll");
+          if (!bar || !bar.classList.contains("is-on")) {
+            return false;
+          }
+          rect = bar.getBoundingClientRect();
+          before = preview.scrollLeft;
+          caret = w.editorPadCaret ? w.editorPadCaret.start + ":" + w.editorPadCaret.end : "";
+          function fire(type, x, buttons) {
+            bar.dispatchEvent(
+              new w.PointerEvent(type, {
+                clientX: x,
+                clientY: rect.top + rect.height / 2,
+                bubbles: true,
+                cancelable: true,
+                view: w,
+                pointerId: 13,
+                pointerType: "touch",
+                button: 0,
+                buttons: buttons
+              })
+            );
+          }
+          fire("pointerdown", rect.left + 4, 1);
+          fire("pointermove", rect.right - 4, 1);
+          fire("pointerup", rect.right - 4, 0);
+          return (
+            preview.scrollLeft > before &&
+            w.editorStaffDrag === null &&
+            focusLine.value.indexOf("C4 D4 E4") === 0 &&
+            w.editorPadCaret &&
+            w.editorPadCaret.start + ":" + w.editorPadCaret.end === caret
+          );
+        } finally {
+          preview.style.width = "";
+          w.refreshEditor();
+          w.editorStaffPreviewSyncScrollBar();
+        }
+      })()
+    );
+    check(
+      "the app stays at one size",
+      (function () {
+        var meta = w.document.querySelector('meta[name="viewport"]');
+        return !!(
+          meta &&
+          /maximum-scale=1/.test(meta.content) &&
+          /user-scalable=no/.test(meta.content) &&
+          w.document.documentElement.classList.contains("is-app")
+        );
       })()
     );
     check(
