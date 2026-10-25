@@ -2277,6 +2277,7 @@ function chatCase(w) {
         !!w.document.querySelector("#editNoteHistory [data-undo]") &&
         !!w.document.querySelector("#editNoteHistory [data-redo]") &&
         !!w.document.querySelector("#editNoteHistory [data-erase]") &&
+        !!w.document.querySelector("#editNoteHistory [data-clip-menu]") &&
         w.I18N.en["edit.noteHigher"] === "Higher" &&
         w.I18N.es["edit.noteHigher"] === "M\u00E1s aguda" &&
         w.I18N.en["edit.noteLower"] === "Lower" &&
@@ -2287,6 +2288,12 @@ function chatCase(w) {
         w.I18N.es["edit.undo"] === "Deshacer" &&
         w.I18N.en["edit.erase"] === "Erase" &&
         w.I18N.es["edit.erase"] === "Borrar" &&
+        w.I18N.en["edit.copy"] === "Copy" &&
+        w.I18N.es["edit.copy"] === "Copiar" &&
+        w.I18N.en["edit.paste"] === "Paste" &&
+        w.I18N.es["edit.paste"] === "Pegar" &&
+        w.I18N.en["edit.clipMenu"] === "Copy and paste" &&
+        w.I18N.es["edit.clipMenu"] === "Copiar y pegar" &&
         w.I18N.en["edit.clearExample"] === "Clear example" &&
         w.I18N.es["edit.clearExample"] === "Borrar ejemplo"
     );
@@ -3059,6 +3066,278 @@ function chatCase(w) {
         );
       })()
     );
+    check(
+      "preview drag leaves copying to the menu",
+      w.editorStaffCopy === ""
+    );
+    check(
+      "Copy and Paste are chosen from the history menu",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg;
+        var layout;
+        var ctm;
+        var pt;
+        var y;
+        var id = 8;
+        function screenAt(x) {
+          pt.x = x;
+          pt.y = y;
+          return pt.matrixTransform(ctm);
+        }
+        function fire(type, x, buttons) {
+          var screen = screenAt(x);
+          preview.dispatchEvent(
+            new w.PointerEvent(type, {
+              clientX: screen.x,
+              clientY: screen.y,
+              bubbles: true,
+              cancelable: true,
+              view: w,
+              pointerId: id,
+              pointerType: "mouse",
+              button: 0,
+              buttons: buttons
+            })
+          );
+        }
+        function dragColumns(fromCol, toCol) {
+          svg = preview.querySelector("svg.music-staff");
+          layout = preview._staffCaretLayout;
+          ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+          if (!svg || !layout || !layout.cols || !ctm || typeof svg.createSVGPoint !== "function") {
+            return false;
+          }
+          y = (layout.staffTop + layout.staffBot) / 2;
+          pt = svg.createSVGPoint();
+          fire("pointerdown", layout.cols[fromCol].x, 1);
+          fire("pointermove", layout.cols[toCol].x, 1);
+          return true;
+        }
+        w.editorStaffCopy = "";
+        placeCaret("C4 D4 E4");
+        w.refreshEditor();
+        if (!dragColumns(0, 1)) {
+          return false;
+        }
+        if (w.editorStaffCopy !== "") {
+          return false;
+        }
+        fire("pointermove", layout.cols[2].x, 1);
+        if (w.editorStaffCopy !== "") {
+          return false;
+        }
+        fire("pointerup", layout.cols[2].x, 0);
+        if (focusLine.value !== "C4 D4 E4" || w.editorStaffCopy !== "") {
+          return false;
+        }
+        poke(w.document.querySelector("#editNoteHistory [data-clip-menu]"));
+        var copyBtn = w.document.querySelector("[data-clip-copy]");
+        var pasteBtn = w.document.querySelector("[data-clip-paste]");
+        if (!copyBtn || copyBtn.disabled || copyBtn.textContent !== "Copy" || !pasteBtn || !pasteBtn.disabled) {
+          return false;
+        }
+        poke(copyBtn);
+        if (w.editorStaffCopy !== "C4 D4 E4" || focusLine.value !== "C4 D4 E4" || w.document.querySelector("[data-clip-copy]")) {
+          return false;
+        }
+        svg = preview.querySelector("svg.music-staff");
+        layout = preview._staffCaretLayout;
+        ctm = svg.getScreenCTM();
+        pt = svg.createSVGPoint();
+        y = (layout.staffTop + layout.staffBot) / 2;
+        fire("pointerdown", w.editorStaffCaretX(layout, layout.cols.length), 1);
+        fire("pointerup", w.editorStaffCaretX(layout, layout.cols.length), 0);
+        if (focusLine.value !== "C4 D4 E4") {
+          return false;
+        }
+        poke(w.document.querySelector("#editNoteHistory [data-clip-menu]"));
+        pasteBtn = w.document.querySelector("[data-clip-paste]");
+        if (!pasteBtn || pasteBtn.disabled || pasteBtn.textContent !== "Paste") {
+          return false;
+        }
+        poke(pasteBtn);
+        return focusLine.value === "C4 D4 E4 C4 D4 E4" && !w.document.querySelector("[data-clip-paste]");
+      })()
+    );
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    check("undo removes the preview paste", focusLine.value === "C4 D4 E4");
+    w.document.dispatchEvent(
+      new w.KeyboardEvent("keydown", {
+        key: "v",
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true
+      })
+    );
+    check(
+      "Ctrl+V pastes the same preview copy",
+      focusLine.value === "C4 D4 E4 C4 D4 E4"
+    );
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    placeCaret("{C4e D4e}");
+    w.refreshEditor();
+    check(
+      "Copy on a whole beam includes the braces",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg = preview && preview.querySelector("svg.music-staff");
+        var layout = preview && preview._staffCaretLayout;
+        var ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        var pt;
+        var y;
+        var a;
+        var b;
+        if (!svg || !layout || !layout.cols || layout.cols.length < 2 || !ctm) {
+          return false;
+        }
+        y = (layout.staffTop + layout.staffBot) / 2;
+        pt = svg.createSVGPoint();
+        pt.x = layout.cols[0].x;
+        pt.y = y;
+        a = pt.matrixTransform(ctm);
+        pt.x = layout.cols[layout.cols.length - 1].x;
+        b = pt.matrixTransform(ctm);
+        preview.dispatchEvent(
+          new w.PointerEvent("pointerdown", {
+            clientX: a.x,
+            clientY: a.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 9,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 1
+          })
+        );
+        preview.dispatchEvent(
+          new w.PointerEvent("pointermove", {
+            clientX: b.x,
+            clientY: b.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 9,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 1
+          })
+        );
+        preview.dispatchEvent(
+          new w.PointerEvent("pointerup", {
+            clientX: b.x,
+            clientY: b.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 9,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 0
+          })
+        );
+        if (w.editorStaffCopy !== "C4 D4 E4" || focusLine.value !== "{C4e D4e}") {
+          return false;
+        }
+        w.document.dispatchEvent(
+          new w.KeyboardEvent("keydown", {
+            key: "c",
+            ctrlKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        );
+        return w.editorStaffCopy === "{C4e D4e}" && focusLine.value === "{C4e D4e}";
+      })()
+    );
+    w.document.dispatchEvent(
+      new w.KeyboardEvent("keydown", {
+        key: "c",
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true
+      })
+    );
+    check("Ctrl+C copies the preview selection", w.editorStaffCopy === "{C4e D4e}");
+    placeCaret("[C4 E4]^C");
+    w.refreshEditor();
+    check(
+      "Copy on a chord includes the stack and its mark",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg = preview && preview.querySelector("svg.music-staff");
+        var layout = preview && preview._staffCaretLayout;
+        var ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        var pt;
+        var y;
+        var a;
+        var b;
+        if (!svg || !layout || !layout.cols || !layout.cols.length || !ctm) {
+          return false;
+        }
+        y = (layout.staffTop + layout.staffBot) / 2;
+        pt = svg.createSVGPoint();
+        pt.x = layout.cols[0].x;
+        pt.y = y;
+        a = pt.matrixTransform(ctm);
+        pt.x = layout.cols[0].x + 28;
+        b = pt.matrixTransform(ctm);
+        preview.dispatchEvent(
+          new w.PointerEvent("pointerdown", {
+            clientX: a.x,
+            clientY: a.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 10,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 1
+          })
+        );
+        preview.dispatchEvent(
+          new w.PointerEvent("pointermove", {
+            clientX: b.x,
+            clientY: b.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 10,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 1
+          })
+        );
+        preview.dispatchEvent(
+          new w.PointerEvent("pointerup", {
+            clientX: b.x,
+            clientY: b.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 10,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 0
+          })
+        );
+        if (w.editorStaffCopy !== "{C4e D4e}" || focusLine.value !== "[C4 E4]^C") {
+          return false;
+        }
+        w.document.dispatchEvent(
+          new w.KeyboardEvent("keydown", {
+            key: "c",
+            ctrlKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        );
+        return w.editorStaffCopy === "[C4 E4]^C" && focusLine.value === "[C4 E4]^C";
+      })()
+    );
+    placeCaret("C4 D4 E4");
+    w.editorPlaceCaret(focusLine, 0, focusLine.value.length, true);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase deletes a multi-note selection", focusLine.value === "");
     placeCaret("C4 D4");

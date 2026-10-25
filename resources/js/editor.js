@@ -76,6 +76,11 @@ var editorPadCaret = null;
 /* Staff preview drag-to-select: pointerId + start insert gap until pointerup. */
 var editorStaffDrag = null;
 var EDITOR_STAFF_DRAG_SLOP = 6;
+/* Music stored by Copy. Paste inserts it at the caret. */
+var editorStaffCopy = "";
+var editorStaffClipMenuOpen = false;
+/* Ctrl/Cmd+V already inserted editorStaffCopy; swallow the follow-up paste event. */
+var editorStaffKeyPaste = false;
 /* After Chord ^, allow typing the name until the next pad action. */
 var editorLabelTyping = false;
 /* Pad/Erase hold-to-repeat (one undo step for the whole hold). */
@@ -2602,6 +2607,183 @@ function editorStaffPreviewApplyColumnRange(field, lineStart, musicAt, music, co
   editorPlaceCaret(field, a, b, true);
 }
 
+/*
+ * A drag that covers every column of a beam, chord, or tuplet copies the shell
+ * with it. The drawn range starts inside { and (, so pull those openers in.
+ */
+function editorStaffExpandCopySpan(line, start, end) {
+  var groups;
+  var starts;
+  var guard = 0;
+  var grew;
+  var i;
+  var g;
+  var col;
+  var first;
+  var last;
+  var lastEnd;
+  line = String(line || "");
+  groups = editorFindBalancedGroups(line);
+  starts = editorStaffColumnStarts(line);
+  if (!groups.length || !starts.length) {
+    return { start: start, end: end };
+  }
+  do {
+    grew = false;
+    guard += 1;
+    for (i = 0; i < groups.length; i++) {
+      g = groups[i];
+      first = -1;
+      last = -1;
+      for (col = 0; col < starts.length; col++) {
+        if (starts[col] >= g.open && starts[col] < g.closeEnd) {
+          if (first < 0) {
+            first = starts[col];
+          }
+          last = starts[col];
+        }
+      }
+      if (first < 0) {
+        continue;
+      }
+      lastEnd = editorMusicColumnContentEnd(line, last);
+      if (start <= first && end >= lastEnd) {
+        if (start > g.open) {
+          start = g.open;
+          grew = true;
+        }
+        if (end < g.closeEnd) {
+          end = g.closeEnd;
+          grew = true;
+        }
+      }
+    }
+  } while (grew && guard < 8);
+  return { start: start, end: end };
+}
+
+/* Music text of the current same-line selection, shell included when it is whole. */
+function editorStaffSelectionText(field) {
+  var sel;
+  var start;
+  var end;
+  var value;
+  var span;
+  var text;
+  if (!field) {
+    return "";
+  }
+  sel = editorReadSelection(field);
+  start = sel.start < sel.end ? sel.start : sel.end;
+  end = sel.start < sel.end ? sel.end : sel.start;
+  if (start === end) {
+    return "";
+  }
+  value = String(field.value || "");
+  if (value.slice(start, end).indexOf("\n") >= 0) {
+    return "";
+  }
+  span = editorStaffExpandCopySpan(value, start, end);
+  text = value.slice(span.start, span.end);
+  if (!text || text.indexOf("\n") >= 0) {
+    return "";
+  }
+  return text;
+}
+
+function editorStaffTakeCopy(field) {
+  var text = editorStaffSelectionText(field);
+  if (!text) {
+    return false;
+  }
+  editorStaffCopy = text;
+  return true;
+}
+
+function editorStaffWriteClipboard(text) {
+  var pending;
+  if (!text || !navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+    return;
+  }
+  try {
+    pending = navigator.clipboard.writeText(text);
+    if (pending && typeof pending.then === "function") {
+      pending.then(function () {}, function () {});
+    }
+  } catch (errClip) {}
+}
+
+/* Copy the current column selection into the menu buffer. */
+function editorStaffCopyFromSelection() {
+  if (!editorStaffTakeCopy(editorActiveField())) {
+    return false;
+  }
+  editorStaffWriteClipboard(editorStaffCopy);
+  editorStaffClipMenuOpen = false;
+  editorPaintUndoRedo();
+  return true;
+}
+
+function editorToggleStaffClipMenu() {
+  editorStaffClipMenuOpen = !editorStaffClipMenuOpen;
+  if (editorStaffClipMenuOpen && editorTupletMenuOpen) {
+    editorTupletMenuOpen = false;
+    editorNotePadStamp = "";
+    editorPaintNotePad();
+  }
+  editorPaintUndoRedo();
+}
+
+/* Insert the preview copy at the caret. One undo step. */
+function editorStaffPasteCopy() {
+  var field;
+  var padded;
+  if (!editorStaffCopy) {
+    return false;
+  }
+  field = editorActiveField();
+  if (!field) {
+    return false;
+  }
+  editorStaffClipMenuOpen = false;
+  editorPushSymbolUndo();
+  padded = editorPadSymbolGaps(editorStaffCopy, 0);
+  editorAnalyticsMark("used_paste");
+  insertEditorText(padded.text, padded.caretBack);
+  editorBeginPadInput();
+  editorPaintNotePad();
+  editorSyncTokenHighlight();
+  return true;
+}
+
+function editorStaffSwallowKeyPaste(event) {
+  if (!editorStaffKeyPaste) {
+    return false;
+  }
+  editorStaffKeyPaste = false;
+  if (event && event.preventDefault) {
+    event.preventDefault();
+  }
+  return true;
+}
+
+function editorStaffCopyKeysApply() {
+  var active;
+  var tag;
+  if (!editorIsOpen() || editorLabelTyping) {
+    return false;
+  }
+  active = document.activeElement;
+  if (!active || active.id === "editFocusLine" || active.id === "allEdit") {
+    return true;
+  }
+  tag = active.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || active.isContentEditable) {
+    return false;
+  }
+  return true;
+}
+
 function editorStaffPreviewPointerDown(event) {
   var hit;
   if (!event || (typeof event.button === "number" && event.button !== 0)) {
@@ -2727,10 +2909,11 @@ function editorStaffPreviewPointerUp(event) {
 
 function editorStaffPreviewPointerCancel(event) {
   var preview;
-  if (!editorStaffDrag) {
+  var drag = editorStaffDrag;
+  if (!drag) {
     return;
   }
-  if (event && event.pointerId != null && event.pointerId !== editorStaffDrag.pointerId) {
+  if (event && event.pointerId != null && event.pointerId !== drag.pointerId) {
     return;
   }
   editorStaffDrag = null;
@@ -6748,6 +6931,7 @@ function editorPaintUndoRedo() {
   undoBtn.disabled = !editorSymbolUndo.length && !editorCanUndoStaffTyping();
   redoBtn.disabled = !editorSymbolRedo.length;
   eraseBtn.disabled = !editorCanErase();
+  editorPaintStaffClipMenu(host);
   /* One gentle pulse when a staff example first fails to draw — not a constant nag. */
   if (
     !undoBtn.disabled &&
@@ -6758,6 +6942,34 @@ function editorPaintUndoRedo() {
     editorStaffPendingUndoHinted = true;
     undoBtn.classList.add("is-staff-undo-hint");
   }
+}
+
+/* History-row menu: Copy stores the selection, Paste inserts it at the caret. */
+function editorPaintStaffClipMenu(host) {
+  var wrap = document.createElement("span");
+  var toggle;
+  var menu;
+  var copyBtn;
+  var pasteBtn;
+  wrap.className = "edit-clip-combo" + (editorStaffClipMenuOpen ? " is-open" : "");
+  toggle = editorPadButton(wrap, { "data-clip-menu": "1" }, "\u25BE", t("edit.clipMenu"));
+  toggle.setAttribute("aria-haspopup", "menu");
+  toggle.setAttribute("aria-expanded", editorStaffClipMenuOpen ? "true" : "false");
+  toggle.setAttribute("aria-controls", "editClipMenu");
+  if (editorStaffClipMenuOpen) {
+    menu = document.createElement("span");
+    menu.id = "editClipMenu";
+    menu.className = "edit-clip-menu";
+    menu.setAttribute("role", "menu");
+    copyBtn = editorPadButton(menu, { "data-clip-copy": "1" }, t("edit.copy"), t("edit.copy"));
+    pasteBtn = editorPadButton(menu, { "data-clip-paste": "1" }, t("edit.paste"), t("edit.paste"));
+    copyBtn.setAttribute("role", "menuitem");
+    pasteBtn.setAttribute("role", "menuitem");
+    copyBtn.disabled = !editorStaffSelectionText(editorActiveField());
+    pasteBtn.disabled = !editorStaffCopy;
+    wrap.appendChild(menu);
+  }
+  host.appendChild(wrap);
 }
 
 function editorWithKeyboardStaffEdit(fn) {
@@ -7581,7 +7793,20 @@ function editorActivateSymbol(button, opts) {
     editorSetTupletN(button.getAttribute("data-tuplet-pick"));
     return;
   }
+  if (button.hasAttribute("data-clip-menu")) {
+    editorToggleStaffClipMenu();
+    return;
+  }
+  if (button.hasAttribute("data-clip-copy")) {
+    editorStaffCopyFromSelection();
+    return;
+  }
+  if (button.hasAttribute("data-clip-paste")) {
+    editorStaffPasteCopy();
+    return;
+  }
   if (button.hasAttribute("data-undo")) {
+    editorStaffClipMenuOpen = false;
     editorCloseTupletMenu();
     editorSymbolUndoStep();
     return;
@@ -9432,6 +9657,17 @@ function initEditor() {
   }
   editorBindPadPointer(symbols);
   editorBindHistoryPointer(document.getElementById("editNoteHistory"));
+  document.addEventListener("pointerdown", function (event) {
+    var history = document.getElementById("editNoteHistory");
+    if (!editorStaffClipMenuOpen) {
+      return;
+    }
+    if (history && event.target && history.contains(event.target)) {
+      return;
+    }
+    editorStaffClipMenuOpen = false;
+    editorPaintUndoRedo();
+  });
   function editorOnFieldFocusForPad(event) {
     var target = event && event.target;
     if (!target) {
@@ -9475,6 +9711,29 @@ function initEditor() {
     if (redoKey && editorSymbolRedo.length) {
       event.preventDefault();
       editorSymbolRedoStep();
+      return;
+    }
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey &&
+      (key === "c" || key === "v") &&
+      editorStaffCopyKeysApply()
+    ) {
+      if (key === "c") {
+        if (editorStaffCopyFromSelection()) {
+          event.preventDefault();
+        }
+        return;
+      }
+      if (editorStaffCopy) {
+        event.preventDefault();
+        editorStaffKeyPaste = true;
+        editorStaffPasteCopy();
+        setTimeout(function () {
+          editorStaffKeyPaste = false;
+        }, 0);
+      }
       return;
     }
     /* Notes/Symbols open with pad inputmode: hardware Backspace matches Erase. */
@@ -9560,6 +9819,9 @@ function initEditor() {
     focusField.addEventListener("click", refreshEditor);
     focusField.addEventListener("paste", function (event) {
       var data = event.clipboardData;
+      if (editorStaffSwallowKeyPaste(event)) {
+        return;
+      }
       if (!data) {
         return;
       }
@@ -9636,6 +9898,9 @@ function initEditor() {
   });
   area.addEventListener("paste", function (event) {
     var data = event.clipboardData;
+    if (editorStaffSwallowKeyPaste(event)) {
+      return;
+    }
     if (!data) {
       return;
     }
