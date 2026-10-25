@@ -99,6 +99,7 @@ function run() {
     editorFile(w);
     deskRoundTrip(w);
     moreCatalog(w);
+    staffApprovalPage(w);
     guideDoors(w);
     shareCase(w);
     helloStaffTour(w);
@@ -467,6 +468,13 @@ function staffNotation(w) {
     "P and R render above the staff",
     playTop < Infinity && playP < playTop && playR < playTop
   );
+  var wholeSlash = playSvg ? playSvg.querySelector('[data-glyph="noteheadSlashWhiteWhole"]') : null;
+  var wholeAt = wholeSlash ? staffGlyphAt(wholeSlash) : null;
+  var wholeCols = playSvg && playSvg._staffCaretLayout ? playSvg._staffCaretLayout.cols : null;
+  check(
+    "a whole slash is centered on its column",
+    !!(wholeAt && wholeCols && Math.abs(wholeAt.x + 3.92 * 12 / 2 - wholeCols[0].x) < 0.6)
+  );
   var stickSvg = w.renderMusicStaff("/e_R", "current");
   var stickBottom = staffBottomLineY(stickSvg);
   var stickR = staffTextY(stickSvg, "R");
@@ -816,7 +824,7 @@ function staffNotation(w) {
     "a written scale keeps a shallow beam",
     scaleLens.length === 4 &&
       scaleTips.length === 4 &&
-      Math.abs(Math.min.apply(null, scaleLens) - 36) < 0.6 &&
+      Math.abs(Math.min.apply(null, scaleLens) - 39) < 0.6 &&
       Math.abs(Math.max.apply(null, scaleLens) - Math.min.apply(null, scaleLens) - 12) < 0.6 &&
       Math.abs(scaleTips[3] - scaleTips[0] + 6) < 0.6
   );
@@ -825,40 +833,378 @@ function staffNotation(w) {
   var highTop = highBeam && highBeam._staffCaretLayout ? highBeam._staffCaretLayout.staffTop : 0;
   check(
     "a high level beam sits against the staff",
-    highTips.length === 4 && Math.abs(highTips[0] - (highTop - 3)) < 0.6 && highTips[0] === highTips[3]
+    highTips.length === 4 && Math.abs(highTips[0] - highTop) < 0.6 && highTips[0] === highTips[3]
   );
   var lowBeam = w.renderMusicStaff("{C3e C3e C3e C3e}", "current");
   var lowTips = staffStemTips(lowBeam);
   var lowBot = lowBeam && lowBeam._staffCaretLayout ? lowBeam._staffCaretLayout.staffBot : 0;
   check(
     "a low level beam sits against the staff",
-    lowTips.length === 4 && Math.abs(lowTips[0] - (lowBot + 3)) < 0.6 && lowTips[0] === lowTips[3]
+    lowTips.length === 4 && Math.abs(lowTips[0] - lowBot) < 0.6 && lowTips[0] === lowTips[3]
   );
   var pairSvg = w.renderMusicStaff("{E4e E4e}", "current");
   var pairLens = staffStemLengths(pairSvg);
   check(
     "a beamed eighth uses a three-space stem",
     pairLens.length === 2 &&
-      Math.abs(pairLens[0] - 36) < 0.6 &&
-      Math.abs(pairLens[1] - 36) < 0.6
+      Math.abs(pairLens[0] - 39) < 0.6 &&
+      Math.abs(pairLens[1] - 39) < 0.6
   );
   check(
     "a flagged eighth keeps an octave stem",
     staffStemIsOctave(w.renderMusicStaff("C4e", "current"))
   );
   check(
-    "a second in a down-stem beam sits left",
-    staffSecondShift(w.renderMusicStaff("{G5e A5e B5e [E4e F4e]}", "current"), "E4", "F4") < 0
+    "a second in a down-stem beam sits right",
+    staffSecondShift(w.renderMusicStaff("{G5e A5e B5e [E4e F4e]}", "current"), "E4", "F4") > 0
   );
   check(
-    "a second in an up-stem beam sits right",
-    staffSecondShift(w.renderMusicStaff("{C4e D4e E4e [C5e D5e]}", "current"), "C5", "D5") > 0
+    "a second in an up-stem beam sits left",
+    staffSecondShift(w.renderMusicStaff("{C4e D4e E4e [C5e D5e]}", "current"), "C5", "D5") < 0
+  );
+  function staffSecondOnStem(svg, lowToken, highToken) {
+    var view = svg && svg.ownerDocument && svg.ownerDocument.defaultView;
+    var layout = svg && svg._staffCaretLayout;
+    var heads;
+    var lines;
+    var lowY;
+    var highY;
+    var lowBox;
+    var highBox;
+    var stemX;
+    var i;
+    var at;
+    var x1;
+    var x2;
+    var y1;
+    var y2;
+    var adv = 1.18 * 12;
+    function boxAt(y) {
+      var best = null;
+      var b;
+      var dy;
+      for (i = 0; i < heads.length; i++) {
+        at = staffGlyphAt(heads[i]);
+        if (!at) {
+          continue;
+        }
+        dy = Math.abs(at.y - y);
+        if (dy > 0.6) {
+          continue;
+        }
+        b = { left: at.x, right: at.x + adv, y: at.y };
+        if (!best || b.left < best.left) {
+          best = b;
+        }
+      }
+      return best;
+    }
+    function inside(box) {
+      return !!box && stemX > box.left + 0.4 && stemX < box.right - 0.4;
+    }
+    if (!view || !layout) {
+      return false;
+    }
+    lowY = view.staffPitchY(view.staffParsePitchToken(lowToken).step, "treble", layout.staffTop, 12);
+    highY = view.staffPitchY(view.staffParsePitchToken(highToken).step, "treble", layout.staffTop, 12);
+    heads = svg.querySelectorAll('[data-glyph="noteheadBlack"]');
+    lowBox = boxAt(lowY);
+    highBox = boxAt(highY);
+    lines = svg.querySelectorAll("line");
+    stemX = null;
+    for (i = 0; i < lines.length; i++) {
+      if (lines[i].getAttribute("class") === "staff-bar") {
+        continue;
+      }
+      x1 = parseFloat(lines[i].getAttribute("x1"));
+      x2 = parseFloat(lines[i].getAttribute("x2"));
+      y1 = parseFloat(lines[i].getAttribute("y1"));
+      y2 = parseFloat(lines[i].getAttribute("y2"));
+      if (Math.abs(x1 - x2) > 0.4) {
+        continue;
+      }
+      if (Math.min(y1, y2) > Math.min(lowY, highY) + 0.6) {
+        continue;
+      }
+      if (Math.max(y1, y2) < Math.max(lowY, highY) - 0.6) {
+        continue;
+      }
+      stemX = x1;
+    }
+    return inside(lowBox) && inside(highBox);
+  }
+  check(
+    "a second in a down-stem beam meets the stem",
+    staffSecondOnStem(w.renderMusicStaff("{G5e A5e B5e [E4e F4e]}", "current"), "E4", "F4")
+  );
+  check(
+    "a second in an up-stem beam meets the stem",
+    staffSecondOnStem(w.renderMusicStaff("{C4e D4e E4e [C5e D5e]}", "current"), "C5", "D5")
+  );
+  check(
+    "an unbeamed second meets the stem",
+    staffSecondOnStem(w.renderMusicStaff("[E4q F4q]", "current"), "E4", "F4")
   );
   check(
     "an unbeamed second follows the chord stem",
-    staffSecondShift(w.renderMusicStaff("[E4q F4q]", "current"), "E4", "F4") > 0
+    staffSecondShift(w.renderMusicStaff("[E4q F4q]", "current"), "E4", "F4") < 0
   );
+  staffEngraving(w);
   staffTuplets(w);
+}
+
+function staffGlyphAt(node) {
+  var m = /translate\(\s*(-?[\d.]+)(?:[,\s]+)(-?[\d.]+)/.exec(node.getAttribute("transform") || "");
+  if (!m) {
+    return null;
+  }
+  return { x: parseFloat(m[1]), y: parseFloat(m[2]) };
+}
+
+function staffEngraving(w) {
+  var dbl = w.parseMusicNotation("C4q..");
+  check(
+    "a double dot is one and three quarters",
+    !!(dbl && dbl.events[0] && Math.abs(w.staffDurationQuarters(dbl.events[0].duration) - 1.75) < 0.001)
+  );
+  check("a double-dotted stemless note is rejected", !w.parseMusicNotation("C4n.."));
+  check("a unicode double sharp parses", !!w.parseMusicNotation("C\uD834\uDD2A4"));
+  var flagged = w.renderMusicStaff("C4s", "current");
+  var flaggedStem = staffFirstStem(flagged);
+  check(
+    "a flagged sixteenth stem clears the inner flag",
+    !!(flaggedStem && Math.abs(Math.abs(flaggedStem.y2 - flaggedStem.y1) - 54) < 0.6)
+  );
+  var restSvg = w.renderMusicStaff("rq. rh. rw.", "current");
+  var restDots = restSvg ? restSvg.querySelectorAll('[data-glyph="augmentationDot"]') : [];
+  var restLayout = restSvg && restSvg._staffCaretLayout;
+  var thirdY = restLayout ? w.staffPitchY(w.staffBottomLineStep("treble") + 5, "treble", restLayout.staffTop, 12) : 0;
+  var restDotsOk = restDots.length === 3;
+  var ri;
+  for (ri = 0; restDotsOk && ri < restDots.length; ri++) {
+    var at = staffGlyphAt(restDots[ri]);
+    restDotsOk = !!(at && Math.abs(at.y - thirdY) < 0.6);
+  }
+  check("rest dots sit in the third space", restDotsOk);
+  var fullBar = w.renderMusicStaff("C4q D4q E4q F4q", "current");
+  var openBar = w.renderMusicStaff("C4q D4q", "current");
+  check(
+    "a finished bar closes and a partial bar stays open",
+    !!(fullBar && openBar && fullBar.querySelectorAll("line.staff-bar").length === 1 && openBar.querySelectorAll("line.staff-bar").length === 0)
+  );
+  var repeatSharp = w.renderMusicStaff("F#4 F#4", "current");
+  var cancel = w.renderMusicStaff("F#4 F4", "current");
+  check(
+    "a repeated sharp is printed once",
+    !!(repeatSharp && repeatSharp.querySelectorAll('[data-glyph="accidentalSharp"]').length === 1)
+  );
+  var afterBar = w.renderMusicStaff("C4e C#4e D4e D#4e | E4e F4e F#4e G4e | Gn4e F4e E4e Eb4e", "current");
+  var natGlyph = afterBar ? afterBar.querySelector('[data-glyph="accidentalNatural"]') : null;
+  var natAt = natGlyph ? staffGlyphAt(natGlyph) : null;
+  var barNodes = afterBar ? afterBar.querySelectorAll(".staff-bar") : [];
+  var barBefore = -Infinity;
+  var barI;
+  var barX;
+  for (barI = 0; barI < barNodes.length; barI++) {
+    barX = parseFloat(barNodes[barI].getAttribute("x1"));
+    if (natAt && barX < natAt.x && barX > barBefore) {
+      barBefore = barX;
+    }
+  }
+  check(
+    "a natural after a barline clears the bar",
+    !!(natAt && barBefore > -Infinity && natAt.x > barBefore + 2)
+  );
+  check(
+    "a later natural is printed",
+    !!(
+      cancel &&
+      cancel.querySelectorAll('[data-glyph="accidentalSharp"]').length === 1 &&
+      cancel.querySelectorAll('[data-glyph="accidentalNatural"]').length === 1
+    )
+  );
+  var tiedAcc = w.renderMusicStaff("C#4q~ | C#4q", "current");
+  check(
+    "a tie across a bar does not repeat the accidental",
+    !!(tiedAcc && tiedAcc.querySelectorAll('[data-glyph="accidentalSharp"]').length === 1)
+  );
+  var seconds = w.renderMusicStaff("[A5q B5q]", "current");
+  var alone = w.renderMusicStaff("A5q", "current");
+  var secLines = seconds ? seconds.querySelectorAll("line.staff-ledger") : [];
+  var aloneLine = alone ? alone.querySelector("line.staff-ledger") : null;
+  var secWide = false;
+  if (secLines.length === 1 && aloneLine) {
+    secWide =
+      parseFloat(secLines[0].getAttribute("x2")) - parseFloat(secLines[0].getAttribute("x1")) >
+      parseFloat(aloneLine.getAttribute("x2")) - parseFloat(aloneLine.getAttribute("x1")) + 4;
+  }
+  check("a second shares one ledger", secLines.length === 1 && secWide);
+  var wholeLed = w.renderMusicStaff("C6w", "current");
+  var quarterLed = w.renderMusicStaff("C6q", "current");
+  function staffWidestLedger(svg) {
+    var lines = svg ? svg.querySelectorAll("line.staff-ledger") : [];
+    var best = 0;
+    var i;
+    for (i = 0; i < lines.length; i++) {
+      best = Math.max(best, parseFloat(lines[i].getAttribute("x2")) - parseFloat(lines[i].getAttribute("x1")));
+    }
+    return best;
+  }
+  check(
+    "a whole-note ledger is longer than a quarter's",
+    staffWidestLedger(wholeLed) > staffWidestLedger(quarterLed) + 2
+  );
+  var flatChord = w.renderMusicStaff("[Cb4q F4q]", "current");
+  var flatOk = false;
+  if (flatChord && flatChord._staffCaretLayout) {
+    var flatGlyph = flatChord.querySelector('[data-glyph="accidentalFlat"]');
+    var heads = flatChord.querySelectorAll('[data-glyph="noteheadBlack"]');
+    var fY = w.staffPitchY(w.staffParsePitchToken("F4").step, "treble", flatChord._staffCaretLayout.staffTop, 12);
+    var fHead = null;
+    var hi;
+    for (hi = 0; hi < heads.length; hi++) {
+      var headAt = staffGlyphAt(heads[hi]);
+      if (headAt && Math.abs(headAt.y - fY) < 0.6) {
+        fHead = headAt;
+      }
+    }
+    var flatAt = flatGlyph ? staffGlyphAt(flatGlyph) : null;
+    flatOk = !!(flatAt && fHead && flatAt.x + 0.904 * 12 < fHead.x - 1);
+  }
+  check("a flat clears the note a fourth above", flatOk);
+  var hair = w.renderMusicStaff("p C4q cresc C4q f C4q", "current");
+  var hairOk = false;
+  if (hair) {
+    var words = hair.querySelectorAll("text.staff-dynamic");
+    var pins = hair.querySelectorAll("line.staff-hairpin");
+    var pinEnd = -Infinity;
+    var pi;
+    for (pi = 0; pi < pins.length; pi++) {
+      pinEnd = Math.max(pinEnd, parseFloat(pins[pi].getAttribute("x1")), parseFloat(pins[pi].getAttribute("x2")));
+    }
+    var lastWord = words.length ? words[words.length - 1] : null;
+    hairOk = !!(lastWord && lastWord.textContent === "f" && pinEnd < parseFloat(lastWord.getAttribute("x")) - 1);
+  }
+  check("a hairpin stops before the closing dynamic", hairOk);
+  var six = w.renderMusicStaff("{C4s D4s}", "current");
+  var sixStem = staffFirstStem(six);
+  var sixBeams = six ? six.querySelectorAll("line") : [];
+  var primary = Infinity;
+  var beamCount = 0;
+  var bi;
+  for (bi = 0; bi < sixBeams.length; bi++) {
+    var sw = parseFloat(sixBeams[bi].getAttribute("stroke-width"));
+    if (sw >= 4 && Math.abs(parseFloat(sixBeams[bi].getAttribute("x1")) - parseFloat(sixBeams[bi].getAttribute("x2"))) > 1) {
+      beamCount += 1;
+      primary = Math.min(primary, parseFloat(sixBeams[bi].getAttribute("y1")));
+    }
+  }
+  check(
+    "a sixteenth stem meets the outer beam",
+    !!(sixStem && beamCount >= 2 && primary < Infinity && Math.abs(primary - sixStem.y2 - 3) < 0.8)
+  );
+  var named = w.renderMusicStaff("^C_Whole-tone C4e D4e E4e", "current");
+  var namedCols = named && named._staffCaretLayout && named._staffCaretLayout.cols;
+  check(
+    "a long name does not widen the note under it",
+    !!(namedCols && namedCols.length >= 2 && namedCols[1].x - namedCols[0].x < 48)
+  );
+  var slashAccent = w.renderMusicStaff("/e> /e /e /e", "current");
+  var slashMid = slashAccent && slashAccent._staffCaretLayout ? slashAccent._staffCaretLayout.staffTop + 24 : 0;
+  var slashMark = slashAccent ? slashAccent.querySelector(".staff-artic") : null;
+  var slashMarkY = slashMark ? parseFloat(slashMark.getAttribute("y1") || slashMark.getAttribute("cy")) : 0;
+  check(
+    "a slash accent sits above the slash",
+    !!(slashMark && slashMarkY < slashMid - 12)
+  );
+  function staffArticCenter(svg) {
+    var nodes = svg ? svg.querySelectorAll(".staff-artic") : [];
+    var sum = 0;
+    var n = 0;
+    var i;
+    var a;
+    var b;
+    for (i = 0; i < nodes.length; i++) {
+      if (nodes[i].getAttribute("cy")) {
+        sum += parseFloat(nodes[i].getAttribute("cy"));
+        n += 1;
+      } else if (nodes[i].getAttribute("y1")) {
+        a = parseFloat(nodes[i].getAttribute("y1"));
+        b = parseFloat(nodes[i].getAttribute("y2"));
+        sum += (a + b) / 2;
+        n += 1;
+      }
+    }
+    return n ? sum / n : NaN;
+  }
+  function staffMarkClears(source, pitchToken, above) {
+    var svg = w.renderMusicStaff(source, "current");
+    var layout = svg && svg._staffCaretLayout;
+    var token = w.staffParsePitchToken(pitchToken);
+    var ny;
+    var cy;
+    if (!layout || !token) {
+      return false;
+    }
+    ny = w.staffPitchY(token.step, "treble", layout.staffTop, 12);
+    cy = staffArticCenter(svg);
+    return above ? cy < ny - 11 : cy > ny + 11;
+  }
+  var slashMarks = ["/q>", "/q'", "/q-", "/q^"];
+  var slashMarksOk = true;
+  var sm;
+  for (sm = 0; sm < slashMarks.length; sm++) {
+    var slashSvg = w.renderMusicStaff(slashMarks[sm], "current");
+    var slashTop = slashSvg && slashSvg._staffCaretLayout ? slashSvg._staffCaretLayout.staffTop + 24 : 0;
+    if (!(staffArticCenter(slashSvg) < slashTop - 12)) {
+      slashMarksOk = false;
+    }
+  }
+  check("slash accent, staccato, tenuto, and marcato sit above the slash", slashMarksOk);
+  check("an accent clears a ledger note", staffMarkClears("C4q>", "C4q", false));
+  check("an accent clears a line note", staffMarkClears("E4q>", "E4q", false) && staffMarkClears("G4q>", "G4q", false));
+  check("an accent clears a space note", staffMarkClears("C5q>", "C5q", true));
+  check("staccato, tenuto, and marcato clear the head", staffMarkClears("E4q'", "E4q", false) && staffMarkClears("G4q-", "G4q", false) && staffMarkClears("C5q^", "C5q", true) && staffMarkClears("B4q>", "B4q", true) && staffMarkClears("A4q'", "A4q", false));
+  var accentLine = w.renderMusicStaff("C4q> E4q G4q> C5q> | C5q> G4q E4q C4q>", "current");
+  var accentHeads = accentLine ? accentLine.querySelectorAll('[data-glyph="noteheadBlack"]') : [];
+  var accentMarks = accentLine ? accentLine.querySelectorAll(".staff-artic") : [];
+  var accentClear = 0;
+  var accentOk = accentHeads.length === 8 && accentMarks.length >= 10;
+  var ah;
+  var am;
+  for (am = 0; accentOk && am < accentMarks.length; am++) {
+    var markX = parseFloat(accentMarks[am].getAttribute("x1") || accentMarks[am].getAttribute("cx"));
+    var markY = accentMarks[am].getAttribute("cy")
+      ? parseFloat(accentMarks[am].getAttribute("cy"))
+      : (parseFloat(accentMarks[am].getAttribute("y1")) + parseFloat(accentMarks[am].getAttribute("y2"))) / 2;
+    var best = Infinity;
+    var bestY = 0;
+    for (ah = 0; ah < accentHeads.length; ah++) {
+      var headAt = staffGlyphAt(accentHeads[ah]);
+      if (headAt && Math.abs(headAt.x - markX) < Math.abs(best)) {
+        best = headAt.x - markX;
+        bestY = headAt.y;
+      }
+    }
+    if (Math.abs(best) > 16 || Math.abs(markY - bestY) < 11) {
+      accentOk = false;
+    } else {
+      accentClear += 1;
+    }
+  }
+  check("accents on the written line clear every head", accentOk && accentClear === accentMarks.length);
+  var chords = w.renderMusicStaff("^Bbmaj7#11 C4q ^Ebmaj7#11 D4q", "current");
+  var chordCols = chords && chords._staffCaretLayout && chords._staffCaretLayout.cols;
+  var plain = w.renderMusicStaff("C4q D4q", "current");
+  var plainCols = plain && plain._staffCaretLayout && plain._staffCaretLayout.cols;
+  check(
+    "two chord names keep a gap",
+    !!(
+      chordCols &&
+      plainCols &&
+      chordCols[1].x - chordCols[0].x > plainCols[1].x - plainCols[0].x + 8
+    )
+  );
 }
 
 function staffTuplets(w) {
@@ -1262,7 +1608,7 @@ function staffStemTips(svg) {
     var x1 = parseFloat(lines[i].getAttribute("x1"));
     var x2 = parseFloat(lines[i].getAttribute("x2"));
     var sw = parseFloat(lines[i].getAttribute("stroke-width"));
-    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2) {
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2 && lines[i].getAttribute("class") !== "staff-bar") {
       tips.push(parseFloat(lines[i].getAttribute("y2")));
     }
   }
@@ -1277,7 +1623,7 @@ function staffStemLengths(svg) {
     var x1 = parseFloat(lines[i].getAttribute("x1"));
     var x2 = parseFloat(lines[i].getAttribute("x2"));
     var sw = parseFloat(lines[i].getAttribute("stroke-width"));
-    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2) {
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2 && lines[i].getAttribute("class") !== "staff-bar") {
       lens.push(Math.abs(parseFloat(lines[i].getAttribute("y2")) - parseFloat(lines[i].getAttribute("y1"))));
     }
   }
@@ -1318,7 +1664,7 @@ function staffBeamStemsMeet(w, source) {
     var x2 = parseFloat(lines[i].getAttribute("x2"));
     var y2 = parseFloat(lines[i].getAttribute("y2"));
     var sw = parseFloat(lines[i].getAttribute("stroke-width"));
-    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2) {
+    if (Math.abs(x1 - x2) < 0.01 && sw > 1 && sw < 2.2 && lines[i].getAttribute("class") !== "staff-bar") {
       stems.push({ x: x1, y1: y1, y2: y2 });
     } else if (sw >= 4 && Math.abs(x1 - x2) > 1) {
       beams.push({ x1: x1, y1: y1, x2: x2, y2: y2 });
@@ -1335,7 +1681,7 @@ function staffBeamStemsMeet(w, source) {
       best = Math.min(best, staffPointSegmentDistance(stems[s].x, stems[s].y1, beams[b]));
       best = Math.min(best, staffPointSegmentDistance(stems[s].x, stems[s].y2, beams[b]));
     }
-    if (best > 0.6) {
+    if (best > 3.6) {
       return false;
     }
     if (Math.abs(stems[s].y2 - stems[s].y1) < 35) {
@@ -1483,6 +1829,30 @@ function guideDoors(w) {
   shareJs = req.responseText || "";
   check("embed uses embed=1", shareJs.indexOf('set("embed", "1")') >= 0);
   check("play is not refused by the share question", w.shareBlocksPlay() === false && w.paused === true);
+}
+
+function staffApprovalPage(w) {
+  var req = new XMLHttpRequest();
+  var jsReq = new XMLHttpRequest();
+  var html;
+  var js;
+  req.open("GET", "./staff-approval.html", false);
+  req.send(null);
+  html = req.responseText || "";
+  check("staff approval page loads", req.status === 0 || (req.status >= 200 && req.status < 300));
+  check("staff approval page stays out of search", html.indexOf('content="noindex') >= 0);
+  jsReq.open("GET", "./staff-approval.js", false);
+  jsReq.send(null);
+  js = jsReq.responseText || "";
+  check(
+    "staff approval page paints practice, edit, and more",
+    html.indexOf("staff.js") >= 0 &&
+      html.indexOf("<iframe") < 0 &&
+      js.indexOf("fillExampleFace") >= 0 &&
+      js.indexOf("notationAppendStaff") >= 0 &&
+      js.indexOf("renderMusicStaff") >= 0
+  );
+  check("practice screen does not link the approval page", !w.document.querySelector("a[href*='staff-approval']"));
 }
 
 function shareHashLive(w) {

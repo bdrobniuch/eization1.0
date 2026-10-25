@@ -74,7 +74,7 @@
         </section>
 
         <h2>Una nota, y luego las duraciones</h2>
-        <p>Letra y octava. Cada nota es su propia palabra: <code>C4 E4</code> son dos notas; <code>C4E4</code> no. <code>C4</code> es el do central, una negra. Después de la octava: <code>w</code> redonda, <code>h</code> blanca, <code>q</code> negra, <code>e</code> corchea, <code>s</code> semicorchea, <code>n</code> una cabeza de negra sin plica (un tiempo, <code>C4n</code>). El puntillo va después de la duración: <code>q.</code> <code>w.</code>. <code>n.</code> no se lee. Alteraciones: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> o <code>C##4</code>, <code>Ebb4</code>.</p>
+        <p>Letra y octava. Cada nota es su propia palabra: <code>C4 E4</code> son dos notas; <code>C4E4</code> no. <code>C4</code> es el do central, una negra. Después de la octava: <code>w</code> redonda, <code>h</code> blanca, <code>q</code> negra, <code>e</code> corchea, <code>s</code> semicorchea, <code>n</code> una cabeza de negra sin plica (un tiempo, <code>C4n</code>). El puntillo va después de la duración: <code>q.</code> <code>w.</code>. Dos puntillos, <code>C4q..</code>, hacen la nota una vez y tres cuartos del valor escrito. <code>n.</code> y <code>n..</code> no se leen. Alteraciones: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> o <code>C##4</code>, <code>Ebb4</code>. El signo se imprime cuando esa nota difiere de la armadura o de una nota anterior en el compás. El compás siguiente empieza de nuevo. <code>!</code> fuerza el signo.</p>
         <p>Símbolos en Editar permanece cerrado hasta que lo abras. En un ejercicio de pentagrama es un teclado de letras: toca una letra para escribir la nota, luego la duración, el puntillo, la octava, las alteraciones, slash o silencio, barra, grupo irregular, acorde, deshacer y borrar. En un ejercicio de texto inserta ♯ ♭ ♮ y los demás signos de cifrado. Lo escrito a mano se lee igual.</p>
         <figure class="notation-sample">
             <pre>C4</pre>
@@ -114,7 +114,7 @@
         </figure>
 
         <h2>Un acorde</h2>
-        <p>Los corchetes apilan un acorde. La misma duración en cada nota es la forma clara de escribirlo. <code>^</code> después del corchete de cierre es el cifrado sobre el acorde. <code>_</code> es el texto debajo. Un acorde puede llevar los dos. El cifrado puede usar ∆. <code>^bVII</code> y <code>_bVII</code> se ven como ♭VII. <code>_bbVII</code> se ve como 𝄫VII. Dentro de una palabra de cifrado sobre el pentagrama, <code>_</code> es un espacio: <code>^Any_dom_7</code>.</p>
+        <p>Los corchetes apilan un acorde. La misma duración en cada nota es la forma clara de escribirlo. Si las duraciones difieren, la plica sigue a la nota más grave. <code>^</code> después del corchete de cierre es el cifrado sobre el acorde. <code>_</code> es el texto debajo. Un acorde puede llevar los dos. El cifrado puede usar ∆. <code>^bVII</code> y <code>_bVII</code> se ven como ♭VII. <code>_bbVII</code> se ve como 𝄫VII. Dentro de una palabra de cifrado sobre el pentagrama, <code>_</code> es un espacio: <code>^Any_dom_7</code>. Una segunda deja la nota del lado de la plica en su sitio y pone la siguiente a la derecha.</p>
         <figure class="notation-sample">
             <pre>@bass @key=C [E3h G3h B3h D4h]^C∆7_3</pre>
             <div class="notation-staff"></div>
@@ -140,7 +140,7 @@
         </figure>
 
         <h2>Barrados</h2>
-        <p>En 4/4, las corcheas y semicorcheas se barran con el pulso aunque no haya llaves. Las llaves siguen forzando un solo grupo. En 6/8, las corcheas sin llaves igual se agrupan de tres en tres, porque el pulso es una negra con puntillo. Ese compás se pone en Ajustes. El 4/4 se dibuja como tiempo ordinario; el 2/2 como alla breve. La armadura de compás sigue viniendo de Ajustes, no de la línea. Esta última figura está dibujada en 6/8.</p>
+        <p>En 4/4, las corcheas y semicorcheas se barran con el pulso aunque no haya llaves, así que las corcheas van de dos en dos. Las llaves siguen forzando un solo grupo. En 6/8, las corcheas sin llaves igual se agrupan de tres en tres, porque el pulso es una negra con puntillo. Ese compás se pone en Ajustes. El 4/4 se dibuja como tiempo ordinario; el 2/2 como alla breve. La armadura de compás sigue viniendo de Ajustes, no de la línea. Una línea que llena sus compases dibuja una barra al final. Esta última figura está dibujada en 6/8.</p>
         <figure class="notation-sample">
             <pre>{C4e D4e E4e F4e}</pre>
             <div class="notation-staff"></div>
@@ -152,7 +152,7 @@
 
         <h2>Grupos irregulares</h2>
         <p>Los paréntesis forman un grupo irregular. <code>(3</code> lo abre y <code>)</code> lo cierra, pegado a la última nota o suelto. <code>(3 C4e D4e E4e)</code> son tres corcheas en el tiempo de dos. Con solo el número, 3 va en el tiempo de 2; 5, 6 y 7 en el de 4; 9 en el de 8; 2 y 4 en el de 3. <code>(5:4</code> fija la proporción y la imprime.</p>
-        <p>Dentro van notas, barras, silencios, acordes y llaves, con cualquier mezcla de figuras. Las corcheas y semicorcheas de dentro se barran juntas. Un grupo bajo una sola barra continua muestra solo el número. Negras, blancas, redondas, un silencio o una barra cortada llevan corchete. Un grupo irregular no cruza la barra de compás. La última figura está dibujada en 4/2.</p>
+        <p>Dentro van notas, barras, silencios, acordes y llaves, con cualquier mezcla de figuras. Las corcheas y semicorcheas de dentro se barran juntas. Un grupo bajo una sola barra continua muestra solo el número. Negras, blancas, redondas, un silencio o una barra cortada llevan corchete. Una sola nota dentro de los paréntesis también se lee, y el pentagrama la dibuja normal. Un grupo irregular no cruza la barra de compás. La última figura está dibujada en 4/2.</p>
         <figure class="notation-sample">
             <pre>(3 C4e D4e E4e) (3 F4e G4e A4e) (7 B4s A4s G4s F4s E4s D4s C4s) C4q</pre>
             <div class="notation-staff"></div>
@@ -171,7 +171,7 @@
         </figure>
 
         <h2>Ligaduras</h2>
-        <p>Una ligadura es un solo sonido escrito como dos notas. <code>~</code> va entre ellas, pegada o con espacios: <code>/q~/q</code> o <code>C4q ~ C4q</code>. Toca la primera y sostenla durante las dos. No articules la segunda. Las dos notas tienen la misma altura escrita. Cualquier slash liga con cualquier slash. Una ligadura puede cruzar la barra de compás. Un acorde liga cada altura que el acorde siguiente comparte. Un silencio, una altura distinta, o un <code>~</code> sin nota después se queda en texto. Símbolos inserta <code>~</code>.</p>
+        <p>Una ligadura es un solo sonido escrito como dos notas. <code>~</code> va entre ellas, pegada o con espacios: <code>/q~/q</code> o <code>C4q ~ C4q</code>. Toca la primera y sostenla durante las dos. No articules la segunda. Las dos notas tienen la misma altura escrita. Cualquier slash liga con cualquier slash. Una ligadura puede cruzar la barra de compás, y el compás siguiente no repite esa alteración. Un acorde liga cada altura que el acorde siguiente comparte. Un silencio o una altura distinta se queda en texto. Un <code>~</code> sin nota después deja un trazo corto para verlo al editar. Símbolos inserta <code>~</code>.</p>
         <figure class="notation-sample">
             <pre>C4q~ C4q</pre>
             <div class="notation-staff"></div>
@@ -212,7 +212,7 @@
         </figure>
 
         <h2>En un ejercicio</h2>
-        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Progresiones esenciales, Tocar/Silencio y Ritmos se escriben así. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, un grupo irregular de una sola nota, una barra de compás dentro de un grupo irregular, un grupo irregular anidado, una ligadura desde un silencio, una ligadura hacia otra altura, una ligadura sin nota después, un matiz suelto, o un regulador sin nada después.</p>
+        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Progresiones esenciales, Tocar/Silencio y Ritmos se escriben así. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, una barra de compás dentro de un grupo irregular, un grupo irregular anidado, una ligadura desde un silencio, una ligadura hacia otra altura, un matiz suelto, o un regulador sin nada después. Un grupo irregular de una sola nota dibuja esa nota normal. Una ligadura sin nada después deja un trazo corto.</p>
         <p><a class="open" href="./?exercise=scales">Abrir Escalas</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Abrir Voicings rootless de mano izquierda</a></p>
         <p><a class="open" href="./?exercise=limbs">Abrir Ritmos</a></p>

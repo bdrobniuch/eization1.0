@@ -74,7 +74,7 @@
         </section>
 
         <h2>One pitch, then the durations</h2>
-        <p>Letter, octave. Each note is its own word: <code>C4 E4</code> is two notes; <code>C4E4</code> is not. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth, <code>n</code> a filled notehead with no stem (one beat, <code>C4n</code>). A dot follows the duration: <code>q.</code> <code>w.</code>. <code>n.</code> does not parse. Accidentals: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> or <code>C##4</code>, <code>Ebb4</code>.</p>
+        <p>Letter, octave. Each note is its own word: <code>C4 E4</code> is two notes; <code>C4E4</code> is not. <code>C4</code> is middle C, a quarter note. After the octave: <code>w</code> whole, <code>h</code> half, <code>q</code> quarter, <code>e</code> eighth, <code>s</code> sixteenth, <code>n</code> a filled notehead with no stem (one beat, <code>C4n</code>). A dot follows the duration: <code>q.</code> <code>w.</code>. Two dots, <code>C4q..</code>, make the note one and three quarters of the written value. <code>n.</code> and <code>n..</code> do not parse. Accidentals: <code>C#4</code>, <code>Db4</code>, <code>Cn4</code>, <code>Cx4</code> or <code>C##4</code>, <code>Ebb4</code>. A sign prints when that note differs from the key or from an earlier note in the bar. The next bar starts fresh. <code>!</code> forces the sign.</p>
         <p>Symbols in Edit stays closed until you open it. On a staff exercise it is a letter pad: tap a letter to write the note, then duration, a dot, the octave, accidentals, slash or rest, beam, tuplet, stack, undo, and erase. On a text exercise it inserts ♯ ♭ ♮ and the other chart marks. Typed marks parse the same way.</p>
         <figure class="notation-sample">
             <pre>C4</pre>
@@ -114,7 +114,7 @@
         </figure>
 
         <h2>A chord</h2>
-        <p>Brackets stack a chord. The same duration on every pitch is the clear way to write it. <code>^</code> after the closing bracket is the chord name above the stack. <code>_</code> is text under it. A chord can carry both. The name can use ∆. <code>^bVII</code> and <code>_bVII</code> both print as ♭VII. <code>_bbVII</code> prints as 𝄫VII. Inside a chord word above the staff, <code>_</code> is a space: <code>^Any_dom_7</code>.</p>
+        <p>Brackets stack a chord. The same duration on every pitch is the clear way to write it. If the durations differ, the stem follows the lowest note. <code>^</code> after the closing bracket is the chord name above the stack. <code>_</code> is text under it. A chord can carry both. The name can use ∆. <code>^bVII</code> and <code>_bVII</code> both print as ♭VII. <code>_bbVII</code> prints as 𝄫VII. Inside a chord word above the staff, <code>_</code> is a space: <code>^Any_dom_7</code>. A second keeps the note on the stem side in place and sets the next note to the right.</p>
         <figure class="notation-sample">
             <pre>@bass @key=C [E3h G3h B3h D4h]^C∆7_3</pre>
             <div class="notation-staff"></div>
@@ -140,7 +140,7 @@
         </figure>
 
         <h2>Beams</h2>
-        <p>In 4/4, eighths and sixteenths beam with the beat even without braces. Braces still force one group. In 6/8, eighths without braces still group in threes, because the beat is a dotted quarter. Set that meter in Setup. 4/4 draws as common time; 2/2 draws as cut time. The signature still comes from Setup, not from the line. This last figure is drawn in 6/8.</p>
+        <p>In 4/4, eighths and sixteenths beam with the beat even without braces, so eighths beam in pairs. Braces still force one group. In 6/8, eighths without braces still group in threes, because the beat is a dotted quarter. Set that meter in Setup. 4/4 draws as common time; 2/2 draws as cut time. The signature still comes from Setup, not from the line. A line that fills its bars draws a barline at the end. This last figure is drawn in 6/8.</p>
         <figure class="notation-sample">
             <pre>{C4e D4e E4e F4e}</pre>
             <div class="notation-staff"></div>
@@ -152,7 +152,7 @@
 
         <h2>Tuplets</h2>
         <p>Parentheses make a tuplet. <code>(3</code> opens it and <code>)</code> closes it, on the last note or on its own. <code>(3 C4e D4e E4e)</code> is three eighths in the time of two. With only the number, 3 is in the time of 2; 5, 6, and 7 in the time of 4; 9 in the time of 8; 2 and 4 in the time of 3. <code>(5:4</code> sets the ratio and prints it.</p>
-        <p>Notes, slashes, rests, chords, and braces go inside, with any mix of durations. Eighths and sixteenths inside are beamed together. A group under one unbroken beam shows only the number. Quarters, halves, wholes, a rest, or a broken beam get a bracket. A tuplet does not cross a barline. The last figure is drawn in 4/2.</p>
+        <p>Notes, slashes, rests, chords, and braces go inside, with any mix of durations. Eighths and sixteenths inside are beamed together. A group under one unbroken beam shows only the number. Quarters, halves, wholes, a rest, or a broken beam get a bracket. One note inside the parentheses still parses, and the staff draws that note plain. A tuplet does not cross a barline. The last figure is drawn in 4/2.</p>
         <figure class="notation-sample">
             <pre>(3 C4e D4e E4e) (3 F4e G4e A4e) (7 B4s A4s G4s F4s E4s D4s C4s) C4q</pre>
             <div class="notation-staff"></div>
@@ -171,7 +171,7 @@
         </figure>
 
         <h2>Ties</h2>
-        <p>A tie is one sound written as two notes. <code>~</code> sits between them, glued or with spaces: <code>/q~/q</code> or <code>C4q ~ C4q</code>. Play the first note and hold it for both. Do not strike the second. The two notes are the same written pitch. Every slash matches every slash. A tie may cross a barline. A chord ties each pitch the next chord shares. A rest, a different pitch, or a <code>~</code> with no note after it stays text. Symbols inserts <code>~</code>.</p>
+        <p>A tie is one sound written as two notes. <code>~</code> sits between them, glued or with spaces: <code>/q~/q</code> or <code>C4q ~ C4q</code>. Play the first note and hold it for both. Do not strike the second. The two notes are the same written pitch. Every slash matches every slash. A tie may cross a barline, and the next bar does not reprint that accidental. A chord ties each pitch the next chord shares. A rest or a different pitch stays text. A <code>~</code> with no note after it hangs a stub so you can see it while editing. Symbols inserts <code>~</code>.</p>
         <figure class="notation-sample">
             <pre>C4q~ C4q</pre>
             <div class="notation-staff"></div>
@@ -212,7 +212,7 @@
         </figure>
 
         <h2>In an exercise</h2>
-        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Essential Progressions, Play/Rest, and Rhythms are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a tuplet of one note, a barline inside a tuplet, a nested tuplet, a tie from a rest, a tie onto a different pitch, a tie with no note after it, a dangling dynamic, or a hairpin with nothing after it.</p>
+        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Essential Progressions, Play/Rest, and Rhythms are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a barline inside a tuplet, a nested tuplet, a tie from a rest, a tie onto a different pitch, a dangling dynamic, or a hairpin with nothing after it. A tuplet of one note draws that note plain. A tie with nothing after it hangs a stub.</p>
         <p><a class="open" href="./?exercise=scales">Open Scales</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Open Left Hand Rootless Voicings</a></p>
         <p><a class="open" href="./?exercise=limbs">Open Rhythms</a></p>

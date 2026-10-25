@@ -9,6 +9,8 @@ Static page. Plain scripts, shared globals, no modules, no bundler, no framework
 
 The visible UI is settled. Change behavior in the existing layout. Do not restyle hidden exercises, and do not load `randompicker.js` or `edit.js`.
 
+After a change to staff drawing, open `tests/staff-approval.html` in a browser. Scroll the examples. A red note means Practice, Edit, and More drew that line differently, and that needs a look before the change is done.
+
 Visible copy says exercise for the list and example for one line. A musician should not read desk, Practice Idea, or value. `eization-desk` stays the storage key.
 
 ## Leave these alone

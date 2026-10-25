@@ -48,6 +48,7 @@ var editorNote = {
   acc: "",
   dur: "",
   dot: false,
+  dots: 0,
   oct: null
 };
 
@@ -2344,7 +2345,8 @@ function editorStaffInsertIndexFromX(layout, x) {
       continue;
     }
     d = Math.abs(ix - x);
-    if (d < bestDist) {
+    /* Fractional column weights can make a later gap a hair closer. Keep the left slot unless it is clearly nearer. */
+    if (d + 0.75 < bestDist) {
       bestDist = d;
       best = i;
     }
@@ -3694,16 +3696,34 @@ function editorDurCode(dur) {
   return "";
 }
 
+/* "", ".", or ".." from a pad flag and the token being rewritten. */
+function editorDotMarks(dot, source) {
+  if (dot === 2 || dot === "..") {
+    return "..";
+  }
+  if (!dot) {
+    return "";
+  }
+  if (typeof source === "string" && /[whqesn]\.\./.test(source)) {
+    return "..";
+  }
+  if (editorNote.dots === 2) {
+    return "..";
+  }
+  return ".";
+}
+
 function editorPitchSuffix() {
   var code = editorDurCode(editorNote.dur);
-  if (editorNote.dot) {
-    return (code || "q") + ".";
+  var marks = editorDotMarks(editorNote.dot, "");
+  if (marks) {
+    return (code || "q") + marks;
   }
   return code;
 }
 
 function editorRhythmSuffix() {
-  return (editorDurCode(editorNote.dur) || "q") + (editorNote.dot ? "." : "");
+  return (editorDurCode(editorNote.dur) || "q") + editorDotMarks(editorNote.dot, "");
 }
 
 function editorSlashToken() {
@@ -3857,7 +3877,7 @@ function editorToggleDefaultClef(next) {
 }
 
 function editorParsePitchToken(token) {
-  var parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?$/.exec(token || "");
+  var parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?$/.exec(token || "");
   if (!parsed) {
     return null;
   }
@@ -3884,7 +3904,7 @@ function editorPitchTokenBoundary(prev) {
 
 function editorPitchTail(text) {
   var trimmed = String(text || "").replace(/\s+$/, "");
-  var m = trimmed.match(/([A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/);
+  var m = trimmed.match(/([A-G](?:#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/);
   var prev;
   var hit;
   if (!m) {
@@ -3997,7 +4017,7 @@ function editorMusicHitAtCaret() {
     span = editorPickEventSpan(spans, bounds.caretInWord);
     if (span) {
       token = span.token;
-      pitchM = /^([A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/.exec(token);
+      pitchM = /^([A-G](?:#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/.exec(token);
       if (pitchM) {
         hit = editorParsePitchToken(pitchM[1]);
         if (hit) {
@@ -4126,14 +4146,14 @@ function editorCurrentEventAtCaret() {
 }
 
 function editorParseRhythmToken(token) {
-  var slash = /^\/([whqes]?)(\.?)$/.exec(token || "");
-  var rest = /^r([whqes]?)(\.?)$/i.exec(token || "");
+  var slash = /^\/([whqes]?)(\.{0,2})$/.exec(token || "");
+  var rest = /^r([whqes]?)(\.{0,2})$/i.exec(token || "");
   if (slash) {
     return {
       token: token,
       kind: "slash",
       dur: slash[1] || "",
-      dot: slash[2] === "."
+      dot: slash[2].length > 0
     };
   }
   if (rest) {
@@ -4141,7 +4161,7 @@ function editorParseRhythmToken(token) {
       token: token,
       kind: "rest",
       dur: rest[1] || "",
-      dot: rest[2] === "."
+      dot: rest[2].length > 0
     };
   }
   return null;
@@ -4149,7 +4169,7 @@ function editorParseRhythmToken(token) {
 
 function editorRhythmTail(text) {
   var trimmed = String(text || "").replace(/\s+$/, "");
-  var m = trimmed.match(/(\/[whqes]?\.?|r[whqes]?\.?)((?:[\^_']|[>\-])[^\s]*)?$/i);
+  var m = trimmed.match(/(\/[whqes]?\.{0,2}|r[whqes]?\.{0,2})((?:[\^_']|[>\-])[^\s]*)?$/i);
   var prev;
   var hit;
   if (!m) {
@@ -4206,10 +4226,13 @@ function editorPitchTokenWith(hit, acc, dur, dot) {
   var useDot = typeof dot === "boolean" ? dot : !!editorNote.dot;
   var useDur = dur === undefined ? editorNote.dur : dur;
   var code = editorDurCode(useDur);
-  if (useDot) {
-    suffix = (code || "q") + ".";
-  } else {
-    suffix = code;
+  var marks = editorDotMarks(useDot, hit && hit.token);
+  if (marks && code === "n") {
+    marks = "";
+  }
+  suffix = (code || (marks ? "q" : "")) + marks;
+  if (!code && !marks) {
+    suffix = "";
   }
   return hit.letter + (acc === undefined ? hit.acc || "" : acc) + String(hit.oct) + suffix;
 }
@@ -4217,7 +4240,7 @@ function editorPitchTokenWith(hit, acc, dur, dot) {
 function editorRhythmTokenWith(hit, dur, dot) {
   var useDot = typeof dot === "boolean" ? dot : !!editorNote.dot;
   var useDur = dur === undefined ? editorNote.dur : dur;
-  var suffix = (editorDurCode(useDur) || "q") + (useDot ? "." : "");
+  var suffix = (editorDurCode(useDur) || "q") + editorDotMarks(useDot, hit && hit.token);
   return (hit.kind === "rest" ? "r" : "/") + suffix;
 }
 
@@ -4232,7 +4255,7 @@ function editorEarlierPitch() {
     return null;
   }
   before = String(field.value || "").slice(0, editorReadSelection(field).start);
-  re = /[A-G](?:#|b|n)?\d(?:[whqesn]\.?|\.)?/g;
+  re = /[A-G](?:#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?/g;
   last = null;
   while ((m = re.exec(before))) {
     if (m.index > 0) {
@@ -4257,7 +4280,7 @@ function editorNotePadStampNow() {
     editorStaffOn() ? "staff" : "text",
     editorNote.acc || "",
     editorNote.oct === null || editorNote.oct === undefined ? "" : String(editorNote.oct),
-    editorNote.dot ? "." : "",
+    editorNote.dots === 2 ? ".." : editorNote.dot ? "." : "",
     editorNote.dur || "",
     String(editorWorkingOctave()),
     editorClefName(),
@@ -5349,8 +5372,12 @@ function editorNormDur(code) {
 
 function editorDurSuffix(dur, dot) {
   var code = editorDurCode(dur);
-  if (dot) {
-    return (code || "q") + ".";
+  var marks = editorDotMarks(dot, "");
+  if (marks && (code === "n" || dur === "n")) {
+    marks = "";
+  }
+  if (marks) {
+    return (code || "q") + marks;
   }
   return code;
 }
@@ -5371,11 +5398,11 @@ function editorPitchTextKept(letter, acc, oct, durRaw, affix) {
 }
 
 function editorRestText(dur, dot) {
-  return "r" + (editorDurCode(dur) || "q") + (dot ? "." : "");
+  return "r" + (editorDurCode(dur) || "q") + editorDotMarks(dot, "");
 }
 
 function editorSlashText(dur, dot) {
-  return "/" + (editorDurCode(dur) || "q") + (dot ? "." : "");
+  return "/" + (editorDurCode(dur) || "q") + editorDotMarks(dot, "");
 }
 
 function editorIsEventPiece(node) {
@@ -5412,7 +5439,7 @@ function editorMakeTokenPiece(tok, start, end) {
     tupletId: 0,
     tupletNode: null
   };
-  pitch = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?(.*)$/.exec(tok || "");
+  pitch = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
   if (pitch) {
     durRaw = pitch[4] || "";
     piece.kind = "pitch";
@@ -5421,24 +5448,30 @@ function editorMakeTokenPiece(tok, start, end) {
     piece.oct = parseInt(pitch[3], 10);
     piece.durRaw = durRaw;
     piece.dot = durRaw.indexOf(".") >= 0;
+    piece.dots = durRaw.split(".").length - 1;
+    if (piece.dots > 2) {
+      piece.dots = 2;
+    }
     piece.dur = editorNormDur(durRaw);
     piece.affix = pitch[5] || "";
     return piece;
   }
-  rest = /^r([whqes]?)(\.?)(.*)$/i.exec(tok || "");
+  rest = /^r([whqes]?)(\.{0,2})(.*)$/i.exec(tok || "");
   if (rest) {
     piece.kind = "rest";
     piece.durRaw = (rest[1] || "") + (rest[2] || "");
-    piece.dot = rest[2] === ".";
+    piece.dot = rest[2].length > 0;
+    piece.dots = rest[2].length;
     piece.dur = editorNormDur(rest[1] || "q");
     piece.affix = rest[3] || "";
     return piece;
   }
-  slash = /^\/([whqes]?)(\.?)(.*)$/.exec(tok || "");
+  slash = /^\/([whqes]?)(\.{0,2})(.*)$/.exec(tok || "");
   if (slash) {
     piece.kind = "slash";
     piece.durRaw = (slash[1] || "") + (slash[2] || "");
-    piece.dot = slash[2] === ".";
+    piece.dot = slash[2].length > 0;
+    piece.dots = slash[2].length;
     piece.dur = editorNormDur(slash[1] || "q");
     piece.affix = slash[3] || "";
     return piece;
@@ -6860,7 +6893,7 @@ function editorStackDotsAgree(line, stack) {
     return false;
   }
   for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?)|\.)?/.exec(spans[i].token);
+    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
     dotted = !!(m && String(m[1] || "").indexOf(".") >= 0);
     if (!dotted) {
       return false;
@@ -6904,6 +6937,7 @@ function editorTraitsFromHit(hit) {
     onEvent: true,
     dur: dur,
     dot: !!dot,
+    dots: piece.dots || (dot ? 1 : 0),
     accLit: piece.kind === "pitch" ? piece.acc || "" : "",
     oct: piece.kind === "pitch" ? piece.oct : null,
     octBlank: false,
@@ -6996,7 +7030,7 @@ function editorShownRhythmSuffix() {
     if (traits.dur === null || traits.dur === undefined) {
       return "q";
     }
-    return (editorDurCode(traits.dur) || "q") + (traits.dot ? "." : "");
+    return (editorDurCode(traits.dur) || "q") + (traits.dots === 2 ? ".." : traits.dot ? "." : "");
   }
   return editorRhythmSuffix();
 }
@@ -7684,7 +7718,7 @@ function editorStackAllShort(line, stack) {
     return true;
   }
   for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?|\.)?)/.exec(spans[i].token);
+    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2}|\.)?)/.exec(spans[i].token);
     dur = String((m && m[1]) || "q").replace(".", "");
     if (dur !== "e" && dur !== "s") {
       return false;
@@ -8039,7 +8073,7 @@ function editorEventTokenDurationCode(tok) {
   var pitch;
   var rhythm;
   tok = String(tok || "");
-  pitch = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?)|\.)?/.exec(tok);
+  pitch = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(tok);
   if (pitch) {
     return String(pitch[1] || "q").replace(".", "");
   }
@@ -8383,20 +8417,20 @@ function editorRewriteShortToken(hit) {
   editorForceShortDuration();
   short = editorDurCode(editorNote.dur) || "e";
   if (hit.kind === "slash") {
-    return "/" + short + (editorNote.dot ? "." : "");
+    return "/" + short + editorDotMarks(editorNote.dot, hit.token);
   }
   if (hit.kind !== "pitch") {
     return hit.token;
   }
-  parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?$/.exec(hit.token || "");
+  parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?$/.exec(hit.token || "");
   if (!parsed) {
     return hit.token;
   }
-  base = String(parsed[4] || "").replace(".", "");
+  base = String(parsed[4] || "").replace(/\./g, "");
   if (base === "e" || base === "s") {
     return hit.token;
   }
-  return parsed[1] + (parsed[2] || "") + parsed[3] + short + (editorNote.dot ? "." : "");
+  return parsed[1] + (parsed[2] || "") + parsed[3] + short + editorDotMarks(editorNote.dot, hit.token);
 }
 
 function editorStructureWrapHit(kind, hit) {
@@ -8797,6 +8831,7 @@ function editorSymbolSnapshot() {
       acc: editorNote.acc || "",
       dur: editorNote.dur || "",
       dot: !!editorNote.dot,
+      dots: editorNote.dots === 2 ? 2 : editorNote.dot ? 1 : 0,
       oct: editorNote.oct === null || editorNote.oct === undefined ? null : editorNote.oct
     },
     name: nameField ? String(nameField.value || "") : "",
@@ -8955,6 +8990,7 @@ function editorApplySymbolSnapshot(snap) {
   editorNote.acc = snap.note && snap.note.acc ? snap.note.acc : "";
   editorNote.dur = snap.note && snap.note.dur ? snap.note.dur : "";
   editorNote.dot = !!(snap.note && snap.note.dot);
+  editorNote.dots = snap.note && snap.note.dots ? snap.note.dots : editorNote.dot ? 1 : 0;
   editorNote.oct = snap.note && (snap.note.oct === 0 || snap.note.oct) ? snap.note.oct : null;
   if (typeof snap.name === "string") {
     nameField = document.getElementById("editName");
@@ -9211,7 +9247,7 @@ function editorArmAcc(acc) {
 
 /* Pitch token with optional glued ^/_/'/>/- affixes (stack / beam inners). */
 function editorRewritePitchDurationToken(tok, dur, dot) {
-  var m = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?(.*)$/.exec(tok || "");
+  var m = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
   var hit;
   if (!m) {
     return tok;
@@ -9324,7 +9360,7 @@ function editorStackSharedDuration() {
     return null;
   }
   for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?)|\.)?/.exec(spans[i].token);
+    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
     if (!m) {
       return null;
     }
@@ -9494,11 +9530,13 @@ function editorToggleDot() {
   if (traits && traits.selection) {
     next = !traits.dot;
     editorNote.dot = next;
+    editorNote.dots = next ? 1 : 0;
     editorApplySelectionDot(next);
     return;
   }
   next = !editorNote.dot;
   editorNote.dot = next;
+  editorNote.dots = next ? 1 : 0;
   if (editorStackGroupAtCaret() && editorApplyStackDuration(editorNote.dur, next)) {
     return;
   }
@@ -11333,9 +11371,9 @@ function editorLinesUseStaff(lines) {
 
 function chatStaffSpelling(lang) {
   if (lang === "es") {
-    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s n y un puntillo opcional. C4 es una negra. C4n es una negra sin plica, un tiempo. C#4, Db4, Cn4. n. no vale. @treble o @bass y @key=Eb van primero. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^t=100 pone el metrónomo a 100 solo en ese ejemplo. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
+    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s n y un puntillo o dos (C4q..). C4 es una negra. C4n es una negra sin plica, un tiempo. C#4, Db4, Cn4. n. y n.. no valen. El signo se imprime si la nota difiere de la armadura o de una nota anterior del compás; ! lo fuerza. @treble o @bass y @key=Eb van primero. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^t=100 pone el metrónomo a 100 solo en ese ejemplo. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
   }
-  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s n and an optional dot. C4 is a quarter. C4n is a quarter notehead with no stem, one beat. C#4, Db4, Cn4. n. is rejected. @treble or @bass and @key=Eb come first. ^Name sits on the next note or slash and can change: ^G / ^D /. ^t=100 sets the metronome to 100 for that example only. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
+  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s n and one or two dots (C4q..). C4 is a quarter. C4n is a quarter notehead with no stem, one beat. C#4, Db4, Cn4. n. and n.. are rejected. A sign prints when the note differs from the key or from an earlier note in the bar; ! forces it. @treble or @bass and @key=Eb come first. ^Name sits on the next note or slash and can change: ^G / ^D /. ^t=100 sets the metronome to 100 for that example only. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
 }
 
 function chatPromptRules(lang, staff) {

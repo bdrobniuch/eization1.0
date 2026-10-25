@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staff approval</title>
+<style>
+  @font-face {
+    font-family: "Noto Music";
+    src: url("../resources/fonts/Noto_Music/NotoMusic-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+266D-266F, U+1D100, U+1D10E, U+1D11E, U+1D122, U+1D13B-1D13F, U+1D157-1D158, U+1D15D-1D161, U+1D165, U+1D16E-1D16F;
+  }
+  :root {
+    --face-font: "Noto Music", Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", "Segoe UI Symbol", "Apple Symbols", serif;
+  }
+  html, body {
+    margin: 0;
+    background: #f4f1ea;
+    color: #1a1a1a;
+    font: 16px/1.45 "Segoe UI", sans-serif;
+  }
+  header {
+    padding: 18px 22px 8px;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+  }
+  header p {
+    margin: 0 0 8px;
+    max-width: 40rem;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 0 22px 12px;
+  }
+  nav a {
+    color: #0C8A50;
+  }
+  #summary {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0;
+    padding: 8px 22px;
+    background: #f4f1ea;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+  }
+  main {
+    padding: 8px 22px 64px;
+    max-width: 920px;
+  }
+  h2 {
+    margin: 28px 0 10px;
+    font-size: 1.05rem;
+  }
+  article {
+    margin: 0 0 18px;
+    padding: 12px 14px 14px;
+    background: #fff;
+    border: 1px solid #e4e0d8;
+    border-radius: 8px;
+  }
+  article.is-diff {
+    border-color: #a33;
+  }
+  article h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+  }
+  article pre {
+    margin: 0 0 8px;
+    font: 13px/1.4 ui-monospace, Consolas, monospace;
+    white-space: pre-wrap;
+  }
+  .verdict {
+    margin: 0 0 8px;
+    color: #a33;
+    font-weight: 600;
+  }
+  .example-staff,
+  .extra-staff {
+    overflow-x: auto;
+    color: #111;
+    font-family: var(--face-font);
+  }
+  .example-staff .music-staff,
+  .extra-staff .music-staff {
+    display: block;
+    height: auto;
+    color: #111;
+  }
+  .example-staff .notation-caption,
+  .extra-staff .prog-name {
+    margin: 6px 0 0;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+  .extras {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .extras p {
+    margin: 0 0 4px;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Staff approval</h1>
+    <p>Scroll the examples and look at the staff. Each line is drawn once, at its own size. A red note means the practice screen, Edit, and More drew it differently.</p>
+  </header>
+  <nav>
+    <a href="#marks">Marks</a>
+    <a href="#bars">Bars</a>
+    <a href="#pitch">Pitch</a>
+    <a href="#words">Words</a>
+    <a href="#lines">Lines</a>
+  </nav>
+  <p id="summary">Drawing…</p>
+  <main id="gallery"></main>
+  <script src="../resources/js/staff-glyphs.js"></script>
+  <script src="../resources/js/staff.js"></script>
+  <script src="../resources/js/picker.js"></script>
+  <script src="../resources/js/notation-page.js"></script>
+  <script src="./staff-approval.js"></script>
+</body>
+</html>
