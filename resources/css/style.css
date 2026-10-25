@@ -2534,10 +2534,14 @@ body.is-editing #counter {
 .edit-tuplet-menu {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 6px);
+  right: auto;
+  top: calc(100% + 6px);
+  bottom: auto;
   z-index: 6;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  width: max-content;
+  max-width: calc(100vw - 16px);
   gap: 6px;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
@@ -2562,11 +2566,14 @@ body.is-editing #counter {
 
 .edit-dyn-menu {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
+  left: 0;
+  right: auto;
+  top: calc(100% + 6px);
+  bottom: auto;
   z-index: 6;
   display: flex;
   flex-wrap: wrap;
+  max-width: calc(100vw - 16px);
   gap: 6px;
   width: 248px;
   padding: 6px;
@@ -2597,11 +2604,15 @@ body.is-editing #counter {
 
 .edit-art-menu {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
+  left: 0;
+  right: auto;
+  top: calc(100% + 6px);
+  bottom: auto;
   z-index: 6;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  width: max-content;
+  max-width: calc(100vw - 16px);
   gap: 6px;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
@@ -2730,8 +2741,8 @@ body.is-editing #counter {
 
 .edit-add-combo.is-staff {
   box-sizing: border-box;
-  width: 44px;
-  min-width: 44px;
+  width: 88px;
+  min-width: 88px;
   height: 44px;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 0;
@@ -2739,7 +2750,7 @@ body.is-editing #counter {
 }
 
 .edit-add-combo.is-staff #editFocusAdd {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   width: auto;
   min-width: 0;
   height: 100%;
@@ -2754,13 +2765,14 @@ body.is-editing #counter {
 
 .edit-add-combo.is-open {
   z-index: 7;
+  overflow: visible;
 }
 
 #editTranspose {
   box-sizing: border-box;
-  flex: 0 0 16px;
-  width: 16px;
-  min-width: 16px;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -2770,7 +2782,7 @@ body.is-editing #counter {
   background: transparent;
   color: #ffffff;
   font: inherit;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
 }
@@ -2810,10 +2822,13 @@ body.is-editing #counter {
 .edit-interval-menu {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 6px);
+  right: auto;
+  top: calc(100% + 6px);
+  bottom: auto;
   z-index: 6;
   display: flex;
   flex-wrap: wrap;
+  max-width: calc(100vw - 16px);
   width: 248px;
   gap: 6px;
   padding: 6px;
@@ -2836,9 +2851,14 @@ body.is-editing #counter {
 }
 
 #editTransposeMenu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
   z-index: 30;
   box-sizing: border-box;
-  overflow: auto;
+  width: min(352px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
+  overflow: visible;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 0;
@@ -3430,10 +3450,20 @@ body.is-editing #counter {
   color: #ffffff;
 }
 
-#editDelete.is-armed,
 #editOpen.is-armed {
   background: #ffffff;
   color: #0C8A50;
+}
+
+#editDelete {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+#editDelete.is-armed {
+  background: #C5343C;
+  border-color: #ffffff;
+  color: #ffffff;
+  opacity: 1;
 }
 
 #editUpdate.is-armed {

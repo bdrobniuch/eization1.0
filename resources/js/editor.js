@@ -1690,6 +1690,10 @@ function editorFocusRemove() {
   var index;
   var caret;
   var field;
+  var remove = document.getElementById("editFocusRemove");
+  if (remove && remove.disabled) {
+    return;
+  }
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
     lines = editorRawLines();
@@ -2777,8 +2781,9 @@ function editorStaffOpenClipMenu(clientX, clientY) {
   var copyBtn;
   var pasteBtn;
   var rect;
-  var x;
-  var y;
+  var frame;
+  var dx;
+  var dy;
   editorStaffCloseClipMenu();
   editorStaffClipMenuOpen = true;
   menu = document.createElement("div");
@@ -2793,23 +2798,26 @@ function editorStaffOpenClipMenu(clientX, clientY) {
   copyBtn.disabled = !editorStaffSelectionText(editorActiveField());
   pasteBtn.disabled = !editorStaffCopy;
   document.body.appendChild(menu);
+  dx = 0;
+  dy = 0;
+  menu.style.left = clientX + "px";
+  menu.style.top = clientY + "px";
   rect = menu.getBoundingClientRect();
-  x = clientX;
-  y = clientY;
-  if (x + rect.width > window.innerWidth - 8) {
-    x = window.innerWidth - rect.width - 8;
+  frame = editorVisibleFrame();
+  if (rect.right > frame.right) {
+    dx = frame.right - rect.right;
   }
-  if (y + rect.height > window.innerHeight - 8) {
-    y = window.innerHeight - rect.height - 8;
+  if (rect.left + dx < frame.left) {
+    dx = frame.left - rect.left;
   }
-  if (x < 8) {
-    x = 8;
+  if (rect.bottom > frame.bottom) {
+    dy = frame.bottom - rect.bottom;
   }
-  if (y < 8) {
-    y = 8;
+  if (rect.top + dy < frame.top) {
+    dy = frame.top - rect.top;
   }
-  menu.style.left = x + "px";
-  menu.style.top = y + "px";
+  menu.style.left = (clientX + dx) + "px";
+  menu.style.top = (clientY + dy) + "px";
   menu.addEventListener("pointerdown", function (event) {
     var button = event.target && event.target.closest ? event.target.closest("button") : null;
     event.preventDefault();
@@ -10423,6 +10431,7 @@ function editorPaintNotePad() {
   editorPaintNoteEvents(eventsHost);
   editorNotePadStamp = stamp;
   editorPaintUndoRedo();
+  editorPlaceOpenMenus(true);
 }
 
 function editorWriteLetter(letter, opts) {
@@ -12279,36 +12288,122 @@ function editorSyncAddCombo() {
   }
 }
 
-function editorPlaceAnchoredMenu(menu, anchor) {
+/* Visible screen, inside the Edit sheet. Popups are shifted to stay in this box. */
+function editorVisibleFrame() {
+  var vv = window.visualViewport;
+  var sheet = document.getElementById("textdiv");
+  var left = 8;
+  var top = 8;
+  var right = window.innerWidth - 8;
+  var bottom = window.innerHeight - 8;
+  var box;
+  if (vv) {
+    left = vv.offsetLeft + 8;
+    top = vv.offsetTop + 8;
+    right = vv.offsetLeft + vv.width - 8;
+    bottom = vv.offsetTop + vv.height - 8;
+  }
+  if (sheet) {
+    box = sheet.getBoundingClientRect();
+    if (box.left + 8 > left) {
+      left = box.left + 8;
+    }
+    if (box.right - 8 < right) {
+      right = box.right - 8;
+    }
+    if (box.top + 8 > top) {
+      top = box.top + 8;
+    }
+    if (box.bottom - 8 < bottom) {
+      bottom = box.bottom - 8;
+    }
+  }
+  if (right < left + 44) {
+    right = left + 44;
+  }
+  if (bottom < top + 44) {
+    bottom = top + 44;
+  }
+  return { left: left, top: top, right: right, bottom: bottom };
+}
+
+var editorPlacingMenus = false;
+
+/* Open downward. Shift sideways onto the screen. Scroll the sheet if the tail hangs below. */
+function editorPlaceOneMenu(menu, scrollIntoView) {
+  var frame;
   var rect;
-  var top;
-  var left;
-  var width;
-  if (!menu || !anchor || menu.hidden) {
+  var shift;
+  var sheet;
+  var room;
+  var overflow;
+  if (!menu || menu.hidden) {
     return;
   }
-  rect = anchor.getBoundingClientRect();
-  width = Math.min(352, window.innerWidth - 16);
-  left = rect.left;
-  if (left + width > window.innerWidth - 8) {
-    left = window.innerWidth - 8 - width;
+  frame = editorVisibleFrame();
+  menu.style.maxWidth = Math.max(44, frame.right - frame.left) + "px";
+  menu.style.marginLeft = "0px";
+  if (scrollIntoView) {
+    menu.style.marginTop = "0px";
   }
-  if (left < 8) {
-    left = 8;
+  rect = menu.getBoundingClientRect();
+  if (!rect.width && !rect.height) {
+    return;
   }
-  top = rect.bottom + 6;
-  menu.style.position = "fixed";
-  menu.style.left = left + "px";
-  menu.style.top = top + "px";
-  menu.style.width = width + "px";
-  menu.style.maxHeight = Math.max(160, window.innerHeight - top - 12) + "px";
+  shift = 0;
+  if (rect.right > frame.right) {
+    shift = frame.right - rect.right;
+  }
+  if (rect.left + shift < frame.left) {
+    shift = frame.left - rect.left;
+  }
+  menu.style.marginLeft = shift + "px";
+  if (!scrollIntoView) {
+    return;
+  }
+  rect = menu.getBoundingClientRect();
+  if (rect.top < frame.top) {
+    menu.style.marginTop = (frame.top - rect.top) + "px";
+    rect = menu.getBoundingClientRect();
+  }
+  if (rect.bottom <= frame.bottom) {
+    return;
+  }
+  sheet = document.getElementById("textdiv");
+  if (!sheet) {
+    return;
+  }
+  room = rect.top - frame.top;
+  overflow = rect.bottom - frame.bottom;
+  if (room < 0) {
+    room = 0;
+  }
+  if (overflow > room) {
+    overflow = room;
+  }
+  if (overflow > 1) {
+    sheet.scrollTop += overflow;
+  }
+}
+
+function editorPlaceOpenMenus(scrollIntoView) {
+  var nodes;
+  var i;
+  if (editorPlacingMenus) {
+    return;
+  }
+  editorPlacingMenus = true;
+  nodes = document.querySelectorAll(
+    ".edit-tuplet-menu, .edit-dyn-menu, .edit-art-menu, .edit-interval-menu, #editTransposeMenu"
+  );
+  for (i = 0; i < nodes.length; i++) {
+    editorPlaceOneMenu(nodes[i], !!scrollIntoView);
+  }
+  editorPlacingMenus = false;
 }
 
 function editorPlaceTransposeMenu() {
-  editorPlaceAnchoredMenu(
-    document.getElementById("editTransposeMenu"),
-    document.getElementById("editAddCombo")
-  );
+  editorPlaceOpenMenus(true);
 }
 
 function editorPaintTransposeMenu() {
@@ -12394,9 +12489,6 @@ function editorOpenTransposeMenu() {
   }
   editorCloseMoveMenu();
   editorTransposeOpen = true;
-  if (menu.parentNode !== document.body) {
-    document.body.appendChild(menu);
-  }
   menu.hidden = false;
   if (button) {
     button.setAttribute("aria-expanded", "true");
@@ -12419,7 +12511,10 @@ function editorCloseTransposeMenu() {
     menu.style.left = "";
     menu.style.top = "";
     menu.style.width = "";
+    menu.style.maxWidth = "";
     menu.style.maxHeight = "";
+    menu.style.marginLeft = "";
+    menu.style.marginTop = "";
   }
   if (button) {
     button.setAttribute("aria-expanded", "false");
@@ -14624,20 +14719,20 @@ function initEditor() {
   var transposeSheet = document.getElementById("textdiv");
   if (transposeSheet) {
     transposeSheet.addEventListener("scroll", function () {
-      if (editorTransposeOpen) {
-        editorCloseTransposeMenu();
-      }
-      if (editorMoveMenuOpen) {
-        editorCloseMoveMenu();
-      }
-      if (editorDynMenuOpen) {
-        editorCloseDynMenu();
-      }
-      if (editorArtMenuOpen) {
-        editorCloseArtMenu();
-      }
+      editorPlaceOpenMenus(false);
     });
   }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", function () {
+      editorPlaceOpenMenus(true);
+    });
+    window.visualViewport.addEventListener("scroll", function () {
+      editorPlaceOpenMenus(false);
+    });
+  }
+  window.addEventListener("resize", function () {
+    editorPlaceOpenMenus(true);
+  });
   function editorOnFieldFocusForPad(event) {
     var target = event && event.target;
     if (!target) {
