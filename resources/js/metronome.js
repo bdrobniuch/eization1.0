@@ -6,6 +6,9 @@ var audioContext = null;
 var clockMode = "perf";
 var currentBpm = 100;
 var tempoHeld = 100;
+/* Example ^t= sets the field only while that example is up. deskBpmHeld is what Setup saves. */
+var exampleBpm = 0;
+var deskBpmHeld = 0;
 var beatsPerBar = 4;
 var beatUnit = 4;
 var soundOn = false;
@@ -1006,7 +1009,113 @@ function toggleTempo() {
   applyBpm(shown);
 }
 
+/* First ^t= word in the music, 1–500. A mark glued to a note is not a word. */
+function lineExampleTempo(source) {
+  var line = String(source || "");
+  var music;
+  var tokens;
+  var i;
+  var n;
+  if (typeof itemToLine === "function") {
+    line = itemToLine(line);
+  }
+  music = line;
+  if (typeof staffExampleParts === "function") {
+    music = staffExampleParts(line).music || line;
+  }
+  tokens = music.split(/\s+/);
+  for (i = 0; i < tokens.length; i++) {
+    if (tokens[i].charAt(0) !== "^" || tokens[i].length < 2) {
+      continue;
+    }
+    if (typeof staffTempoLabel !== "function") {
+      return 0;
+    }
+    n = staffTempoLabel(tokens[i].slice(1));
+    if (n) {
+      return parseInt(n, 10);
+    }
+  }
+  return 0;
+}
+
+/* Show a tempo without starting the click and without writing Setup. */
+function showTempo(bpm) {
+  var input = document.getElementById("bpm");
+  var wasPaused;
+  var now;
+  var eighth;
+  if (input) {
+    input.value = String(bpm);
+  }
+  wasPaused = paused || !schedulerTimer;
+  currentBpm = bpm;
+  tempoHeld = bpm;
+  if (wasPaused) {
+    renderSwing();
+    return;
+  }
+  now = currentTimeSec();
+  eighth = eighthDuration();
+  if (nextNoteTime > now + eighth + 0.2 || nextNoteTime < now - 0.05) {
+    generation++;
+    cancelFutureClicks();
+    pendingVisuals = [];
+    nextNoteTime = now + 0.04;
+    swingAnchorValid = false;
+  }
+  renderSwing();
+  scheduler();
+}
+
+function applyExampleTempo(source) {
+  var mark = lineExampleTempo(source);
+  var input;
+  var shown;
+  var restore;
+  if (mark) {
+    if (!exampleBpm) {
+      input = document.getElementById("bpm");
+      shown = input ? parseInt(input.value, 10) : NaN;
+      deskBpmHeld = shown > 0 ? shown : (tempoHeld > 0 ? tempoHeld : 100);
+    }
+    if (exampleBpm === mark) {
+      input = document.getElementById("bpm");
+      if (input && parseInt(input.value, 10) === mark) {
+        return;
+      }
+    }
+    exampleBpm = mark;
+    showTempo(mark);
+    return;
+  }
+  if (!exampleBpm) {
+    return;
+  }
+  restore = deskBpmHeld > 0 ? deskBpmHeld : 100;
+  exampleBpm = 0;
+  deskBpmHeld = 0;
+  showTempo(restore);
+}
+
+/* A hand edit of the stepper leaves the example mark and keeps the typed tempo. */
+function noteManualTempo() {
+  var input;
+  var typed;
+  if (!exampleBpm) {
+    return;
+  }
+  input = document.getElementById("bpm");
+  typed = input ? parseInt(input.value, 10) : NaN;
+  if (typed === exampleBpm) {
+    return;
+  }
+  exampleBpm = 0;
+  deskBpmHeld = 0;
+}
+
 function updateInterval() {
+  noteManualTempo();
   if (bpmTimer) {
     clearTimeout(bpmTimer);
   }

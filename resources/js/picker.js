@@ -738,6 +738,9 @@ function showCurrentNote(text) {
     cancelSheetSlide();
   }
   currentNoteSource = text || "";
+  if (typeof applyExampleTempo === "function") {
+    applyExampleTempo(currentNoteSource);
+  }
   updateRemaining();
   var animate = !interrupted && sheetReady && !motionReduced() && sheetApplies();
   if (animate) {

@@ -168,7 +168,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
   check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
-  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 174));
+  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 175));
   var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));
@@ -589,6 +589,66 @@ function staffNotation(w) {
     "a trailing chord after a note soft-draws",
     !!(w.parseMusicNotation("C4q ^G") && w.parseMusicNotation("C4q ^G").events.length === 1)
   );
+  var tempoLine = w.parseMusicNotation("^t=60 /q | ^t=90 /q");
+  var tempoSvg = w.renderMusicStaff("^t=100 /q /q /q /q", "current");
+  var tempoNode = tempoSvg && tempoSvg.querySelector(".staff-tempo");
+  var fastChord = w.renderMusicStaff("^t=900 /q", "current");
+  var gluedTempo = w.parseMusicNotation("C4q^t=100");
+  var tempoInput = w.document.getElementById("bpm");
+  var tempoShown = tempoInput ? tempoInput.value : "";
+  var tempoBpm = w.currentBpm;
+  var tempoHeldWas = w.tempoHeld;
+  var tempoPaused = w.paused;
+  var tempoDesk = localStorage.getItem("eization-desk");
+  check(
+    "the first tempo mark hangs on the next attack",
+    !!(tempoLine && tempoLine.events[0].chord === "t=60" && w.lineExampleTempo("^t=60 /q | ^t=90 /q") === 60)
+  );
+  check("a tempo mark prints the number", !!(tempoNode && tempoNode.textContent === "100"));
+  check(
+    "a tempo outside 1–500 stays a chord name",
+    !!(fastChord && fastChord.querySelector(".staff-chord") && !fastChord.querySelector(".staff-tempo") && w.lineExampleTempo("^t=900 /q") === 0 && w.lineExampleTempo("^t=0 /q") === 0)
+  );
+  check(
+    "a glued tempo stays text above the note",
+    !!(gluedTempo && gluedTempo.events[0].above === "t=100" && !gluedTempo.events[0].chord && w.lineExampleTempo("C4q^t=100") === 0)
+  );
+  check(
+    "a text tempo prints the number",
+    w.lineToItem("play ^t=96") === "play <span class=\"tempo\">96</span>" && w.itemToLine(w.lineToItem("play ^t=96")) === "play ^t=96"
+  );
+  if (tempoInput) {
+    tempoInput.value = "90";
+    w.currentBpm = 90;
+    w.tempoHeld = 90;
+    w.exampleBpm = 0;
+    w.deskBpmHeld = 0;
+    w.paused = true;
+    w.applyExampleTempo("^t=100 /q /q /q /q");
+    check(
+      "an example tempo shows and does not start the click",
+      tempoInput.value === "100" && w.currentBpm === 100 && w.paused === true && !w.schedulerTimer && w.exampleBpm === 100 && w.deskBpmHeld === 90
+    );
+    if (w.deskReady && tempoDesk) {
+      w.writeSetupNow();
+      check("an example tempo stays out of the desk", JSON.parse(localStorage.getItem("eization-desk")).bpm === 90);
+      localStorage.setItem("eization-desk", tempoDesk);
+    }
+    tempoInput.value = "110";
+    w.noteManualTempo();
+    check("editing the tempo keeps the typed number", w.exampleBpm === 0 && w.deskBpmHeld === 0 && tempoInput.value === "110");
+    w.exampleBpm = 100;
+    w.deskBpmHeld = 90;
+    tempoInput.value = "100";
+    w.applyExampleTempo("C4q D4q");
+    check("the next example restores the tempo", tempoInput.value === "90" && w.currentBpm === 90 && w.paused === true && w.exampleBpm === 0);
+    tempoInput.value = tempoShown;
+    w.currentBpm = tempoBpm;
+    w.tempoHeld = tempoHeldWas;
+    w.paused = tempoPaused;
+    w.exampleBpm = 0;
+    w.deskBpmHeld = 0;
+  }
   check("an empty chord mark alone is rejected", !w.parseMusicNotation("^"));
   check(
     "an empty chord mark after a note soft-draws",
@@ -1454,7 +1514,7 @@ function moreCatalog(w) {
     uniq[hashes[i]] = true;
   }
   var keys = Object.keys(uniq);
-  check("more catalog has 166 share links", keys.length === 166);
+  check("more catalog has 167 share links", keys.length === 167);
   check("more article offers share and embed", html.indexOf("data-share") >= 0 && html.indexOf("data-embed") >= 0);
   check("more page offers today and a correction", html.indexOf('href="./?today=1"') >= 0 && html.indexOf('href="./?contribute=1"') >= 0);
   check("more page offers search and surprise", html.indexOf('id="more-search"') >= 0 && html.indexOf("data-more-random") >= 0);
@@ -1487,7 +1547,7 @@ function moreCatalog(w) {
   esReq.send(null);
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
-  check("spanish more catalog has 166 share links", esHashes.length === 166);
+  check("spanish more catalog has 167 share links", esHashes.length === 167);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -2094,7 +2154,7 @@ function chatCase(w) {
   w.setEditorStaff(symbolKind);
   check(
     "staff help can add an example",
-    w.document.querySelectorAll("#editStaffSamples button").length === 8 &&
+    w.document.querySelectorAll("#editStaffSamples button").length === 9 &&
       w.I18N.en["edit.staffHelpSamples"] === "Tap an example to add it." &&
       w.I18N.es["edit.staffHelpSamples"].indexOf("ejemplo") >= 0
   );

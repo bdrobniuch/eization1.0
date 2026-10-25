@@ -1422,11 +1422,26 @@ function showDeskNote(message) {
   }, 3200);
 }
 
+function deskTempoForSave() {
+  var bpmEl;
+  var shown;
+  if (typeof exampleBpm === "number" && exampleBpm > 0 && typeof deskBpmHeld === "number" && deskBpmHeld > 0) {
+    return deskBpmHeld;
+  }
+  bpmEl = document.getElementById("bpm");
+  shown = bpmEl ? parseInt(bpmEl.value, 10) : NaN;
+  if (shown > 0) {
+    return shown;
+  }
+  if (typeof tempoHeld === "number" && tempoHeld > 0) {
+    return tempoHeld;
+  }
+  return 100;
+}
+
 function writeSetupNow() {
   var data = deskState();
-  var bpmEl = document.getElementById("bpm");
-  var shown = bpmEl ? parseInt(bpmEl.value, 10) : NaN;
-  var bpm = shown > 0 ? shown : (typeof tempoHeld === "number" && tempoHeld > 0 ? tempoHeld : 100);
+  var bpm = deskTempoForSave();
   data.bpm = clampDeskInt(bpm, 1, 500, 100);
   data.beats = clampDeskInt(beatsPerBar, 1, 32, 4);
   data.unit = beatUnit === 1 || beatUnit === 2 || beatUnit === 8 || beatUnit === 16 ? beatUnit : 4;

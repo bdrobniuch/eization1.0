@@ -12071,5 +12071,62 @@
             "beats": 4,
             "unit": 4
         }
+    },
+    {
+        "id": "more0203",
+        "slug": "tempos",
+        "group": "rhythm",
+        "staff": true,
+        "bars": 2,
+        "nameEn": "Tempos on the staff",
+        "nameEs": "Tempos en el pentagrama",
+        "descEn": "One tempo on each example, from 60 to 200. The metronome takes that number while the example is up, and your tempo comes back on the next example. Quarters, eighths, rests, and a short scale.",
+        "descEs": "Un tempo en cada ejemplo, de 60 a 200. El metrónomo toma ese número mientras el ejemplo está en pantalla, y tu tempo vuelve en el siguiente. Negras, corcheas, silencios y una escala corta.",
+        "books": [
+            {
+                "href": "./time.html",
+                "en": "Time",
+                "es": "Tiempo"
+            },
+            {
+                "href": "./rhythms.html",
+                "en": "Rhythms",
+                "es": "Ritmos"
+            },
+            {
+                "href": "./notation.html",
+                "en": "How to write on the staff",
+                "es": "Cómo escribir en el pentagrama"
+            }
+        ],
+        "lines": [
+            "^t=60 / / / / | / / / / · 60",
+            "^t=66 /h /h | /h /q /q · 66",
+            "^t=72 /q /q /h | /h /h · 72",
+            "^t=80 /q /e /e /q /q | /q /q /q /q · 80",
+            "^t=84 /e /e /e /e /q /q | /q /q /h · 84",
+            "^t=88 /q. /e /q /q | /q /q. /e /q · 88",
+            "^t=92 rq /q /q /q | /q rq /q /q · 92",
+            "^t=96 /q /q rq /q | rq /q /q /q · 96",
+            "^t=100 C4q D4q E4q G4q | G4q E4q D4q C4q · 100",
+            "^t=108 /e /e /q /e /e /q | /q /e /e /q /q · 108",
+            "^t=112 /h /q /q | /q /q /h · 112",
+            "^t=120 /q /q /e /e /q | /e /e /e /e /h · 120",
+            "^t=126 {/e /e /e /e} /h | /h {/e /e /e /e} · 126",
+            "^t=132 /q. /e /h | /h /q. /e · 132",
+            "^t=138 C4e D4e E4e F4e G4q A4q | G4q E4q D4q C4q · 138",
+            "^t=144 /e /e /e /e /e /e /e /e | /q /q /q /q · 144",
+            "^t=152 /q /h /q | /e /e /e /e /q /q · 152",
+            "^t=160 /s /s /s /s /e /e /q /q | /q /q /h · 160",
+            "^t=168 rq /e /e rq /q | /q /q /h · 168",
+            "^t=176 /q /e /e /e /e /q | /e /e /q /e /e /q · 176",
+            "^t=184 /h /e /e /q | /q /q /q /q · 184",
+            "^t=192 /e /e /e /e /e /e /e /e | /e /e /e /e /e /e /e /e · 192",
+            "^t=200 /q /q /q /q | /q /e /e /q /q · 200"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
     }
 ]

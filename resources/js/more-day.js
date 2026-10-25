@@ -173,7 +173,8 @@ var moreDayOrder = [
   "compingRhythm",
   "compingRhythm34",
   "more0194",
-  "keySignatures"
+  "keySignatures",
+  "more0203"
 ];
 
 var moreExercisesCache = null;

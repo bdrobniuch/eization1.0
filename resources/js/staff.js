@@ -371,6 +371,20 @@ function staffNormAccidental(raw) {
   return "";
 }
 
+/* ^t=100 is a tempo for this example. 1–500, no leading zero. Anything else stays a chord name. */
+function staffTempoLabel(raw) {
+  var m = /^t=([1-9]\d{0,2})$/.exec(String(raw || ""));
+  var n;
+  if (!m) {
+    return "";
+  }
+  n = parseInt(m[1], 10);
+  if (n < 1 || n > 500) {
+    return "";
+  }
+  return String(n);
+}
+
 function staffFormatChordText(raw) {
   if (!raw) {
     return "";
@@ -3481,7 +3495,10 @@ function renderMusicStaff(source, role, opts) {
       fill: "currentColor",
       "text-anchor": "start"
     });
-    sym.textContent = staffFormatChordText(String(ast.chordSymbol).replace(/_/g, " "));
+    sym.textContent = staffTempoLabel(ast.chordSymbol) || staffFormatChordText(String(ast.chordSymbol).replace(/_/g, " "));
+    if (staffTempoLabel(ast.chordSymbol)) {
+      sym.setAttribute("class", "staff-tempo");
+    }
     svg.appendChild(sym);
   }
 
@@ -4219,15 +4236,16 @@ function renderMusicStaff(source, role, opts) {
   var dynY = hasBelowLabels ? labelY + labelSize + 4 : inkBot + chordSize * 0.85;
 
   function staffDrawChordAt(x, raw) {
+    var tempo = staffTempoLabel(raw);
     var sym = staffSvgEl("text", {
       x: String(x),
       y: String(chordY),
       "font-size": String(chordSize),
       fill: "currentColor",
       "text-anchor": "start",
-      "class": "staff-chord"
+      "class": tempo ? "staff-tempo" : "staff-chord"
     });
-    sym.textContent = staffFormatChordText(String(raw || "").replace(/_/g, " "));
+    sym.textContent = tempo || staffFormatChordText(String(raw || "").replace(/_/g, " "));
     svg.appendChild(sym);
   }
 

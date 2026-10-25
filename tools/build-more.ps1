@@ -163,6 +163,7 @@ $struggleOf = @{
   'minor-blues-staff' = 'blues'
   'pentatonic-blues' = 'blues'
   'slow-time' = 'time'
+  'tempos' = 'time'
   'slow-time-staff' = 'time'
   'time-feel' = 'time'
   'odd-bars' = 'time'
