@@ -3275,6 +3275,24 @@ function chatCase(w) {
       })()
     );
     check(
+      "page text does not select, and a field still does",
+      (function () {
+        var root = w.getComputedStyle(w.document.documentElement);
+        var field = w.getComputedStyle(w.document.getElementById("editFocusLine"));
+        var area = w.getComputedStyle(w.document.getElementById("allEdit"));
+        var preview = w.document.getElementById("editPreview");
+        var drawn = preview.querySelector("text");
+        var drawnStyle = drawn ? w.getComputedStyle(drawn) : null;
+        function isNone(style) {
+          return style.userSelect === "none" || style.webkitUserSelect === "none";
+        }
+        function isText(style) {
+          return style.userSelect === "text" || style.webkitUserSelect === "text";
+        }
+        return isNone(root) && isText(field) && isText(area) && isNone(w.getComputedStyle(preview)) && (!drawnStyle || isNone(drawnStyle));
+      })()
+    );
+    check(
       "a held finger or a right-click opens Copy and Paste",
       (function () {
         var preview = w.document.getElementById("editPreview");
