@@ -2535,6 +2535,70 @@ body.is-editing #counter {
   min-height: 44px;
 }
 
+/* Dynamics: one face, menu of the words that hang on the next note. */
+.edit-dyn-combo {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.edit-dyn-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 248px;
+  padding: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#editSymbols button[data-dyn-menu],
+#editSymbols .edit-dyn-menu button {
+  font-style: italic;
+}
+
+#editSymbols .edit-dyn-menu button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* One articulation at a time. The menu shows each mark on a note. */
+.edit-art-combo {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.edit-art-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 6;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  padding: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#editSymbols .edit-art-menu button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 /* Wide edit: one flowing notes toolbar that wraps like the text symbols pad. */
 @media (min-width: 841px) {
   #editNotePad {

@@ -56,6 +56,8 @@ var editorNote = {
 var editorTupletN = 3;
 var EDITOR_TUPLET_CYCLE = [3, 5, 7, 4];
 var editorTupletMenuOpen = false;
+var editorDynMenuOpen = false;
+var editorArtMenuOpen = false;
 var editorTransposeOpen = false;
 var editorMoveMenuOpen = false;
 /* Armed interval for the Write notes stepper, in semitones. 12 is an octave. */
@@ -2470,7 +2472,7 @@ function editorTokenIsHighlightable(current) {
     return true;
   }
   token = String(current.token || "");
-  if (/^[A-G](?:#|b|n)?\d/.test(token)) {
+  if (/^[A-G](?:##|bb|x|X|#|b|n)?\d/.test(token)) {
     return true;
   }
   if (/^\/[whqes]?\.?$/.test(token) || /^r[whqes]?\.?$/i.test(token)) {
@@ -4011,7 +4013,7 @@ function editorToggleDefaultClef(next) {
 }
 
 function editorParsePitchToken(token) {
-  var parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?$/.exec(token || "");
+  var parsed = /^([A-G])(##|bb|x|X|#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?$/.exec(token || "");
   if (!parsed) {
     return null;
   }
@@ -4038,7 +4040,7 @@ function editorPitchTokenBoundary(prev) {
 
 function editorPitchTail(text) {
   var trimmed = String(text || "").replace(/\s+$/, "");
-  var m = trimmed.match(/([A-G](?:#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/);
+  var m = trimmed.match(/([A-G](?:##|bb|x|X|#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/);
   var prev;
   var hit;
   if (!m) {
@@ -4151,7 +4153,7 @@ function editorMusicHitAtCaret() {
     span = editorPickEventSpan(spans, bounds.caretInWord);
     if (span) {
       token = span.token;
-      pitchM = /^([A-G](?:#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/.exec(token);
+      pitchM = /^([A-G](?:##|bb|x|X|#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/.exec(token);
       if (pitchM) {
         hit = editorParsePitchToken(pitchM[1]);
         if (hit) {
@@ -4389,7 +4391,7 @@ function editorEarlierPitch() {
     return null;
   }
   before = String(field.value || "").slice(0, editorReadSelection(field).start);
-  re = /[A-G](?:#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?/g;
+  re = /[A-G](?:##|bb|x|X|#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?/g;
   last = null;
   while ((m = re.exec(before))) {
     if (m.index > 0) {
@@ -4425,6 +4427,8 @@ function editorNotePadStampNow() {
     field ? String(editorReadSelection(field).start) + ":" + String(editorReadSelection(field).end) : "0",
     String(editorTupletN || 3),
     editorTupletMenuOpen ? "menu" : "",
+    editorDynMenuOpen ? "dyn" : "",
+    editorArtMenuOpen ? "art" : "",
     String(editorMoveSemis || 12),
     editorMoveMenuOpen ? "move" : "",
     typeof eizationLang === "string" ? eizationLang : "",
@@ -4513,6 +4517,9 @@ function editorBuildIcon(kind) {
       staffPlaceGlyph(svg, accName, 0, 0, space);
     }
     return editorFitIcon(svg);
+  }
+  if (kind.indexOf("art-") === 0) {
+    return editorFitIcon(editorArticulationIcon(svg, kind.slice(4)));
   }
   if (kind === "clef-treble" || kind === "clef-bass") {
     if (typeof staffPlaceGlyph === "function") {
@@ -4761,6 +4768,59 @@ function editorBuildIcon(kind) {
     return editorFitIcon(svg);
   }
   return editorFitIcon(svg);
+}
+
+/* Short quarter note with the mark beside the head, so the mark stays readable. */
+function editorArticulationIcon(svg, id) {
+  var space = 250;
+  var head = 1.18 * space;
+  var stemX = head * 0.925;
+  var stemLen = 1.7 * space;
+  var x = stemX + space * 0.72;
+  var y = space * 0.05;
+  function stroke(x1, y1, x2, y2) {
+    svg.appendChild(editorSvgEl("line", {
+      x1: String(x1),
+      y1: String(y1),
+      x2: String(x2),
+      y2: String(y2),
+      stroke: "currentColor",
+      "stroke-width": "32",
+      "stroke-linecap": "round"
+    }));
+  }
+  if (typeof staffPlaceGlyph === "function") {
+    staffPlaceGlyph(svg, "noteheadBlack", 0, 0, space);
+  }
+  svg.appendChild(editorSvgEl("line", {
+    x1: String(stemX),
+    y1: "24",
+    x2: String(stemX),
+    y2: String(-stemLen),
+    stroke: "currentColor",
+    "stroke-width": "28"
+  }));
+  if (id === "staccato") {
+    svg.appendChild(editorSvgEl("circle", {
+      cx: String(x),
+      cy: String(y),
+      r: String(space * 0.2),
+      fill: "currentColor"
+    }));
+    return svg;
+  }
+  if (id === "tenuto") {
+    stroke(x - space * 0.42, y, x + space * 0.42, y);
+    return svg;
+  }
+  if (id === "accent") {
+    stroke(x - space * 0.42, y - space * 0.2, x + space * 0.46, y);
+    stroke(x - space * 0.42, y + space * 0.2, x + space * 0.46, y);
+    return svg;
+  }
+  stroke(x - space * 0.38, y - space * 0.16, x, y + space * 0.28);
+  stroke(x + space * 0.38, y - space * 0.16, x, y + space * 0.28);
+  return svg;
 }
 
 function editorMusicIcon(kind) {
@@ -5576,7 +5636,7 @@ function editorMakeTokenPiece(tok, start, end) {
     tupletId: 0,
     tupletNode: null
   };
-  pitch = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
+  pitch = /^([A-G])(##|bb|x|X|#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
   if (pitch) {
     durRaw = pitch[4] || "";
     piece.kind = "pitch";
@@ -7030,7 +7090,7 @@ function editorStackDotsAgree(line, stack) {
     return false;
   }
   for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
+    m = /^[A-G](?:##|bb|x|X|#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
     dotted = !!(m && String(m[1] || "").indexOf(".") >= 0);
     if (!dotted) {
       return false;
@@ -7227,7 +7287,7 @@ function editorMapSelectionEventTokens(text, mapFn) {
 }
 
 function editorRewriteAccidentalToken(tok, acc) {
-  var m = /^([A-G])(#|b|n)?(\d)(.*)$/.exec(tok || "");
+  var m = /^([A-G])(##|bb|x|X|#|b|n)?(\d)(.*)$/.exec(tok || "");
   var cur;
   var next;
   if (!m) {
@@ -7855,7 +7915,7 @@ function editorStackAllShort(line, stack) {
     return true;
   }
   for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2}|\.)?)/.exec(spans[i].token);
+    m = /^[A-G](?:##|bb|x|X|#|b|n)?\d((?:[whqesn]\.{0,2}|\.)?)/.exec(spans[i].token);
     dur = String((m && m[1]) || "q").replace(".", "");
     if (dur !== "e" && dur !== "s") {
       return false;
@@ -8210,7 +8270,7 @@ function editorEventTokenDurationCode(tok) {
   var pitch;
   var rhythm;
   tok = String(tok || "");
-  pitch = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(tok);
+  pitch = /^[A-G](?:##|bb|x|X|#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(tok);
   if (pitch) {
     return String(pitch[1] || "q").replace(".", "");
   }
@@ -8559,7 +8619,7 @@ function editorRewriteShortToken(hit) {
   if (hit.kind !== "pitch") {
     return hit.token;
   }
-  parsed = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?$/.exec(hit.token || "");
+  parsed = /^([A-G])(##|bb|x|X|#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?$/.exec(hit.token || "");
   if (!parsed) {
     return hit.token;
   }
@@ -8878,6 +8938,885 @@ function editorPaintNoteDefaults() {
   editorPaintDefaultClefToggle(host);
 }
 
+var EDITOR_ARTS = [
+  { id: "staccato", ch: "'", label: "edit.noteStaccato" },
+  { id: "accent", ch: ">", label: "edit.noteAccent" },
+  { id: "tenuto", ch: "-", label: "edit.noteTenuto" },
+  { id: "marcato", ch: "^", label: "edit.noteMarcato" }
+];
+var EDITOR_DYNAMICS = ["pp", "p", "mp", "mf", "f", "ff", "sfz"];
+var EDITOR_HAIRPINS = ["cresc", "dim"];
+/* Each ordinary spelling swaps with one partner. A second tap restores it. */
+var EDITOR_ENHARMONIC = {
+  C: ["B", "#", -1],
+  "B#": ["C", "", 1],
+  "C#": ["D", "b", 0],
+  Db: ["C", "#", 0],
+  "D#": ["E", "b", 0],
+  Eb: ["D", "#", 0],
+  "F#": ["G", "b", 0],
+  Gb: ["F", "#", 0],
+  "G#": ["A", "b", 0],
+  Ab: ["G", "#", 0],
+  "A#": ["B", "b", 0],
+  Bb: ["A", "#", 0],
+  F: ["E", "#", 0],
+  "E#": ["F", "", 0],
+  B: ["C", "b", 1],
+  Cb: ["B", "", -1],
+  E: ["F", "b", 0],
+  Fb: ["E", "", 0]
+};
+
+function editorNormAcc(raw) {
+  if (typeof staffNormAccidental === "function") {
+    return staffNormAccidental(raw || "");
+  }
+  return raw || "";
+}
+
+/* ' > - and a bare ^ . ^text stays above the note. _text stays under it. */
+function editorAffixModel(affix) {
+  var raw = String(affix || "");
+  var force = "";
+  var parsed;
+  if (raw.charAt(0) === "!") {
+    force = "!";
+    raw = raw.slice(1);
+  }
+  if (!raw) {
+    return { force: force, arts: [], above: "", label: "" };
+  }
+  if (typeof staffParseAffixes !== "function") {
+    return null;
+  }
+  parsed = staffParseAffixes(raw);
+  if (!parsed) {
+    return null;
+  }
+  return {
+    force: force,
+    arts: parsed.articulations || [],
+    above: parsed.above || "",
+    label: parsed.label || ""
+  };
+}
+
+function editorAffixText(model) {
+  var order = ["staccato", "tenuto", "accent", "marcato"];
+  var chars = { staccato: "'", tenuto: "-", accent: ">", marcato: "^" };
+  var s = model.force || "";
+  var i;
+  for (i = 0; i < order.length; i++) {
+    if (model.arts.indexOf(order[i]) >= 0) {
+      s += chars[order[i]];
+    }
+  }
+  if (model.above) {
+    s += "^" + model.above;
+  }
+  if (model.label) {
+    s += "_" + model.label;
+  }
+  return s;
+}
+
+function editorAffixHas(affix, id) {
+  var model = editorAffixModel(affix);
+  return !!(model && model.arts.indexOf(id) >= 0);
+}
+
+/* A bare ^ on the note is marcato. A ^ followed by a name is text above it. */
+function editorAffixMarcatoHat(affix) {
+  var model = editorAffixModel(affix);
+  return !!(model && !model.above && model.arts.indexOf("marcato") >= 0 && /\^$/.test(String(affix || "")));
+}
+
+/* One mark at a time. Turning one on clears the others. */
+function editorAffixWithArt(affix, id, turnOn) {
+  var model = editorAffixModel(affix);
+  var next;
+  if (!model) {
+    return null;
+  }
+  next = {
+    force: model.force,
+    arts: turnOn && id ? [id] : [],
+    above: model.above,
+    label: model.label
+  };
+  return editorAffixText(next);
+}
+
+function editorSplitEventToken(tok) {
+  var pitch = EDITOR_PITCH_HEAD.exec(tok || "");
+  var rhythm;
+  if (pitch) {
+    return {
+      kind: "pitch",
+      head: pitch[0],
+      affix: String(tok || "").slice(pitch[0].length)
+    };
+  }
+  rhythm = /^(\/[whqes]?\.{0,2}|r[whqes]?\.{0,2})([\s\S]*)$/i.exec(tok || "");
+  if (!rhythm) {
+    return null;
+  }
+  return {
+    kind: /^r/i.test(rhythm[1]) ? "rest" : "slash",
+    head: rhythm[1],
+    affix: rhythm[2] || ""
+  };
+}
+
+function editorTokenWithArt(tok, id, turnOn) {
+  var parts = editorSplitEventToken(tok);
+  var next;
+  if (!parts || parts.kind === "rest") {
+    return tok;
+  }
+  next = editorAffixWithArt(parts.affix, id, turnOn);
+  if (next === null) {
+    return tok;
+  }
+  return parts.head + next;
+}
+
+function editorMapStackArt(node, id, turnOn) {
+  var placed = false;
+  return editorMapStackText(node, function (p) {
+    var on = false;
+    var nextAffix;
+    if (turnOn && !placed) {
+      on = true;
+      placed = true;
+    }
+    nextAffix = editorAffixWithArt(p.affix, id, on);
+    if (nextAffix === null) {
+      return editorPitchTextKept(p.letter, p.acc, p.oct, p.durRaw, p.affix);
+    }
+    return editorPitchTextKept(p.letter, p.acc, p.oct, p.durRaw, nextAffix);
+  });
+}
+
+function editorArtHostHas(host, id) {
+  var i;
+  if (host.kind === "stack") {
+    for (i = 0; i < host.pitches.length; i++) {
+      if (editorAffixHas(host.pitches[i].affix, id)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return editorAffixHas(host.affix, id);
+}
+
+/* Notes and slashes, plus one host per stack. Rests have no mark to draw. */
+function editorArtHosts() {
+  var span = editorLineSpan();
+  var sel;
+  var line;
+  var parts;
+  var a;
+  var b;
+  var nodes;
+  var pieces;
+  var hosts = [];
+  var i;
+  var piece;
+  var rel;
+  var hit;
+  if (!span || !editorStaffOn()) {
+    return hosts;
+  }
+  sel = editorReadSelection(span.field);
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  parts = editorSplitStaffCaption(line);
+  if (sel.start !== sel.end) {
+    a = sel.start - span.lineStart;
+    b = sel.end - span.lineStart;
+    if (a > b) {
+      rel = a;
+      a = b;
+      b = rel;
+    }
+    if (a < 0) {
+      a = 0;
+    }
+    if (b > parts.music.length) {
+      b = parts.music.length;
+    }
+    nodes = editorParseStaffNodes(parts.music);
+    if (!nodes) {
+      return hosts;
+    }
+    pieces = editorCollectPieces(nodes);
+    for (i = 0; i < pieces.length; i++) {
+      piece = pieces[i];
+      if (piece.start < a || piece.end > b) {
+        continue;
+      }
+      if (piece.kind === "stack") {
+        hosts.push({ kind: "stack", pitches: piece.pitches, node: piece });
+      } else if (piece.kind === "pitch" || piece.kind === "slash") {
+        hosts.push({ kind: piece.kind, affix: piece.affix, node: piece });
+      }
+    }
+    return hosts;
+  }
+  if (editorStackGroupAtCaret()) {
+    nodes = editorParseStaffNodes(parts.music);
+    rel = span.caret - span.lineStart;
+    if (nodes) {
+      pieces = editorCollectPieces(nodes);
+      for (i = 0; i < pieces.length; i++) {
+        piece = pieces[i];
+        if (piece.kind === "stack" && rel > piece.start && rel <= piece.end) {
+          hosts.push({ kind: "stack", pitches: piece.pitches, node: piece });
+          return hosts;
+        }
+      }
+    }
+  }
+  hit = editorPitchAtCaret() || editorRhythmAtCaret();
+  if (!hit || hit.kind === "rest") {
+    return hosts;
+  }
+  if (hit.kind === "pitch" || hit.kind === "slash") {
+    hosts.push({ kind: hit.kind, affix: hit.affix || "", hit: hit });
+  }
+  return hosts;
+}
+
+function editorArtIsLit(id) {
+  var hosts = editorArtHosts();
+  var i;
+  if (!hosts.length) {
+    return false;
+  }
+  for (i = 0; i < hosts.length; i++) {
+    if (!editorArtHostHas(hosts[i], id)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function editorToggleArticulation(id) {
+  var hosts = editorArtHosts();
+  var turnOn;
+  var hit;
+  var next;
+  var span;
+  var stackText;
+  var value;
+  var caret;
+  var silent;
+  if (!hosts.length) {
+    editorPaintNotePad();
+    return;
+  }
+  turnOn = !editorArtIsLit(id);
+  if (editorSelectionBounds()) {
+    editorRunSelection(function (nodes, events) {
+      var i;
+      var ev;
+      var mapped;
+      for (i = 0; i < events.length; i++) {
+        ev = events[i];
+        if (ev.kind === "pitch" || ev.kind === "slash") {
+          mapped = editorTokenWithArt(ev.text, id, turnOn);
+          if (mapped !== ev.text) {
+            ev.replaceWith = mapped;
+          }
+        } else if (ev.kind === "stack") {
+          mapped = editorMapStackArt(ev, id, turnOn);
+          if (mapped !== ev.text) {
+            ev.replaceWith = mapped;
+          }
+        }
+      }
+      return true;
+    }, "select");
+    return;
+  }
+  if (hosts[0].kind === "stack" && hosts[0].node) {
+    span = editorLineSpan();
+    if (!span) {
+      return;
+    }
+    stackText = editorMapStackArt(hosts[0].node, id, turnOn);
+    if (stackText === hosts[0].node.text) {
+      editorPaintNotePad();
+      return;
+    }
+    editorPushSymbolUndo();
+    value = String(span.field.value || "");
+    span.field.value =
+      value.slice(0, span.lineStart + hosts[0].node.start) +
+      stackText +
+      value.slice(span.lineStart + hosts[0].node.end);
+    caret = span.caret + (stackText.length - hosts[0].node.text.length);
+    if (caret < span.lineStart + hosts[0].node.start) {
+      caret = span.lineStart + hosts[0].node.start;
+    }
+    silent = !!(editorPadCaret && editorSymbolsIsOpen());
+    editorPlaceCaret(span.field, caret, caret, silent);
+    clearEditorNotice();
+    refreshEditor();
+    editorPaintNotePad();
+    return;
+  }
+  hit = hosts[0].hit;
+  if (!hit) {
+    return;
+  }
+  next = editorTokenWithArt(hit.token, id, turnOn);
+  if (!editorReplaceCaretToken(hit, next)) {
+    editorPaintNotePad();
+  }
+}
+
+function editorIsDynamicWord(tok) {
+  return EDITOR_DYNAMICS.indexOf(tok) >= 0;
+}
+
+function editorIsHairpinWord(tok) {
+  return EDITOR_HAIRPINS.indexOf(tok) >= 0;
+}
+
+function editorHangBoundary(ch) {
+  return /\s/.test(ch) || ch === "{" || ch === "}" || ch === "[" || ch === "]" || ch === "(" || ch === ")" || ch === "|" || ch === "~";
+}
+
+/* Chord words and sound words that hang on the next note. Stops at a real event. */
+function editorHangWordsBefore(line, hostStart) {
+  var words = [];
+  var cursor = hostStart;
+  var end;
+  var start;
+  var tok;
+  var kind;
+  while (cursor > 0 && /\s/.test(line.charAt(cursor - 1))) {
+    cursor--;
+  }
+  while (cursor > 0) {
+    end = cursor;
+    start = end;
+    while (start > 0 && !editorHangBoundary(line.charAt(start - 1))) {
+      start--;
+    }
+    if (start === end) {
+      break;
+    }
+    tok = line.slice(start, end);
+    if (editorIsDynamicWord(tok)) {
+      kind = "dynamic";
+    } else if (editorIsHairpinWord(tok)) {
+      kind = "hairpin";
+    } else if (tok.charAt(0) === "^") {
+      kind = "chord";
+    } else {
+      break;
+    }
+    words.unshift({ start: start, end: end, tok: tok, kind: kind });
+    if (start === 0 || !/\s/.test(line.charAt(start - 1))) {
+      break;
+    }
+    cursor = start;
+    while (cursor > 0 && /\s/.test(line.charAt(cursor - 1))) {
+      cursor--;
+    }
+  }
+  return words;
+}
+
+function editorDynamicHostStart(line, rel) {
+  var groups;
+  var i;
+  var g;
+  var best = null;
+  groups = editorFindBalancedGroups(line);
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== "beam" || rel <= g.open || rel >= g.closeEnd) {
+      continue;
+    }
+    if (!best || g.closeEnd - g.open < best.closeEnd - best.open) {
+      best = g;
+    }
+  }
+  if (best) {
+    return best.open;
+  }
+  return rel;
+}
+
+/* One host per note, rest, slash, or stack. A beam takes the word in front of {. */
+function editorDynamicHosts() {
+  var span = editorLineSpan();
+  var sel;
+  var line;
+  var parts;
+  var a;
+  var b;
+  var swap;
+  var nodes;
+  var pieces;
+  var hosts = [];
+  var seen = {};
+  var i;
+  var piece;
+  var at;
+  var hit;
+  var rel;
+  if (!span || !editorStaffOn()) {
+    return { line: "", hosts: hosts };
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  parts = editorSplitStaffCaption(line);
+  line = parts.music;
+  sel = editorReadSelection(span.field);
+  if (sel.start !== sel.end) {
+    a = sel.start - span.lineStart;
+    b = sel.end - span.lineStart;
+    if (a > b) {
+      swap = a;
+      a = b;
+      b = swap;
+    }
+    nodes = editorParseStaffNodes(line);
+    if (!nodes) {
+      return { line: line, hosts: hosts };
+    }
+    pieces = editorCollectPieces(nodes);
+    for (i = 0; i < pieces.length; i++) {
+      piece = pieces[i];
+      if (piece.kind !== "pitch" && piece.kind !== "slash" && piece.kind !== "rest" && piece.kind !== "stack") {
+        continue;
+      }
+      if (piece.end <= a || piece.start >= b) {
+        continue;
+      }
+      at = editorDynamicHostStart(line, piece.start + 1);
+      if (!seen[at]) {
+        seen[at] = true;
+        hosts.push(at);
+      }
+    }
+    return { line: line, hosts: hosts };
+  }
+  rel = span.caret - span.lineStart;
+  at = editorDynamicHostStart(line, rel);
+  if (at !== rel) {
+    hosts.push(at);
+    return { line: line, hosts: hosts };
+  }
+  hit = editorMusicHitAtCaret();
+  if (hit && (hit.kind === "pitch" || hit.kind === "slash" || hit.kind === "rest")) {
+    hosts.push(hit.start - span.lineStart);
+  }
+  return { line: line, hosts: hosts };
+}
+
+function editorHostHasWord(line, host, word) {
+  var words = editorHangWordsBefore(line, host);
+  var i;
+  for (i = words.length - 1; i >= 0; i--) {
+    if (words[i].tok === word) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorDynamicFaceLit() {
+  var ctx = editorDynamicHosts();
+  var i;
+  var j;
+  var words;
+  for (i = 0; i < ctx.hosts.length; i++) {
+    words = editorHangWordsBefore(ctx.line, ctx.hosts[i]);
+    for (j = 0; j < words.length; j++) {
+      if (words[j].kind === "dynamic" || words[j].kind === "hairpin") {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function editorDynamicWordLit(word) {
+  var ctx = editorDynamicHosts();
+  var i;
+  if (!ctx.hosts.length) {
+    return false;
+  }
+  for (i = 0; i < ctx.hosts.length; i++) {
+    if (!editorHostHasWord(ctx.line, ctx.hosts[i], word)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function editorDeleteHangWord(line, start, end) {
+  var from = start;
+  var to = end;
+  if (from > 0 && line.charAt(from - 1) === " ") {
+    from--;
+  } else if (line.charAt(to) === " ") {
+    to++;
+  }
+  return line.slice(0, from) + line.slice(to);
+}
+
+function editorWriteHangWord(line, host, word, remove) {
+  var words = editorHangWordsBefore(line, host);
+  var family = editorIsHairpinWord(word) ? "hairpin" : "dynamic";
+  var existing = null;
+  var i;
+  for (i = 0; i < words.length; i++) {
+    if (words[i].kind === family) {
+      existing = words[i];
+    }
+  }
+  if (remove) {
+    if (existing && existing.tok === word) {
+      return editorDeleteHangWord(line, existing.start, existing.end);
+    }
+    return line;
+  }
+  if (existing && existing.tok === word) {
+    return line;
+  }
+  if (existing) {
+    return line.slice(0, existing.start) + word + line.slice(existing.end);
+  }
+  return line.slice(0, host) + word + " " + line.slice(host);
+}
+
+function editorApplyDynamic(word) {
+  var ctx = editorDynamicHosts();
+  var remove;
+  var hosts;
+  var line;
+  var i;
+  var span;
+  var value;
+  var caption;
+  var caretRel;
+  var nextLine;
+  var silent;
+  if (!ctx.hosts.length || !editorStaffOn()) {
+    return;
+  }
+  remove = editorDynamicWordLit(word);
+  hosts = ctx.hosts.slice().sort(function (a, b) {
+    return b - a;
+  });
+  span = editorLineSpan();
+  if (!span) {
+    return;
+  }
+  line = ctx.line;
+  caretRel = span.caret - span.lineStart;
+  for (i = 0; i < hosts.length; i++) {
+    nextLine = editorWriteHangWord(line, hosts[i], word, remove);
+    if (caretRel >= hosts[i]) {
+      caretRel += nextLine.length - line.length;
+    }
+    line = nextLine;
+  }
+  if (line === ctx.line) {
+    editorPaintNotePad();
+    return;
+  }
+  caption = editorSplitStaffCaption(span.value.slice(span.lineStart, span.lineEnd)).caption;
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  span.field.value = value.slice(0, span.lineStart) + line + caption + value.slice(span.lineEnd);
+  if (caretRel < 0) {
+    caretRel = 0;
+  }
+  if (caretRel > line.length) {
+    caretRel = line.length;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, span.lineStart + caretRel, span.lineStart + caretRel, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+}
+
+function editorEnharmonicKey(letter, acc, oct) {
+  return String(letter || "").toUpperCase() + editorNormAcc(acc) + String(oct);
+}
+
+function editorTieKey(letter, acc, oct) {
+  var norm = editorNormAcc(acc);
+  if (norm === "n") {
+    norm = "";
+  }
+  return String(letter || "").toUpperCase() + norm + String(oct);
+}
+
+/* Ordinary pairs swap. A double moves once onto the plain spelling of that sound. */
+function editorEnharmonicSpell(letter, acc, oct) {
+  var norm = editorNormAcc(acc);
+  var key;
+  var row;
+  var nextOct;
+  var spelled;
+  var same;
+  letter = String(letter || "").toUpperCase();
+  if (norm === "##" || norm === "bb") {
+    spelled = editorSpellAbs(editorPitchAbs(letter, norm, oct), norm === "bb");
+    if (!spelled) {
+      return null;
+    }
+    same = spelled.letter === letter && editorNormAcc(spelled.acc) === norm && spelled.oct === oct;
+    return same ? null : spelled;
+  }
+  if (norm === "n") {
+    norm = "";
+  }
+  key = letter + norm;
+  row = EDITOR_ENHARMONIC[key];
+  if (!row) {
+    return null;
+  }
+  nextOct = oct + row[2];
+  if (nextOct < 0 || nextOct > 9) {
+    return null;
+  }
+  return { letter: row[0], acc: row[1], oct: nextOct };
+}
+
+function editorEnharmonicMusic(text, range) {
+  var dot = " \u00B7 ";
+  var captionAt = String(text || "").indexOf(dot);
+  var music = captionAt < 0 ? String(text || "") : String(text || "").slice(0, captionAt);
+  var caption = captionAt < 0 ? "" : String(text || "").slice(captionAt);
+  var useRange;
+  var scanned;
+  var pitches;
+  var include;
+  var attacks;
+  var i;
+  var n;
+  var grew;
+  var guard;
+  var tie;
+  var before;
+  var after;
+  var side;
+  var other;
+  var want;
+  var spelled;
+  var seen;
+  var stackKey;
+  var written;
+  var touched;
+  var reps;
+  var anchors;
+  var head;
+  var lo;
+  var hi;
+  var ns;
+  var ne;
+  var caretAt;
+  useRange = {
+    start: range.start < 0 ? 0 : range.start,
+    end: range.end > music.length ? music.length : range.end
+  };
+  if (useRange.end < useRange.start) {
+    useRange.end = useRange.start;
+  }
+  scanned = editorScanTranspose(music);
+  pitches = scanned.pitches;
+  include = [];
+  for (i = 0; i < pitches.length; i++) {
+    include.push(pitches[i].start < useRange.end && pitches[i].end > useRange.start);
+  }
+  attacks = editorTransposeAttacks(pitches);
+  grew = true;
+  guard = 0;
+  while (grew && guard < 24) {
+    grew = false;
+    guard++;
+    for (i = 0; i < scanned.ties.length; i++) {
+      tie = scanned.ties[i];
+      before = editorAttackBefore(attacks, tie);
+      after = editorAttackAfter(attacks, tie);
+      if (!before || !after) {
+        continue;
+      }
+      side = [before, after];
+      for (n = 0; n < side.length; n++) {
+        other = side[1 - n];
+        for (want = 0; want < side[n].indexes.length; want++) {
+          if (!include[side[n].indexes[want]]) {
+            continue;
+          }
+          written = editorTieKey(
+            pitches[side[n].indexes[want]].letter,
+            pitches[side[n].indexes[want]].acc,
+            pitches[side[n].indexes[want]].oct
+          );
+          for (lo = 0; lo < other.indexes.length; lo++) {
+            hi = other.indexes[lo];
+            if (include[hi]) {
+              continue;
+            }
+            if (
+              editorTieKey(pitches[hi].letter, pitches[hi].acc, pitches[hi].oct) === written
+            ) {
+              include[hi] = true;
+              grew = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  for (i = 0; i < pitches.length; i++) {
+    pitches[i].spelled = include[i] ? editorEnharmonicSpell(pitches[i].letter, pitches[i].acc, pitches[i].oct) : null;
+  }
+  seen = {};
+  for (i = 0; i < pitches.length; i++) {
+    if (!pitches[i].stack) {
+      continue;
+    }
+    touched = false;
+    for (n = 0; n < pitches.length; n++) {
+      if (pitches[n].stack === pitches[i].stack && include[n]) {
+        touched = true;
+      }
+    }
+    if (!touched) {
+      continue;
+    }
+    spelled = pitches[i].spelled;
+    written = spelled
+      ? editorEnharmonicKey(spelled.letter, spelled.acc, spelled.oct)
+      : editorEnharmonicKey(pitches[i].letter, pitches[i].acc, pitches[i].oct);
+    stackKey = String(pitches[i].stack);
+    if (!seen[stackKey]) {
+      seen[stackKey] = {};
+    }
+    if (seen[stackKey][written]) {
+      return { ok: false, reason: "stack", text: text, changed: false, caret: useRange.end, selStart: useRange.start, selEnd: useRange.end };
+    }
+    seen[stackKey][written] = true;
+  }
+  reps = [];
+  anchors = [];
+  for (i = 0; i < pitches.length; i++) {
+    if (!pitches[i].spelled) {
+      continue;
+    }
+    head =
+      pitches[i].spelled.letter +
+      pitches[i].spelled.acc +
+      String(pitches[i].spelled.oct) +
+      pitches[i].dur +
+      pitches[i].dots +
+      pitches[i].bang;
+    if (head === music.slice(pitches[i].start, pitches[i].end)) {
+      continue;
+    }
+    reps.push({ start: pitches[i].start, end: pitches[i].end, text: head });
+    anchors.push({ start: pitches[i].start, end: pitches[i].end, text: head });
+  }
+  lo = null;
+  hi = null;
+  for (i = 0; i < anchors.length; i++) {
+    ns = editorMapTransposeIndex(anchors[i].start, reps);
+    ne = ns + anchors[i].text.length;
+    if (lo === null || ns < lo) {
+      lo = ns;
+    }
+    if (hi === null || ne > hi) {
+      hi = ne;
+    }
+  }
+  caretAt = editorMapTransposeIndex(useRange.end, reps);
+  return {
+    ok: true,
+    text: editorApplyTransposeReps(music, reps) + caption,
+    changed: reps.length > 0,
+    caret: caretAt,
+    selStart: lo === null ? useRange.start : lo,
+    selEnd: hi === null ? useRange.end : hi
+  };
+}
+
+function editorApplyEnharmonic() {
+  var field;
+  var bounds;
+  var line;
+  var range;
+  var hit;
+  var selecting;
+  var result;
+  var silent;
+  if (!editorStaffOn()) {
+    return;
+  }
+  field = editorActiveField();
+  if (!field) {
+    return;
+  }
+  bounds = editorTransposeBounds(field);
+  if (!bounds || bounds.cross) {
+    return;
+  }
+  line = bounds.value.slice(bounds.lineStart, bounds.lineEnd);
+  selecting = bounds.selStart !== bounds.selEnd;
+  if (selecting) {
+    range = {
+      start: bounds.selStart - bounds.lineStart,
+      end: bounds.selEnd - bounds.lineStart
+    };
+  } else {
+    hit = editorPitchAtCaret();
+    if (!hit) {
+      return;
+    }
+    range = {
+      start: hit.start - bounds.lineStart,
+      end: hit.end - bounds.lineStart
+    };
+  }
+  result = editorEnharmonicMusic(line, range);
+  if (!result.ok) {
+    editorNotice(t("edit.refuseSamePitch"));
+    editorPaintNotePad();
+    return;
+  }
+  if (!result.changed) {
+    return;
+  }
+  editorPushSymbolUndo();
+  field.value = bounds.value.slice(0, bounds.lineStart) + result.text + bounds.value.slice(bounds.lineEnd);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  if (selecting) {
+    editorPlaceCaret(
+      field,
+      bounds.lineStart + result.selStart,
+      bounds.lineStart + result.selEnd,
+      silent
+    );
+  } else {
+    editorPlaceCaret(field, bounds.lineStart + result.caret, bounds.lineStart + result.caret, silent);
+  }
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+}
+
 function editorPaintModifiers(row) {
   var traits = editorStaffPadTraits();
   var hit = editorPitchAtCaret();
@@ -8890,6 +9829,7 @@ function editorPaintModifiers(row) {
   editorPadButton(row, { "data-acc": "b" }, editorMusicIcon("acc-b"), t("sym.flat"), litAcc === "b");
   editorPadButton(row, { "data-acc": "#" }, editorMusicIcon("acc-#"), t("sym.sharp"), litAcc === "#");
   editorPadButton(row, { "data-acc": "n" }, editorMusicIcon("acc-n"), t("sym.natural"), litAcc === "n");
+  editorPadButton(row, { "data-enharmonic": "1" }, "\u266F\u266D", t("edit.noteEnharmonic"));
   editorPaintIntervalStepper(row);
 }
 
@@ -9287,6 +10227,70 @@ function editorPaintDurations(row) {
     );
   }
   editorPadButton(row, { "data-dot": "1" }, editorMusicIcon("dur-" + (lit || "q") + "."), t("edit.noteDotted"), litDot);
+  editorPaintArticulations(row);
+}
+
+function editorArtFace() {
+  var i;
+  for (i = 0; i < EDITOR_ARTS.length; i++) {
+    if (editorArtIsLit(EDITOR_ARTS[i].id)) {
+      return EDITOR_ARTS[i];
+    }
+  }
+  return null;
+}
+
+function editorPaintArticulations(row) {
+  var wrap = document.createElement("span");
+  var menu;
+  var face = editorArtFace();
+  var i;
+  var art;
+  wrap.className = "edit-art-combo" + (editorArtMenuOpen ? " is-open" : "");
+  editorPadButton(
+    wrap,
+    { "data-art-menu": "1" },
+    editorMusicIcon("art-" + (face ? face.id : "staccato")),
+    face ? t(face.label) : t("edit.noteArticulation"),
+    !!face
+  );
+  if (editorArtMenuOpen) {
+    menu = document.createElement("span");
+    menu.className = "edit-art-menu";
+    menu.setAttribute("role", "listbox");
+    for (i = 0; i < EDITOR_ARTS.length; i++) {
+      art = EDITOR_ARTS[i];
+      editorPadButton(
+        menu,
+        { "data-art": art.id, role: "option" },
+        editorMusicIcon("art-" + art.id),
+        t(art.label),
+        editorArtIsLit(art.id)
+      );
+    }
+    wrap.appendChild(menu);
+  }
+  row.appendChild(wrap);
+}
+
+function editorCloseArtMenu() {
+  if (!editorArtMenuOpen) {
+    return;
+  }
+  editorArtMenuOpen = false;
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+}
+
+function editorToggleArtMenu() {
+  editorArtMenuOpen = !editorArtMenuOpen;
+  if (editorArtMenuOpen) {
+    editorDynMenuOpen = false;
+    editorTupletMenuOpen = false;
+    editorMoveMenuOpen = false;
+  }
+  editorNotePadStamp = "";
+  editorPaintNotePad();
 }
 
 function editorPaintNoteEvents(row) {
@@ -9317,6 +10321,69 @@ function editorPaintNoteEvents(row) {
     t("edit.noteStack"),
     editorStructureButtonLit("stack")
   );
+  editorPaintDynamics(row);
+}
+
+function editorPaintDynamics(row) {
+  var wrap = document.createElement("span");
+  var menu;
+  var words;
+  var i;
+  var word;
+  var label;
+  wrap.className = "edit-dyn-combo" + (editorDynMenuOpen ? " is-open" : "");
+  editorPadButton(
+    wrap,
+    { "data-dyn-menu": "1" },
+    "mf",
+    t("edit.noteDynamic"),
+    editorDynamicFaceLit()
+  );
+  if (editorDynMenuOpen) {
+    menu = document.createElement("span");
+    menu.className = "edit-dyn-menu";
+    menu.setAttribute("role", "listbox");
+    words = EDITOR_DYNAMICS.concat(EDITOR_HAIRPINS);
+    for (i = 0; i < words.length; i++) {
+      word = words[i];
+      if (word === "cresc") {
+        label = t("edit.noteCresc");
+      } else if (word === "dim") {
+        label = t("edit.noteDim");
+      } else {
+        label = word;
+      }
+      editorPadButton(
+        menu,
+        { "data-dyn": word, role: "option" },
+        word,
+        label,
+        editorDynamicWordLit(word)
+      );
+    }
+    wrap.appendChild(menu);
+  }
+  row.appendChild(wrap);
+}
+
+function editorCloseDynMenu() {
+  if (!editorDynMenuOpen) {
+    return;
+  }
+  editorDynMenuOpen = false;
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+}
+
+function editorToggleDynMenu() {
+  editorDynMenuOpen = !editorDynMenuOpen;
+  if (editorDynMenuOpen) {
+    editorArtMenuOpen = false;
+    editorTupletMenuOpen = false;
+    editorMoveMenuOpen = false;
+  }
+  editorNotePadStamp = "";
+  editorPaintNotePad();
 }
 
 function editorPaintNotePad() {
@@ -9420,7 +10487,7 @@ function editorArmAcc(acc) {
 
 /* Pitch token with optional glued ^/_/'/>/- affixes (stack / beam inners). */
 function editorRewritePitchDurationToken(tok, dur, dot) {
-  var m = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
+  var m = /^([A-G])(##|bb|x|X|#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
   var hit;
   if (!m) {
     return tok;
@@ -9467,7 +10534,7 @@ function editorStackPitchSpans(line, stack) {
 }
 
 function editorPitchKeyFromToken(tok) {
-  var m = /^([A-G])(#|b|n)?(\d)/.exec(tok || "");
+  var m = /^([A-G])(##|bb|x|X|#|b|n)?(\d)/.exec(tok || "");
   if (!m) {
     return "";
   }
@@ -9533,7 +10600,7 @@ function editorStackSharedDuration() {
     return null;
   }
   for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
+    m = /^[A-G](?:##|bb|x|X|#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
     if (!m) {
       return null;
     }
@@ -9769,6 +10836,29 @@ function editorStackChordMarkRange(span, stack) {
  * Chord mark at the caret: stack ]^… (preferred), bare ^, or a glued ^name
  * affix on the note/slash/rest under the caret.
  */
+/* ^Name glued on the note. A bare ^ is marcato unless a chord name is being typed. */
+function editorGluedChordSpan(hit) {
+  var model;
+  var tok;
+  var at;
+  if (!hit) {
+    return null;
+  }
+  model = editorAffixModel(hit.affix || "");
+  tok = hit.token || "";
+  if (model && model.above) {
+    at = tok.lastIndexOf("^" + model.above);
+    if (at < 0) {
+      return null;
+    }
+    return { start: hit.start + at, end: hit.start + at + 1 + model.above.length };
+  }
+  if (editorLabelTyping && /\^$/.test(tok)) {
+    return { start: hit.end - 1, end: hit.end };
+  }
+  return null;
+}
+
 function editorCaretChordMarkRange() {
   var field = editorActiveField();
   var sel;
@@ -9814,15 +10904,16 @@ function editorCaretChordMarkRange() {
       return stackMark;
     }
   }
-  if (trimmed.charAt(trimmed.length - 1) === "^") {
-    return { start: trimmed.length - 1, end: trimmed.length + (before.length - trimmed.length) };
-  }
   hit = editorPitchAtCaret() || editorRhythmAtCaret();
+  if (trimmed.charAt(trimmed.length - 1) === "^") {
+    if (!(hit && hit.end === trimmed.length && editorAffixMarcatoHat(hit.affix) && !editorLabelTyping)) {
+      return { start: trimmed.length - 1, end: trimmed.length + (before.length - trimmed.length) };
+    }
+  }
   if (hit) {
-    tok = hit.token;
-    aff = /\^[^\s]*$/.exec(tok);
-    if (aff && aff[0].length > 0) {
-      return { start: hit.start + tok.length - aff[0].length, end: hit.end };
+    tok = editorGluedChordSpan(hit);
+    if (tok) {
+      return tok;
     }
   }
   /* Caret parked after a stack closer with ]^Name. */
@@ -9918,6 +11009,7 @@ function editorToggleOrInsertChord() {
   var rel;
   var stack;
   var insertAt;
+  editorEndLabelTyping();
   if (mark) {
     editorRemoveRangeBeforeCaret(mark.start, mark.end);
     return;
@@ -11038,7 +12130,7 @@ function editorApplyIntervalStep(dir) {
 function editorShiftOctavesInText(text, dir) {
   dir = dir < 0 ? -1 : 1;
   return String(text || "").replace(
-    /(^|[\s\[{(])([A-G](?:#|b|n)?)(\d)/g,
+    /(^|[\s\[{(])([A-G](?:##|bb|x|X|#|b|n)?)(\d)/g,
     function (all, boundary, head, octDigit) {
       var oct = editorClampOctave(parseInt(octDigit, 10) + dir);
       return boundary + head + String(oct);
@@ -11138,10 +12230,38 @@ function editorActivateSymbol(button, opts) {
   /* Any pad tap ends chord-name typing (except we re-enter after Chord). */
   if (!button.hasAttribute("data-event") || button.getAttribute("data-event") !== "chord") {
     editorEndLabelTyping();
-  } else if (editorCaretChordMarkRange()) {
-    editorEndLabelTyping();
   }
   editorAnalyticsMark("used_pad");
+  if (!button.hasAttribute("data-dyn-menu") && !button.hasAttribute("data-dyn")) {
+    editorCloseDynMenu();
+  }
+  if (!button.hasAttribute("data-art-menu") && !button.hasAttribute("data-art")) {
+    editorCloseArtMenu();
+  }
+  if (button.hasAttribute("data-art-menu")) {
+    editorToggleArtMenu();
+    return;
+  }
+  if (button.hasAttribute("data-art")) {
+    editorArtMenuOpen = false;
+    editorNotePadStamp = "";
+    editorToggleArticulation(button.getAttribute("data-art") || "");
+    return;
+  }
+  if (button.hasAttribute("data-dyn-menu")) {
+    editorToggleDynMenu();
+    return;
+  }
+  if (button.hasAttribute("data-dyn")) {
+    editorDynMenuOpen = false;
+    editorNotePadStamp = "";
+    editorApplyDynamic(button.getAttribute("data-dyn") || "");
+    return;
+  }
+  if (button.hasAttribute("data-enharmonic")) {
+    editorApplyEnharmonic();
+    return;
+  }
   if (button.hasAttribute("data-tuplet-menu")) {
     editorToggleTupletMenu();
     return;
@@ -13079,6 +14199,8 @@ function initEditor() {
     var transposeMenu = document.getElementById("editTransposeMenu");
     var transposeCombo = document.getElementById("editAddCombo");
     var intervalGroup = document.querySelector(".edit-note-interval-group");
+    var dynCombo = document.querySelector(".edit-dyn-combo");
+    var artCombo = document.querySelector(".edit-art-combo");
     var menu = document.getElementById("editClipMenu");
     var insideTranspose =
       event.target &&
@@ -13092,6 +14214,18 @@ function initEditor() {
       (!intervalGroup || !event.target || !intervalGroup.contains(event.target))
     ) {
       editorCloseMoveMenu();
+    }
+    if (
+      editorDynMenuOpen &&
+      (!dynCombo || !event.target || !dynCombo.contains(event.target))
+    ) {
+      editorCloseDynMenu();
+    }
+    if (
+      editorArtMenuOpen &&
+      (!artCombo || !event.target || !artCombo.contains(event.target))
+    ) {
+      editorCloseArtMenu();
     }
     if (!editorStaffClipMenuOpen) {
       return;
@@ -13109,6 +14243,12 @@ function initEditor() {
       }
       if (editorMoveMenuOpen) {
         editorCloseMoveMenu();
+      }
+      if (editorDynMenuOpen) {
+        editorCloseDynMenu();
+      }
+      if (editorArtMenuOpen) {
+        editorCloseArtMenu();
       }
     });
   }

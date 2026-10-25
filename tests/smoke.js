@@ -2608,9 +2608,18 @@ function chatCase(w) {
       symbolsPanel.querySelectorAll("[data-default-clef]").length === 1 &&
       symbolsPanel.querySelector("[data-default-clef='bass']") &&
       symbolsPanel.querySelector("[data-acc='b']") &&
+      symbolsPanel.querySelector("[data-enharmonic]") &&
+      symbolsPanel.querySelector("[data-art-menu]") &&
+      !symbolsPanel.querySelector("[data-art='staccato']") &&
+      w.I18N.en["edit.noteArticulation"] === "Articulation" &&
+      w.I18N.es["edit.noteArticulation"] === "Articulaci\u00F3n" &&
+      symbolsPanel.querySelector("[data-dyn-menu]") &&
       !symbolsPanel.querySelector("[data-oct]") &&
       !symbolsPanel.querySelector("[data-symbol='mf ']") &&
-      !symbolsPanel.querySelector("[data-symbol='cresc ']")
+      !symbolsPanel.querySelector("[data-symbol='cresc ']") &&
+      w.I18N.en["edit.noteMarcato"] === "Marcato" &&
+      w.I18N.es["edit.noteEnharmonic"] === "Enarm\u00F3nico" &&
+      w.I18N.en["edit.refuseSamePitch"] === "That stack would repeat a note."
     )
   );
   w.setEditorStaff(symbolKind);
@@ -2723,6 +2732,100 @@ function chatCase(w) {
       }
       return focusLine.selectionStart;
     }
+    function selectAllNotes() {
+      focusLine.focus();
+      focusLine.setSelectionRange(0, focusLine.value.length);
+    }
+    placeCaret("A#4");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic flips A# to Bb", focusLine.value === "Bb4");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic flips Bb back to A#", focusLine.value === "A#4");
+    placeCaret("C4");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic flips C to B#", focusLine.value === "B#3");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic flips B# back to C", focusLine.value === "C4");
+    placeCaret("D4");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic leaves D", focusLine.value === "D4");
+    placeCaret("C##4");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("a double sharp moves onto the plain note", focusLine.value === "D4");
+    placeCaret("Cn4");
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("a forced natural flips as the plain note", focusLine.value === "B#3");
+    placeCaret("A#4~ A#4");
+    focusLine.focus();
+    focusLine.setSelectionRange(0, 3);
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic flips both sides of a tie", focusLine.value === "Bb4~ Bb4");
+    placeCaret("A#4 Bb4");
+    selectAllNotes();
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic flips each selected note", focusLine.value === "Bb4 A#4");
+    placeCaret("[A#4 Bb4]");
+    selectAllNotes();
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check("enharmonic swaps the two spellings in a stack", focusLine.value === "[Bb4 A#4]");
+    placeCaret("[C4 Cn4]");
+    selectAllNotes();
+    poke(symbolsPanel.querySelector("[data-enharmonic]"));
+    check(
+      "enharmonic leaves a stack that would repeat",
+      focusLine.value === "[C4 Cn4]" && w.document.getElementById("editError").textContent === w.t("edit.refuseSamePitch")
+    );
+    function pokeArt(id) {
+      if (!symbolsPanel.querySelector("[data-art='" + id + "']")) {
+        poke(symbolsPanel.querySelector("[data-art-menu]"));
+      }
+      poke(symbolsPanel.querySelector("[data-art='" + id + "']"));
+    }
+    placeCaret("C4q");
+    pokeArt("staccato");
+    check("staccato sticks to the note", focusLine.value === "C4q'");
+    pokeArt("accent");
+    check("accent replaces staccato", focusLine.value === "C4q>");
+    pokeArt("accent");
+    check("a second tap takes the mark off", focusLine.value === "C4q");
+    placeCaret("C4q^G");
+    pokeArt("marcato");
+    check("marcato leaves the name above the note", focusLine.value === "C4q^^G");
+    placeCaret("/q");
+    pokeArt("accent");
+    check("accent sticks to a slash", focusLine.value === "/q>");
+    placeCaret("rq");
+    pokeArt("staccato");
+    check("a rest keeps no articulation", focusLine.value === "rq");
+    placeCaret("[C4 E4]");
+    focusLine.focus();
+    focusLine.setSelectionRange(2, 2);
+    pokeArt("accent");
+    check("a stack writes the mark once", focusLine.value === "[C4> E4]");
+    pokeArt("accent");
+    check("a second tap clears the stack mark", focusLine.value === "[C4 E4]");
+    placeCaret("C4 D4");
+    selectAllNotes();
+    pokeArt("tenuto");
+    check("tenuto marks every selected note", focusLine.value === "C4- D4-");
+    placeCaret("C4q");
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='mf']"));
+    check("a dynamic hangs on the note", focusLine.value === "mf C4q");
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='mf']"));
+    check("the same dynamic comes off", focusLine.value === "C4q");
+    placeCaret("C4q");
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='cresc']"));
+    check("a hairpin hangs on the note", focusLine.value === "cresc C4q");
+    placeCaret("{C4e D4e}");
+    focusLine.focus();
+    focusLine.setSelectionRange(4, 4);
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='p']"));
+    check("a dynamic in a beam sits in front of the brace", focusLine.value === "p {C4e D4e}");
+    placeCaret("");
     poke(symbolsPanel.querySelector("[data-note='C']"));
     check(
       "a letter writes the note",
