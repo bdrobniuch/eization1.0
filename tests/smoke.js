@@ -786,6 +786,18 @@ function staffNotation(w) {
     "a flagged eighth keeps an octave stem",
     staffStemIsOctave(w.renderMusicStaff("C4e", "current"))
   );
+  check(
+    "a second in a down-stem beam sits left",
+    staffSecondShift(w.renderMusicStaff("{G5e A5e B5e [E4e F4e]}", "current"), "E4", "F4") < 0
+  );
+  check(
+    "a second in an up-stem beam sits right",
+    staffSecondShift(w.renderMusicStaff("{C4e D4e E4e [C5e D5e]}", "current"), "C5", "D5") > 0
+  );
+  check(
+    "an unbeamed second follows the chord stem",
+    staffSecondShift(w.renderMusicStaff("[E4q F4q]", "current"), "E4", "F4") > 0
+  );
   staffTuplets(w);
 }
 
@@ -1121,6 +1133,65 @@ function staffStemMeetsMiddle(svg) {
   }
   mid = svg._staffCaretLayout.staffTop + 24;
   return Math.abs(stem.y2 - mid) < 0.6 && Math.abs(stem.y2 - stem.y1) > 43;
+}
+
+function staffGlyphOrigins(svg) {
+  var nodes = svg ? svg.querySelectorAll("g[transform]") : [];
+  var out = [];
+  var i;
+  var m;
+  for (i = 0; i < nodes.length; i++) {
+    m = /translate\(\s*(-?[\d.]+)(?:[,\s]+)(-?[\d.]+)/.exec(nodes[i].getAttribute("transform") || "");
+    if (m) {
+      out.push({ x: parseFloat(m[1]), y: parseFloat(m[2]) });
+    }
+  }
+  return out;
+}
+
+/* Lower note's x minus the upper note's x. Negative means the lower note sits left. */
+function staffSecondShift(svg, lowName, highName) {
+  var view = svg && svg.ownerDocument && svg.ownerDocument.defaultView;
+  var layout = svg && svg._staffCaretLayout;
+  var low;
+  var high;
+  var origins;
+  var lowAt;
+  var highAt;
+  var i;
+  var best;
+  var dy;
+  function nearest(y) {
+    best = null;
+    for (i = 0; i < origins.length; i++) {
+      if (origins[i].x < layout.notesStartX - 1) {
+        continue;
+      }
+      dy = Math.abs(origins[i].y - y);
+      if (dy > 0.6) {
+        continue;
+      }
+      if (!best || dy < best.dy || (dy === best.dy && origins[i].x > best.x)) {
+        best = { x: origins[i].x, dy: dy };
+      }
+    }
+    return best;
+  }
+  if (!view || !layout || typeof view.staffParsePitchToken !== "function") {
+    return 0;
+  }
+  low = view.staffParsePitchToken(lowName);
+  high = view.staffParsePitchToken(highName);
+  if (!low || !high) {
+    return 0;
+  }
+  origins = staffGlyphOrigins(svg);
+  lowAt = nearest(view.staffPitchY(low.step, "treble", layout.staffTop, 12));
+  highAt = nearest(view.staffPitchY(high.step, "treble", layout.staffTop, 12));
+  if (!lowAt || !highAt) {
+    return 0;
+  }
+  return lowAt.x - highAt.x;
 }
 
 function staffStemTips(svg) {

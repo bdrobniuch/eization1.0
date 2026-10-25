@@ -3117,6 +3117,47 @@ function renderMusicStaff(source, role, opts) {
   var predTip = [];
   var predUp = [];
   var predBeamed = [];
+  /* Same y the drawn stem uses: a chord counts as the midpoint of its outer notes. */
+  function staffColumnBeamY(colIndex) {
+    var col = columns[colIndex];
+    var hi = Infinity;
+    var lo = -Infinity;
+    var pi;
+    var y;
+    if (col && col.type === "stack" && col.pitches && col.pitches.length) {
+      for (pi = 0; pi < col.pitches.length; pi++) {
+        y = staffPitchY(col.pitches[pi].step, ast.clef, staffTop, lineGap);
+        if (y < hi) {
+          hi = y;
+        }
+        if (y > lo) {
+          lo = y;
+        }
+      }
+      return (hi + lo) / 2;
+    }
+    if (typeof predNy[colIndex] === "number") {
+      return predNy[colIndex];
+    }
+    return staffMidY;
+  }
+  function staffGroupStemUp(indices) {
+    var sum = 0;
+    var slash = false;
+    var i;
+    var col;
+    if (!indices || !indices.length) {
+      return true;
+    }
+    for (i = 0; i < indices.length; i++) {
+      col = columns[indices[i]];
+      sum += staffColumnBeamY(indices[i]);
+      if (col && col.head === "slash") {
+        slash = true;
+      }
+    }
+    return slash ? false : sum / indices.length > staffMidY;
+  }
   function staffInkAnchorY(colIndex, stemUp) {
     var col = columns[colIndex];
     var best;
@@ -3145,15 +3186,7 @@ function renderMusicStaff(source, role, opts) {
     if (inkGrp.indices.length < 2) {
       continue;
     }
-    var inkSum = 0;
-    var inkSlash = false;
-    for (inkGi = 0; inkGi < inkGrp.indices.length; inkGi++) {
-      inkSum += predNy[inkGrp.indices[inkGi]];
-      if (columns[inkGrp.indices[inkGi]].head === "slash") {
-        inkSlash = true;
-      }
-    }
-    var inkUp = inkSlash ? false : inkSum / inkGrp.indices.length > staffMidY;
+    var inkUp = staffGroupStemUp(inkGrp.indices);
     var inkStemLen = beamMin;
     var inkXs = [];
     var inkYs = [];
@@ -3691,7 +3724,12 @@ function renderMusicStaff(source, role, opts) {
     } else if (ev.type === "stack") {
       var stackDur = ev.duration || (ev.pitches[0] && ev.pitches[0].duration) || "q";
       var stemUp = staffEventStemUpGuess(ev);
-      var offsets = staffStackSecondOffsets(ev.pitches, stemUp, secondShift);
+      var stackG = colGroup[e];
+      var stackBeamed =
+        stackG >= 0 && beamGroups[stackG] && beamGroups[stackG].indices.length >= 2;
+      /* Inside a beam the seconds clear the group's stem, not the chord's own. */
+      var offsetUp = stackBeamed ? staffGroupStemUp(beamGroups[stackG].indices) : stemUp;
+      var offsets = staffStackSecondOffsets(ev.pitches, offsetUp, secondShift);
       var accCols = staffAssignAccidentalColumns(ev.pitches, ast.keyAlts);
       var stackAccGap = lineGap * 0.35;
       var accCenters = staffStackAccidentalCenters(
@@ -3704,8 +3742,6 @@ function renderMusicStaff(source, role, opts) {
         stackAccGap
       );
       var stemYs = [];
-      var stackBeamed;
-      var stackG;
       for (p = 0; p < ev.pitches.length; p++) {
         var drawnP = drawNotehead(
           cx + offsets[p],
@@ -3749,9 +3785,6 @@ function renderMusicStaff(source, role, opts) {
         /* Beam tip helper uses the mid of the stack; stem still covers all heads. */
         colNy[e] = (hiY + loY) / 2;
         colStackExtent[e] = { hi: hiY, lo: loY };
-        stackG = colGroup[e];
-        stackBeamed =
-          stackG >= 0 && beamGroups[stackG] && beamGroups[stackG].indices.length >= 2;
         if (staffHasStem(stackDur) && !stackBeamed) {
           /* Stem on the main column; cover all head centers vertically. */
           var stackOuter = stemUp ? hiY : loY;
@@ -3815,16 +3848,8 @@ function renderMusicStaff(source, role, opts) {
     if (grp.indices.length < 2) {
       continue;
     }
-    var sumY = 0;
     var gi;
-    var slashBeam = false;
-    for (gi = 0; gi < grp.indices.length; gi++) {
-      sumY += colNy[grp.indices[gi]];
-      if (columns[grp.indices[gi]].head === "slash") {
-        slashBeam = true;
-      }
-    }
-    var groupUp = slashBeam ? false : sumY / grp.indices.length > staffMidY;
+    var groupUp = staffGroupStemUp(grp.indices);
     var beamStemLen = beamMin;
     var beamXs = [];
     var beamYs = [];
