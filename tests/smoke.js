@@ -1743,6 +1743,50 @@ function shareCase(w) {
   var read = url ? w.readShareHash(url.slice(url.indexOf("#"))) : null;
   check("share link round trip", !!(read && read.shareId === "teach001" && read.name === "Week" && read.bars === 4 && read.lines.length === 2 && read.lines[0] === "Dm7 G7"));
   check("share lives in edit", !!w.document.getElementById("editShare"));
+  check(
+    "embed code is a frame",
+    w.practiceEmbedCode("https://eization.com/#s2=abc", "Week") === '<iframe title="Week" src="https://eization.com/?embed=1#s2=abc" width="100%" height="720" style="max-width:100%;border:0"></iframe>' &&
+      w.practiceEmbedCode("https://eization.com/?exercise=scales", 'Say "hi"') === '<iframe title="Say hi" src="https://eization.com/?exercise=scales&embed=1" width="100%" height="720" style="max-width:100%;border:0"></iframe>'
+  );
+  (function () {
+    var embedHome = w.createDeskExercise({ name: "Homepage", bars: 1, lines: ["Dm7", "G7"] });
+    var embedReturn = w.currentExerciseId;
+    var embedReady;
+    var embedAgain;
+    var embedCode;
+    var embedSaved;
+    if (w.editorIsOpen()) {
+      w.editorCancel();
+    }
+    if (!embedHome) {
+      check("embed frame uses the open exercise", false);
+      return;
+    }
+    w.currentExerciseId = embedHome.id;
+    w.SelectExercise();
+    w.editorOpen();
+    embedReady = w.editorPracticeUrl();
+    embedAgain = w.editorPracticeUrl();
+    embedCode = embedReady ? w.practiceEmbedCode(embedReady.url, embedReady.name) : "";
+    embedSaved = w.getDeskExercise(embedHome.id);
+    check(
+      "embed frame uses the open exercise",
+      !!(
+        embedSaved &&
+        embedSaved.shareId &&
+        embedReady &&
+        embedAgain &&
+        embedAgain.url === embedReady.url &&
+        embedCode.indexOf('title="Homepage"') > 0 &&
+        embedCode.indexOf("?embed=1#") > 0 &&
+        embedCode.indexOf('width="100%" height="720"') > 0
+      )
+    );
+    w.editorCancel();
+    w.deleteDeskExercise(embedHome.id);
+    w.currentExerciseId = embedReturn;
+    w.SelectExercise();
+  })();
   check("share prompt is in the page", !!w.document.getElementById("shareAsk"));
   check("intro edit line stays", w.I18N.en["hello.edit"] === "Edit builds your own exercise." && w.I18N.es["hello.edit"] === "Editar arma tu propio ejercicio.");
   var notes = w.getDeskExercise("ex:allNotes");
@@ -1991,7 +2035,10 @@ function chatCase(w) {
       w.document.getElementById("editSave") &&
       w.document.getElementById("editSave").parentNode === moreMenu &&
       w.document.getElementById("editAsk") &&
-      w.document.getElementById("editAsk").parentNode === moreMenu
+      w.document.getElementById("editAsk").parentNode === moreMenu &&
+      w.document.getElementById("editEmbed") &&
+      w.document.getElementById("editEmbed").parentNode === moreMenu &&
+      moreMenu.querySelector("button") === w.document.getElementById("editEmbed")
     )
   );
   check(
@@ -2001,7 +2048,15 @@ function chatCase(w) {
       : w.getComputedStyle(moreButton).display !== "none" && moreMenu.hidden === true
   );
   check("download and clear drop the extra word", w.document.querySelector("#editSave .btn-label").textContent.trim() === w.t("edit.download") && w.document.querySelector("#editClearList .btn-label").textContent.trim() === w.t("edit.clear") && w.I18N.en["edit.download"] === "Download" && w.I18N.en["edit.clear"] === "Clear" && w.I18N.en["edit.delete"] === "Delete" && w.I18N.es["edit.download"] === "Descargar" && w.I18N.es["edit.clear"] === "Vaciar" && w.I18N.es["edit.delete"] === "Borrar" && w.I18N.es["share.differ"] === "Este ejercicio es distinto del que hay en este dispositivo." && w.I18N.es["share.preview"] === "Editar" && w.I18N.en["share.preview"] === "Edit");
-  check("exercise actions keep a mark", ["editMore", "editSave", "editOpen", "editShare", "editAsk", "editDelete"].every(function (id) {
+  check(
+    "embed copy names the frame",
+    w.I18N.en["edit.embed"] === "Embed" &&
+      w.I18N.es["edit.embed"] === "Insertar" &&
+      w.I18N.en["edit.embedCopied"] === "Code copied." &&
+      w.I18N.es["edit.embedCopied"] === "C\u00F3digo copiado." &&
+      w.document.querySelector("#editEmbed .btn-label").textContent.trim() === w.t("edit.embed")
+  );
+  check("exercise actions keep a mark", ["editMore", "editSave", "editEmbed", "editOpen", "editShare", "editAsk", "editDelete"].every(function (id) {
     var button = w.document.getElementById(id);
     return !!(button && button.querySelector("svg.chrome-icon") && button.querySelector(".btn-label"));
   }));

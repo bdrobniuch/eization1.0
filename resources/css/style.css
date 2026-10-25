@@ -2129,6 +2129,7 @@ body.is-editing #counter {
 #editUpdate,
 #editClearList,
 #editSave,
+#editEmbed,
 #editAsk,
 #editAskChatgpt,
 #editAskClaude,
@@ -2209,6 +2210,7 @@ body.is-editing #counter {
 }
 
 #editSave,
+#editEmbed,
 #editOpen,
 #editAsk,
 #editClearList,
@@ -2219,6 +2221,7 @@ body.is-editing #counter {
 }
 
 #editSave .chrome-icon,
+#editEmbed .chrome-icon,
 #editOpen .chrome-icon,
 #editAsk .chrome-icon,
 #editClearList .chrome-icon,

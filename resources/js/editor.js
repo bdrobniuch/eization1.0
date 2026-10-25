@@ -11447,24 +11447,32 @@ function editorOpenChat(target) {
   });
 }
 
-function editorShare() {
+function editorPracticeUrl() {
+  var lines;
+  var bars;
+  var shareId;
+  var saved;
+  var shareDefaults;
+  var snap;
+  var catalogHref;
+  var url;
   if (!editorIsOpen()) {
-    return;
+    return null;
   }
   editorFlushFocus();
-  var lines = editorLinesFrom(document.getElementById("allEdit").value);
+  lines = editorLinesFrom(document.getElementById("allEdit").value);
   if (!lines.length) {
     editorNotice(t("edit.oneLine"));
-    return;
+    return null;
   }
   if (lines.length > 500) {
     editorNotice(t("edit.tooMany"));
-    return;
+    return null;
   }
-  var bars = editorReadBars();
+  bars = editorReadBars();
   editorWriteBars(bars);
-  var shareId = "";
-  var saved = null;
+  shareId = "";
+  saved = null;
   if (!editorIsCreateMode() && editorDraft.id && typeof getDeskExercise === "function") {
     saved = getDeskExercise(editorDraft.id);
   }
@@ -11473,8 +11481,8 @@ function editorShare() {
   } else {
     shareId = newShareId();
   }
-  var shareDefaults = editorPartDefaults();
-  var snap = typeof shareSnapshot === "function"
+  shareDefaults = editorPartDefaults();
+  snap = typeof shareSnapshot === "function"
     ? shareSnapshot({
         id: shareId,
         name: editorNameValue(),
@@ -11486,7 +11494,7 @@ function editorShare() {
         meter: shareDefaults.meter
       })
     : null;
-  var catalogHref = "";
+  catalogHref = "";
   if (
     saved &&
     snap &&
@@ -11499,26 +11507,37 @@ function editorShare() {
   ) {
     catalogHref = shareCatalogHref(saved);
   }
-  var url = catalogHref || (snap ? shareExerciseUrl({ v: 1, id: snap.shareId, name: snap.name, bars: snap.bars, staff: snap.staff, lines: snap.lines }) : "");
+  url = catalogHref || (snap ? shareExerciseUrl({ v: 1, id: snap.shareId, name: snap.name, bars: snap.bars, staff: snap.staff, lines: snap.lines }) : "");
   if (!url) {
     editorNotice(t("edit.shareLong"));
+    return null;
+  }
+  if (!catalogHref && saved && !saved.shareId && typeof updateDeskExercise === "function") {
+    updateDeskExercise(saved.id, { shareId: shareId });
+  }
+  return {
+    url: url,
+    name: (snap && snap.name) || "eization"
+  };
+}
+
+function editorShare() {
+  var ready = editorPracticeUrl();
+  var copyOk = false;
+  var sheet = false;
+  if (!ready) {
     return;
   }
   if (typeof track === "function") {
     track("edit_share");
   }
-  if (!catalogHref && saved && !saved.shareId && typeof updateDeskExercise === "function") {
-    updateDeskExercise(saved.id, { shareId: shareId });
-  }
   clearEditorNotice();
-  var copyOk = false;
-  var sheet = false;
   if (navigator.share) {
     sheet = true;
     navigator.share({
-      title: (snap && snap.name) || "eization",
+      title: ready.name || "eization",
       text: t("share.text"),
-      url: url
+      url: ready.url
     }).catch(function (error) {
       if (error && error.name === "AbortError") {
         return;
@@ -11529,7 +11548,7 @@ function editorShare() {
     });
   }
   if (typeof copySupportText === "function") {
-    copySupportText(url).then(function () {
+    copySupportText(ready.url).then(function () {
       copyOk = true;
       editorStatus(t("share.copied"));
     }, function () {
@@ -11540,6 +11559,28 @@ function editorShare() {
   } else if (!sheet) {
     editorNotice(t("share.fail"));
   }
+}
+
+function editorEmbed() {
+  var ready = editorPracticeUrl();
+  var code;
+  if (!ready) {
+    return;
+  }
+  if (typeof track === "function") {
+    track("edit_embed");
+  }
+  clearEditorNotice();
+  code = typeof practiceEmbedCode === "function" ? practiceEmbedCode(ready.url, ready.name) : "";
+  if (!code || typeof copySupportText !== "function") {
+    editorNotice(t("edit.embedFail"));
+    return;
+  }
+  copySupportText(code).then(function () {
+    editorStatus(t("edit.embedCopied"));
+  }, function () {
+    editorNotice(t("edit.embedFail"));
+  });
 }
 
 function initEditor() {
@@ -11556,6 +11597,7 @@ function initEditor() {
   document.getElementById("editClearList").addEventListener("click", clearEditorList);
   document.getElementById("editSave").addEventListener("click", editorSaveFile);
   document.getElementById("editShare").addEventListener("click", editorShare);
+  document.getElementById("editEmbed").addEventListener("click", editorEmbed);
   var staffHelp = document.getElementById("editStaffHelp");
   if (staffHelp) {
     staffHelp.addEventListener("click", editorToggleStaffHelp);

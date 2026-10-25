@@ -2270,6 +2270,12 @@ function practiceEmbedUrl(href, base) {
   return url.href;
 }
 
+function practiceEmbedCode(href, title) {
+  var name = String(title || "eization").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "").replace(/"/g, "");
+  var url = practiceEmbedUrl(href);
+  return '<iframe title="' + name + '" src="' + url.replace(/"/g, "&quot;") + '" width="100%" height="720" style="max-width:100%;border:0"></iframe>';
+}
+
 function exerciseShareUrl(row) {
   var href;
   var shareId;

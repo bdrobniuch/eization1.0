@@ -18,6 +18,17 @@
     return url.href;
   }
 
+  function embedSnippet(href, title) {
+    var url;
+    var name;
+    if (typeof practiceEmbedCode === "function") {
+      return practiceEmbedCode(href, title);
+    }
+    url = embedUrl(href);
+    name = String(title || "eization").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "").replace(/"/g, "");
+    return '<iframe title="' + name + '" src="' + url.replace(/"/g, "&quot;") + '" width="100%" height="720" style="max-width:100%;border:0"></iframe>';
+  }
+
   function exerciseId(href) {
     try {
       return new URL(href).searchParams.get("exercise") || "";
@@ -144,7 +155,7 @@
       });
       return;
     }
-    snippet = '<iframe title="' + titleFor(button) + '" src="' + embedUrl(url).replace(/"/g, "&quot;") + '" width="100%" height="720" style="max-width:100%;border:0"></iframe>';
+    snippet = embedSnippet(url, titleFor(button));
     copyText(snippet).then(function () {
       flash(button, button.getAttribute("data-code") || "Code copied");
     }, function () {
