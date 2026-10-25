@@ -1015,6 +1015,40 @@ function staffEngraving(w) {
     "a natural after a barline clears the bar",
     !!(natAt && barBefore > -Infinity && natAt.x > barBefore + 2)
   );
+  function staffRhythmClearsBar(source) {
+    var svg = w.renderMusicStaff(source, "current");
+    var heads = svg ? svg.querySelectorAll('[data-glyph="noteheadSlash"]') : [];
+    var bars = svg ? svg.querySelectorAll(".staff-bar") : [];
+    var i;
+    var j;
+    var at;
+    var bx;
+    var nearest;
+    if (!heads.length || !bars.length) {
+      return false;
+    }
+    for (i = 0; i < heads.length; i++) {
+      at = staffGlyphAt(heads[i]);
+      if (!at) {
+        return false;
+      }
+      nearest = -Infinity;
+      for (j = 0; j < bars.length; j++) {
+        bx = parseFloat(bars[j].getAttribute("x1"));
+        if (bx < at.x && bx > nearest) {
+          nearest = bx;
+        }
+      }
+      if (nearest > -Infinity && at.x < nearest + 2) {
+        return false;
+      }
+    }
+    return true;
+  }
+  check(
+    "rhythm eighths and sixteenths clear the bar",
+    staffRhythmClearsBar("| /s /s /s /s | /e /e /e /e")
+  );
   check(
     "a later natural is printed",
     !!(

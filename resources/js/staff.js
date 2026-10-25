@@ -3120,6 +3120,29 @@ function renderMusicStaff(source, role, opts) {
     return Math.max(0, overhang + clear - freeLeft);
   }
 
+  /* How far this column's ink reaches left of its center. */
+  function staffLeftOfCenter(ev) {
+    if (!ev || ev.type === "simile") {
+      return 0;
+    }
+    if (ev.head === "beat") {
+      return staffGlyphAdvance("noteheadSlash", lineGap) / 2;
+    }
+    if (ev.head === "slash") {
+      if (!staffHasStem(ev.duration || "q")) {
+        return staffGlyphAdvance(staffSlashHeadGlyph(ev.duration || "q"), lineGap) / 2;
+      }
+      return staffGlyphAdvance("noteheadSlash", lineGap) / 2;
+    }
+    if (ev.type === "rest") {
+      return staffGlyphAdvance(staffRestGlyph(ev.duration || "q"), lineGap) / 2;
+    }
+    if (staffDurationBase(ev.duration || "q") === "w") {
+      return staffGlyphAdvance("noteheadWhole", lineGap) / 2;
+    }
+    return noteHeadRx;
+  }
+
   function staffTieMeetsAccidental(colIndex) {
     var col = columns[colIndex];
     var t;
@@ -3149,7 +3172,18 @@ function renderMusicStaff(source, role, opts) {
   var accInsetTotal = 0;
   for (e = 0; e < noteEvents.length; e++) {
     var prevCol = noteEventCols[e] > 0 ? columns[noteEventCols[e] - 1] : null;
-    accInsets[e] = staffEventAccInset(noteEvents[e], e === 0, !!(prevCol && prevCol.type === "barline"));
+    var afterBar = !!(prevCol && prevCol.type === "barline");
+    var leftReach;
+    var halfBeforeBar;
+    var barClear;
+    accInsets[e] = staffEventAccInset(noteEvents[e], e === 0, afterBar);
+    /* A rhythm slash stem hangs left of the column and would meet the bar. */
+    if (afterBar) {
+      leftReach = staffLeftOfCenter(noteEvents[e]);
+      halfBeforeBar = ((noteEvents[e].slots || 1) * slot) / 2;
+      barClear = lineGap * 0.35 + 1.2;
+      accInsets[e] = Math.max(accInsets[e], Math.max(0, leftReach + barClear - halfBeforeBar));
+    }
     /* Room for the curve to stop before a sharp, flat, or natural. */
     if (staffTieMeetsAccidental(noteEventCols[e])) {
       accInsets[e] += lineGap * 1.15;
