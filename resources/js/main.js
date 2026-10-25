@@ -747,6 +747,9 @@ function scheduleHello() {
     if (typeof maybeHello === "function") {
       maybeHello();
     }
+    if (typeof offerBackupAsk === "function") {
+      offerBackupAsk();
+    }
   }, 400);
 }
 
@@ -1196,9 +1199,13 @@ function restoreApplyLanguage() {
 
 function offerPassShare() {
   var skip = document.getElementById("helloSkip");
+  var backup = document.getElementById("backupAsk");
   var note;
   var row;
   if (skip && !skip.hidden) {
+    return;
+  }
+  if (backup && !backup.hidden) {
     return;
   }
   if (typeof shareLooking !== "undefined" && shareLooking) {
@@ -1570,6 +1577,12 @@ function init() {
       return;
     }
     if (typeof editorIsOpen === "function" && editorIsOpen()) {
+      return;
+    }
+    var backup = document.getElementById("backupAsk");
+    if (backup && !backup.hidden && typeof dismissBackupAsk === "function") {
+      event.preventDefault();
+      dismissBackupAsk();
       return;
     }
     if (typeof aboutIsOpen === "function" && aboutIsOpen()) {

@@ -13985,6 +13985,8 @@ function editorSaveAsNew() {
   };
   if (fromShare && typeof shareOffer !== "undefined" && shareOffer && shareOffer.shareId) {
     part.shareId = shareOffer.shareId;
+  } else if (editorIsCreateMode()) {
+    part.made = true;
   }
   var created = typeof createDeskExercise === "function"
     ? createDeskExercise(part)
@@ -14016,6 +14018,9 @@ function editorSaveAsNew() {
   }
   if (typeof showDeskNote === "function") {
     showDeskNote(t("edit.added"));
+  }
+  if (created.made && typeof offerBackupAsk === "function") {
+    offerBackupAsk();
   }
   if (typeof rememberSetup === "function") {
     rememberSetup();

@@ -5,6 +5,9 @@ var DESK_KEY = "eization-desk";
    schema 4 (2026-10-23): one launch drops saved exercises again (promo clean slate), re-seeds, clears intro. */
 var DESK_SCHEMA = 4;
 var DESK_EXERCISE_CAP = 40;
+var BACKUP_ASK_KEY = "eization-backup";
+var BACKUP_MADE_COUNT = 3;
+var backupAskTimer = null;
 var deskReady = false;
 var deskTimer = null;
 var deskNoteTimer = null;
@@ -84,6 +87,8 @@ function deskExerciseStamp(data) {
         (row.touched ? "1" : "0") +
         "\n" +
         (row.shareId || "") +
+        "\n" +
+        (row.made ? "1" : "0") +
         "\n" +
         lines
     );
@@ -453,6 +458,9 @@ function normalizeDeskExercise(raw) {
   var shareId = cleanShareId(raw.shareId);
   if (shareId) {
     record.shareId = shareId;
+  }
+  if (raw.made === true && !(typeof raw.seedId === "string" && raw.seedId)) {
+    record.made = true;
   }
   return record;
 }
@@ -1146,6 +1154,9 @@ function updateDeskExercise(id, part) {
     if (shareId) {
       next.shareId = shareId;
     }
+    if (list[i].made === true && !next.seedId) {
+      next.made = true;
+    }
     if (next.seedId) {
       var freshSeed = catalogExerciseRecord(next.seedId);
       if (
@@ -1204,6 +1215,8 @@ function createDeskExercise(part) {
   var shareId = cleanShareId(part.shareId);
   if (shareId) {
     row.shareId = shareId;
+  } else if (part.made === true) {
+    row.made = true;
   }
   list.push(row);
   data.exercises = list;
@@ -1241,6 +1254,9 @@ function packDeskExercises() {
     if (list[i].shareId) {
       row.shareId = list[i].shareId;
     }
+    if (list[i].made === true && !list[i].seedId) {
+      row.made = true;
+    }
     exercises.push(row);
   }
   return {
@@ -1266,8 +1282,174 @@ function downloadAllDeskExercises() {
   setTimeout(function () {
     URL.revokeObjectURL(url);
   }, 1500);
+  rememberBackupFile();
   return true;
 }
+
+function madeExerciseCount() {
+  var list = ensureDeskExercises();
+  var count = 0;
+  var i;
+  for (i = 0; i < list.length; i++) {
+    if (list[i] && list[i].made === true && !list[i].seedId) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function backupAskRead() {
+  try {
+    return localStorage.getItem(BACKUP_ASK_KEY) || "";
+  } catch (err) {
+    return "";
+  }
+}
+
+function backupAskSettled() {
+  var raw = backupAskRead();
+  return raw === "1" || raw === "file";
+}
+
+function backupAskDue() {
+  if (backupAskSettled()) {
+    return false;
+  }
+  return madeExerciseCount() >= BACKUP_MADE_COUNT;
+}
+
+function backupAskQuiet() {
+  var search = String(window.location.search || "");
+  if (/[?&](?:embed|look|smoke)=1(?:&|$)/.test(search)) {
+    return true;
+  }
+  if (document.documentElement.classList.contains("is-look")) {
+    return true;
+  }
+  try {
+    if (window.top !== window.self) {
+      return true;
+    }
+  } catch (err) {
+    return true;
+  }
+  return false;
+}
+
+function backupAskOpen() {
+  var bar = document.getElementById("backupAsk");
+  return !!(bar && !bar.hidden);
+}
+
+function backupAskBlocked() {
+  var note = document.getElementById("deskNote");
+  var share = document.getElementById("shareAsk");
+  var install = document.getElementById("installAsk");
+  var groove = document.getElementById("groovePanel");
+  var exercise = document.getElementById("exercisePanel");
+  if (document.body.classList.contains("is-hello")) {
+    return true;
+  }
+  if (document.body.classList.contains("is-editing")) {
+    return true;
+  }
+  if (document.body.classList.contains("is-about") || (typeof aboutIsOpen === "function" && aboutIsOpen())) {
+    return true;
+  }
+  if (document.body.classList.contains("is-picking") || (exercise && !exercise.hidden)) {
+    return true;
+  }
+  if (document.body.classList.contains("is-setup") || (groove && !groove.hidden)) {
+    return true;
+  }
+  if (note && !note.hidden) {
+    return true;
+  }
+  if (share && !share.hidden) {
+    return true;
+  }
+  if (install && !install.hidden) {
+    return true;
+  }
+  return false;
+}
+
+function hideBackupAsk() {
+  var bar = document.getElementById("backupAsk");
+  var wasOpen = backupAskOpen();
+  if (backupAskTimer) {
+    clearTimeout(backupAskTimer);
+    backupAskTimer = null;
+  }
+  if (bar) {
+    bar.hidden = true;
+  }
+  if (wasOpen && typeof installSchedule === "function") {
+    installSchedule();
+  }
+}
+
+function showBackupAsk() {
+  var bar = document.getElementById("backupAsk");
+  if (!bar || backupAskQuiet() || !backupAskDue() || backupAskBlocked()) {
+    return;
+  }
+  try {
+    localStorage.setItem(BACKUP_ASK_KEY, "1");
+  } catch (err) {}
+  bar.hidden = false;
+  if (typeof installSchedule === "function") {
+    installSchedule();
+  }
+}
+
+function offerBackupAsk() {
+  if (backupAskTimer) {
+    clearTimeout(backupAskTimer);
+    backupAskTimer = null;
+  }
+  if (backupAskQuiet() || !backupAskDue()) {
+    return;
+  }
+  if (backupAskBlocked()) {
+    backupAskTimer = setTimeout(offerBackupAsk, 500);
+    return;
+  }
+  showBackupAsk();
+}
+
+function dismissBackupAsk() {
+  if (!backupAskSettled()) {
+    try {
+      localStorage.setItem(BACKUP_ASK_KEY, "1");
+    } catch (err) {}
+  }
+  hideBackupAsk();
+}
+
+function rememberBackupFile() {
+  try {
+    localStorage.setItem(BACKUP_ASK_KEY, "file");
+  } catch (err) {}
+  hideBackupAsk();
+}
+
+function bindBackupAsk() {
+  var download = document.getElementById("backupDownload");
+  var notNow = document.getElementById("backupNotNow");
+  if (download && !download._backupBound) {
+    download._backupBound = true;
+    download.addEventListener("click", function () {
+      downloadAllDeskExercises();
+    });
+  }
+  if (notNow && !notNow._backupBound) {
+    notNow._backupBound = true;
+    notNow.addEventListener("click", dismissBackupAsk);
+  }
+}
+
+bindBackupAsk();
 
 function parseDeskExercisesBackup(text) {
   var data;
@@ -1323,6 +1505,9 @@ function parseDeskExercisesBackup(text) {
     var shareId = cleanShareId(raw.shareId);
     if (shareId) {
       row.shareId = shareId;
+    }
+    if (raw.made === true && !row.seedId) {
+      row.made = true;
     }
     list.push(row);
   }

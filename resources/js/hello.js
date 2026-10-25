@@ -378,6 +378,9 @@ function endHello(reason) {
   helloStepIndex = 0;
   markHello();
   window.removeEventListener("resize", onHelloResize);
+  if (typeof offerBackupAsk === "function") {
+    offerBackupAsk();
+  }
   if (!launched || typeof track !== "function") {
     return;
   }

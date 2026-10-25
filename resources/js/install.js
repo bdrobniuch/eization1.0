@@ -315,7 +315,8 @@ function installHello() {
 
 function installShareOpen() {
   var share = document.getElementById("shareAsk");
-  return !!(share && !share.hidden);
+  var backup = document.getElementById("backupAsk");
+  return !!((share && !share.hidden) || (backup && !backup.hidden));
 }
 
 function installNoteShow() {

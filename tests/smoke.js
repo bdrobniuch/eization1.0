@@ -24,6 +24,11 @@ function finish() {
     } else {
       localStorage.setItem("eization-install", savedInstall);
     }
+    if (savedBackup === null) {
+      localStorage.removeItem("eization-backup");
+    } else {
+      localStorage.setItem("eization-backup", savedBackup);
+    }
   } catch (err) {}
   lines.push(failed ? failed + " failed" : "all passed");
   document.getElementById("out").textContent = lines.join("\n");
@@ -32,9 +37,11 @@ function finish() {
 
 var savedDesk = null;
 var savedInstall = null;
+var savedBackup = null;
 try {
   savedDesk = localStorage.getItem("eization-desk");
   savedInstall = localStorage.getItem("eization-install");
+  savedBackup = localStorage.getItem("eization-backup");
   localStorage.removeItem("eization-desk");
   localStorage.setItem("eization-hello", "1");
 } catch (err) {}
@@ -107,6 +114,7 @@ function run() {
     chatCase(w);
     foreignDesk(w);
     storageMigration(w);
+    backupAskCase(w);
     check("practice screen can stay awake", typeof w.keepPracticeAwake === "function" && typeof w.practiceScreenAwake === "function");
     w.keepPracticeAwake();
     check("staying awake leaves play stopped", w.paused === true);
@@ -5446,5 +5454,133 @@ function storageMigration(w) {
       restored.exercises.length === w.menuOrder.length &&
       !w.getDeskExercise("ex:keepme")
   );
+  localStorage.setItem("eization-hello", "1");
+}
+
+function backupAskCase(w) {
+  var bar = w.document.getElementById("backupAsk");
+  var made = [];
+  var fork;
+  var linked;
+  var third;
+  var stored;
+  var packed;
+  var flagged;
+  var round;
+  var blank;
+  var copy;
+  var i;
+  function named(name) {
+    var list = w.listDeskExercises();
+    var n;
+    for (n = 0; n < list.length; n++) {
+      if (list[n].name === name) {
+        return list[n];
+      }
+    }
+    return null;
+  }
+  function writeLine(line) {
+    var area = w.document.getElementById("allEdit");
+    var focus = w.document.getElementById("editFocusLine");
+    if (area) {
+      area.value = line;
+    }
+    if (focus) {
+      focus.value = line;
+    }
+  }
+  check("backup reminder is in the page", !!bar && !!w.document.getElementById("backupDownload") && !!w.document.getElementById("backupNotNow"));
+  check(
+    "backup reminder copy",
+    w.I18N.en["backup.lead"].indexOf("only on this device") > 0 &&
+      w.I18N.es["backup.lead"].indexOf("solo en este dispositivo") > 0 &&
+      w.document.getElementById("backupAskLead").textContent === w.t("backup.lead")
+  );
+  w.restoreDefaults();
+  localStorage.removeItem("eization-backup");
+  localStorage.setItem("eization-hello", "1");
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+  for (i = 0; i < 2; i++) {
+    made.push(w.createDeskExercise({ name: "Written " + i, bars: 1, lines: ["C4"], made: true }));
+  }
+  check("two written exercises wait", !!(made[0] && made[0].made === true && made[1] && made[1].made === true && w.madeExerciseCount() === 2 && w.backupAskDue() === false));
+  fork = w.createDeskExercise({ name: "Copy", bars: 1, lines: ["D4"] });
+  linked = w.createDeskExercise({ name: "From link", bars: 1, lines: ["E4"], made: true, shareId: "link0001" });
+  check("a copy and a link stay out of the count", !!(fork && !fork.made && linked && !linked.made && linked.shareId === "link0001" && w.madeExerciseCount() === 2));
+  third = w.createDeskExercise({ name: "Written 2", bars: 1, lines: ["F4"], made: true });
+  check("three written exercises are due", !!(third && third.made === true && w.madeExerciseCount() === 3 && w.backupAskDue() === true && bar.hidden));
+  w.offerBackupAsk();
+  w.showBackupAsk();
+  check("smoke keeps the reminder hidden", bar.hidden === true && localStorage.getItem("eization-backup") == null);
+  third = w.updateDeskExercise(third.id, { shareId: "wrote001", lines: ["F4 G4"] });
+  check("sharing a written exercise keeps it written", !!(third && third.made === true && third.shareId === "wrote001" && w.madeExerciseCount() === 3));
+  stored = JSON.parse(localStorage.getItem("eization-desk"));
+  flagged = 0;
+  for (i = 0; i < stored.exercises.length; i++) {
+    if (stored.exercises[i].made === true) {
+      flagged++;
+    }
+  }
+  check("the written flag is stored", flagged === 3);
+  w.ensureDeskExercises();
+  check("the written flag reloads", w.madeExerciseCount() === 3 && w.getDeskExercise(third.id).made === true);
+  packed = w.packDeskExercises();
+  flagged = 0;
+  for (i = 0; i < packed.exercises.length; i++) {
+    if (packed.exercises[i].made === true) {
+      flagged++;
+    }
+  }
+  check("a backup file keeps written exercises", flagged === 3);
+  round = w.parseDeskExercisesBackup(JSON.stringify({
+    eization: 1,
+    exercises: [
+      { name: "Wrote", bars: 1, lines: ["C4"], made: true },
+      { name: "Seed", bars: 1, lines: ["D4"], seedId: "scales", made: true, touched: false },
+      { name: "Shared", bars: 1, lines: ["E4"], shareId: "wrote001", made: true }
+    ]
+  }));
+  check(
+    "a backup restores a written exercise",
+    !!(round && round.exercises && round.exercises[0].made === true && !round.exercises[1].made && round.exercises[2].made === true && round.exercises[2].shareId === "wrote001")
+  );
+  w.rememberBackupFile();
+  check("a downloaded backup ends the reminder", localStorage.getItem("eization-backup") === "file" && w.backupAskDue() === false && bar.hidden);
+  localStorage.setItem("eization-backup", "1");
+  w.restoreDefaults();
+  check("restore leaves the reminder finished", localStorage.getItem("eization-backup") === "1");
+  localStorage.removeItem("eization-backup");
+  localStorage.setItem("eization-hello", "1");
+  made = [];
+  for (i = 0; i < 2; i++) {
+    made.push(w.createDeskExercise({ name: "Again " + i, bars: 1, lines: ["C4"], made: true }));
+  }
+  check("two written exercises are not due", w.madeExerciseCount() === 2 && w.backupAskDue() === false);
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+  w.editorOpenNew();
+  writeLine("C4");
+  w.document.getElementById("editName").value = "Blank sheet";
+  w.editorSaveAsNew();
+  blank = named("Blank sheet");
+  check("a blank sheet counts as written", !!(blank && blank.made === true && !w.editorIsOpen() && w.madeExerciseCount() === 3 && w.currentExerciseId === blank.id));
+  w.editorOpen();
+  writeLine("D4");
+  w.document.getElementById("editName").value = "Blank sheet copy";
+  w.editorSaveAsNew();
+  copy = named("Blank sheet copy");
+  check("save as new stays out of the count", !!(copy && !copy.made && blank.made === true && w.madeExerciseCount() === 3 && w.currentExerciseId === copy.id));
+  w.dismissBackupAsk();
+  check("not now ends the reminder", localStorage.getItem("eization-backup") === "1" && w.backupAskDue() === false && bar.hidden);
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+  w.document.getElementById("deskNote").hidden = true;
+  w.restoreDefaults();
+  localStorage.removeItem("eization-backup");
   localStorage.setItem("eization-hello", "1");
 }
