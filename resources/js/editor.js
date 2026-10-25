@@ -4312,7 +4312,12 @@ function editorLineMusicTokenCount(line) {
   return n;
 }
 
-/* After a peel, park the caret just before } ] ) so the next write stays inside. */
+/*
+ * After Erase, park before } ] ) only when the next peel should be from the
+ * closer: nothing left of the caret inside the group, or nothing to the right.
+ * Mid-group leftward erase (music both sides) keeps the caret where the note
+ * was so the next Backspace stays leftward.
+ */
 function editorSnapCaretBeforeGroupCloser(field, lineStart, preferred) {
   var value;
   var lineEnd;
@@ -4321,6 +4326,9 @@ function editorSnapCaretBeforeGroupCloser(field, lineStart, preferred) {
   var groups;
   var g;
   var i;
+  var music;
+  var musicLeft;
+  var musicRight;
   var caret;
   var silent;
   if (!field) {
@@ -4346,10 +4354,25 @@ function editorSnapCaretBeforeGroupCloser(field, lineStart, preferred) {
       g = groups[i];
     }
   }
-  caret = preferred;
-  if (g && rel <= g.closeStart) {
-    caret = lineStart + g.closeStart;
+  if (!g || rel > g.closeStart) {
+    return;
   }
+  music = editorInnerMusicSpans(line, g);
+  musicLeft = false;
+  musicRight = false;
+  for (i = 0; i < music.length; i++) {
+    if (music[i].end <= rel) {
+      musicLeft = true;
+    }
+    if (music[i].start >= rel) {
+      musicRight = true;
+    }
+  }
+  /* Notes on both sides: stay put for leftward erase. */
+  if (musicLeft && musicRight) {
+    return;
+  }
+  caret = lineStart + g.closeStart;
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
   editorPlaceCaret(field, caret, caret, silent);
 }

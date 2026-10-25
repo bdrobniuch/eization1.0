@@ -2864,6 +2864,24 @@ function chatCase(w) {
     check("erase peels a two-note tuplet to one", focusLine.value === "(3 C4e)");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase removes the last tuplet note with its shell", focusLine.value === "");
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(10, 10);
+    w.editorPadCaret = { start: 10, end: 10 };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "mid-group erase deletes leftward and stays put",
+      focusLine.value === "(3 C4e E4e)" && insertCaret() === 6
+    );
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "mid-group erase snaps to the closer when nothing remains left",
+      focusLine.value === "(3 E4e)" && insertCaret() === focusLine.value.length - 1
+    );
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase after that snap clears the last tuplet note with its shell",
+      focusLine.value === ""
+    );
     placeCaret("(3 {F#4s E4s})");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase peels the last note from a beamed tuplet", focusLine.value === "(3 {F#4s})");
