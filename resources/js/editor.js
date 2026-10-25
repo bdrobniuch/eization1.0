@@ -61,6 +61,9 @@ var editorIconCache = {};
 var editorSymbolUndo = [];
 var editorSymbolRedo = [];
 var EDITOR_SYMBOL_HISTORY = 50;
+/* Snapshot armed before a settings control changes (select/name); committed on first change. */
+var editorControlUndoSnap = null;
+var editorNameUndoArmed = false;
 /* Last keyboard/pad state that drew a valid staff; used for typing undo. */
 var editorLastValidSnap = null;
 /* Preview HTML of that valid draw — undo steps only when this changes, not for spaces-only edits. */
@@ -298,7 +301,13 @@ function editorWriteBars(value) {
 }
 
 function editorNudgeBars(delta) {
-  editorWriteBars(editorReadBars() + (delta || 0));
+  var before = editorReadBars();
+  var next = clampEditorBars(before + (delta || 0));
+  if (next === before) {
+    return;
+  }
+  editorPushSymbolUndo();
+  editorWriteBars(next);
   disarmEditorDelete();
   clearEditorNotice();
   refreshEditorHint();
@@ -2877,6 +2886,7 @@ function editorToggleDefaultClef(next) {
   if ((cur.clef || "") === clef) {
     return;
   }
+  editorPushSymbolUndo();
   editorApplyDefaultsUi({
     clef: clef,
     key: cur.key,
@@ -5621,15 +5631,58 @@ function editorClearSymbolHistory() {
   editorLastValidSnap = null;
   editorLastValidRenderKey = null;
   editorStaffTypingDirty = false;
+  editorControlUndoSnap = null;
+  editorNameUndoArmed = false;
   editorPaintUndoRedo();
+}
+
+function editorArmControlUndo() {
+  editorControlUndoSnap = editorCloneSymbolSnap(editorSymbolSnapshot());
+}
+
+function editorCommitControlUndo() {
+  var now;
+  if (!editorControlUndoSnap) {
+    return;
+  }
+  now = editorSymbolSnapshot();
+  if (editorDraftFieldsEqual(editorControlUndoSnap, now)) {
+    editorControlUndoSnap = null;
+    return;
+  }
+  editorSymbolUndo.push(editorControlUndoSnap);
+  if (editorSymbolUndo.length > EDITOR_SYMBOL_HISTORY) {
+    editorSymbolUndo.shift();
+  }
+  editorSymbolRedo = [];
+  editorControlUndoSnap = null;
+  editorPaintUndoRedo();
+}
+
+function editorDraftFieldsEqual(a, b) {
+  if (!a || !b) {
+    return !a && !b;
+  }
+  return (
+    String(a.name || "") === String(b.name || "") &&
+    (a.bars || 1) === (b.bars || 1) &&
+    !!a.staff === !!b.staff &&
+    String(a.clef || "") === String(b.clef || "") &&
+    String(a.key || "") === String(b.key || "") &&
+    editorMeterEqual(a.meter || null, b.meter || null) &&
+    String(a.doc || "") === String(b.doc || "")
+  );
 }
 
 function editorSymbolSnapshot() {
   var field = editorActiveField();
   var area = document.getElementById("allEdit");
+  var nameField = document.getElementById("editName");
+  var defaults;
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
   }
+  defaults = editorReadDefaults();
   return {
     doc: area ? String(area.value || "") : "",
     value: field ? String(field.value || "") : "",
@@ -5640,7 +5693,15 @@ function editorSymbolSnapshot() {
       dur: editorNote.dur || "",
       dot: !!editorNote.dot,
       oct: editorNote.oct === null || editorNote.oct === undefined ? null : editorNote.oct
-    }
+    },
+    name: nameField ? String(nameField.value || "") : "",
+    bars: editorReadBars(),
+    staff: editorStaffOn(),
+    clef: defaults.clef || "",
+    key: defaults.key || "",
+    meter: defaults.meter
+      ? { beats: defaults.meter.beats, unit: defaults.meter.unit }
+      : null
   };
 }
 
@@ -5658,7 +5719,13 @@ function editorCloneSymbolSnap(snap) {
       dur: snap.note && snap.note.dur ? snap.note.dur : "",
       dot: !!(snap.note && snap.note.dot),
       oct: snap.note && (snap.note.oct === 0 || snap.note.oct) ? snap.note.oct : null
-    }
+    },
+    name: typeof snap.name === "string" ? snap.name : "",
+    bars: typeof snap.bars === "number" ? snap.bars : 1,
+    staff: !!snap.staff,
+    clef: snap.clef || "",
+    key: snap.key || "",
+    meter: snap.meter ? { beats: snap.meter.beats, unit: snap.meter.unit } : null
   };
 }
 
@@ -5741,6 +5808,7 @@ function editorApplySymbolSnapshot(snap) {
   var area;
   var lines;
   var doc;
+  var nameField;
   if (!snap) {
     return;
   }
@@ -5772,6 +5840,26 @@ function editorApplySymbolSnapshot(snap) {
   editorNote.dur = snap.note && snap.note.dur ? snap.note.dur : "";
   editorNote.dot = !!(snap.note && snap.note.dot);
   editorNote.oct = snap.note && (snap.note.oct === 0 || snap.note.oct) ? snap.note.oct : null;
+  if (typeof snap.name === "string") {
+    nameField = document.getElementById("editName");
+    if (nameField) {
+      nameField.value = snap.name;
+    }
+    syncEditorFaceName();
+  }
+  if (typeof snap.bars === "number") {
+    editorWriteBars(snap.bars);
+  }
+  if (typeof snap.staff === "boolean" && snap.staff !== editorStaffOn()) {
+    setEditorStaff(snap.staff);
+  }
+  editorApplyDefaultsUi({
+    clef: snap.clef || "",
+    key: snap.key || "",
+    meter: snap.meter || null
+  });
+  editorSyncStaffDefaults();
+  editorNotePadStamp = "";
   lines = editorRawLines();
   editorClampFocusIndex(lines.length);
   clearEditorNotice();
@@ -8354,11 +8442,23 @@ function initEditor() {
   });
   var nameField = document.getElementById("editName");
   if (nameField) {
+    nameField.addEventListener("focus", function () {
+      editorArmControlUndo();
+      editorNameUndoArmed = true;
+    });
     nameField.addEventListener("input", function () {
+      if (editorNameUndoArmed) {
+        editorCommitControlUndo();
+        editorNameUndoArmed = false;
+      }
       disarmEditorDelete();
       clearEditorNotice();
       syncEditorFaceName();
       refreshEditorHint();
+    });
+    nameField.addEventListener("blur", function () {
+      editorControlUndoSnap = null;
+      editorNameUndoArmed = false;
     });
   }
   function editorPadButtonRepeatable(button) {
@@ -8743,6 +8843,7 @@ function initEditor() {
       if (wantStaff === wasStaff) {
         return;
       }
+      editorPushSymbolUndo();
       setEditorStaff(wantStaff);
       if (typeof track === "function") {
         track("edit_kind", {
@@ -8757,7 +8858,9 @@ function initEditor() {
   });
   var editMeter = document.getElementById("editMeter");
   if (editMeter) {
+    editMeter.addEventListener("focus", editorArmControlUndo);
     editMeter.addEventListener("change", function () {
+      editorCommitControlUndo();
       editorMarkDefaultsUsed();
       disarmEditorDelete();
       clearEditorNotice();
@@ -8766,7 +8869,9 @@ function initEditor() {
   }
   var editKey = document.getElementById("editKey");
   if (editKey) {
+    editKey.addEventListener("focus", editorArmControlUndo);
     editKey.addEventListener("change", function () {
+      editorCommitControlUndo();
       editorMarkDefaultsUsed();
       editorSyncStaffDefaults();
       disarmEditorDelete();

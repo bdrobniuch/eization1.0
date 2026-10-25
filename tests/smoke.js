@@ -2618,9 +2618,37 @@ function chatCase(w) {
         !!symbolsPanel.querySelector("[data-default-clef='bass']")
     );
     poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    check(
+      "undo restores the bass default clef",
+      focusLine.value === "C3" &&
+        !!symbolsPanel.querySelector("[data-default-clef='treble']")
+    );
+    poke(w.document.querySelector("#editNoteHistory [data-undo]"));
     check("undo restores the bass letter", focusLine.value === "");
     poke(w.document.querySelector("#editNoteHistory [data-redo]"));
     check("redo writes the bass letter again", focusLine.value === "C3");
+    (function () {
+      var beforeBars = w.editorReadBars();
+      w.editorNudgeBars(1);
+      check("bars nudge increases the count", w.editorReadBars() === beforeBars + 1);
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+      check("undo restores the bars count", w.editorReadBars() === beforeBars);
+    })();
+    (function () {
+      var meter = w.document.getElementById("editMeter");
+      var before;
+      if (!meter) {
+        return;
+      }
+      before = meter.value;
+      meter.focus();
+      w.editorArmControlUndo();
+      meter.value = before === "3/4" ? "6/8" : "3/4";
+      meter.dispatchEvent(new w.Event("change", { bubbles: true }));
+      check("meter change is recorded", meter.value !== before);
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+      check("undo restores the recommended meter", meter.value === before);
+    })();
     placeCaret("C4 D4");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase removes the token before the caret", focusLine.value === "C4");
