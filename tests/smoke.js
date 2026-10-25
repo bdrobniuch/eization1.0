@@ -3018,9 +3018,8 @@ function chatCase(w) {
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
-      "beam refuses a long-note selection",
-      focusLine.value === "C4q D4q" &&
-        w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
+      "beam shortens a long-note selection",
+      focusLine.value === "{C4e D4e}" && !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("C4 rq");
     focusLine.setSelectionRange(0, focusLine.value.length);
@@ -3036,9 +3035,8 @@ function chatCase(w) {
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
-      "tuplet refuses a bar in the selection",
-      focusLine.value === "C4 | D4" &&
-        w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
+      "tuplet leaves a bar and groups each side",
+      focusLine.value === "(3 C4) | (3 D4)" && !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(3, 3);
@@ -3144,6 +3142,80 @@ function chatCase(w) {
     check(
       "beam wraps a whole stack",
       focusLine.value === "{[C4e E4e G4e]}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("C4e re D4e");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam splits around a rest",
+      focusLine.value === "{C4e} re {D4e}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 C4e re D4e)");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam splits around a rest inside a triplet",
+      focusLine.value === "(3 {C4e} re {D4e})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("{C4e D4e E4e} F4e");
+    focusLine.setSelectionRange(focusLine.value.indexOf("E4e"), focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.indexOf("E4e"), end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam joins the last beamed note with the next",
+      focusLine.value === "{C4e D4e} {E4e F4e}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("{A4e B4e C4e} {D4e E4e F4e}");
+    focusLine.setSelectionRange(focusLine.value.indexOf("C4e"), focusLine.value.indexOf("E4e"));
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("C4e"),
+      end: focusLine.value.indexOf("E4e")
+    };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet splits the beams it crosses",
+      focusLine.value === "{A4e B4e} (3 {C4e D4e}) {E4e F4e}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("{[C4e E4e G4e]}");
+    focusLine.setSelectionRange(focusLine.value.indexOf("C4e"), focusLine.value.indexOf("G4e"));
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("C4e"),
+      end: focusLine.value.indexOf("G4e")
+    };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet wraps the chord that fills a beam",
+      focusLine.value === "(3 {[C4e E4e G4e]})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[C4 E4]");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam shortens a chord",
+      focusLine.value === "{[C4e E4e]}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 C4e D4e E4e) F4e");
+    focusLine.setSelectionRange(focusLine.value.indexOf("E4e"), focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.indexOf("E4e"), end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam does not cross a triplet",
+      focusLine.value === "(3 C4e D4e E4e) F4e" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseNest")
+    );
+    placeCaret("(3 C4e^C7(b9) D4e E4e)");
+    focusLine.setSelectionRange(focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e") + 3);
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("D4e"),
+      end: focusLine.value.indexOf("D4e") + 3
+    };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase keeps a chord suffix inside a triplet",
+      focusLine.value === "(3 C4e^C7(b9) E4e)" && !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("{C4e D4e E4e}");
     focusLine.setSelectionRange(3, 3);
@@ -4790,7 +4862,11 @@ function chatCase(w) {
       w.editorTupletN = 3;
       w.editorPaintNotePad();
       poke(symbolsPanel.querySelector("[data-event='tuplet']"));
-      check("a partial tuplet ignores the tap", focusLine.value === "(5 C4e D4e E4e F4e G4e)");
+      check(
+      "a partial tuplet stays open",
+      focusLine.value === "(5 C4e D4e E4e F4e G4e)" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseNest")
+    );
       selectSpan("(3 {C4e D4e E4e})", "C4e D4e E4e");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(

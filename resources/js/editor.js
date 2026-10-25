@@ -5115,6 +5115,47 @@ function editorStackAffixEnd(line, afterBracket) {
   return best;
 }
 
+function editorTokenAt(line, index) {
+  var a = index;
+  var b = index + 1;
+  line = String(line || "");
+  if (index < 0 || index >= line.length) {
+    return null;
+  }
+  while (a > 0 && !/\s/.test(line.charAt(a - 1))) {
+    a -= 1;
+  }
+  while (b < line.length && !/\s/.test(line.charAt(b))) {
+    b += 1;
+  }
+  return { start: a, end: b, tok: line.slice(a, b) };
+}
+
+/* Index of the ")" that ends a tuplet. A ")" inside ^C7(b9) does not. */
+function editorTupletCloserIndex(line, openEnd) {
+  var i = openEnd;
+  var start;
+  var tok;
+  line = String(line || "");
+  while (i < line.length) {
+    while (i < line.length && /\s/.test(line.charAt(i))) {
+      i += 1;
+    }
+    if (i >= line.length) {
+      return -1;
+    }
+    start = i;
+    while (i < line.length && !/\s/.test(line.charAt(i))) {
+      i += 1;
+    }
+    tok = line.slice(start, i);
+    if (typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(tok)) {
+      return i - 1;
+    }
+  }
+  return -1;
+}
+
 function editorMatchGroupClose(line, openAt, openCh, closeCh) {
   var depth = 1;
   var j;
@@ -5178,7 +5219,7 @@ function editorFindBalancedGroups(line) {
         continue;
       }
       openEnd = i + tuplet[0].length;
-      close = line.indexOf(")", openEnd);
+      close = editorTupletCloserIndex(line, openEnd);
       if (close < 0) {
         continue;
       }
@@ -5506,6 +5547,7 @@ function editorRemoveUnbalancedGroupMarks(line) {
   var g;
   var ch;
   var tuplet;
+  var tokAt;
   var out = [];
   line = String(line || "");
   groups = editorFindBalancedGroups(line);
@@ -5533,7 +5575,16 @@ function editorRemoveUnbalancedGroupMarks(line) {
       }
     }
     if (ch === ")" && !keep[i]) {
-      continue;
+      /* Drop an unmatched tuplet closer. Keep a ")" that belongs to ^C7(b9). */
+      tokAt = editorTokenAt(line, i);
+      if (
+        tokAt &&
+        tokAt.end === i + 1 &&
+        typeof staffTokenClosesTuplet === "function" &&
+        staffTokenClosesTuplet(tokAt.tok)
+      ) {
+        continue;
+      }
     }
     out.push(ch);
   }
@@ -8745,6 +8796,371 @@ function editorStructureWrapStackSelection(kind, line, start, end) {
   return editorWrapExistingGroup(stack, pair.open, pair.close);
 }
 
+function editorShellAround(kind, children) {
+  if (kind === "beam") {
+    return { type: "beam", children: children, selected: false, pasted: false };
+  }
+  return {
+    type: "tuplet",
+    n: editorClampTupletN(editorTupletN),
+    ratio: "",
+    children: children,
+    selected: false,
+    pasted: false
+  };
+}
+
+/* Two or more short notes beam inside a new triplet. A beam wraps even one note. */
+function editorShellForRun(kind, nodes) {
+  var i;
+  var events = 0;
+  var beamed = true;
+  if (!editorListHasEvent(nodes)) {
+    return null;
+  }
+  if (kind === "tuplet") {
+    for (i = 0; i < nodes.length; i++) {
+      if (!editorIsEventPiece(nodes[i])) {
+        continue;
+      }
+      events += 1;
+      if (!editorNodeStaysInBeam(nodes[i])) {
+        beamed = false;
+      }
+    }
+    if (beamed && events >= 2) {
+      return editorShellAround("tuplet", [editorShellAround("beam", nodes)]);
+    }
+    return editorShellAround("tuplet", nodes);
+  }
+  return editorShellAround("beam", nodes);
+}
+
+/* A rest splits a beam. A bar splits a beam or a triplet. */
+function editorRunsOf(kind, nodes) {
+  var runs = [];
+  var cur = [];
+  var i;
+  var node;
+  function flush() {
+    var shell;
+    if (!cur.length) {
+      return;
+    }
+    shell = editorShellForRun(kind, cur);
+    if (shell) {
+      runs.push(shell);
+    }
+    cur = [];
+  }
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (node.kind === "bar" || (kind === "beam" && node.kind === "rest")) {
+      flush();
+      runs.push(node);
+      continue;
+    }
+    cur.push(node);
+  }
+  flush();
+  return runs;
+}
+
+function editorRegroupFlush(kind, buf, out) {
+  var runs;
+  var i;
+  if (!buf.length) {
+    return;
+  }
+  runs = editorRunsOf(kind, buf.splice(0, buf.length));
+  for (i = 0; i < runs.length; i++) {
+    out.push(runs[i]);
+  }
+}
+
+/* One leftover eighth drops its braces. Two or more stay beamed. */
+function editorBeamOrBare(nodes) {
+  var n = 0;
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (editorIsEventPiece(nodes[i])) {
+      n += 1;
+    }
+  }
+  if (n >= 2) {
+    return [editorShellAround("beam", nodes)];
+  }
+  return nodes;
+}
+
+function editorSelectedShareOneBeam(events) {
+  var id;
+  var i;
+  if (!events.length || !events[0].beamId) {
+    return false;
+  }
+  id = events[0].beamId;
+  for (i = 0; i < events.length; i++) {
+    if (events[i].beamId !== id) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/* A selection that touches a chord takes the whole chord. */
+function editorMarkTouchedStacks(nodes, start, end) {
+  var pieces = editorCollectPieces(nodes);
+  var i;
+  var piece;
+  for (i = 0; i < pieces.length; i++) {
+    piece = pieces[i];
+    if (piece.kind !== "stack") {
+      continue;
+    }
+    if (start < piece.end && end > piece.start) {
+      piece.selected = true;
+    }
+  }
+}
+
+function editorShortenSelectedPieces(nodes) {
+  var pieces = editorCollectPieces(nodes);
+  var short;
+  var i;
+  var p;
+  editorForceShortDuration();
+  short = editorDurCode(editorNote.dur) || "e";
+  for (i = 0; i < pieces.length; i++) {
+    if (!pieces[i].selected) {
+      continue;
+    }
+    if (pieces[i].kind === "pitch") {
+      if (editorDurationIsShort(pieces[i].dur)) {
+        continue;
+      }
+      pieces[i].text = editorPitchText(
+        pieces[i].letter,
+        pieces[i].acc,
+        pieces[i].oct,
+        short,
+        pieces[i].dot,
+        pieces[i].affix
+      );
+      pieces[i].dur = short;
+    } else if (pieces[i].kind === "slash") {
+      if (editorDurationIsShort(pieces[i].dur)) {
+        continue;
+      }
+      pieces[i].text = editorSlashText(short, pieces[i].dot) + (pieces[i].affix || "");
+      pieces[i].dur = short;
+    } else if (pieces[i].kind === "stack") {
+      pieces[i].text = editorMapStackText(pieces[i], function (pitch) {
+        var use = editorDurationIsShort(pitch.dur) ? pitch.dur : short;
+        return editorPitchText(pitch.letter, pitch.acc, pitch.oct, use, pitch.dot, pitch.affix);
+      });
+      if (pieces[i].pitches) {
+        for (p = 0; p < pieces[i].pitches.length; p++) {
+          if (!editorDurationIsShort(pieces[i].pitches[p].dur)) {
+            pieces[i].pitches[p].dur = short;
+          }
+        }
+      }
+      pieces[i].dur = short;
+    }
+  }
+}
+
+function editorRegroupBeamSome(beam, kind, buf, out) {
+  var kids = beam.children || [];
+  var remnant = [];
+  var i;
+  var kid;
+  var role;
+  var bare;
+  var j;
+  function flushRemnant() {
+    if (!remnant.length) {
+      return;
+    }
+    bare = editorBeamOrBare(remnant);
+    for (j = 0; j < bare.length; j++) {
+      out.push(bare[j]);
+    }
+    remnant = [];
+  }
+  for (i = 0; i < kids.length; i++) {
+    kid = kids[i];
+    role = editorNodeRole(kid);
+    if (role === "none") {
+      editorRegroupFlush(kind, buf, out);
+      remnant.push(kid);
+      continue;
+    }
+    flushRemnant();
+    if (kid.kind === "tie") {
+      if (buf.length) {
+        buf.push(kid);
+      } else {
+        remnant.push(kid);
+      }
+      continue;
+    }
+    if (kid.type === "piece" && kid.selected && editorIsEventPiece(kid)) {
+      buf.push(kid);
+      continue;
+    }
+    editorRegroupInto([kid], kind, buf, out);
+  }
+  flushRemnant();
+}
+
+function editorRegroupInto(nodes, kind, buf, out) {
+  var i;
+  var node;
+  var role;
+  var childOut;
+  var childBuf;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (node.type === "tuplet") {
+      editorRegroupFlush(kind, buf, out);
+      childOut = [];
+      childBuf = [];
+      editorRegroupInto(node.children || [], kind, childBuf, childOut);
+      editorRegroupFlush(kind, childBuf, childOut);
+      out.push({
+        type: "tuplet",
+        n: node.n,
+        ratio: node.ratio || "",
+        children: childOut,
+        selected: false,
+        pasted: false
+      });
+      continue;
+    }
+    if (node.type === "beam") {
+      role = editorNodeRole(node);
+      if (role === "none") {
+        editorRegroupFlush(kind, buf, out);
+        out.push(node);
+        continue;
+      }
+      if (role === "all") {
+        editorRegroupFlush(kind, buf, out);
+        if (kind === "tuplet") {
+          out.push(editorShellAround("tuplet", [node]));
+        } else {
+          out.push(node);
+        }
+        continue;
+      }
+      editorRegroupBeamSome(node, kind, buf, out);
+      continue;
+    }
+    if (node.kind === "bar" || (kind === "beam" && node.kind === "rest")) {
+      editorRegroupFlush(kind, buf, out);
+      out.push(node);
+      continue;
+    }
+    if (node.kind === "tie") {
+      if (buf.length) {
+        buf.push(node);
+      } else {
+        out.push(node);
+      }
+      continue;
+    }
+    if (node.selected && editorIsEventPiece(node)) {
+      buf.push(node);
+      continue;
+    }
+    editorRegroupFlush(kind, buf, out);
+    out.push(node);
+  }
+}
+
+/*
+ * Beam shortens the selected notes, lets a rest or a bar split the run, and
+ * splits beams the run crosses. A run that enters or leaves a triplet stays
+ * put. A partial triplet tap says the group is already open.
+ */
+function editorStructureRegroupSelection(kind, line, start, end) {
+  var parts;
+  var music;
+  var nodes;
+  var events;
+  var tup;
+  var buf;
+  var out;
+  var healed;
+  var built;
+  var edited;
+  var span;
+  if (kind !== "beam" && kind !== "tuplet") {
+    return false;
+  }
+  if (start >= end) {
+    return false;
+  }
+  parts = editorSplitStaffCaption(line);
+  music = parts.music;
+  if (end > music.length) {
+    end = music.length;
+  }
+  if (start >= end) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(music);
+  if (!nodes) {
+    return false;
+  }
+  editorMarkSelectedNodes(nodes, start, end);
+  editorMarkTouchedStacks(nodes, start, end);
+  events = editorCollectPieces(nodes).filter(function (piece) {
+    return editorIsEventPiece(piece) && piece.selected;
+  });
+  if (!events.length) {
+    return false;
+  }
+  tup = editorSelectionTupletAction(music, start, end);
+  if (kind === "tuplet" && (tup.kind === "partial" || tup.kind === "blocked")) {
+    editorNotice(t("edit.refuseNest"));
+    editorPaintNotePad();
+    return true;
+  }
+  if (kind === "beam" && tup.kind === "blocked") {
+    editorNotice(t("edit.refuseNest"));
+    editorPaintNotePad();
+    return true;
+  }
+  if (kind === "beam" && editorSelectedShareOneBeam(events)) {
+    editorNotice(t("edit.refuseNest"));
+    editorPaintNotePad();
+    return true;
+  }
+  if (kind === "beam") {
+    editorShortenSelectedPieces(nodes);
+  }
+  buf = [];
+  out = [];
+  editorRegroupInto(nodes, kind, buf, out);
+  editorRegroupFlush(kind, buf, out);
+  healed = editorHealList(out);
+  built = editorSerializeNodes(healed);
+  edited = built.text + (parts.caption || "");
+  if (edited === line) {
+    return false;
+  }
+  if (!editorLineMusicOk(edited)) {
+    editorNotice(t("edit.refuseWrap"));
+    editorPaintNotePad();
+    return true;
+  }
+  span = editorLineSpan();
+  return editorCommitLineEdit(span, edited, built.text.length);
+}
+
 /*
  * True when wrapping inner as kind still parses (beam needs e/s, stack pitches
  * only, tuplet no barline, etc.). The caller also parses the whole line.
@@ -9013,6 +9429,7 @@ function editorToggleStructure(kind) {
   if (sel.start !== sel.end && kind === "tuplet") {
     exact = editorSelectionTupletAction(line, rel, endRel);
     if (exact.kind === "partial" || exact.kind === "blocked") {
+      editorNotice(t("edit.refuseNest"));
       editorPaintNotePad();
       return;
     }
@@ -9057,6 +9474,11 @@ function editorToggleStructure(kind) {
   }
   if (sel.start === sel.end && (kind === "beam" || kind === "tuplet") && editorRelInsideStructure(line, rel, "stack")) {
     if (editorProperOrderFromStack(kind)) {
+      return;
+    }
+  }
+  if (sel.start !== sel.end && (kind === "beam" || kind === "tuplet")) {
+    if (editorStructureRegroupSelection(kind, line, rel, endRel)) {
       return;
     }
   }
