@@ -3086,6 +3086,56 @@ function chatCase(w) {
       "beam wraps notes inside a tuplet",
       focusLine.value === "(3 {C4e D4e} E4e)"
     );
+    placeCaret("(3 A4s_5 [B4s_6 D4s G4s] C#5e_7)");
+    focusLine.setSelectionRange(focusLine.value.indexOf("A4s_5"), focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.indexOf("A4s_5"), end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam keeps the tuplet closer outside the braces",
+      focusLine.value === "(3 {A4s_5 [B4s_6 D4s G4s] C#5e_7})" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("@key=D ^D_Major {D4e_1 E4e_2 F#4e_3 G4e_4} (3 A4s_5 [B4s_6 D4s G4s] C#5e_7) D5e_1");
+    focusLine.setSelectionRange(focusLine.value.indexOf("A4s_5"), focusLine.value.indexOf(")") + 1);
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("A4s_5"),
+      end: focusLine.value.indexOf(")") + 1
+    };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam on a triplet leaves the rest of the line",
+      focusLine.value ===
+        "@key=D ^D_Major {D4e_1 E4e_2 F#4e_3 G4e_4} (3 {A4s_5 [B4s_6 D4s G4s] C#5e_7}) D5e_1" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 C4e D4e E4e)");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam wraps inside a selected tuplet",
+      focusLine.value === "(3 {C4e D4e E4e})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    w.editorTupletN = 3;
+    placeCaret("{C4e D4e E4e F4e}");
+    focusLine.setSelectionRange(focusLine.value.indexOf("D4e"), focusLine.value.indexOf("F4e"));
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("D4e"),
+      end: focusLine.value.indexOf("F4e")
+    };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet splits a beam",
+      focusLine.value === "C4e (3 {D4e E4e}) F4e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[C4e E4e G4e]");
+    focusLine.setSelectionRange(1, focusLine.value.indexOf("G4e"));
+    w.editorPadCaret = { start: 1, end: focusLine.value.indexOf("G4e") };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam wraps a whole stack",
+      focusLine.value === "{[C4e E4e G4e]}" && !!w.parseMusicNotation(focusLine.value)
+    );
     placeCaret("{C4e D4e E4e}");
     focusLine.setSelectionRange(3, 3);
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));

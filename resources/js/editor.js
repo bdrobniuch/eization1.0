@@ -7946,18 +7946,20 @@ function editorWrapExistingGroup(g, open, close) {
   var silent;
   var caret;
   var body;
+  var line;
+  var edited;
   if (!span || !g) {
     return false;
   }
-  editorPushSymbolUndo();
   value = String(span.field.value || "");
-  body = value.slice(span.lineStart + g.open, span.lineStart + g.closeEnd);
-  span.field.value =
-    value.slice(0, span.lineStart + g.open) +
-    open +
-    body +
-    close +
-    value.slice(span.lineStart + g.closeEnd);
+  line = value.slice(span.lineStart, span.lineEnd);
+  body = line.slice(g.open, g.closeEnd);
+  edited = line.slice(0, g.open) + open + body + close + line.slice(g.closeEnd);
+  if (!editorLineMusicOk(edited)) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  span.field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
   caret = span.lineStart + g.open + open.length + (g.closeStart - g.open);
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
   editorPlaceCaret(span.field, caret, caret, silent);
@@ -8503,9 +8505,249 @@ function editorWrapEnclosingBeamAsTuplet() {
   return true;
 }
 
+function editorSplicedLineOk(line, start, end, replacement) {
+  return editorLineMusicOk(String(line || "").slice(0, start) + replacement + String(line || "").slice(end));
+}
+
+/* The last token's ")" is a tuplet closer, not a balanced mark inside ^C7(b9). */
+function editorLastTokenEatsTupletCloser(text) {
+  var trimmed = String(text || "").replace(/\s+$/g, "");
+  var tok;
+  if (!trimmed || typeof staffTokenClosesTuplet !== "function") {
+    return false;
+  }
+  tok = trimmed.match(/\S+$/);
+  return !!(tok && staffTokenClosesTuplet(tok[0]));
+}
+
+/*
+ * Where to splice open+body+close. A staff drag includes the triplet's glued
+ * ")" (and sometimes the "(N"), and a degree label makes {…_7)} look legal on
+ * its own. Keep the try that leaves the whole line parsable.
+ */
+function editorPlanStructureWrap(line, start, end, open, close, kind) {
+  var raw;
+  var lead;
+  var trail;
+  var from;
+  var to;
+  var body;
+  var opener;
+  var insideFrom;
+  var plan;
+  line = String(line || "");
+  if (start > end) {
+    return null;
+  }
+  raw = line.slice(start, end);
+  if (!raw || raw.indexOf("\n") >= 0) {
+    return null;
+  }
+  lead = (raw.match(/^\s*/) || [""])[0].length;
+  trail = (raw.match(/\s*$/) || [""])[0].length;
+  if (lead + trail >= raw.length) {
+    return null;
+  }
+  from = start + lead;
+  to = end - trail;
+  body = line.slice(from, to);
+  function attempt(spanFrom, spanTo, spanBody) {
+    var rep;
+    spanBody = String(spanBody || "").replace(/^\s+|\s+$/g, "");
+    if (!spanBody || spanTo <= spanFrom) {
+      return null;
+    }
+    if (kind && !editorSelectionIsWrappable(kind, spanBody)) {
+      return null;
+    }
+    rep = open + spanBody + close;
+    if (!editorSplicedLineOk(line, spanFrom, spanTo, rep)) {
+      return null;
+    }
+    return { from: spanFrom, to: spanTo, replacement: rep };
+  }
+  plan = attempt(from, to, body);
+  if (plan) {
+    return plan;
+  }
+  if ((kind === "beam" || kind === "stack") && line.charAt(to - 1) === ")" && editorLastTokenEatsTupletCloser(body)) {
+    plan = attempt(from, to - 1, line.slice(from, to - 1));
+    if (plan) {
+      return plan;
+    }
+  }
+  if (kind === "beam" || kind === "stack") {
+    opener = /^\((\d{1,2})(?::(\d{1,2}))?\s*/.exec(body);
+    if (opener) {
+      insideFrom = from + opener[0].length;
+      body = line.slice(insideFrom, to);
+      if (line.charAt(to - 1) === ")" && editorLastTokenEatsTupletCloser(body)) {
+        return attempt(insideFrom, to - 1, line.slice(insideFrom, to - 1));
+      }
+      return attempt(insideFrom, to, body);
+    }
+  }
+  return null;
+}
+
+/* (N {middle}) when the notes are still short enough to beam; otherwise (N middle). */
+function editorFormatTupletAroundPieces(pieceTexts) {
+  var body;
+  var beamed;
+  var i;
+  if (!pieceTexts || !pieceTexts.length) {
+    return "";
+  }
+  beamed = pieceTexts.length >= 2;
+  for (i = 0; i < pieceTexts.length; i++) {
+    if (!editorBeamPieceTextIsShort(pieceTexts[i])) {
+      beamed = false;
+      break;
+    }
+  }
+  body = beamed ? "{" + pieceTexts.join(" ") + "}" : pieceTexts.join(" ");
+  return editorTupletOpenText() + body + ")";
+}
+
+/* Write one example line when it still parses. Caret is a line offset. */
+function editorCommitLineEdit(span, editedLine, caretRel) {
+  var value;
+  var silent;
+  if (!span || !editorLineMusicOk(editedLine)) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  span.field.value = value.slice(0, span.lineStart) + editedLine + value.slice(span.lineEnd);
+  if (caretRel < 0) {
+    caretRel = 0;
+  }
+  if (caretRel > editedLine.length) {
+    caretRel = editedLine.length;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, span.lineStart + caretRel, span.lineStart + caretRel, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+/*
+ * Triplet on part of a beam: split the braces. A single leftover note drops
+ * its shell. Two or more short notes in the triplet stay beamed inside it.
+ */
+function editorTupletSplitBeam(line, start, end) {
+  var groups;
+  var i;
+  var g;
+  var beam;
+  var pieces;
+  var before;
+  var mid;
+  var after;
+  var tupletText;
+  var replacement;
+  var edited;
+  var span;
+  var at;
+  if (start >= end) {
+    return false;
+  }
+  groups = editorFindBalancedGroups(line);
+  beam = null;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== "beam") {
+      continue;
+    }
+    if (start < g.open || end > g.closeEnd) {
+      continue;
+    }
+    if (!beam || g.closeEnd - g.open < beam.closeEnd - beam.open) {
+      beam = g;
+    }
+  }
+  if (!beam || editorRelInsideStructure(line, beam.innerStart, "tuplet")) {
+    return false;
+  }
+  if (editorSelectionCoversGroupInterior(line, start, end, beam)) {
+    return false;
+  }
+  pieces = editorBeamPieces(line, beam);
+  if (!pieces.length) {
+    return false;
+  }
+  before = [];
+  mid = [];
+  after = [];
+  for (i = 0; i < pieces.length; i++) {
+    if (pieces[i].end <= start) {
+      before.push(pieces[i].text);
+    } else if (pieces[i].start >= end) {
+      after.push(pieces[i].text);
+    } else {
+      mid.push(pieces[i].text);
+    }
+  }
+  if (!mid.length || (!before.length && !after.length)) {
+    return false;
+  }
+  tupletText = editorFormatTupletAroundPieces(mid);
+  replacement = [editorFormatBeamShell(before), tupletText, editorFormatBeamShell(after)]
+    .filter(Boolean)
+    .join(" ");
+  edited = line.slice(0, beam.open) + replacement + line.slice(beam.closeEnd);
+  at = replacement.indexOf(tupletText);
+  if (at < 0) {
+    at = 0;
+  }
+  span = editorLineSpan();
+  return editorCommitLineEdit(span, edited, beam.open + at + tupletText.length - 1);
+}
+
+/* Beam or triplet on pitches inside […]: the stack is one object. */
+function editorStructureWrapStackSelection(kind, line, start, end) {
+  var stack;
+  var pair;
+  if (kind !== "beam" && kind !== "tuplet") {
+    return false;
+  }
+  stack = editorMatchingGroupSelection(line, start, end, "stack");
+  if (!stack) {
+    stack = editorInnermostGroupAt(line, start < end ? start + 1 : start, "stack");
+    if (!stack || start <= stack.open || end > stack.closeEnd) {
+      stack = null;
+    }
+  }
+  if (!stack) {
+    return false;
+  }
+  if (kind === "beam" && editorRelInsideStructure(line, stack.innerStart, "beam")) {
+    return false;
+  }
+  if (kind === "tuplet" && editorRelInsideStructure(line, stack.innerStart, "beam")) {
+    return false;
+  }
+  if (kind === "tuplet" && editorRelInsideStructure(line, stack.innerStart, "tuplet")) {
+    return false;
+  }
+  if (kind === "beam" && !editorStackAllShort(line, stack)) {
+    return false;
+  }
+  if (kind === "beam") {
+    editorForceShortDuration();
+  }
+  pair = editorStructureOpenClose(kind);
+  if (!pair) {
+    return false;
+  }
+  return editorWrapExistingGroup(stack, pair.open, pair.close);
+}
+
 /*
  * True when wrapping inner as kind still parses (beam needs e/s, stack pitches
- * only, tuplet no barline, etc.).
+ * only, tuplet no barline, etc.). The caller also parses the whole line.
  */
 function editorSelectionIsWrappable(kind, inner) {
   var probe;
@@ -8533,12 +8775,12 @@ function editorWrapSelection(open, close, kind) {
   var field = editorActiveField();
   var sel;
   var value;
-  var raw;
-  var lead;
-  var trail;
-  var inner;
-  var start;
-  var end;
+  var span;
+  var line;
+  var relStart;
+  var relEnd;
+  var swap;
+  var plan;
   var silent;
   if (!field) {
     return false;
@@ -8548,25 +8790,32 @@ function editorWrapSelection(open, close, kind) {
     return false;
   }
   value = String(field.value || "");
-  raw = value.slice(sel.start, sel.end);
-  if (!raw || raw.indexOf("\n") >= 0) {
+  if (value.slice(Math.min(sel.start, sel.end), Math.max(sel.start, sel.end)).indexOf("\n") >= 0) {
     return false;
   }
-  lead = (raw.match(/^\s*/) || [""])[0].length;
-  trail = (raw.match(/\s*$/) || [""])[0].length;
-  if (lead + trail >= raw.length) {
+  span = editorLineSpan();
+  if (!span) {
     return false;
   }
-  inner = raw.slice(lead, raw.length - trail);
-  if (kind && !editorSelectionIsWrappable(kind, inner)) {
+  if (sel.start < span.lineStart || sel.end > span.lineEnd || sel.end < span.lineStart || sel.start > span.lineEnd) {
     return false;
   }
-  start = sel.start + lead;
-  end = sel.end - trail;
+  line = value.slice(span.lineStart, span.lineEnd);
+  relStart = sel.start - span.lineStart;
+  relEnd = sel.end - span.lineStart;
+  if (relStart > relEnd) {
+    swap = relStart;
+    relStart = relEnd;
+    relEnd = swap;
+  }
+  plan = editorPlanStructureWrap(line, relStart, relEnd, String(open || ""), String(close || ""), kind);
+  if (!plan) {
+    return false;
+  }
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  editorPlaceCaret(field, start, end, silent);
+  editorPlaceCaret(field, span.lineStart + plan.from, span.lineStart + plan.to, silent);
   editorPushSymbolUndo();
-  insertEditorText(String(open || "") + inner + String(close || ""), String(close || "").length);
+  insertEditorText(plan.replacement, String(close || "").length);
   return true;
 }
 
@@ -8665,8 +8914,15 @@ function editorStructureWrapHit(kind, hit) {
   } else {
     body = hit.token;
   }
-  editorPushSymbolUndo();
   value = String(hit.field.value || "");
+  if (span) {
+    line = value.slice(span.lineStart, span.lineEnd);
+    rel = hit.start - span.lineStart;
+    if (!editorSplicedLineOk(line, rel, rel + (hit.end - hit.start), pair.open + body + pair.close)) {
+      return false;
+    }
+  }
+  editorPushSymbolUndo();
   hit.field.value = value.slice(0, hit.start) + pair.open + body + pair.close + value.slice(hit.end);
   caret = hit.start + pair.open.length + body.length;
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
@@ -8790,6 +9046,14 @@ function editorToggleStructure(kind) {
     if (exact && editorWrapExistingGroup(exact, editorTupletOpenText(), ")")) {
       return;
     }
+    if (editorTupletSplitBeam(line, rel, endRel)) {
+      return;
+    }
+  }
+  if (sel.start !== sel.end && (kind === "beam" || kind === "tuplet")) {
+    if (editorStructureWrapStackSelection(kind, line, rel, endRel)) {
+      return;
+    }
   }
   if (sel.start === sel.end && (kind === "beam" || kind === "tuplet") && editorRelInsideStructure(line, rel, "stack")) {
     if (editorProperOrderFromStack(kind)) {
@@ -8823,10 +9087,11 @@ function editorToggleStructure(kind) {
   if (hit) {
     if (kind === "stack" && editorRelInsideStructure(line, rel, "beam")) {
       editorForceShortDuration();
-      editorStructureWrapHit(kind, hit);
-      return;
     }
-    editorStructureWrapHit(kind, hit);
+    if (!editorStructureWrapHit(kind, hit)) {
+      editorNotice(t("edit.refuseWrap"));
+      editorPaintNotePad();
+    }
     return;
   }
   editorStructureSeed(kind);
