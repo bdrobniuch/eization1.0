@@ -174,7 +174,11 @@ var moreDayOrder = [
   "compingRhythm34",
   "more0194",
   "keySignatures",
-  "more0203"
+  "more0203",
+  "more0204",
+  "more0205",
+  "more0206",
+  "more0207"
 ];
 
 var moreExercisesCache = null;

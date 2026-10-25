@@ -12128,5 +12128,237 @@
             "beats": 4,
             "unit": 4
         }
+    },
+    {
+        "id": "more0204",
+        "slug": "four-touches",
+        "group": "sound",
+        "staff": true,
+        "bars": 2,
+        "nameEn": "Four touches",
+        "nameEs": "Cuatro toques",
+        "descEn": "Two bars of 4/4. Accent, staccato, tenuto, and marcato on rhythm slashes. One line keeps a single touch. The other lines put all four marks in the bar. Play anything on the slash.",
+        "descEs": "Dos compases de 4/4. Acento, staccato, tenuto y marcato en barras de ritmo. Una línea guarda un solo toque. Las otras ponen las cuatro marcas en el compás. Toca lo que sea en la barra.",
+        "books": [
+            {
+                "href": "./sonic-nuances.html",
+                "en": "Sonic Nuances",
+                "es": "Matices sonoros"
+            },
+            {
+                "href": "./notation.html",
+                "en": "How to write on the staff",
+                "es": "Cómo escribir en el pentagrama"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches",
+                "en": "Major scale, four touches",
+                "es": "Escala mayor, cuatro toques"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches-eighths",
+                "en": "Major scale, four touches in eighths",
+                "es": "Escala mayor, cuatro toques en corcheas"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches-triplets",
+                "en": "Major scale, four touches in triplets",
+                "es": "Escala mayor, cuatro toques en tresillos"
+            }
+        ],
+        "lines": [
+            "/q> /q> /q> /q> | /q> /q> /q> /q> · Accent",
+            "/q' /q' /q' /q' | /q' /q' /q' /q' · Staccato",
+            "/q- /q- /q- /q- | /q- /q- /q- /q- · Tenuto",
+            "/q^ /q^ /q^ /q^ | /q^ /q^ /q^ /q^ · Marcato",
+            "/q> /q' /q- /q^ | /q> /q' /q- /q^ · Accent, staccato, tenuto, marcato",
+            "/q' /q- /q^ /q> | /q' /q- /q^ /q> · Staccato, tenuto, marcato, accent",
+            "/q- /q^ /q> /q' | /q- /q^ /q> /q' · Tenuto, marcato, accent, staccato",
+            "/q^ /q> /q' /q- | /q^ /q> /q' /q- · Marcato, accent, staccato, tenuto",
+            "/q' /q' /q- /q- | /q- /q- /q' /q' · Short, then full",
+            "/q> /q> /q^ /q^ | /q^ /q^ /q> /q> · Accent, then marcato",
+            "/q' /q' /q^ /q^ | /q^ /q^ /q' /q' · Staccato, then marcato",
+            "/q> /q> /q- /q- | /q- /q- /q> /q> · Accent, then tenuto",
+            "/e /e> /e /e' /e /e- /e /e^ | /e /e^ /e /e- /e /e' /e /e> · The mark on the and",
+            "^Cmaj7 /q> /q' /q- /q^ | ^Fmaj7 /q> /q' /q- /q^ · Two chords, same four touches",
+            "^C-7 /q' /q' /q- /q- | ^F7 /q^ /q^ /q> /q> · Short, then heavy"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
+    },
+    {
+        "id": "more0205",
+        "slug": "major-scale-four-touches",
+        "group": "sound",
+        "staff": true,
+        "bars": 4,
+        "nameEn": "Major scale, four touches",
+        "nameEs": "Escala mayor, cuatro toques",
+        "descEn": "Four bars of quarters, one major scale up and back. One line keeps a single touch. Later lines place the four marks on the top, on 1 and 5, or on each bar. Then that bar pattern in F, Bb, and G.",
+        "descEs": "Cuatro compases de negras, una escala mayor de ida y vuelta. Una línea guarda un solo toque. Las siguientes ponen las cuatro marcas en la nota alta, en 1 y 5, o en cada compás. Luego ese patrón en F, Bb y G.",
+        "books": [
+            {
+                "href": "./scales-and-sets.html",
+                "en": "Scales and pitch sets",
+                "es": "Escalas y conjuntos de alturas"
+            },
+            {
+                "href": "./sonic-nuances.html",
+                "en": "Sonic Nuances",
+                "es": "Matices sonoros"
+            },
+            {
+                "href": "./more.html#four-touches",
+                "en": "Four touches",
+                "es": "Cuatro toques"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches-eighths",
+                "en": "Major scale, four touches in eighths",
+                "es": "Escala mayor, cuatro toques en corcheas"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches-triplets",
+                "en": "Major scale, four touches in triplets",
+                "es": "Escala mayor, cuatro toques en tresillos"
+            }
+        ],
+        "lines": [
+            "C4q> D4q> E4q> F4q> | G4q> A4q> B4q> C5q> | C5q> B4q> A4q> G4q> | F4q> E4q> D4q> C4q> · Accent",
+            "C4q' D4q' E4q' F4q' | G4q' A4q' B4q' C5q' | C5q' B4q' A4q' G4q' | F4q' E4q' D4q' C4q' · Staccato",
+            "C4q- D4q- E4q- F4q- | G4q- A4q- B4q- C5q- | C5q- B4q- A4q- G4q- | F4q- E4q- D4q- C4q- · Tenuto",
+            "C4q^ D4q^ E4q^ F4q^ | G4q^ A4q^ B4q^ C5q^ | C5q^ B4q^ A4q^ G4q^ | F4q^ E4q^ D4q^ C4q^ · Marcato",
+            "C4q D4q E4q F4q | G4q A4q B4q C5q> | C5q B4q A4q G4q | F4q E4q D4q C4q · Accent on the top",
+            "C4q D4q E4q F4q | G4q A4q B4q C5q' | C5q B4q A4q G4q | F4q E4q D4q C4q · Staccato on the top",
+            "C4q D4q E4q F4q | G4q A4q B4q C5q- | C5q B4q A4q G4q | F4q E4q D4q C4q · Tenuto on the top",
+            "C4q D4q E4q F4q | G4q A4q B4q C5q^ | C5q B4q A4q G4q | F4q E4q D4q C4q · Marcato on the top",
+            "C4q> D4q E4q F4q | G4q> A4q B4q C5q> | C5q> B4q A4q G4q> | F4q E4q D4q C4q> · Accent on 1 and 5",
+            "C4q- D4q E4q F4q | G4q- A4q B4q C5q- | C5q- B4q A4q G4q- | F4q E4q D4q C4q- · Tenuto on 1 and 5",
+            "C4q' D4q E4q F4q | G4q' A4q B4q C5q' | C5q' B4q A4q G4q' | F4q E4q D4q C4q' · Staccato on 1 and 5",
+            "C4q> D4q' E4q- F4q^ | G4q> A4q' B4q- C5q^ | C5q B4q A4q G4q | F4q E4q D4q C4q · Four touches up, plain down",
+            "C4q' D4q' E4q- F4q- | G4q' A4q' B4q- C5q- | C5q^ B4q^ A4q> G4q> | F4q^ E4q^ D4q> C4q> · Short, then full, then heavy",
+            "C4q> D4q E4q F4q | G4q' A4q B4q C5q | C5q- B4q A4q G4q | F4q^ E4q D4q C4q · A different touch on each bar",
+            "@key=F F4q> G4q A4q Bb4q | C5q' D5q E5q F5q | F5q- E5q D5q C5q | Bb4q^ A4q G4q F4q · F, a different touch on each bar",
+            "@key=Bb Bb3q> C4q D4q Eb4q | F4q' G4q A4q Bb4q | Bb4q- A4q G4q F4q | Eb4q^ D4q C4q Bb3q · Bb, a different touch on each bar",
+            "@key=G G3q> A3q B3q C4q | D4q' E4q F#4q G4q | G4q- F#4q E4q D4q | C4q^ B3q A3q G3q · G, a different touch on each bar"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
+    },
+    {
+        "id": "more0206",
+        "slug": "major-scale-four-touches-eighths",
+        "group": "sound",
+        "staff": true,
+        "bars": 2,
+        "nameEn": "Major scale, four touches in eighths",
+        "nameEs": "Escala mayor, cuatro toques en corcheas",
+        "descEn": "Two bars of the same sixteen notes. One touch for the whole scale, then the mark on the beat or on the and. The phrase leaves on an accent, lights 5, marks the top, and comes home tenuto. F, Bb, and G repeat that phrase.",
+        "descEs": "Dos compases de las mismas dieciséis notas. Un toque para toda la escala, y luego la marca en el tiempo o en la parte. La frase sale con acento, aligera el 5, marca la nota alta y vuelve a casa en tenuto. F, Bb y G repiten esa frase.",
+        "books": [
+            {
+                "href": "./scales-and-sets.html",
+                "en": "Scales and pitch sets",
+                "es": "Escalas y conjuntos de alturas"
+            },
+            {
+                "href": "./sonic-nuances.html",
+                "en": "Sonic Nuances",
+                "es": "Matices sonoros"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches",
+                "en": "Major scale, four touches",
+                "es": "Escala mayor, cuatro toques"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches-triplets",
+                "en": "Major scale, four touches in triplets",
+                "es": "Escala mayor, cuatro toques en tresillos"
+            },
+            {
+                "href": "./more.html#four-touches",
+                "en": "Four touches",
+                "es": "Cuatro toques"
+            }
+        ],
+        "lines": [
+            "C4e> D4e> E4e> F4e> G4e> A4e> B4e> C5e> | C5e> B4e> A4e> G4e> F4e> E4e> D4e> C4e> · Accent",
+            "C4e' D4e' E4e' F4e' G4e' A4e' B4e' C5e' | C5e' B4e' A4e' G4e' F4e' E4e' D4e' C4e' · Staccato",
+            "C4e- D4e- E4e- F4e- G4e- A4e- B4e- C5e- | C5e- B4e- A4e- G4e- F4e- E4e- D4e- C4e- · Tenuto",
+            "C4e^ D4e^ E4e^ F4e^ G4e^ A4e^ B4e^ C5e^ | C5e^ B4e^ A4e^ G4e^ F4e^ E4e^ D4e^ C4e^ · Marcato",
+            "C4e> D4e E4e> F4e G4e> A4e B4e> C5e | C5e> B4e A4e> G4e F4e> E4e D4e> C4e · Accent on the beat",
+            "C4e> D4e E4e' F4e G4e- A4e B4e^ C5e | C5e> B4e A4e' G4e F4e- E4e D4e^ C4e · Four touches on the beat",
+            "C4e D4e> E4e F4e' G4e A4e- B4e C5e^ | C5e B4e> A4e G4e' F4e E4e- D4e C4e^ · Four touches on the and",
+            "C4e- D4e- E4e- F4e- G4e- A4e- B4e- C5e- | C5e' B4e' A4e' G4e' F4e' E4e' D4e' C4e' · Full up, short down",
+            "C4e> D4e E4e F4e G4e' A4e B4e C5e^ | C5e B4e A4e G4e' F4e E4e D4e C4e- · Leave, light on 5, marcato on top, tenuto home",
+            "@key=F F4e> G4e A4e Bb4e C5e' D5e E5e F5e^ | F5e E5e D5e C5e' Bb4e A4e G4e F4e- · F",
+            "@key=Bb Bb3e> C4e D4e Eb4e F4e' G4e A4e Bb4e^ | Bb4e A4e G4e F4e' Eb4e D4e C4e Bb3e- · Bb",
+            "@key=G G3e> A3e B3e C4e D4e' E4e F#4e G4e^ | G4e F#4e E4e D4e' C4e B3e A3e G3e- · G"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
+    },
+    {
+        "id": "more0207",
+        "slug": "major-scale-four-touches-triplets",
+        "group": "sound",
+        "staff": true,
+        "bars": 2,
+        "nameEn": "Major scale, four touches in triplets",
+        "nameEs": "Escala mayor, cuatro toques en tresillos",
+        "descEn": "Two bars of the same notes as Major scale in triplets. One touch on every note, so a heavier first note of the group shows up. Other lines mark the click, the middle, or the last of the three. F, Bb, and G take the accent on the click.",
+        "descEs": "Dos compases de las mismas notas que Escala mayor en tresillos. Un toque en cada nota, así se oye si la primera del grupo pesa de más. Otras líneas marcan el clic, el medio o la última de las tres. F, Bb y G llevan el acento en el clic.",
+        "books": [
+            {
+                "href": "./scales-and-sets.html",
+                "en": "Scales and pitch sets",
+                "es": "Escalas y conjuntos de alturas"
+            },
+            {
+                "href": "./tuplets.html",
+                "en": "Tuplets",
+                "es": "Grupos irregulares"
+            },
+            {
+                "href": "./more.html#triplet-major",
+                "en": "Major scale in triplets",
+                "es": "Escala mayor en tresillos"
+            },
+            {
+                "href": "./more.html#major-scale-four-touches-eighths",
+                "en": "Major scale, four touches in eighths",
+                "es": "Escala mayor, cuatro toques en corcheas"
+            },
+            {
+                "href": "./notation.html",
+                "en": "How to write on the staff",
+                "es": "Cómo escribir en el pentagrama"
+            }
+        ],
+        "lines": [
+            "(3 C4e> D4e> E4e>) (3 F4e> G4e> A4e>) (3 B4e> C5e> D5e>) (3 E5e> F5e> G5e>) | (3 F5e> E5e> D5e>) (3 C5e> B4e> A4e>) (3 G4e> F4e> E4e>) (3 D4e> C4e> C4e>) · Accent, even",
+            "(3 C4e' D4e' E4e') (3 F4e' G4e' A4e') (3 B4e' C5e' D5e') (3 E5e' F5e' G5e') | (3 F5e' E5e' D5e') (3 C5e' B4e' A4e') (3 G4e' F4e' E4e') (3 D4e' C4e' C4e') · Staccato, even",
+            "(3 C4e- D4e- E4e-) (3 F4e- G4e- A4e-) (3 B4e- C5e- D5e-) (3 E5e- F5e- G5e-) | (3 F5e- E5e- D5e-) (3 C5e- B4e- A4e-) (3 G4e- F4e- E4e-) (3 D4e- C4e- C4e-) · Tenuto, even",
+            "(3 C4e^ D4e^ E4e^) (3 F4e^ G4e^ A4e^) (3 B4e^ C5e^ D5e^) (3 E5e^ F5e^ G5e^) | (3 F5e^ E5e^ D5e^) (3 C5e^ B4e^ A4e^) (3 G4e^ F4e^ E4e^) (3 D4e^ C4e^ C4e^) · Marcato, even",
+            "(3 C4e> D4e E4e) (3 F4e> G4e A4e) (3 B4e> C5e D5e) (3 E5e> F5e G5e) | (3 F5e> E5e D5e) (3 C5e> B4e A4e) (3 G4e> F4e E4e) (3 D4e> C4e C4e) · Accent on the click",
+            "(3 C4e D4e' E4e) (3 F4e G4e' A4e) (3 B4e C5e' D5e) (3 E5e F5e' G5e) | (3 F5e E5e' D5e) (3 C5e B4e' A4e) (3 G4e F4e' E4e) (3 D4e C4e' C4e) · Staccato in the middle",
+            "(3 C4e D4e E4e-) (3 F4e G4e A4e-) (3 B4e C5e D5e-) (3 E5e F5e G5e-) | (3 F5e E5e D5e-) (3 C5e B4e A4e-) (3 G4e F4e E4e-) (3 D4e C4e C4e-) · Tenuto on the last",
+            "(3 C4e> D4e E4e) (3 F4e' G4e A4e) (3 B4e- C5e D5e) (3 E5e^ F5e G5e) | (3 F5e> E5e D5e) (3 C5e' B4e A4e) (3 G4e- F4e E4e) (3 D4e^ C4e C4e) · Accent, staccato, tenuto, marcato, on the click",
+            "(3 C4e> D4e> E4e>) (3 F4e> G4e> A4e>) (3 B4e> C5e> D5e>) (3 E5e> F5e> G5e>) | (3 F5e^ E5e^ D5e^) (3 C5e^ B4e^ A4e^) (3 G4e^ F4e^ E4e^) (3 D4e^ C4e^ C4e^) · Accent up, marcato down",
+            "@key=F (3 F4e> G4e A4e) (3 Bb4e> C5e D5e) (3 E5e> F5e G5e) (3 A5e> Bb5e C6e) | (3 Bb5e> A5e G5e) (3 F5e> E5e D5e) (3 C5e> Bb4e A4e) (3 G4e> F4e F4e) · F, accent on the click",
+            "@key=Bb (3 Bb3e> C4e D4e) (3 Eb4e> F4e G4e) (3 A4e> Bb4e C5e) (3 D5e> Eb5e F5e) | (3 Eb5e> D5e C5e) (3 Bb4e> A4e G4e) (3 F4e> Eb4e D4e) (3 C4e> Bb3e Bb3e) · Bb, accent on the click",
+            "@key=G (3 G3e> A3e B3e) (3 C4e> D4e E4e) (3 F#4e> G4e A4e) (3 B4e> C5e D5e) | (3 C5e> B4e A4e) (3 G4e> F#4e E4e) (3 D4e> C4e B3e) (3 A3e> G3e G3e) · G, accent on the click"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
     }
 ]
