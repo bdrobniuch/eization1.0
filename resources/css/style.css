@@ -1930,7 +1930,7 @@ body.is-editing #counter {
   min-height: 44px;
   min-width: 0;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   overflow: hidden;
@@ -2097,19 +2097,25 @@ body.is-editing #counter {
 
 #editKind {
   display: flex;
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 
 #editKind button {
-  min-height: 44px;
+  height: 100%;
+  min-height: 0;
   padding: 0 12px;
   border: 0;
   background: transparent;
   color: #ffffff;
   font: inherit;
   font-size: 16px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 #editKind button + button {
@@ -2118,14 +2124,16 @@ body.is-editing #counter {
 
 #editKind button[aria-pressed="true"] {
   background: #ffffff;
-  color: #111111;
+  color: #0C8A50;
 }
 
 #editName {
   flex: 1 1 160px;
+  height: 44px;
   min-height: 44px;
   padding: 0 12px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.28);
   color: #ffffff;
   font: inherit;
@@ -2147,13 +2155,17 @@ body.is-editing #counter {
 #editDelete,
 #editStaffHelpClose {
   flex: 0 0 auto;
+  box-sizing: border-box;
+  height: 44px;
   min-height: 44px;
   padding: 0 14px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font: inherit;
   font-size: 15px;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -2176,6 +2188,7 @@ body.is-editing #counter {
   padding: 0;
   gap: 0;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font: inherit;
@@ -2371,6 +2384,8 @@ body.is-editing #counter {
   gap: 6px;
   min-width: 0;
   box-sizing: border-box;
+  padding: 6px;
+  background: rgba(9, 119, 187, 0.45);
 }
 
 #editNotePad .edit-note-row {
@@ -2382,11 +2397,14 @@ body.is-editing #counter {
 #editSymbols button {
   flex: 0 0 auto;
   flex-shrink: 0;
+  box-sizing: border-box;
   min-width: 44px;
-  min-height: 44px;
   width: auto;
+  height: 44px;
+  min-height: 44px;
   padding: 0 8px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font-family: var(--face-font);
@@ -2426,7 +2444,7 @@ body.is-editing #counter {
   height: 44px;
   min-height: 44px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
   gap: 0;
 }
@@ -2487,7 +2505,7 @@ body.is-editing #counter {
   height: 44px;
   min-height: 44px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   overflow: visible;
 }
 
@@ -2523,7 +2541,7 @@ body.is-editing #counter {
   gap: 6px;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.32);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -2553,7 +2571,7 @@ body.is-editing #counter {
   width: 248px;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.32);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -2587,7 +2605,7 @@ body.is-editing #counter {
   gap: 6px;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.32);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -2650,8 +2668,10 @@ body.is-editing #counter {
   flex: 0 0 auto;
   flex-shrink: 0;
   align-items: stretch;
+  height: 44px;
   min-height: 44px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   box-sizing: border-box;
 }
 
@@ -2669,10 +2689,13 @@ body.is-editing #counter {
 #editFocusPrev,
 #editFocusNext {
   flex: 0 0 auto;
+  box-sizing: border-box;
   min-width: 36px;
+  height: 100%;
   min-height: 0;
   padding: 0 6px;
   border: 0;
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font: inherit;
@@ -2682,11 +2705,11 @@ body.is-editing #counter {
 }
 
 #editFocusPrev {
-  border-right: 1px solid rgba(255, 255, 255, 0.35);
+  border-right: 2px solid rgba(255, 255, 255, 0.85);
 }
 
 #editFocusNext {
-  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  border-left: 2px solid rgba(255, 255, 255, 0.85);
 }
 
 #editFocusPrev:disabled,
@@ -2795,7 +2818,7 @@ body.is-editing #counter {
   gap: 6px;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.32);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -2807,7 +2830,7 @@ body.is-editing #counter {
   min-width: 44px;
   min-height: 44px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
 }
@@ -2818,7 +2841,7 @@ body.is-editing #counter {
   overflow: auto;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.32);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -2859,7 +2882,7 @@ body.is-editing #counter {
   margin: 0;
   padding: 6px 8px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font-family: var(--face-font);
@@ -2885,6 +2908,7 @@ body.is-editing #counter {
   margin: 0;
   padding: 10px 12px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   color: #ffffff;
   font-family: var(--face-font);
   font-size: 18px;
@@ -2900,6 +2924,7 @@ body.is-editing #counter {
   margin: 0;
   padding: 10px 12px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   white-space: pre;
   overflow-wrap: normal;
   overflow: auto;
@@ -3207,15 +3232,18 @@ body.is-editing #counter {
 #editNoteHistory button {
   flex: 0 0 auto;
   flex-shrink: 0;
+  box-sizing: border-box;
+  width: 44px;
   min-width: 44px;
+  height: 44px;
   min-height: 44px;
-  width: auto;
-  padding: 0 8px;
+  padding: 0;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
-  font-family: var(--face-font);
-  font-size: 20px;
+  font: inherit;
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
 }
@@ -3264,7 +3292,7 @@ body.is-editing #counter {
   margin: 0;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.72);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -3272,10 +3300,13 @@ body.is-editing #counter {
 }
 
 .edit-clip-menu button {
+  box-sizing: border-box;
   min-width: 44px;
+  height: 44px;
   min-height: 44px;
   padding: 0 12px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font-family: var(--face-font);
@@ -3378,6 +3409,7 @@ body.is-editing #counter {
   min-height: 44px;
   padding: 8px 10px;
   border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 0;
   background: transparent;
   color: #ffffff;
   font-family: var(--face-font);
@@ -3477,6 +3509,7 @@ body.is-about #counter {
     grid-template-areas:
       "head head head head head"
       "name name name name name"
+      "count count count count count"
       "err err err err err"
       "setup setup setup setup setup"
       "sym view share more glyphend"
@@ -3484,7 +3517,6 @@ body.is-about #counter {
       "focus focus focus focus focus"
       "sympanel sympanel sympanel sympanel sympanel"
       "prev prev prev prev prev"
-      "count count count count count"
       "area area area area area"
       "note note note note note"
       "staff staff staff staff staff";
@@ -3498,7 +3530,7 @@ body.is-about #counter {
   }
 
   #textdiv.is-edit-list.is-open {
-    grid-template-rows: repeat(10, minmax(min-content, auto)) minmax(72px, auto) minmax(min-content, auto) minmax(min-content, auto);
+    grid-template-rows: repeat(10, minmax(min-content, auto)) minmax(72px, auto) repeat(2, minmax(min-content, auto));
   }
 
   #allEdit {
@@ -3546,13 +3578,14 @@ body.is-about #counter {
     flex-wrap: wrap;
     grid-area: head;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   #editCancel,
   #editSaveAs,
   #editUpdate {
     flex: 0 0 auto;
+    padding: 0 10px;
   }
 
   #editSaveAs[hidden] {
@@ -3586,12 +3619,12 @@ body.is-about #counter {
   #editSetup {
     display: flex;
     grid-area: setup;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
     min-width: 0;
-    overflow-x: auto;
+    overflow-x: visible;
   }
 
   #editKind {
@@ -3664,10 +3697,35 @@ body.is-about #counter {
     width: 100%;
   }
 
+  #editNotePad {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  #editNotePad .edit-note-row {
+    gap: 4px;
+  }
+
   #editFocusBar {
     grid-area: focus;
     flex-wrap: wrap;
+    gap: 4px;
     width: 100%;
+  }
+
+  #editNoteHistory {
+    gap: 4px;
+  }
+
+  #editFocusPrev,
+  #editFocusNext {
+    min-width: 32px;
+    padding: 0 2px;
+  }
+
+  /* The count is off the row, so one line between ‹ and › is enough. */
+  #editFocusNext {
+    border-left-width: 0;
   }
 
   /* Tight chrome: ‹ › only; keep the count for aria-live. */
@@ -3730,6 +3788,31 @@ body.is-about #counter {
   #allEdit,
   #editSetup {
     min-width: 0;
+  }
+}
+
+/* Wide enough, or a short landscape phone: Bars/Meter/Text share a row with the icon tools. */
+@media (min-width: 520px) and (max-width: 640px), (min-width: 520px) and (orientation: landscape) and (max-height: 520px) {
+  #textdiv.is-open {
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+    grid-template-areas:
+      "head head head head head"
+      "name name name name name"
+      "count count count count count"
+      "err err err err err"
+      "setup sym view share more"
+      "menu menu menu menu menu"
+      "focus focus focus focus focus"
+      "sympanel sympanel sympanel sympanel sympanel"
+      "prev prev prev prev prev"
+      "area area area area area"
+      "note note note note note"
+      "staff staff staff staff staff";
+    grid-template-rows: repeat(12, minmax(min-content, auto));
+  }
+
+  #textdiv.is-edit-list.is-open {
+    grid-template-rows: repeat(9, minmax(min-content, auto)) minmax(72px, auto) repeat(2, minmax(min-content, auto));
   }
 }
 
