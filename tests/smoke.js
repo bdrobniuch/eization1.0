@@ -2772,6 +2772,7 @@ function chatCase(w) {
         var ctm;
         var insertIndex;
         var fieldCaret;
+        var opts;
         if (!preview || !svg || !layout || !layout.cols || layout.cols.length < 2) {
           return false;
         }
@@ -2784,15 +2785,20 @@ function chatCase(w) {
           pt.x = layout.cols[1].x;
           pt.y = (layout.staffTop + layout.staffBot) / 2;
           screen = pt.matrixTransform(ctm);
-          preview.dispatchEvent(
-            new w.MouseEvent("click", {
-              clientX: screen.x,
-              clientY: screen.y,
-              bubbles: true,
-              cancelable: true,
-              view: w
-            })
-          );
+          opts = {
+            clientX: screen.x,
+            clientY: screen.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: 1,
+            pointerType: "mouse",
+            button: 0,
+            buttons: 1
+          };
+          preview.dispatchEvent(new w.PointerEvent("pointerdown", opts));
+          opts.buttons = 0;
+          preview.dispatchEvent(new w.PointerEvent("pointerup", opts));
         }
         if (!(w.editorPadCaret && w.editorPadCaret.start === fieldCaret)) {
           if (symbolsPanel.hidden) {
@@ -2848,6 +2854,80 @@ function chatCase(w) {
       })()
     );
     w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+    placeCaret("C4 D4 E4");
+    w.refreshEditor();
+    check(
+      "preview drag selects columns across the staff",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg = preview && preview.querySelector("svg.music-staff");
+        var layout = preview && preview._staffCaretLayout;
+        var ctm;
+        var pt;
+        var a;
+        var b;
+        var y;
+        var down;
+        var move;
+        var up;
+        if (!preview || !svg || !layout || !layout.cols || layout.cols.length < 3) {
+          return false;
+        }
+        ctm = typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (!ctm || typeof svg.createSVGPoint !== "function") {
+          return false;
+        }
+        y = (layout.staffTop + layout.staffBot) / 2;
+        pt = svg.createSVGPoint();
+        pt.x = layout.cols[0].x;
+        pt.y = y;
+        a = pt.matrixTransform(ctm);
+        pt.x = layout.cols[2].x;
+        b = pt.matrixTransform(ctm);
+        down = {
+          clientX: a.x,
+          clientY: a.y,
+          bubbles: true,
+          cancelable: true,
+          view: w,
+          pointerId: 2,
+          pointerType: "mouse",
+          button: 0,
+          buttons: 1
+        };
+        move = {
+          clientX: b.x,
+          clientY: b.y,
+          bubbles: true,
+          cancelable: true,
+          view: w,
+          pointerId: 2,
+          pointerType: "mouse",
+          button: 0,
+          buttons: 1
+        };
+        up = {
+          clientX: b.x,
+          clientY: b.y,
+          bubbles: true,
+          cancelable: true,
+          view: w,
+          pointerId: 2,
+          pointerType: "mouse",
+          button: 0,
+          buttons: 0
+        };
+        preview.dispatchEvent(new w.PointerEvent("pointerdown", down));
+        preview.dispatchEvent(new w.PointerEvent("pointermove", move));
+        preview.dispatchEvent(new w.PointerEvent("pointerup", up));
+        return (
+          !symbolsPanel.hidden &&
+          w.editorPadCaret &&
+          w.editorPadCaret.start === 0 &&
+          w.editorPadCaret.end === focusLine.value.length
+        );
+      })()
+    );
     placeCaret("B4e_6");
     focusLine.setSelectionRange(2, 2);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));

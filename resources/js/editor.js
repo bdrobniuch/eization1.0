@@ -73,6 +73,9 @@ var editorStaffTypingDirty = false;
 var editorKeyboardStaffEdit = false;
 /* While Symbols/Notes is open, keep caret here and avoid focusing the field (no soft keyboard). */
 var editorPadCaret = null;
+/* Staff preview drag-to-select: pointerId + start insert gap until pointerup. */
+var editorStaffDrag = null;
+var EDITOR_STAFF_DRAG_SLOP = 6;
 /* After Chord ^, allow typing the name until the next pad action. */
 var editorLabelTyping = false;
 /* Pad/Erase hold-to-repeat (one undo step for the whole hold). */
@@ -2314,6 +2317,30 @@ function editorStaffInsertIndexFromX(layout, x) {
   return best;
 }
 
+/* Nearest drawn column center — used while drag-selecting across the staff. */
+function editorStaffColumnIndexFromX(layout, x) {
+  var cols;
+  var best = 0;
+  var bestDist = Infinity;
+  var i;
+  var d;
+  if (!layout || typeof x !== "number" || isNaN(x)) {
+    return 0;
+  }
+  cols = layout.cols || [];
+  if (!cols.length) {
+    return 0;
+  }
+  for (i = 0; i < cols.length; i++) {
+    d = Math.abs(cols[i].x - x);
+    if (d < bestDist) {
+      bestDist = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
 /* End of the drawn column's token (stack through ]), no trailing space. */
 function editorMusicColumnContentEnd(music, colStart) {
   var ranges = editorMusicTokenRanges(music);
@@ -2443,58 +2470,65 @@ function editorSyncTokenHighlight() {
   field.classList.remove("has-token-highlight");
 }
 
-/* Tap/click the staff preview to move the caret to that column. */
-function editorStaffPreviewPointer(event) {
+/* Map a preview pointer event to insert-gap index + music field anchors. */
+function editorStaffPreviewHitContext(event) {
   var preview = document.getElementById("editPreview");
   var svg;
   var layout;
   var pt;
   var ctm;
   var local;
-  var insertIndex;
   var span;
   var line;
-  var lineCaret;
   var mapped;
   var musicAt;
-  var fieldCaret;
-  var silent;
   if (!event || !preview || !editorIsOpen() || !editorStaffOn()) {
-    return;
+    return null;
   }
   if (!preview.classList.contains("is-staff")) {
-    return;
+    return null;
   }
   svg = preview.querySelector("svg.music-staff");
   layout = preview._staffCaretLayout || (svg && svg._staffCaretLayout) || null;
   if (!svg || !layout) {
-    return;
+    return null;
   }
   if (typeof svg.createSVGPoint !== "function" || typeof svg.getScreenCTM !== "function") {
-    return;
+    return null;
   }
   ctm = svg.getScreenCTM();
   if (!ctm) {
-    return;
+    return null;
   }
   pt = svg.createSVGPoint();
   pt.x = event.clientX;
   pt.y = event.clientY;
   local = pt.matrixTransform(ctm.inverse());
-  insertIndex = editorStaffInsertIndexFromX(layout, local.x);
   span = editorLineSpan();
   if (!span || !span.field) {
-    return;
+    return null;
   }
   line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
-  lineCaret = span.caret - span.lineStart;
-  mapped = editorMusicCaretInLine(line, lineCaret);
+  mapped = editorMusicCaretInLine(line, span.caret - span.lineStart);
   musicAt = String(line || "").indexOf(mapped.music);
   if (musicAt < 0) {
     musicAt = 0;
   }
-  fieldCaret = span.lineStart + musicAt + editorMusicCaretFromInsertIndex(mapped.music, insertIndex);
-  /* Staff click: open Write notes so caret + pad stay paired (no soft keyboard). */
+  return {
+    preview: preview,
+    svg: svg,
+    layout: layout,
+    field: span.field,
+    lineStart: span.lineStart,
+    music: mapped.music || "",
+    musicAt: musicAt,
+    insertIndex: editorStaffInsertIndexFromX(layout, local.x),
+    columnIndex: editorStaffColumnIndexFromX(layout, local.x),
+    localX: local.x
+  };
+}
+
+function editorStaffPreviewBeginEdit() {
   if (editorLabelTyping) {
     editorEndLabelTyping();
   }
@@ -2504,12 +2538,197 @@ function editorStaffPreviewPointer(event) {
   if (!editorPadCaret) {
     editorCapturePadCaret();
   }
-  editorPlaceCaret(span.field, fieldCaret, fieldCaret, true);
+}
+
+/* Collapsed pad caret at a drawn insert gap (tap). */
+function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIndex) {
+  var a;
+  if (!field) {
+    return;
+  }
+  a = lineStart + musicAt + editorMusicCaretFromInsertIndex(String(music || ""), insertIndex);
+  editorPlaceCaret(field, a, a, true);
+}
+
+/* Select every drawn column from colA through colB (inclusive). */
+function editorStaffPreviewApplyColumnRange(field, lineStart, musicAt, music, colA, colB) {
+  var lo;
+  var hi;
+  var starts;
+  var from;
+  var to;
+  var a;
+  var b;
+  if (!field) {
+    return;
+  }
+  music = String(music || "");
+  starts = editorStaffColumnStarts(music);
+  if (!starts.length) {
+    editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, 0);
+    return;
+  }
+  lo = Math.min(colA, colB);
+  hi = Math.max(colA, colB);
+  if (lo < 0) {
+    lo = 0;
+  }
+  if (hi >= starts.length) {
+    hi = starts.length - 1;
+  }
+  if (lo > hi) {
+    editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, 0);
+    return;
+  }
+  from = starts[lo];
+  to = editorMusicColumnContentEnd(music, starts[hi]);
+  if (to < from) {
+    to = from;
+  }
+  a = lineStart + musicAt + from;
+  b = lineStart + musicAt + to;
+  editorPlaceCaret(field, a, b, true);
+}
+
+function editorStaffPreviewPointerDown(event) {
+  var hit;
+  if (!event || (typeof event.button === "number" && event.button !== 0)) {
+    return;
+  }
+  hit = editorStaffPreviewHitContext(event);
+  if (!hit) {
+    return;
+  }
+  editorStaffDrag = {
+    pointerId: event.pointerId,
+    startInsert: hit.insertIndex,
+    startColumn: hit.columnIndex,
+    startX: event.clientX,
+    startY: event.clientY,
+    dragging: false,
+    field: hit.field,
+    lineStart: hit.lineStart,
+    musicAt: hit.musicAt,
+    music: hit.music
+  };
+  if (hit.preview && typeof hit.preview.setPointerCapture === "function" && event.pointerId != null) {
+    try {
+      hit.preview.setPointerCapture(event.pointerId);
+    } catch (errCap) {}
+  }
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+}
+
+function editorStaffPreviewPointerMove(event) {
+  var drag = editorStaffDrag;
+  var hit;
+  var dx;
+  var dy;
+  var col;
+  if (!drag || event.pointerId !== drag.pointerId) {
+    return;
+  }
+  dx = event.clientX - drag.startX;
+  dy = event.clientY - drag.startY;
+  if (!drag.dragging) {
+    if (dx * dx + dy * dy < EDITOR_STAFF_DRAG_SLOP * EDITOR_STAFF_DRAG_SLOP) {
+      return;
+    }
+    drag.dragging = true;
+    editorStaffPreviewBeginEdit();
+  }
+  hit = editorStaffPreviewHitContext(event);
+  col = hit ? hit.columnIndex : drag.startColumn;
+  if (hit) {
+    drag.music = hit.music;
+    drag.musicAt = hit.musicAt;
+    drag.lineStart = hit.lineStart;
+    drag.field = hit.field;
+  }
+  editorStaffPreviewApplyColumnRange(
+    drag.field,
+    drag.lineStart,
+    drag.musicAt,
+    drag.music,
+    drag.startColumn,
+    col
+  );
+  editorPaintNotePad();
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+}
+
+function editorStaffPreviewPointerUp(event) {
+  var drag = editorStaffDrag;
+  var hit;
+  var col;
+  var preview;
+  if (!drag || (event.pointerId != null && event.pointerId !== drag.pointerId)) {
+    return;
+  }
+  editorStaffDrag = null;
+  preview = document.getElementById("editPreview");
+  if (preview && typeof preview.releasePointerCapture === "function" && drag.pointerId != null) {
+    try {
+      if (preview.hasPointerCapture && preview.hasPointerCapture(drag.pointerId)) {
+        preview.releasePointerCapture(drag.pointerId);
+      }
+    } catch (errRel) {}
+  }
+  editorStaffPreviewBeginEdit();
+  hit = editorStaffPreviewHitContext(event);
+  if (hit) {
+    drag.music = hit.music;
+    drag.musicAt = hit.musicAt;
+    drag.lineStart = hit.lineStart;
+    drag.field = hit.field;
+  }
+  if (!drag.dragging) {
+    editorStaffPreviewApplyCaret(
+      drag.field,
+      drag.lineStart,
+      drag.musicAt,
+      drag.music,
+      hit ? hit.insertIndex : drag.startInsert
+    );
+  } else {
+    col = hit ? hit.columnIndex : drag.startColumn;
+    editorStaffPreviewApplyColumnRange(
+      drag.field,
+      drag.lineStart,
+      drag.musicAt,
+      drag.music,
+      drag.startColumn,
+      col
+    );
+  }
   editorBeginPadInput();
   editorPaintNotePad();
   editorSyncTokenHighlight();
   if (event.cancelable) {
     event.preventDefault();
+  }
+}
+
+function editorStaffPreviewPointerCancel(event) {
+  var preview;
+  if (!editorStaffDrag) {
+    return;
+  }
+  if (event && event.pointerId != null && event.pointerId !== editorStaffDrag.pointerId) {
+    return;
+  }
+  editorStaffDrag = null;
+  preview = document.getElementById("editPreview");
+  if (preview && event && typeof preview.releasePointerCapture === "function" && event.pointerId != null) {
+    try {
+      if (preview.hasPointerCapture && preview.hasPointerCapture(event.pointerId)) {
+        preview.releasePointerCapture(event.pointerId);
+      }
+    } catch (errCancel) {}
   }
 }
 
@@ -8792,7 +9011,10 @@ function initEditor() {
   document.addEventListener("focusin", editorOnFieldFocusForPad);
   var editPreview = document.getElementById("editPreview");
   if (editPreview) {
-    editPreview.addEventListener("click", editorStaffPreviewPointer);
+    editPreview.addEventListener("pointerdown", editorStaffPreviewPointerDown);
+    editPreview.addEventListener("pointermove", editorStaffPreviewPointerMove);
+    editPreview.addEventListener("pointerup", editorStaffPreviewPointerUp);
+    editPreview.addEventListener("pointercancel", editorStaffPreviewPointerCancel);
   }
   document.addEventListener("keydown", function (event) {
     var key;
