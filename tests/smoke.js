@@ -3722,6 +3722,145 @@ function chatCase(w) {
       })()
     );
     check(
+      "writing scrolls the staff so the caret stays in view",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var line = "C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 A5 B5 C6 D6 E6 F6";
+        var mid = line.indexOf("F5");
+        var max;
+        var endAt;
+        var parked;
+        function markInView() {
+          var mark = preview.querySelector(".staff-caret-mark");
+          var box;
+          var style;
+          var left;
+          var right;
+          var rect;
+          var markX;
+          if (!mark) {
+            return false;
+          }
+          box = preview.getBoundingClientRect();
+          style = w.getComputedStyle(preview);
+          left = box.left + (parseFloat(style.paddingLeft) || 0);
+          right = box.right - (parseFloat(style.paddingRight) || 0);
+          rect = mark.getBoundingClientRect();
+          markX = (rect.left + rect.right) / 2;
+          return markX >= left - 1 && markX <= right + 1;
+        }
+        placeCaret(line);
+        preview.style.width = "160px";
+        try {
+          w.refreshEditor();
+          if (preview.scrollWidth <= preview.clientWidth + 8) {
+            return false;
+          }
+          focusLine.blur();
+          w.editorPlaceCaret(focusLine, line.length, line.length, true);
+          preview.scrollLeft = 0;
+          w.editorStaffDrag = { dragging: true };
+          w.editorStaffPreviewRevealCaret();
+          if (preview.scrollLeft !== 0 || w.editorStaffRevealPending === w.editorStaffRevealKey) {
+            return false;
+          }
+          w.editorStaffDrag = null;
+          w.editorStaffPreviewRevealCaret();
+          if (
+            !(
+              preview.scrollLeft > 0 &&
+              markInView() &&
+              focusLine.classList.contains("has-token-highlight") &&
+              focusLine.selectionStart < focusLine.value.length
+            )
+          ) {
+            return false;
+          }
+          endAt = preview.scrollLeft;
+          preview.scrollLeft = 0;
+          w.editorPlaceCaret(focusLine, mid, mid, true);
+          w.editorStaffPreviewRevealCaret();
+          max = preview.scrollWidth - preview.clientWidth;
+          if (!(preview.scrollLeft > 8 && preview.scrollLeft < max - 8 && markInView())) {
+            return false;
+          }
+          parked = preview.scrollLeft;
+          w.editorPlaceCaret(focusLine, mid, mid, true);
+          w.editorStaffPreviewRevealCaret();
+          if (Math.abs(preview.scrollLeft - parked) > 1) {
+            return false;
+          }
+          preview.scrollLeft = 0;
+          w.refreshEditor();
+          w.editorStaffPreviewRevealCaret();
+          if (preview.scrollLeft !== 0) {
+            return false;
+          }
+          w.editorPlaceCaret(focusLine, 0, 0, true);
+          w.editorStaffPreviewRevealCaret();
+          return endAt > 8 && preview.scrollLeft < endAt - 8 && markInView();
+        } finally {
+          w.editorStaffDrag = null;
+          preview.style.width = "";
+          placeCaret(line);
+        }
+      })()
+    );
+    check(
+      "a written note scrolls back to the caret",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var line = "C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 A5 B5 C6 D6 E6 F6";
+        var note;
+        function markInView() {
+          var mark = preview.querySelector(".staff-caret-mark");
+          var box;
+          var style;
+          var left;
+          var right;
+          var rect;
+          var markX;
+          if (!mark) {
+            return false;
+          }
+          box = preview.getBoundingClientRect();
+          style = w.getComputedStyle(preview);
+          left = box.left + (parseFloat(style.paddingLeft) || 0);
+          right = box.right - (parseFloat(style.paddingRight) || 0);
+          rect = mark.getBoundingClientRect();
+          markX = (rect.left + rect.right) / 2;
+          return markX >= left - 1 && markX <= right + 1;
+        }
+        if (symbolsPanel.hidden) {
+          symbolsToggle.click();
+        }
+        placeCaret(line);
+        preview.style.width = "160px";
+        try {
+          w.refreshEditor();
+          focusLine.blur();
+          w.editorPlaceCaret(focusLine, line.length, line.length, true);
+          w.editorStaffPreviewRevealCaret();
+          preview.scrollLeft = 0;
+          note = symbolsPanel.querySelector("[data-note='C']");
+          if (!note) {
+            return false;
+          }
+          poke(note);
+          w.editorStaffPreviewRevealCaret();
+          return (
+            preview.scrollLeft > 0 &&
+            markInView() &&
+            focusLine.selectionStart < focusLine.value.length &&
+            focusLine.value.indexOf(line) === 0
+          );
+        } finally {
+          preview.style.width = "";
+          placeCaret(line);
+        }
+      })()
+    );
+    check(
       "the app stays at one size",
       (function () {
         var meta = w.document.querySelector('meta[name="viewport"]');

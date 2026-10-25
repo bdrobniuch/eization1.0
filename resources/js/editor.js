@@ -83,6 +83,11 @@ var editorStaffEdgeScrollTimer = null;
 var editorStaffScrollBar = null;
 var editorStaffScrollDrag = null;
 var editorStaffScrollBarFrame = 0;
+/* Last caret the preview scrolled into view, and the one waiting to be scrolled in. */
+var editorStaffRevealKey = "";
+var editorStaffRevealPending = "";
+var editorStaffRevealFrame = 0;
+var editorStaffRevealTries = 0;
 /* Music stored by Copy. Paste inserts it at the caret. */
 var editorStaffCopy = "";
 var editorStaffClipMenuOpen = false;
@@ -1236,6 +1241,13 @@ function editorCloseQuiet() {
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
   editorStaffDrag = null;
+  editorStaffRevealKey = "";
+  editorStaffRevealPending = "";
+  editorStaffRevealTries = 0;
+  if (editorStaffRevealFrame) {
+    window.cancelAnimationFrame(editorStaffRevealFrame);
+    editorStaffRevealFrame = 0;
+  }
   clearEditStaffNote();
   editorLastGoodStaffHtml = "";
   editorStaffPendingLine = null;
@@ -1923,30 +1935,7 @@ function editorPaintStaffPreview(preview, music, caption) {
     preview.appendChild(cap);
   }
   editorLastGoodStaffHtml = preview.innerHTML;
-  editorScrollPreviewToEnd(preview);
   editorUpdateStaffCaretMark();
-}
-
-function editorScrollPreviewToEnd(preview) {
-  var field;
-  var value;
-  var caret;
-  if (!preview) {
-    return;
-  }
-  field = editorActiveField();
-  if (field) {
-    value = String(field.value || "");
-    caret = field.selectionStart || 0;
-    if (caret < value.length) {
-      return;
-    }
-  }
-  window.requestAnimationFrame(function () {
-    preview.scrollLeft = preview.scrollWidth;
-    preview.scrollTop = preview.scrollHeight;
-    editorStaffPreviewSyncScrollBar();
-  });
 }
 
 /* Token list with character offsets in the music string (for caret → column). */
@@ -3025,6 +3014,129 @@ function editorStaffPreviewScheduleScrollBar() {
   });
 }
 
+function editorStaffPreviewContentEdges(preview) {
+  var style = window.getComputedStyle(preview);
+  var box = preview.getBoundingClientRect();
+  var left = box.left + (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.paddingLeft) || 0);
+  var right = box.right - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
+  return { left: left, right: right };
+}
+
+/* Room for the note head beside the insertion mark. layout.half is the head radius in px. */
+function editorStaffCaretRevealPad(layout, viewW) {
+  var half = layout && typeof layout.half === "number" && layout.half > 0 ? layout.half : 6;
+  var pad = half * 2 + 8;
+  if (pad < 20) {
+    pad = 20;
+  }
+  if (viewW > 0 && pad > viewW / 2) {
+    pad = Math.max(4, viewW / 2 - 2);
+  }
+  return pad;
+}
+
+function editorStaffPreviewFinishReveal() {
+  if (editorStaffRevealPending) {
+    editorStaffRevealKey = editorStaffRevealPending;
+  }
+  editorStaffRevealTries = 0;
+}
+
+function editorStaffPreviewScheduleRevealCaret() {
+  if (!editorStaffRevealPending || editorStaffRevealPending === editorStaffRevealKey || editorStaffRevealFrame) {
+    return;
+  }
+  editorStaffRevealFrame = window.requestAnimationFrame(function () {
+    editorStaffRevealFrame = 0;
+    editorStaffPreviewRevealCaret();
+  });
+}
+
+/*
+ * Scroll #editPreview so the insertion mark sits inside the visible staff.
+ * A caret that is already on screen leaves scrollLeft alone. A thumb drag
+ * or a selection drag is left alone until the next caret move.
+ */
+function editorStaffPreviewRevealCaret() {
+  var preview;
+  var mark;
+  var edges;
+  var markBox;
+  var markX;
+  var pad;
+  var overflow;
+  var before;
+  var stillOut;
+  if (!editorStaffRevealPending || editorStaffRevealPending === editorStaffRevealKey) {
+    return;
+  }
+  if (editorStaffScrollDrag != null || editorStaffDrag) {
+    return;
+  }
+  preview = document.getElementById("editPreview");
+  if (!preview || !preview.classList.contains("is-staff")) {
+    editorStaffPreviewFinishReveal();
+    return;
+  }
+  if (preview.clientWidth < 8) {
+    if (editorStaffRevealTries < 1) {
+      editorStaffRevealTries = 1;
+      editorStaffPreviewScheduleRevealCaret();
+    } else {
+      editorStaffPreviewFinishReveal();
+    }
+    return;
+  }
+  mark = preview.querySelector(".staff-caret-mark");
+  if (!mark) {
+    if (editorStaffRevealTries < 1) {
+      editorStaffRevealTries = 1;
+      editorStaffPreviewScheduleRevealCaret();
+    } else {
+      editorStaffPreviewFinishReveal();
+    }
+    return;
+  }
+  edges = editorStaffPreviewContentEdges(preview);
+  markBox = mark.getBoundingClientRect();
+  markX = (markBox.left + markBox.right) / 2;
+  pad = editorStaffCaretRevealPad(preview._staffCaretLayout, edges.right - edges.left);
+  overflow = 0;
+  if (markX > edges.right - pad) {
+    overflow = markX - (edges.right - pad);
+  } else if (markX < edges.left + pad) {
+    overflow = markX - (edges.left + pad);
+  }
+  if (overflow !== 0) {
+    before = preview.scrollLeft;
+    preview.scrollLeft = before + overflow;
+    editorStaffPreviewSyncScrollBar();
+    edges = editorStaffPreviewContentEdges(preview);
+    markBox = mark.getBoundingClientRect();
+    markX = (markBox.left + markBox.right) / 2;
+    stillOut = markX > edges.right - pad + 1 || markX < edges.left + pad - 1;
+    if (stillOut && editorStaffRevealTries < 1) {
+      editorStaffRevealTries = 1;
+      editorStaffPreviewScheduleRevealCaret();
+      return;
+    }
+  }
+  editorStaffPreviewFinishReveal();
+}
+
+/* Remember a moved caret and scroll it into view after layout. Same caret keeps the scroll. */
+function editorStaffPreviewNoteCaret(insertIndex, x, musicLength) {
+  var key = String(musicLength) + ":" + String(insertIndex) + ":" + String(Math.round(x));
+  if (key === editorStaffRevealKey) {
+    return;
+  }
+  if (key !== editorStaffRevealPending) {
+    editorStaffRevealTries = 0;
+    editorStaffRevealPending = key;
+  }
+  editorStaffPreviewScheduleRevealCaret();
+}
+
 /* A bar under the staff moves a line that is wider than the preview. Dragging the notes selects. */
 function editorStaffPreviewSyncScrollBar() {
   var preview = document.getElementById("editPreview");
@@ -3545,6 +3657,7 @@ function editorUpdateStaffCaretMark() {
   mark.setAttribute("y2", String(layout.staffBot + 3));
   editorPaintStaffEventHighlight(svg, layout, editorStaffHighlightColumnIndexes(span));
   editorSyncTokenHighlight();
+  editorStaffPreviewNoteCaret(insertIndex, x, mapped.music.length);
 }
 
 function insertEditorText(text, caretBack) {
