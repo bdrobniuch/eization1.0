@@ -2820,6 +2820,34 @@ function chatCase(w) {
         w.editorPadCaret.start === 2
       )
     );
+    check(
+      "staff frames the event under the caret",
+      !!(function () {
+        var svg = w.document.querySelector("#editPreview svg.music-staff");
+        var hi = svg && svg.querySelector(".staff-event-highlight");
+        return !!(hi && parseFloat(hi.getAttribute("width")) > 0);
+      })()
+    );
+    placeCaret("C4 D4");
+    w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+    w.editorUpdateStaffCaretMark();
+    var staffHiOne = (function () {
+      var svg = w.document.querySelector("#editPreview svg.music-staff");
+      var hi = svg && svg.querySelector(".staff-event-highlight");
+      return hi ? parseFloat(hi.getAttribute("width")) : 0;
+    })();
+    w.editorPlaceCaret(focusLine, 0, focusLine.value.length, true);
+    w.editorUpdateStaffCaretMark();
+    check(
+      "staff frames a multi-note selection wider than one event",
+      (function () {
+        var svg = w.document.querySelector("#editPreview svg.music-staff");
+        var hi = svg && svg.querySelector(".staff-event-highlight");
+        var wide = hi ? parseFloat(hi.getAttribute("width")) : 0;
+        return staffHiOne > 0 && wide > staffHiOne + 4;
+      })()
+    );
+    w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
     placeCaret("B4e_6");
     focusLine.setSelectionRange(2, 2);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));

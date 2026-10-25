@@ -2513,6 +2513,169 @@ function editorStaffPreviewPointer(event) {
   }
 }
 
+/*
+ * Field range Acc / Dur / Erase would affect: a same-line selection, else the
+ * erase target (note / shell), else the current event under the caret.
+ */
+function editorStaffHighlightTargetRange() {
+  var field = editorActiveField();
+  var sel;
+  var target;
+  var current;
+  var token;
+  if (!field || !editorStaffOn()) {
+    return null;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start !== sel.end) {
+    return { start: sel.start, end: sel.end };
+  }
+  target = editorStaffEraseTarget();
+  if (target && target.start < target.end && target.kind !== "char") {
+    token = String(target.token || "");
+    if (token !== "}" && token !== "]" && token !== ")") {
+      return { start: target.start, end: target.end };
+    }
+  }
+  current = editorCurrentEventAtCaret();
+  if (editorTokenIsHighlightable(current)) {
+    return { start: current.start, end: current.end };
+  }
+  return null;
+}
+
+/* Drawn column indexes whose tokens overlap a music-string [from, to). */
+function editorStaffColumnsForMusicRange(music, from, to) {
+  var starts;
+  var out = [];
+  var i;
+  var cStart;
+  var cEnd;
+  music = String(music || "");
+  if (!music || from >= to) {
+    return out;
+  }
+  starts = editorStaffColumnStarts(music);
+  for (i = 0; i < starts.length; i++) {
+    cStart = starts[i];
+    cEnd = editorMusicColumnContentEnd(music, cStart);
+    if (cEnd <= cStart) {
+      cEnd = cStart + 1;
+    }
+    if (cEnd > from && cStart < to) {
+      out.push(i);
+    }
+  }
+  return out;
+}
+
+function editorStaffHighlightColumnIndexes(span) {
+  var range;
+  var line;
+  var mapped;
+  var musicAt;
+  var fromAbs;
+  var toAbs;
+  var from;
+  var to;
+  if (!span) {
+    return [];
+  }
+  range = editorStaffHighlightTargetRange();
+  if (!range) {
+    return [];
+  }
+  fromAbs = Math.max(range.start, span.lineStart);
+  toAbs = Math.min(range.end, span.lineEnd);
+  if (fromAbs >= toAbs) {
+    return [];
+  }
+  line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
+  mapped = editorMusicCaretInLine(line, 0);
+  if (!mapped.music) {
+    return [];
+  }
+  musicAt = String(line || "").indexOf(mapped.music);
+  if (musicAt < 0) {
+    musicAt = 0;
+  }
+  from = fromAbs - span.lineStart - musicAt;
+  to = toAbs - span.lineStart - musicAt;
+  if (from < 0) {
+    from = 0;
+  }
+  if (to < 0) {
+    to = 0;
+  }
+  if (from > mapped.music.length) {
+    from = mapped.music.length;
+  }
+  if (to > mapped.music.length) {
+    to = mapped.music.length;
+  }
+  return editorStaffColumnsForMusicRange(mapped.music, from, to);
+}
+
+function editorClearStaffEventHighlight(svg) {
+  var list;
+  var i;
+  if (!svg) {
+    return;
+  }
+  list = svg.querySelectorAll(".staff-event-highlight");
+  for (i = list.length - 1; i >= 0; i--) {
+    if (list[i].parentNode) {
+      list[i].parentNode.removeChild(list[i]);
+    }
+  }
+}
+
+/* Soft frame over the column(s) Acc / Dur / Erase would rewrite or remove. */
+function editorPaintStaffEventHighlight(svg, layout, colIndexes) {
+  var cols;
+  var half;
+  var first;
+  var last;
+  var rect;
+  var mark;
+  var x0;
+  var width;
+  editorClearStaffEventHighlight(svg);
+  if (!svg || !layout || !colIndexes || !colIndexes.length) {
+    return;
+  }
+  cols = layout.cols || [];
+  if (!cols.length) {
+    return;
+  }
+  first = colIndexes[0];
+  last = colIndexes[colIndexes.length - 1];
+  if (first < 0 || last >= cols.length || first > last) {
+    return;
+  }
+  half = layout.half || 6;
+  x0 = cols[first].x - half - 3;
+  width = cols[last].x - cols[first].x + 2 * half + 6;
+  if (width < half * 2) {
+    width = half * 2;
+  }
+  rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  rect.setAttribute("class", "staff-event-highlight");
+  rect.setAttribute("x", String(x0));
+  rect.setAttribute("y", String(layout.staffTop - 5));
+  rect.setAttribute("width", String(width));
+  rect.setAttribute("height", String(layout.staffBot - layout.staffTop + 10));
+  rect.setAttribute("rx", "3");
+  rect.setAttribute("ry", "3");
+  rect.setAttribute("pointer-events", "none");
+  mark = svg.querySelector(".staff-caret-mark");
+  if (mark && mark.parentNode === svg) {
+    svg.insertBefore(rect, mark);
+  } else {
+    svg.appendChild(rect);
+  }
+}
+
 function editorClearStaffCaretMark(preview) {
   var svg;
   var mark;
@@ -2523,6 +2686,7 @@ function editorClearStaffCaretMark(preview) {
   if (!svg) {
     return;
   }
+  editorClearStaffEventHighlight(svg);
   mark = svg.querySelector(".staff-caret-mark");
   if (mark && mark.parentNode) {
     mark.parentNode.removeChild(mark);
@@ -2591,6 +2755,7 @@ function editorUpdateStaffCaretMark() {
   mark.setAttribute("x2", String(x));
   mark.setAttribute("y1", String(layout.staffTop - 3));
   mark.setAttribute("y2", String(layout.staffBot + 3));
+  editorPaintStaffEventHighlight(svg, layout, editorStaffHighlightColumnIndexes(span));
   editorSyncTokenHighlight();
 }
 

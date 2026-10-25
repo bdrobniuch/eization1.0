@@ -2821,6 +2821,17 @@ body.is-editing #counter {
   color: #111;
 }
 
+/* Soft frame: column(s) Acc / Dur / Erase would affect (under the caret mark). */
+#editPreview.is-staff .staff-event-highlight {
+  fill: rgba(47, 110, 180, 0.16);
+  stroke: rgba(47, 110, 180, 0.45);
+  stroke-width: 1.25;
+}
+
+#editPreview.is-staff.is-staff-pending .staff-event-highlight {
+  opacity: 0.55;
+}
+
 /* Soft insertion mark: tracks text/pad caret between staff columns. */
 #editPreview.is-staff .staff-caret-mark {
   opacity: 0.78;
