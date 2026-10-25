@@ -2494,14 +2494,18 @@ function editorStaffPreviewPointer(event) {
     musicAt = 0;
   }
   fieldCaret = span.lineStart + musicAt + editorMusicCaretFromInsertIndex(mapped.music, insertIndex);
-  silent = !!(editorSymbolsIsOpen() && !editorLabelTyping);
-  if (silent && !editorPadCaret) {
+  /* Staff click: open Write notes so caret + pad stay paired (no soft keyboard). */
+  if (editorLabelTyping) {
+    editorEndLabelTyping();
+  }
+  if (!editorSymbolsIsOpen()) {
+    editorOpenSymbols();
+  }
+  if (!editorPadCaret) {
     editorCapturePadCaret();
   }
-  editorPlaceCaret(span.field, fieldCaret, fieldCaret, silent);
-  if (silent) {
-    editorBeginPadInput();
-  }
+  editorPlaceCaret(span.field, fieldCaret, fieldCaret, true);
+  editorBeginPadInput();
   editorPaintNotePad();
   editorSyncTokenHighlight();
   if (event.cancelable) {

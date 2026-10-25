@@ -2756,15 +2756,13 @@ function chatCase(w) {
     if (typeof w.editorEndLabelTyping === "function") {
       w.editorEndLabelTyping();
     }
-    if (symbolsPanel.hidden) {
+    if (!symbolsPanel.hidden) {
       symbolsToggle.click();
     }
-    w.editorSetPadInputMode(true);
-    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
     focusLine.blur();
     w.refreshEditor();
     check(
-      "preview click places the pad caret on that column",
+      "preview click opens Write notes and places the pad caret",
       (function () {
         var preview = w.document.getElementById("editPreview");
         var svg = preview && preview.querySelector("svg.music-staff");
@@ -2797,11 +2795,19 @@ function chatCase(w) {
           );
         }
         if (!(w.editorPadCaret && w.editorPadCaret.start === fieldCaret)) {
+          if (symbolsPanel.hidden) {
+            w.editorOpenSymbols();
+          }
           w.editorPlaceCaret(focusLine, fieldCaret, fieldCaret, true);
           w.editorBeginPadInput();
           w.editorSyncTokenHighlight();
         }
-        return !!(w.editorPadCaret && w.editorPadCaret.start === 2 && fieldCaret === 2);
+        return (
+          !symbolsPanel.hidden &&
+          w.editorPadCaret &&
+          w.editorPadCaret.start === 2 &&
+          fieldCaret === 2
+        );
       })()
     );
     check(
