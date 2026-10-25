@@ -1913,16 +1913,18 @@ function staffStackStemUpFromSteps(steps, midStep) {
  * line or beyond is flat. The line then shifts outward until every stem
  * is at least minStem. A beam that still sits clear of the staff moves in
  * until its inner edge meets the outer staff line.
- * minStem is an octave, so one staff space is minStem / 3.5.
+ * space is one staff space. When it is omitted, minStem is treated as an octave.
  * staffTop is the top staff line; omit it to skip the staff pull.
  * stemUp is in SVG coordinates (up is a smaller y).
  */
-function staffBeamTipYs(xs, ys, stemUp, minStem, staffTop) {
+function staffBeamTipYs(xs, ys, stemUp, minStem, staffTop, space) {
   var n = xs.length;
   var x0 = xs[0];
   var span = n ? xs[n - 1] - x0 : 0;
   var dir = stemUp ? -1 : 1;
-  var space = minStem / 3.5;
+  if (!(space > 0)) {
+    space = minStem / 3.5;
+  }
   var halfSpace = space * 0.5;
   var dy = n ? ys[n - 1] - ys[0] : 0;
   var travel = dy;
@@ -2966,9 +2968,11 @@ function renderMusicStaff(source, role, opts) {
 
   var staffMidY = staffTop + 2 * lineGap;
   var stemLen = lineGap * 3.5;
+  /* A beam is already ink, so its shortest stem is a little under an octave. */
+  var beamMin = lineGap * 3;
   /*
    * Slash: stem from the bottom-left tip of the glyph, down ~1.5 spaces
-   * past the bottom staff line (same tip depth as a normal stem).
+   * past the bottom staff line (same tip depth as a normal unbeamed stem).
    */
   var slashStemLen = stemLen;
   var slashStemFrom = lineGap;
@@ -3150,7 +3154,7 @@ function renderMusicStaff(source, role, opts) {
       }
     }
     var inkUp = inkSlash ? false : inkSum / inkGrp.indices.length > staffMidY;
-    var inkStemLen = inkSlash ? slashStemLen : stemLen;
+    var inkStemLen = beamMin;
     var inkXs = [];
     var inkYs = [];
     for (inkGi = 0; inkGi < inkGrp.indices.length; inkGi++) {
@@ -3158,7 +3162,7 @@ function renderMusicStaff(source, role, opts) {
       inkXs.push(staffStemX(colX[inkCol], inkUp, columns[inkCol].head === "slash"));
       inkYs.push(staffInkAnchorY(inkCol, inkUp));
     }
-    var inkTips = staffBeamTipYs(inkXs, inkYs, inkUp, inkStemLen, staffTop);
+    var inkTips = staffBeamTipYs(inkXs, inkYs, inkUp, inkStemLen, staffTop, lineGap);
     for (inkGi = 0; inkGi < inkTips.length; inkGi++) {
       var inkTip = inkTips[inkGi];
       predTip[inkGrp.indices[inkGi]] = inkTip;
@@ -3821,7 +3825,7 @@ function renderMusicStaff(source, role, opts) {
       }
     }
     var groupUp = slashBeam ? false : sumY / grp.indices.length > staffMidY;
-    var beamStemLen = slashBeam ? slashStemLen : stemLen;
+    var beamStemLen = beamMin;
     var beamXs = [];
     var beamYs = [];
     var stemFromY;
@@ -3835,7 +3839,7 @@ function renderMusicStaff(source, role, opts) {
         beamYs.push(colNy[beamCol]);
       }
     }
-    var tipYs = staffBeamTipYs(beamXs, beamYs, groupUp, beamStemLen, staffTop);
+    var tipYs = staffBeamTipYs(beamXs, beamYs, groupUp, beamStemLen, staffTop, lineGap);
     var tips = [];
     for (gi = 0; gi < grp.indices.length; gi++) {
       var ci = grp.indices[gi];

@@ -756,7 +756,7 @@ function staffNotation(w) {
     "a written scale keeps a shallow beam",
     scaleLens.length === 4 &&
       scaleTips.length === 4 &&
-      Math.abs(Math.min.apply(null, scaleLens) - 42) < 0.6 &&
+      Math.abs(Math.min.apply(null, scaleLens) - 36) < 0.6 &&
       Math.abs(Math.max.apply(null, scaleLens) - Math.min.apply(null, scaleLens) - 12) < 0.6 &&
       Math.abs(scaleTips[3] - scaleTips[0] + 6) < 0.6
   );
@@ -773,6 +773,18 @@ function staffNotation(w) {
   check(
     "a low level beam sits against the staff",
     lowTips.length === 4 && Math.abs(lowTips[0] - (lowBot + 3)) < 0.6 && lowTips[0] === lowTips[3]
+  );
+  var pairSvg = w.renderMusicStaff("{E4e E4e}", "current");
+  var pairLens = staffStemLengths(pairSvg);
+  check(
+    "a beamed eighth uses a three-space stem",
+    pairLens.length === 2 &&
+      Math.abs(pairLens[0] - 36) < 0.6 &&
+      Math.abs(pairLens[1] - 36) < 0.6
+  );
+  check(
+    "a flagged eighth keeps an octave stem",
+    staffStemIsOctave(w.renderMusicStaff("C4e", "current"))
   );
   staffTuplets(w);
 }
@@ -1195,7 +1207,7 @@ function staffBeamStemsMeet(w, source) {
     if (best > 0.6) {
       return false;
     }
-    if (Math.abs(stems[s].y2 - stems[s].y1) < 41) {
+    if (Math.abs(stems[s].y2 - stems[s].y1) < 35) {
       return false;
     }
   }
