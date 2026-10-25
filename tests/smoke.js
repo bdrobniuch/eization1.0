@@ -4709,8 +4709,10 @@ function chatCase(w) {
       );
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(
-        "rest keeps each event's duration",
-        focusLine.value === "C4q rq re F4e" && selectedText() === "rq re" && draws()
+        "a rest is written after the selection",
+        focusLine.value === "C4q D4q E4e rq F4e" &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          draws()
       );
       poke(w.document.querySelector("#editNoteHistory [data-undo]"));
       check(
@@ -4720,19 +4722,22 @@ function chatCase(w) {
       selectSpan("C4q D4q E4e F4e", "D4q E4e");
       poke(symbolsPanel.querySelector("[data-note='G']"));
       check(
-        "a letter rewrites each selected note",
-        focusLine.value === "C4q G4q G4e F4e" && selectedText() === "G4q G4e" && draws()
+        "a letter is written after the selection",
+        focusLine.value === "C4q D4q E4e G4 F4e" &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          draws()
       );
       selectSpan("C4q D#4q E#4e F4e", "D#4q E#4e");
       check("shared sharps light sharp", symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true");
       poke(symbolsPanel.querySelector("[data-note='G']"));
       check(
-        "a letter keeps each accidental",
-        focusLine.value === "C4q G#4q G#4e F4e" &&
-          symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true"
+        "a letter after sharps is a new note",
+        focusLine.value === "C4q D#4q E#4e G4 F4e" &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          draws()
       );
       poke(symbolsPanel.querySelector("[data-acc='#']"));
-      check("tapping the lit sharp clears it", focusLine.value === "C4q G4q G4e F4e" && draws());
+      check("tapping sharp marks the note just added", focusLine.value === "C4q D#4q E#4e G#4 F4e" && draws());
       selectSpan("C4q D4q E4e F4e", "D4q E4e");
       poke(symbolsPanel.querySelector("[data-dur='e']"));
       check("eighth rewrites each selected event", focusLine.value === "C4q D4e E4e F4e" && selectedText() === "D4e E4e");
@@ -4771,12 +4776,14 @@ function chatCase(w) {
       check("a whole beam lights eighth and beam", litDur() === "e" && symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "true");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(
-        "resting a whole beam drops the braces",
-        focusLine.value === "re re re re" && selectedText() === "re re re re" && draws()
+        "a rest after a whole beam stays outside it",
+        focusLine.value === "{C4e D4e E4e F4e} rq" &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          draws()
       );
       selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e");
       poke(symbolsPanel.querySelector("[data-note='A']"));
-      check("a letter keeps the beam", focusLine.value === "{A4e A4e A4e A4e}" && draws());
+      check("a letter after a whole beam joins that beam", focusLine.value === "{C4e D4e E4e F4e A4e}" && draws());
       selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e");
       poke(symbolsPanel.querySelector("[data-dur='']"));
       check("quarter takes the whole beam apart", focusLine.value === "C4 D4 E4 F4" && draws());
@@ -4792,12 +4799,14 @@ function chatCase(w) {
       );
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(
-        "rest steps out of a beam and keeps the leftovers braced",
-        focusLine.value === "{C4e} re re {F4e}" && selectedText() === "re re" && draws()
+        "a rest is written after the notes inside the beam",
+        focusLine.value === "{C4e D4e E4e} rq F4e" &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          draws()
       );
       selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
       poke(symbolsPanel.querySelector("[data-note='B']"));
-      check("a letter stays inside the beam", focusLine.value === "{C4e B4e B4e F4e}" && draws());
+      check("a letter is written after those notes inside the beam", focusLine.value === "{C4e D4e E4e B4e F4e}" && draws());
       selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
       poke(symbolsPanel.querySelector("[data-dur='']"));
       check("quarter steps out and leaves the eighths beamed", focusLine.value === "{C4e} D4 E4 {F4e}" && selectedText() === "D4 E4" && draws());
@@ -4817,28 +4826,29 @@ function chatCase(w) {
       check("two beams do not light beam", symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "false");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(
-        "each beam closes around the notes that stayed",
-        focusLine.value === "{C4e D4e} re re {G4e A4e}" && draws()
+        "a rest is written after the selection across two beams",
+        focusLine.value === "{C4e D4e E4e} F4e rh {G4e A4e}" && draws()
       );
       selectFromTo("{C4e D4e E4e} {F4e G4e A4e}", "E4e", "F4e");
       poke(symbolsPanel.querySelector("[data-note='B']"));
       check(
-        "a letter repairs each beam on its own",
-        focusLine.value === "{C4e D4e B4e} {B4e G4e A4e}" && draws()
+        "a letter is written after the selection inside the next beam",
+        focusLine.value === "{C4e D4e E4e} {F4e B4e G4e A4e}" &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          draws()
       );
-      check("neither partial beam is copied with braces", w.editorStaffSelectionText(focusLine) === "B4e B4e");
       selectFromTo("{C4e D4e E4e} {F4e G4e A4e}", "E4e", "F4e");
       check("copy across two beams keeps neither shell", w.editorStaffSelectionText(focusLine) === "E4e F4e");
       selectSpan("(3 C4e D4e E4e)", "C4e D4e E4e");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
-      check("a triplet stays around rests", focusLine.value === "(3 re re re)" && draws());
+      check("a rest is written after the triplet's notes", focusLine.value === "(3 C4e D4e E4e re)" && draws());
       selectSpan("(3 C4e D4e E4e)", "C4e D4e E4e");
       check("a whole triplet copies with its bracket", w.editorStaffSelectionText(focusLine) === "(3 C4e D4e E4e)");
       poke(symbolsPanel.querySelector("[data-dur='']"));
       check("quarter stays inside the triplet", focusLine.value === "(3 C4 D4 E4)" && draws());
       selectSpan("(3 C4e D4e E4e)", "C4e D4e");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
-      check("a partial triplet rest stays inside", focusLine.value === "(3 re re E4e)" && draws());
+      check("a rest is written after the selected triplet notes", focusLine.value === "(3 C4e D4e rq E4e)" && draws());
       selectSpan("(3 C4e D4e E4e)", "C4e D4e");
       check("a partial triplet copies without the bracket", w.editorStaffSelectionText(focusLine) === "C4e D4e");
       poke(symbolsPanel.querySelector("[data-event='bar']"));
@@ -4870,8 +4880,8 @@ function chatCase(w) {
       selectSpan("(3 {C4e D4e E4e})", "C4e D4e E4e");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(
-        "rest drops the beam and keeps the triplet",
-        focusLine.value === "(3 re re re)" && draws()
+        "a rest after a beamed triplet stays in the triplet",
+        focusLine.value === "(3 {C4e D4e E4e} rq)" && draws()
       );
       selectSpan("(3 {C4e D4e E4e})", "C4e D4e E4e");
       poke(symbolsPanel.querySelector("[data-dur='']"));
@@ -4879,16 +4889,16 @@ function chatCase(w) {
       selectSpan("(3 {C4e D4e E4e})", "D4e");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
       check(
-        "the middle rest steps out of the inner beam",
-        focusLine.value === "(3 {C4e} re {E4e})" && draws()
+        "a rest is written after the selected note inside the beam",
+        focusLine.value === "(3 {C4e D4e} rq E4e)" && draws()
       );
       selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
       check("one chord lights the stack", symbolsPanel.querySelector("[data-event='stack']").getAttribute("aria-pressed") === "true");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
-      check("a chord becomes one rest", focusLine.value === "re" && draws());
+      check("a rest is written after the chord", focusLine.value === "[C4e E4e G4e] rq" && draws());
       selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
       poke(symbolsPanel.querySelector("[data-event='slash']"));
-      check("a chord becomes one slash", focusLine.value === "/e" && draws());
+      check("a slash is written after the chord", focusLine.value === "[C4e E4e G4e] /q" && draws());
       selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
       poke(symbolsPanel.querySelector("[data-note='D']"));
       check(
@@ -4909,7 +4919,7 @@ function chatCase(w) {
       );
       selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e]");
       poke(symbolsPanel.querySelector("[data-event='rest']"));
-      check("a chord rest steps out of the beam", focusLine.value === "re {D4e F4e}" && draws());
+      check("a rest is written after the chord inside the beam", focusLine.value === "[C4e E4e] rq {D4e F4e}" && draws());
       selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e]");
       poke(symbolsPanel.querySelector("[data-note='A']"));
       check(
@@ -5272,7 +5282,18 @@ function chatCase(w) {
         symbolsPanel.querySelector("[data-move-menu]").textContent === "M2"
       );
       poke(symbolsPanel.querySelector("[data-move-by='1']"));
-      check("one note moves by the interval that stayed", focusLineT.value === "D4");
+      check(
+        "one note moves by the interval that stayed",
+        focusLineT.value === "D4" &&
+          w.editorPadCaret &&
+          w.editorPadCaret.start === w.editorPadCaret.end &&
+          w.editorPadCaret.start === focusLineT.value.length
+      );
+      w.editorNote.dur = "";
+      w.editorNote.acc = "";
+      w.editorNote.oct = null;
+      poke(symbolsPanel.querySelector("[data-note='G']"));
+      check("the next letter follows that note", focusLineT.value === "D4 G4");
       focusLineT.value = "C4 E4 F#4 F4";
       focusLineT.dispatchEvent(new w.Event("input", { bubbles: true }));
       focusLineT.focus();

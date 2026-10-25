@@ -3643,6 +3643,7 @@ function editorUpdateStaffCaretMark() {
   var mark;
   var x;
   var insertIndex;
+  var selMark;
   if (!preview || !editorStaffOn()) {
     editorClearStaffCaretMark(preview);
     return;
@@ -3665,9 +3666,14 @@ function editorUpdateStaffCaretMark() {
   }
   /* Multi-line #allEdit caret is absolute; map to the current line first. */
   line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
-  lineCaret = span.caret - span.lineStart;
+  /* A selection's insertion mark sits after the last note. A caret stays where it is. */
+  selMark = editorReadSelection(span.field);
+  lineCaret = (selMark.start === selMark.end ? span.caret : selMark.end) - span.lineStart;
   if (lineCaret < 0) {
     lineCaret = 0;
+  }
+  if (lineCaret > line.length) {
+    lineCaret = line.length;
   }
   mapped = editorMusicCaretInLine(line, lineCaret);
   if (!mapped.music) {
@@ -4081,6 +4087,27 @@ function editorPitchTail(text) {
  * Word bounds on a line at rel — same grain as Erase: token under the caret
  * when parked on it, else the previous word when in trailing spaces.
  */
+/* End of a glued tail (articulation, chord name) so the caret does not split the note. */
+function editorGluedTailEnd(line, index) {
+  var i = index;
+  var ch;
+  line = String(line || "");
+  if (i < 0) {
+    i = 0;
+  }
+  if (i > line.length) {
+    i = line.length;
+  }
+  while (i < line.length) {
+    ch = line.charAt(i);
+    if (/[\s\n{}[\]()|~]/.test(ch)) {
+      break;
+    }
+    i += 1;
+  }
+  return i;
+}
+
 function editorWordBoundsAt(line, rel) {
   var wordStart;
   var wordEnd;
@@ -5964,7 +5991,8 @@ function editorMarkSelectedNodes(nodes, start, end) {
   for (i = 0; i < nodes.length; i++) {
     node = nodes[i];
     if (node.type === "piece") {
-      if (editorIsEventPiece(node) && node.start >= start && node.end <= end) {
+      /* A note counts when its head is inside the range, even if a glued mark runs past the end. */
+      if (editorIsEventPiece(node) && node.start >= start && node.start < end) {
         node.selected = true;
       }
     } else if (node.children) {
@@ -6625,48 +6653,6 @@ function editorApplySelectionLetter(letter, opts) {
   }, "select", opts);
 }
 
-function editorApplySelectionRest(opts) {
-  return editorRunSelection(function (nodes, events) {
-    var i;
-    var ev;
-    var dur;
-    var dot;
-    for (i = 0; i < events.length; i++) {
-      ev = events[i];
-      if (ev.kind === "stack") {
-        dur = ev.dur == null ? (ev.pitches[0] ? ev.pitches[0].dur : "") : ev.dur;
-        dot = ev.pitches[0] ? ev.pitches[0].dot : false;
-      } else {
-        dur = ev.dur;
-        dot = ev.dot;
-      }
-      ev.replaceWith = editorRestText(dur, dot);
-    }
-    return true;
-  }, "select", opts);
-}
-
-function editorApplySelectionSlash(opts) {
-  return editorRunSelection(function (nodes, events) {
-    var i;
-    var ev;
-    var dur;
-    var dot;
-    for (i = 0; i < events.length; i++) {
-      ev = events[i];
-      if (ev.kind === "stack") {
-        dur = ev.dur == null ? (ev.pitches[0] ? ev.pitches[0].dur : "") : ev.dur;
-        dot = ev.pitches[0] ? ev.pitches[0].dot : false;
-      } else {
-        dur = ev.dur;
-        dot = ev.dot;
-      }
-      ev.replaceWith = editorSlashText(dur, dot);
-    }
-    return true;
-  }, "select", opts);
-}
-
 function editorApplySelectionDot(dotOn) {
   return editorRunSelection(function (nodes, events) {
     var i;
@@ -6759,7 +6745,7 @@ function editorApplySelectionBar() {
     return editorIsEventPiece(p) && p.selected;
   });
   if (!events.length) {
-    return true;
+    return false;
   }
   bar = { type: "piece", kind: "bar", text: "|", caretAfter: true, selected: false, pasted: false };
   tup = editorCommonTupletNode(events);
@@ -11116,6 +11102,44 @@ function editorPaintNotePad() {
   editorPlaceOpenMenus(true);
 }
 
+/* Collapse a selection onto the right edge, through a glued mark, so the next symbol follows it. */
+function editorParkAfterSelection() {
+  var field = editorActiveField();
+  var sel;
+  var end;
+  var silent;
+  if (!field) {
+    return false;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start === sel.end) {
+    return false;
+  }
+  end = sel.end > sel.start ? sel.end : sel.start;
+  end = editorGluedTailEnd(String(field.value || ""), end);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, end, end, silent);
+  return true;
+}
+
+function editorSelectionIsSingleStack() {
+  var bounds = editorSelectionBounds();
+  var nodes;
+  var events;
+  if (!bounds) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(bounds.music);
+  if (!nodes) {
+    return false;
+  }
+  editorMarkSelectedNodes(nodes, bounds.a, bounds.b);
+  events = editorCollectPieces(nodes).filter(function (p) {
+    return editorIsEventPiece(p) && p.selected;
+  });
+  return events.length === 1 && events[0].kind === "stack";
+}
+
 function editorWriteLetter(letter, opts) {
   var token;
   var span;
@@ -11126,9 +11150,11 @@ function editorWriteLetter(letter, opts) {
   var acc;
   var free;
   var suffix;
-  if (editorApplySelectionLetter(letter, opts)) {
+  /* A selected chord grows by that letter. Any other selection is continued after. */
+  if (editorSelectionIsSingleStack() && editorApplySelectionLetter(letter, opts)) {
     return;
   }
+  editorParkAfterSelection();
   if (editorCaretInsideStructure("beam")) {
     editorForceShortDuration();
   }
@@ -12937,12 +12963,7 @@ function editorApplyTranspose(opts) {
   } else {
     field.value = bounds.value.slice(0, bounds.lineStart) + newLine + bounds.value.slice(bounds.lineEnd);
     silent = !!(editorPadCaret && editorSymbolsIsOpen());
-    editorPlaceCaret(
-      field,
-      bounds.lineStart + result.selStart,
-      bounds.lineStart + result.selEnd,
-      silent
-    );
+    editorPlaceMovedCaret(field, bounds.lineStart, newLine, result.selStart, result.selEnd, silent);
     if (editorIsFocusMode()) {
       editorSyncFocusToArea();
     }
@@ -13237,6 +13258,43 @@ function editorCloseMoveMenu() {
 }
 
 /* Arrows move the selection, or the note under the caret, by the armed interval. */
+/* How many written pitches sit in a music range. One pitch collapses; several stay selected. */
+function editorPitchCountInRange(music, start, end) {
+  var scanned;
+  var n = 0;
+  var i;
+  var p;
+  scanned = editorScanTranspose(music);
+  for (i = 0; i < scanned.pitches.length; i++) {
+    p = scanned.pitches[i];
+    if (p.end > start && p.start < end) {
+      n += 1;
+    }
+  }
+  return n;
+}
+
+/*
+ * After a move: one pitch gets a caret on its right. Several pitches stay selected,
+ * with the range extended through a glued mark on the last one.
+ */
+function editorPlaceMovedCaret(field, lineStart, music, selStart, selEnd, silent) {
+  var parts;
+  var body;
+  var end;
+  if (!field) {
+    return;
+  }
+  parts = editorSplitStaffCaption(music);
+  body = parts.music;
+  end = editorGluedTailEnd(String(field.value || ""), lineStart + selEnd);
+  if (editorPitchCountInRange(body, selStart, selEnd) <= 1) {
+    editorPlaceCaret(field, end, end, silent);
+    return;
+  }
+  editorPlaceCaret(field, lineStart + selStart, end, silent);
+}
+
 function editorApplyIntervalStep(dir) {
   var field;
   var bounds;
@@ -13311,7 +13369,7 @@ function editorShiftSelectionOctaves(dir) {
   editorPushSymbolUndo();
   field.value = value.slice(0, sel.start) + next + value.slice(sel.end);
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  editorPlaceCaret(field, sel.start, sel.start + next.length, silent);
+  editorPlaceMovedCaret(field, sel.start, next, 0, next.length, silent);
   clearEditorNotice();
   refreshEditor();
   editorPaintNotePad();
@@ -13364,6 +13422,12 @@ function editorShiftOctave(dir) {
   if (!editorReplaceCaretToken(hit, next)) {
     return;
   }
+  editorPlaceCaret(
+    hit.field,
+    hit.start + next.length,
+    hit.start + next.length,
+    !!(editorPadCaret && editorSymbolsIsOpen())
+  );
   editorNote.oct = null;
 }
 
@@ -13487,9 +13551,7 @@ function editorActivateSymbol(button, opts) {
       editorTupletMenuOpen = false;
     }
     if (eventName === "slash") {
-      if (editorApplySelectionSlash(opts)) {
-        return;
-      }
+      editorParkAfterSelection();
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
@@ -13501,9 +13563,7 @@ function editorActivateSymbol(button, opts) {
       return;
     }
     if (eventName === "rest") {
-      if (editorApplySelectionRest(opts)) {
-        return;
-      }
+      editorParkAfterSelection();
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
@@ -13518,6 +13578,7 @@ function editorActivateSymbol(button, opts) {
       if (editorApplySelectionBar()) {
         return;
       }
+      editorParkAfterSelection();
       editorToggleOrInsertBar();
       return;
     }
