@@ -3322,6 +3322,89 @@ function chatCase(w) {
     poke(w.document.querySelector("#editNoteHistory [data-redo]"));
     check("redo writes the bass letter again", focusLine.value === "C3");
     (function () {
+      var spell = w.editorMidiSpell;
+      var c4 = spell(60, "C");
+      var sharp = spell(61, "C");
+      var flat = spell(61, "F");
+      var natural = spell(65, "G");
+      var fsharp = spell(66, "G");
+      var bsharp = spell(72, "C#");
+      var cflat = spell(59, "Cb");
+      var amin = spell(61, "Am");
+      function pitch(sp, letter, acc, oct) {
+        return !!(sp && sp.letter === letter && (sp.acc || "") === acc && sp.oct === oct);
+      }
+      check(
+        "midi spells from the key",
+        pitch(c4, "C", "", 4) &&
+          pitch(sharp, "C", "#", 4) &&
+          pitch(flat, "D", "b", 4) &&
+          pitch(natural, "F", "", 4) &&
+          pitch(fsharp, "F", "#", 4) &&
+          pitch(bsharp, "B", "#", 4) &&
+          pitch(cflat, "C", "b", 4) &&
+          pitch(amin, "C", "#", 4) &&
+          spell(11, "C") === null &&
+          pitch(spell(120, "C"), "C", "", 9)
+      );
+      w.editorNote.dur = "";
+      w.editorNote.dot = false;
+      w.editorNote.dots = 0;
+      w.editorNote.acc = "";
+      w.editorNote.oct = null;
+      placeCaret("");
+      w.editorMidiOnMessage({ data: [0x80, 60, 0] });
+      w.editorMidiOnMessage({ data: [0x90, 60, 0] });
+      w.editorMidiOnMessage({ data: [0xb0, 64, 127] });
+      w.editorMidiFlushChord();
+      check("midi note off and pedal do not write", focusLine.value === "");
+      w.editorMidiQueue(67);
+      w.editorMidiQueue(60);
+      w.editorMidiQueue(64);
+      w.editorMidiQueue(60);
+      w.editorMidiFlushChord();
+      check("midi keys held together are one stack", focusLine.value === "[C4 E4 G4]");
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+      check("midi chord undoes in one step", focusLine.value === "");
+      w.editorNote.dur = "e";
+      placeCaret("");
+      w.editorMidiCommit([60]);
+      check("midi uses the lit duration", focusLine.value === "C4e");
+      w.editorNote.dur = "";
+      placeCaret("@key=G ");
+      w.editorMidiCommit([66]);
+      check("midi line key spells F sharp", focusLine.value === "@key=G F#4");
+      placeCaret("[C4 E4]");
+      focusLine.setSelectionRange(focusLine.value.length - 1, focusLine.value.length - 1);
+      w.editorMidiCommit([67]);
+      check("midi adds the missing pitch to a stack", focusLine.value === "[C4 E4 G4]");
+      placeCaret("[C4 E4]");
+      focusLine.setSelectionRange(focusLine.value.length - 1, focusLine.value.length - 1);
+      w.editorMidiCommit([60]);
+      check("midi skips a pitch the stack already has", focusLine.value === "[C4 E4]");
+      placeCaret("{C4e}");
+      focusLine.setSelectionRange(focusLine.value.length - 1, focusLine.value.length - 1);
+      w.editorNote.dur = "w";
+      w.editorMidiCommit([62]);
+      check("midi inside a beam stays short", focusLine.value === "{C4e D4e}");
+      w.editorNote.dur = "";
+      w.editorNote.dot = false;
+      w.editorNote.dots = 0;
+      w.editorNote.acc = "";
+      w.editorNote.oct = null;
+      placeCaret("C4");
+      w.editorMidiCommit([5]);
+      check("midi below octave 0 is ignored", focusLine.value === "C4");
+      /* A pad press swallows the next click, so close through the same path as the button. */
+      w.editorCloseSymbols();
+      check("write notes can close", symbolsPanel.hidden === true);
+      w.editorMidiCommit([60]);
+      check("midi waits until write notes is open", focusLine.value === "C4");
+      if (symbolsPanel.hidden) {
+        w.editorOpenSymbols();
+      }
+    })();
+    (function () {
       var beforeBars = w.editorReadBars();
       w.editorNudgeBars(1);
       check("bars nudge increases the count", w.editorReadBars() === beforeBars + 1);

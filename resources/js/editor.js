@@ -63,6 +63,14 @@ var editorMoveMenuOpen = false;
 /* Armed interval for the Write notes stepper, in semitones. 12 is an octave. */
 var editorMoveSemis = 12;
 
+/* MIDI step entry. One note-on writes a pitch; notes in this window are one stack. */
+var EDITOR_MIDI_CHORD_MS = 50;
+var editorMidiAccess = null;
+var editorMidiAsked = false;
+var editorMidiPending = false;
+var editorMidiChord = [];
+var editorMidiChordTimer = 0;
+
 var editorNotePadStamp = "";
 var editorIconCache = {};
 var editorSymbolUndo = [];
@@ -425,6 +433,7 @@ function setEditorStaff(on) {
   editorPlaceExerciseExtras();
   editorSyncSymbolKind();
   editorSyncAddCombo();
+  editorMidiSync();
 }
 
 function editorReadDefaults() {
@@ -828,6 +837,7 @@ function editorCloseSymbols() {
   if (button) {
     button.setAttribute("aria-expanded", "false");
   }
+  editorMidiCancelChord();
   editorLabelTyping = false;
   editorPadCaret = null;
   editorSetPadInputMode(false);
@@ -1033,6 +1043,7 @@ function editorOpenSymbols() {
       });
     }
   }
+  editorMidiSync();
 }
 
 function editorToggleSymbols() {
@@ -1243,6 +1254,7 @@ function editorCloseQuiet() {
   if (!editorIsOpen()) {
     return;
   }
+  editorMidiCancelChord();
   if (editorIsFocusMode()) {
     editorSyncFocusToArea();
   }
@@ -10454,6 +10466,380 @@ function editorWriteLetter(letter, opts) {
   editorNote.acc = "";
   editorNote.oct = null;
   editorInsertSymbol(token);
+}
+
+/*
+ * Step entry from a controller keyboard. Opening Write notes asks for MIDI.
+ * A key writes the lit duration. Keys down together become one stack.
+ * The line's key (or the exercise key) spells sharps or flats.
+ * Velocity, the pedal, and the clock are ignored.
+ */
+var EDITOR_MIDI_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+var EDITOR_MIDI_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+var EDITOR_MIDI_FLAT = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+
+function editorMidiWanted() {
+  return editorIsOpen() && editorStaffOn() && editorSymbolsIsOpen();
+}
+
+function editorMidiBlocked() {
+  var active = document.activeElement;
+  if (editorLabelTyping || editorStaffHelpIsOpen()) {
+    return true;
+  }
+  return !!(active && active.id === "editName");
+}
+
+function editorMidiSync() {
+  if (!editorMidiWanted()) {
+    editorMidiCancelChord();
+    return;
+  }
+  editorMidiRequest();
+}
+
+function editorMidiRequest() {
+  var pending;
+  if (editorMidiAccess || editorMidiAsked || editorMidiPending) {
+    return;
+  }
+  if (String(window.location.search || "").indexOf("smoke=1") !== -1) {
+    return;
+  }
+  if (!navigator.requestMIDIAccess) {
+    return;
+  }
+  editorMidiPending = true;
+  try {
+    pending = navigator.requestMIDIAccess({ sysex: false });
+  } catch (errMidi) {
+    editorMidiPending = false;
+    return;
+  }
+  if (!pending || typeof pending.then !== "function") {
+    editorMidiPending = false;
+    return;
+  }
+  pending.then(editorMidiBind, function () {
+    editorMidiPending = false;
+    editorMidiAsked = true;
+  });
+}
+
+function editorMidiBind(access) {
+  editorMidiPending = false;
+  editorMidiAsked = true;
+  editorMidiAccess = access;
+  function listen(port) {
+    if (port && port.type === "input") {
+      port.onmidimessage = editorMidiOnMessage;
+    }
+  }
+  if (access.inputs && typeof access.inputs.forEach === "function") {
+    access.inputs.forEach(listen);
+  }
+  access.onstatechange = function (event) {
+    var port = event && event.port;
+    if (!port || port.type !== "input" || port.state !== "connected") {
+      return;
+    }
+    port.onmidimessage = editorMidiOnMessage;
+  };
+}
+
+function editorMidiOnMessage(event) {
+  var data;
+  var status;
+  var note;
+  if (!editorMidiWanted() || editorMidiBlocked()) {
+    editorMidiCancelChord();
+    return;
+  }
+  data = event && event.data;
+  if (!data || data.length < 3) {
+    return;
+  }
+  status = data[0] & 0xf0;
+  note = data[1];
+  if (status !== 0x90 || !data[2]) {
+    return;
+  }
+  if (note < 0 || note > 127) {
+    return;
+  }
+  editorMidiQueue(note);
+}
+
+function editorMidiQueue(note) {
+  var i;
+  note = note | 0;
+  for (i = 0; i < editorMidiChord.length; i++) {
+    if (editorMidiChord[i] === note) {
+      return;
+    }
+  }
+  editorMidiChord.push(note);
+  if (editorMidiChordTimer) {
+    return;
+  }
+  editorMidiChordTimer = window.setTimeout(editorMidiFlushChord, EDITOR_MIDI_CHORD_MS);
+}
+
+function editorMidiCancelChord() {
+  if (editorMidiChordTimer) {
+    window.clearTimeout(editorMidiChordTimer);
+    editorMidiChordTimer = 0;
+  }
+  editorMidiChord = [];
+}
+
+function editorMidiFlushChord() {
+  var notes;
+  if (editorMidiChordTimer) {
+    window.clearTimeout(editorMidiChordTimer);
+    editorMidiChordTimer = 0;
+  }
+  notes = editorMidiChord.slice();
+  editorMidiChord = [];
+  if (!notes.length || !editorMidiWanted() || editorMidiBlocked()) {
+    return;
+  }
+  editorMidiCommit(notes);
+}
+
+function editorMidiAccText(alt) {
+  if (alt === 2) {
+    return "##";
+  }
+  if (alt === 1) {
+    return "#";
+  }
+  if (alt === -1) {
+    return "b";
+  }
+  if (alt === -2) {
+    return "bb";
+  }
+  return "";
+}
+
+/* Letter, accidental, and octave for a MIDI note in this key. Null outside 0–9. */
+function editorMidiSpell(midi, keyName) {
+  var note = midi | 0;
+  var pc;
+  var major;
+  var alts;
+  var key;
+  var letters = ["C", "D", "E", "F", "G", "A", "B"];
+  var i;
+  var letter;
+  var alt;
+  var sounding;
+  var preferFlat;
+  var name;
+  var acc;
+  var oct;
+  if (note < 0 || note > 127) {
+    return null;
+  }
+  pc = ((note % 12) + 12) % 12;
+  major = "C";
+  if (typeof staffParseKeyName === "function") {
+    major = staffParseKeyName(keyName || "") || "C";
+  }
+  alts =
+    typeof staffKeyAlterations === "function"
+      ? staffKeyAlterations(major)
+      : { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 };
+  for (i = 0; i < letters.length; i++) {
+    letter = letters[i];
+    alt = alts[letter] || 0;
+    sounding = (EDITOR_MIDI_PC[letter] + alt + 12) % 12;
+    if (sounding === pc) {
+      oct = Math.floor((note - EDITOR_MIDI_PC[letter] - alt) / 12) - 1;
+      if (oct < 0 || oct > 9) {
+        return null;
+      }
+      return { letter: letter, acc: editorMidiAccText(alt), oct: oct };
+    }
+  }
+  key =
+    typeof STAFF_MAJOR_KEYS !== "undefined" && STAFF_MAJOR_KEYS[major]
+      ? STAFF_MAJOR_KEYS[major]
+      : { kind: "sharp", count: 0 };
+  preferFlat = key.kind === "flat" && key.count > 0;
+  name = (preferFlat ? EDITOR_MIDI_FLAT : EDITOR_MIDI_SHARP)[pc];
+  letter = name.charAt(0);
+  acc = name.length > 1 ? name.charAt(1) : "";
+  alt = acc === "#" ? 1 : acc === "b" ? -1 : 0;
+  oct = Math.floor((note - EDITOR_MIDI_PC[letter] - alt) / 12) - 1;
+  if (oct < 0 || oct > 9) {
+    return null;
+  }
+  return { letter: letter, acc: acc, oct: oct };
+}
+
+function editorMidiKeyName() {
+  var raw = editorExampleKeyRaw(currentEditorLine());
+  if (typeof staffParseKeyName === "function") {
+    return staffParseKeyName(raw) || "C";
+  }
+  return raw || "C";
+}
+
+function editorMidiUnique(notes) {
+  var seen = {};
+  var out = [];
+  var i;
+  var n;
+  for (i = 0; i < notes.length; i++) {
+    n = notes[i] | 0;
+    if (seen[n]) {
+      continue;
+    }
+    seen[n] = true;
+    out.push(n);
+  }
+  out.sort(function (a, b) {
+    return a - b;
+  });
+  return out;
+}
+
+function editorMidiToken(spelled) {
+  return spelled.letter + (spelled.acc || "") + String(spelled.oct) + editorPitchSuffix();
+}
+
+function editorMidiStackText(list) {
+  var parts = [];
+  var i;
+  for (i = 0; i < list.length; i++) {
+    parts.push(editorMidiToken(list[i]));
+  }
+  return "[" + parts.join(" ") + "]";
+}
+
+function editorMidiHasSelection() {
+  var field = editorActiveField();
+  var sel;
+  if (!field) {
+    return false;
+  }
+  sel = editorReadSelection(field);
+  return sel.start !== sel.end;
+}
+
+function editorMidiRelInside(kind) {
+  var span;
+  var sel;
+  var line;
+  var rel;
+  if (editorCaretInsideStructure(kind)) {
+    return true;
+  }
+  span = editorLineSpan();
+  if (!span) {
+    return false;
+  }
+  sel = editorReadSelection(span.field);
+  if (sel.start === sel.end) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = Math.min(sel.start, sel.end) - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  return editorRelInsideStructure(line, rel, kind);
+}
+
+function editorMidiStackHas(spelled) {
+  var span = editorLineSpan();
+  var line;
+  var stack;
+  var occupied;
+  if (!span) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  stack = editorStackGroupAtCaret();
+  if (!stack) {
+    return false;
+  }
+  occupied = editorStackOccupiedKeys(line, stack);
+  return !!occupied[spelled.letter + (spelled.acc || "") + String(spelled.oct)];
+}
+
+function editorMidiAddToStack(list) {
+  var pending = [];
+  var i;
+  for (i = 0; i < list.length; i++) {
+    if (!editorMidiStackHas(list[i])) {
+      pending.push(list[i]);
+    }
+  }
+  if (!pending.length) {
+    return;
+  }
+  editorPushSymbolUndo();
+  for (i = 0; i < pending.length; i++) {
+    editorNote.acc = pending[i].acc || "";
+    editorNote.oct = pending[i].oct;
+    editorWriteLetter(pending[i].letter, { skipUndo: true });
+  }
+  editorNote.acc = "";
+  editorNote.oct = null;
+}
+
+function editorMidiCommit(notes) {
+  var unique;
+  var keyName;
+  var list = [];
+  var i;
+  var spelled;
+  if (!editorMidiWanted() || editorMidiBlocked()) {
+    return;
+  }
+  unique = editorMidiUnique(notes || []);
+  keyName = editorMidiKeyName();
+  for (i = 0; i < unique.length; i++) {
+    spelled = editorMidiSpell(unique[i], keyName);
+    if (spelled) {
+      list.push(spelled);
+    }
+  }
+  if (!list.length) {
+    return;
+  }
+  if (editorMidiRelInside("beam")) {
+    editorForceShortDuration();
+  }
+  if (editorMidiHasSelection()) {
+    editorPushSymbolUndo();
+    editorInsertSymbol(list.length === 1 ? editorMidiToken(list[0]) : editorMidiStackText(list));
+    editorNote.acc = "";
+    editorNote.oct = null;
+    return;
+  }
+  if (editorStackGroupAtCaret()) {
+    editorMidiAddToStack(list);
+    return;
+  }
+  if (list.length > 1) {
+    editorPushSymbolUndo();
+    editorInsertSymbol(editorMidiStackText(list));
+    editorNote.acc = "";
+    editorNote.oct = null;
+    return;
+  }
+  editorNote.acc = list[0].acc || "";
+  editorNote.oct = list[0].oct;
+  editorWriteLetter(list[0].letter);
+  editorNote.acc = "";
+  editorNote.oct = null;
 }
 
 function editorArmAcc(acc) {
