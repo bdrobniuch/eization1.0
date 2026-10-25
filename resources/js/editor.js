@@ -76,6 +76,9 @@ var editorPadCaret = null;
 /* Staff preview drag-to-select: pointerId + start insert gap until pointerup. */
 var editorStaffDrag = null;
 var EDITOR_STAFF_DRAG_SLOP = 6;
+/* Finger this close to the preview's left or right edge scrolls the staff while selecting. */
+var EDITOR_STAFF_EDGE_ZONE = 36;
+var editorStaffEdgeScrollTimer = null;
 /* Music stored by Copy. Paste inserts it at the caret. */
 var editorStaffCopy = "";
 var editorStaffClipMenuOpen = false;
@@ -2784,56 +2787,21 @@ function editorStaffCopyKeysApply() {
   return true;
 }
 
-function editorStaffPreviewPointerDown(event) {
-  var hit;
-  if (!event || (typeof event.button === "number" && event.button !== 0)) {
+function editorStaffPreviewStopEdgeScroll() {
+  if (!editorStaffEdgeScrollTimer) {
     return;
   }
-  hit = editorStaffPreviewHitContext(event);
-  if (!hit) {
-    return;
-  }
-  editorStaffDrag = {
-    pointerId: event.pointerId,
-    startInsert: hit.insertIndex,
-    startColumn: hit.columnIndex,
-    startX: event.clientX,
-    startY: event.clientY,
-    dragging: false,
-    field: hit.field,
-    lineStart: hit.lineStart,
-    musicAt: hit.musicAt,
-    music: hit.music
-  };
-  if (hit.preview && typeof hit.preview.setPointerCapture === "function" && event.pointerId != null) {
-    try {
-      hit.preview.setPointerCapture(event.pointerId);
-    } catch (errCap) {}
-  }
-  if (event.cancelable) {
-    event.preventDefault();
-  }
+  window.clearInterval(editorStaffEdgeScrollTimer);
+  editorStaffEdgeScrollTimer = null;
 }
 
-function editorStaffPreviewPointerMove(event) {
-  var drag = editorStaffDrag;
+function editorStaffPreviewApplyFromClient(drag, clientX, clientY) {
   var hit;
-  var dx;
-  var dy;
   var col;
-  if (!drag || event.pointerId !== drag.pointerId) {
+  if (!drag) {
     return;
   }
-  dx = event.clientX - drag.startX;
-  dy = event.clientY - drag.startY;
-  if (!drag.dragging) {
-    if (dx * dx + dy * dy < EDITOR_STAFF_DRAG_SLOP * EDITOR_STAFF_DRAG_SLOP) {
-      return;
-    }
-    drag.dragging = true;
-    editorStaffPreviewBeginEdit();
-  }
-  hit = editorStaffPreviewHitContext(event);
+  hit = editorStaffPreviewHitContext({ clientX: clientX, clientY: clientY });
   col = hit ? hit.columnIndex : drag.startColumn;
   if (hit) {
     drag.music = hit.music;
@@ -2850,6 +2818,114 @@ function editorStaffPreviewPointerMove(event) {
     col
   );
   editorPaintNotePad();
+}
+
+/* Scroll the staff when the finger is in the left or right edge, then extend the selection. */
+function editorStaffPreviewEdgeScroll() {
+  var drag = editorStaffDrag;
+  var preview;
+  var rect;
+  var into;
+  var step;
+  var before;
+  if (!drag || !drag.dragging) {
+    editorStaffPreviewStopEdgeScroll();
+    return false;
+  }
+  preview = document.getElementById("editPreview");
+  if (!preview) {
+    return false;
+  }
+  rect = preview.getBoundingClientRect();
+  if (drag.lastX < rect.left + EDITOR_STAFF_EDGE_ZONE) {
+    into = rect.left + EDITOR_STAFF_EDGE_ZONE - drag.lastX;
+    step = -Math.round(Math.min(18, 4 + into / 4));
+  } else if (drag.lastX > rect.right - EDITOR_STAFF_EDGE_ZONE) {
+    into = drag.lastX - (rect.right - EDITOR_STAFF_EDGE_ZONE);
+    step = Math.round(Math.min(18, 4 + into / 4));
+  } else {
+    return false;
+  }
+  before = preview.scrollLeft;
+  preview.scrollLeft = before + step;
+  if (preview.scrollLeft === before) {
+    return false;
+  }
+  editorStaffPreviewApplyFromClient(drag, drag.lastX, drag.lastY);
+  return true;
+}
+
+function editorStaffPreviewEnsureEdgeScroll() {
+  if (editorStaffEdgeScrollTimer) {
+    return;
+  }
+  editorStaffEdgeScrollTimer = window.setInterval(editorStaffPreviewEdgeScroll, 32);
+}
+
+function editorStaffPreviewCapture(preview, pointerId) {
+  if (!preview || pointerId == null || typeof preview.setPointerCapture !== "function") {
+    return;
+  }
+  try {
+    preview.setPointerCapture(pointerId);
+  } catch (errCap) {}
+}
+
+function editorStaffPreviewPointerDown(event) {
+  var hit;
+  if (!event || (typeof event.button === "number" && event.button !== 0)) {
+    return;
+  }
+  hit = editorStaffPreviewHitContext(event);
+  if (!hit) {
+    return;
+  }
+  editorStaffDrag = {
+    pointerId: event.pointerId,
+    startInsert: hit.insertIndex,
+    startColumn: hit.columnIndex,
+    startX: event.clientX,
+    startY: event.clientY,
+    lastX: event.clientX,
+    lastY: event.clientY,
+    dragging: false,
+    field: hit.field,
+    lineStart: hit.lineStart,
+    musicAt: hit.musicAt,
+    music: hit.music
+  };
+}
+
+function editorStaffPreviewPointerMove(event) {
+  var drag = editorStaffDrag;
+  var dx;
+  var dy;
+  var preview;
+  if (!drag || event.pointerId !== drag.pointerId) {
+    return;
+  }
+  drag.lastX = event.clientX;
+  drag.lastY = event.clientY;
+  dx = event.clientX - drag.startX;
+  dy = event.clientY - drag.startY;
+  if (!drag.dragging) {
+    if (dx * dx + dy * dy < EDITOR_STAFF_DRAG_SLOP * EDITOR_STAFF_DRAG_SLOP) {
+      return;
+    }
+    /* A vertical finger scrolls the Edit sheet. A sideways finger selects. */
+    if (Math.abs(dy) > Math.abs(dx)) {
+      editorStaffPreviewStopEdgeScroll();
+      editorStaffDrag = null;
+      return;
+    }
+    drag.dragging = true;
+    editorStaffPreviewBeginEdit();
+    preview = document.getElementById("editPreview");
+    editorStaffPreviewCapture(preview, event.pointerId);
+    editorStaffPreviewEnsureEdgeScroll();
+  }
+  editorStaffPreviewApplyFromClient(drag, event.clientX, event.clientY);
+  editorStaffPreviewEdgeScroll();
   if (event.cancelable) {
     event.preventDefault();
   }
@@ -2863,6 +2939,7 @@ function editorStaffPreviewPointerUp(event) {
   if (!drag || (event.pointerId != null && event.pointerId !== drag.pointerId)) {
     return;
   }
+  editorStaffPreviewStopEdgeScroll();
   editorStaffDrag = null;
   preview = document.getElementById("editPreview");
   if (preview && typeof preview.releasePointerCapture === "function" && drag.pointerId != null) {
@@ -2916,6 +2993,7 @@ function editorStaffPreviewPointerCancel(event) {
   if (event && event.pointerId != null && event.pointerId !== drag.pointerId) {
     return;
   }
+  editorStaffPreviewStopEdgeScroll();
   editorStaffDrag = null;
   preview = document.getElementById("editPreview");
   if (preview && event && typeof preview.releasePointerCapture === "function" && event.pointerId != null) {

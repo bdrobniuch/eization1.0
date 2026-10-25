@@ -3071,6 +3071,136 @@ function chatCase(w) {
       w.editorStaffCopy === ""
     );
     check(
+      "a vertical finger on the staff does not select",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg = preview && preview.querySelector("svg.music-staff");
+        var layout = preview && preview._staffCaretLayout;
+        var ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        var pt;
+        var a;
+        var before;
+        if (!svg || !layout || !layout.cols || !layout.cols.length || !ctm) {
+          return false;
+        }
+        before = w.editorPadCaret ? w.editorPadCaret.end : -1;
+        pt = svg.createSVGPoint();
+        pt.x = layout.cols[0].x;
+        pt.y = (layout.staffTop + layout.staffBot) / 2;
+        a = pt.matrixTransform(ctm);
+        function fire(type, clientY, buttons) {
+          preview.dispatchEvent(
+            new w.PointerEvent(type, {
+              clientX: a.x,
+              clientY: clientY,
+              bubbles: true,
+              cancelable: true,
+              view: w,
+              pointerId: 11,
+              pointerType: "touch",
+              button: 0,
+              buttons: buttons
+            })
+          );
+        }
+        fire("pointerdown", a.y, 1);
+        fire("pointermove", a.y + 48, 1);
+        fire("pointerup", a.y + 48, 0);
+        return (
+          w.editorStaffDrag === null &&
+          w.editorPadCaret &&
+          w.editorPadCaret.end === before &&
+          focusLine.value === "C4 D4 E4"
+        );
+      })()
+    );
+    check(
+      "a selection held at the edge scrolls the staff",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg;
+        var layout;
+        var ctm;
+        var pt;
+        var a;
+        var rect;
+        var endBefore;
+        var i;
+        var scrolled = false;
+        var grew = false;
+        placeCaret("C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5 A5 B5 C6 D6 E6 F6");
+        w.refreshEditor();
+        preview.style.width = "160px";
+        try {
+          svg = preview.querySelector("svg.music-staff");
+          layout = preview._staffCaretLayout;
+          ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+          if (!svg || !layout || !layout.cols || layout.cols.length < 8 || !ctm) {
+            return false;
+          }
+          if (preview.scrollWidth <= preview.clientWidth + 8) {
+            return false;
+          }
+          preview.scrollLeft = 0;
+          pt = svg.createSVGPoint();
+          pt.x = layout.cols[0].x;
+          pt.y = (layout.staffTop + layout.staffBot) / 2;
+          a = pt.matrixTransform(ctm);
+          rect = preview.getBoundingClientRect();
+          preview.dispatchEvent(
+            new w.PointerEvent("pointerdown", {
+              clientX: a.x,
+              clientY: a.y,
+              bubbles: true,
+              cancelable: true,
+              view: w,
+              pointerId: 12,
+              pointerType: "touch",
+              button: 0,
+              buttons: 1
+            })
+          );
+          preview.dispatchEvent(
+            new w.PointerEvent("pointermove", {
+              clientX: rect.right + 8,
+              clientY: a.y,
+              bubbles: true,
+              cancelable: true,
+              view: w,
+              pointerId: 12,
+              pointerType: "touch",
+              button: 0,
+              buttons: 1
+            })
+          );
+          endBefore = w.editorPadCaret ? w.editorPadCaret.end : 0;
+          for (i = 0; i < 30; i++) {
+            if (w.editorStaffPreviewEdgeScroll()) {
+              scrolled = true;
+            }
+          }
+          grew = !!(w.editorPadCaret && w.editorPadCaret.end > endBefore && preview.scrollLeft > 0);
+          preview.dispatchEvent(
+            new w.PointerEvent("pointerup", {
+              clientX: rect.right + 8,
+              clientY: a.y,
+              bubbles: true,
+              cancelable: true,
+              view: w,
+              pointerId: 12,
+              pointerType: "touch",
+              button: 0,
+              buttons: 0
+            })
+          );
+          return scrolled && grew && w.editorStaffDrag === null;
+        } finally {
+          preview.style.width = "";
+          w.refreshEditor();
+        }
+      })()
+    );
+    check(
       "Copy and Paste are chosen from the history menu",
       (function () {
         var preview = w.document.getElementById("editPreview");
