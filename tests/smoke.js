@@ -3734,6 +3734,308 @@ function chatCase(w) {
     focusLine.setSelectionRange(3, 3);
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check("stack does not nest inside a stack", focusLine.value === "[C4 E4 G4]");
+    (function () {
+      function selectSpan(text, frag) {
+        return selectFromTo(text, frag, frag);
+      }
+      function selectFromTo(text, from, to) {
+        var a;
+        var b;
+        var atTo;
+        placeCaret(text);
+        a = text.indexOf(from);
+        atTo = text.indexOf(to, a < 0 ? 0 : a);
+        if (a < 0 || atTo < 0) {
+          return false;
+        }
+        b = atTo + to.length;
+        w.editorPlaceCaret(focusLine, a, b, true);
+        w.editorPaintNotePad();
+        return true;
+      }
+      function selectedText() {
+        var pad = w.editorPadCaret;
+        var a = pad ? pad.start : focusLine.selectionStart;
+        var b = pad ? pad.end : focusLine.selectionEnd;
+        if (a > b) {
+          var swap = a;
+          a = b;
+          b = swap;
+        }
+        return focusLine.value.slice(a, b);
+      }
+      function caretIndex() {
+        var pad = w.editorPadCaret;
+        return pad ? pad.start : focusLine.selectionStart;
+      }
+      function litDur() {
+        var buttons = symbolsPanel.querySelectorAll("[data-dur]");
+        var i;
+        for (i = 0; i < buttons.length; i++) {
+          if (buttons[i].getAttribute("aria-pressed") === "true") {
+            return buttons[i].getAttribute("data-dur");
+          }
+        }
+        return null;
+      }
+      function draws() {
+        return !!w.parseMusicNotation(focusLine.value);
+      }
+      w.editorNote.acc = "";
+      w.editorNote.oct = null;
+      w.editorNote.dot = false;
+      w.editorNote.dur = "";
+      w.editorTupletN = 3;
+      check("plain selection is ready", selectSpan("C4q D4q E4e F4e", "D4q E4e"));
+      check(
+        "mixed durations light no duration",
+        litDur() === null &&
+          symbolsPanel.querySelector("[data-dot]").getAttribute("aria-pressed") !== "true"
+      );
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check(
+        "rest keeps each event's duration",
+        focusLine.value === "C4q rq re F4e" && selectedText() === "rq re" && draws()
+      );
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+      check(
+        "undo restores the line and the selection",
+        focusLine.value === "C4q D4q E4e F4e" && selectedText() === "D4q E4e"
+      );
+      selectSpan("C4q D4q E4e F4e", "D4q E4e");
+      poke(symbolsPanel.querySelector("[data-note='G']"));
+      check(
+        "a letter rewrites each selected note",
+        focusLine.value === "C4q G4q G4e F4e" && selectedText() === "G4q G4e" && draws()
+      );
+      selectSpan("C4q D#4q E#4e F4e", "D#4q E#4e");
+      check("shared sharps light sharp", symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true");
+      poke(symbolsPanel.querySelector("[data-note='G']"));
+      check(
+        "a letter keeps each accidental",
+        focusLine.value === "C4q G#4q G#4e F4e" &&
+          symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true"
+      );
+      poke(symbolsPanel.querySelector("[data-acc='#']"));
+      check("tapping the lit sharp clears it", focusLine.value === "C4q G4q G4e F4e" && draws());
+      selectSpan("C4q D4q E4e F4e", "D4q E4e");
+      poke(symbolsPanel.querySelector("[data-dur='e']"));
+      check("eighth rewrites each selected event", focusLine.value === "C4q D4e E4e F4e" && selectedText() === "D4e E4e");
+      selectSpan("C4q D4q E4e F4e", "D4q E4e");
+      poke(symbolsPanel.querySelector("[data-event='bar']"));
+      check(
+        "a bar stands after the selection",
+        focusLine.value === "C4q D4q E4e | F4e" &&
+          caretIndex() === focusLine.value.indexOf("|") + 1 &&
+          w.editorPadCaret.end === w.editorPadCaret.start &&
+          draws()
+      );
+      selectSpan("C#4q D#4q E#4e", "C#4q D#4q E#4e");
+      check(
+        "a mixed duration still shares the accidental and octave",
+        litDur() === null &&
+          symbolsPanel.querySelector("[data-acc='#']").getAttribute("aria-pressed") === "true" &&
+          octaveNow() === "4"
+      );
+      poke(symbolsPanel.querySelector("[data-acc='b']"));
+      check("flat sets every pitch", focusLine.value === "Cb4q Db4q Eb4e" && draws());
+      selectSpan("C4q D5q", "C4q D5q");
+      check("mixed octaves blank the number and light the duration", litDur() === "" && octaveNow() === "");
+      poke(symbolsPanel.querySelector("[data-shift='1']"));
+      check("up moves each pitch from its own octave", focusLine.value === "C5q D6q" && draws());
+      selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e");
+      check("a whole beam lights eighth and beam", litDur() === "e" && symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "true");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check(
+        "resting a whole beam drops the braces",
+        focusLine.value === "re re re re" && selectedText() === "re re re re" && draws()
+      );
+      selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e");
+      poke(symbolsPanel.querySelector("[data-note='A']"));
+      check("a letter keeps the beam", focusLine.value === "{A4e A4e A4e A4e}" && draws());
+      selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e");
+      poke(symbolsPanel.querySelector("[data-dur='']"));
+      check("quarter takes the whole beam apart", focusLine.value === "C4 D4 E4 F4" && draws());
+      check(
+        "copy of a whole beam includes the braces",
+        selectSpan("{C4e D4e E4e F4e}", "C4e D4e E4e F4e") &&
+          w.editorStaffSelectionText(focusLine) === "{C4e D4e E4e F4e}"
+      );
+      selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
+      check(
+        "the middle of a beam lights eighth and beam",
+        litDur() === "e" && symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "true"
+      );
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check(
+        "rest steps out of a beam and keeps the leftovers braced",
+        focusLine.value === "{C4e} re re {F4e}" && selectedText() === "re re" && draws()
+      );
+      selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
+      poke(symbolsPanel.querySelector("[data-note='B']"));
+      check("a letter stays inside the beam", focusLine.value === "{C4e B4e B4e F4e}" && draws());
+      selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
+      poke(symbolsPanel.querySelector("[data-dur='']"));
+      check("quarter steps out and leaves the eighths beamed", focusLine.value === "{C4e} D4 E4 {F4e}" && selectedText() === "D4 E4" && draws());
+      poke(symbolsPanel.querySelector("[data-dur='h']"));
+      check("half does the same", focusLine.value === "{C4e} D4h E4h {F4e}" && draws());
+      selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
+      check("a partial beam copies the notes alone", w.editorStaffSelectionText(focusLine) === "D4e E4e");
+      selectSpan("{C4e D4e E4e F4e}", "C4e D4e");
+      poke(symbolsPanel.querySelector("[data-event='bar']"));
+      check(
+        "a bar splits a beam after the selection",
+        focusLine.value === "{C4e D4e} | {E4e F4e}" &&
+          caretIndex() === focusLine.value.indexOf("|") + 1 &&
+          draws()
+      );
+      selectFromTo("{C4e D4e E4e} {F4e G4e A4e}", "E4e", "F4e");
+      check("two beams do not light beam", symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "false");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check(
+        "each beam closes around the notes that stayed",
+        focusLine.value === "{C4e D4e} re re {G4e A4e}" && draws()
+      );
+      selectFromTo("{C4e D4e E4e} {F4e G4e A4e}", "E4e", "F4e");
+      poke(symbolsPanel.querySelector("[data-note='B']"));
+      check(
+        "a letter repairs each beam on its own",
+        focusLine.value === "{C4e D4e B4e} {B4e G4e A4e}" && draws()
+      );
+      check("neither partial beam is copied with braces", w.editorStaffSelectionText(focusLine) === "B4e B4e");
+      selectFromTo("{C4e D4e E4e} {F4e G4e A4e}", "E4e", "F4e");
+      check("copy across two beams keeps neither shell", w.editorStaffSelectionText(focusLine) === "E4e F4e");
+      selectSpan("(3 C4e D4e E4e)", "C4e D4e E4e");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check("a triplet stays around rests", focusLine.value === "(3 re re re)" && draws());
+      selectSpan("(3 C4e D4e E4e)", "C4e D4e E4e");
+      check("a whole triplet copies with its bracket", w.editorStaffSelectionText(focusLine) === "(3 C4e D4e E4e)");
+      poke(symbolsPanel.querySelector("[data-dur='']"));
+      check("quarter stays inside the triplet", focusLine.value === "(3 C4 D4 E4)" && draws());
+      selectSpan("(3 C4e D4e E4e)", "C4e D4e");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check("a partial triplet rest stays inside", focusLine.value === "(3 re re E4e)" && draws());
+      selectSpan("(3 C4e D4e E4e)", "C4e D4e");
+      check("a partial triplet copies without the bracket", w.editorStaffSelectionText(focusLine) === "C4e D4e");
+      poke(symbolsPanel.querySelector("[data-event='bar']"));
+      check(
+        "a bar leaves the whole triplet intact",
+        focusLine.value === "(3 C4e D4e E4e) |" &&
+          caretIndex() === focusLine.value.indexOf("|") + 1 &&
+          draws()
+      );
+      selectSpan("(5 C4e D4e E4e F4e G4e)", "C4e D4e E4e F4e G4e");
+      w.editorTupletN = 3;
+      w.editorPaintNotePad();
+      poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+      check(
+        "a triplet tap changes the whole tuplet's number",
+        focusLine.value === "(3 C4e D4e E4e F4e G4e)" && draws()
+      );
+      poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+      check("the same tuplet tap removes the bracket", focusLine.value === "C4e D4e E4e F4e G4e");
+      selectSpan("(5 C4e D4e E4e F4e G4e)", "C4e D4e");
+      w.editorTupletN = 3;
+      w.editorPaintNotePad();
+      poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+      check("a partial tuplet ignores the tap", focusLine.value === "(5 C4e D4e E4e F4e G4e)");
+      selectSpan("(3 {C4e D4e E4e})", "C4e D4e E4e");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check(
+        "rest drops the beam and keeps the triplet",
+        focusLine.value === "(3 re re re)" && draws()
+      );
+      selectSpan("(3 {C4e D4e E4e})", "C4e D4e E4e");
+      poke(symbolsPanel.querySelector("[data-dur='']"));
+      check("quarter drops the beam inside the triplet", focusLine.value === "(3 C4 D4 E4)" && draws());
+      selectSpan("(3 {C4e D4e E4e})", "D4e");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check(
+        "the middle rest steps out of the inner beam",
+        focusLine.value === "(3 {C4e} re {E4e})" && draws()
+      );
+      selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
+      check("one chord lights the stack", symbolsPanel.querySelector("[data-event='stack']").getAttribute("aria-pressed") === "true");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check("a chord becomes one rest", focusLine.value === "re" && draws());
+      selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
+      poke(symbolsPanel.querySelector("[data-event='slash']"));
+      check("a chord becomes one slash", focusLine.value === "/e" && draws());
+      selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
+      poke(symbolsPanel.querySelector("[data-note='D']"));
+      check(
+        "a letter adds a pitch to the chord",
+        focusLine.value === "[C4e E4e G4e D4e]" && selectedText() === "[C4e E4e G4e D4e]" && draws()
+      );
+      selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
+      poke(symbolsPanel.querySelector("[data-dur='']"));
+      check("quarter rewrites the chord as one duration", focusLine.value === "[C4 E4 G4]" && draws());
+      selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
+      check("a chord copies with its brackets", w.editorStaffSelectionText(focusLine) === "[C4e E4e G4e]");
+      poke(symbolsPanel.querySelector("[data-event='bar']"));
+      check(
+        "a bar stands after the chord",
+        focusLine.value === "[C4e E4e G4e] |" &&
+          caretIndex() === focusLine.value.indexOf("|") + 1 &&
+          draws()
+      );
+      selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e]");
+      poke(symbolsPanel.querySelector("[data-event='rest']"));
+      check("a chord rest steps out of the beam", focusLine.value === "re {D4e F4e}" && draws());
+      selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e]");
+      poke(symbolsPanel.querySelector("[data-note='A']"));
+      check(
+        "a letter adds a pitch inside the beamed chord",
+        focusLine.value === "{[C4e E4e A4e] D4e F4e}" && draws()
+      );
+      selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e]");
+      check("the chord copies without the beam", w.editorStaffSelectionText(focusLine) === "[C4e E4e]");
+      selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e] D4e F4e");
+      check(
+        "the whole beam copies the chord inside it",
+        w.editorStaffSelectionText(focusLine) === "{[C4e E4e] D4e F4e}"
+      );
+      selectFromTo("{A4e B4e C4e} {D4e E4e F4e}", "B4e", "D4e");
+      w.editorStaffCopy = "{G4e A4e}";
+      w.editorStaffPasteCopy();
+      check(
+        "paste replaces the run and does not nest",
+        focusLine.value === "{A4e} {G4e A4e} {E4e F4e}" &&
+          selectedText() === "{G4e A4e}" &&
+          draws()
+      );
+      placeCaret("{C4e D4e E4e F4e}");
+      w.editorPlaceCaret(focusLine, focusLine.value.indexOf(" E4e"), focusLine.value.indexOf(" E4e"), true);
+      w.editorStaffCopy = "re";
+      w.editorStaffPasteCopy();
+      check(
+        "paste at a caret splits the beam around a rest",
+        focusLine.value === "{C4e D4e} re {E4e F4e}" &&
+          caretIndex() === w.editorPadCaret.end &&
+          draws()
+      );
+      placeCaret("{C4e D4e E4e F4e}");
+      w.editorPlaceCaret(focusLine, focusLine.value.indexOf(" E4e"), focusLine.value.indexOf(" E4e"), true);
+      w.editorStaffCopy = "{G4e A4e}";
+      w.editorStaffPasteCopy();
+      check(
+        "paste at a caret keeps the pasted beam outside",
+        focusLine.value === "{C4e D4e} {G4e A4e} {E4e F4e}" && draws()
+      );
+      selectSpan("{C4e D4e} E4q", "{C4e D4e} E4q");
+      w.editorPaintNotePad();
+      check(
+        "a beam plus a quarter lights neither duration nor beam",
+        litDur() === null &&
+          symbolsPanel.querySelector("[data-event='beam']").getAttribute("aria-pressed") === "false"
+      );
+      w.editorTupletN = 3;
+      w.editorNote.dur = "";
+      w.editorNote.dot = false;
+      w.editorNote.acc = "";
+      w.editorNote.oct = null;
+      w.editorPaintNotePad();
+    })();
     w.setEditorStaff(false);
     placeCaret("Cmaj");
     poke(symbolsPanel.querySelector("[data-symbol='\u266F']"));

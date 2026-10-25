@@ -2701,6 +2701,12 @@ function editorStaffSelectionText(field) {
   if (value.slice(start, end).indexOf("\n") >= 0) {
     return "";
   }
+  if (editorStaffOn()) {
+    text = editorCopySelection(value, value.lastIndexOf("\n", start - 1) + 1, start, end);
+    if (text != null) {
+      return text;
+    }
+  }
   span = editorStaffExpandCopySpan(value, start, end);
   text = value.slice(span.start, span.end);
   if (!text || text.indexOf("\n") >= 0) {
@@ -2807,6 +2813,7 @@ function editorStaffCopyFromSelection() {
 function editorStaffPasteCopy() {
   var field;
   var padded;
+  var sel;
   if (!editorStaffCopy) {
     return false;
   }
@@ -2815,6 +2822,20 @@ function editorStaffPasteCopy() {
     return false;
   }
   editorStaffCloseClipMenu();
+  if (editorStaffOn()) {
+    sel = editorReadSelection(field);
+    if (sel.start !== sel.end) {
+      if (editorPasteOverSelection(editorStaffCopy)) {
+        editorAnalyticsMark("used_paste");
+        editorBeginPadInput();
+        return true;
+      }
+    } else if (editorPasteAtCaret(editorStaffCopy)) {
+      editorAnalyticsMark("used_paste");
+      editorBeginPadInput();
+      return true;
+    }
+  }
   editorPushSymbolUndo();
   padded = editorPadSymbolGaps(editorStaffCopy, 0);
   editorAnalyticsMark("used_paste");
@@ -4243,7 +4264,7 @@ function editorNotePadStampNow() {
     defaults.clef || "",
     defaults.key || "",
     currentEditorLine(),
-    field ? String(editorReadSelection(field).start) : "0",
+    field ? String(editorReadSelection(field).start) + ":" + String(editorReadSelection(field).end) : "0",
     String(editorTupletN || 3),
     editorTupletMenuOpen ? "menu" : "",
     typeof eizationLang === "string" ? eizationLang : "",
@@ -4627,7 +4648,7 @@ function editorPaintTupletCombo(row) {
     { "data-event": "tuplet", "data-tuplet-n": String(editorTupletN || 3) },
     editorMusicIcon("tuplet-" + (editorTupletN || 3)),
     t("edit.noteTuplet") + " " + String(editorTupletN || 3),
-    editorCaretInsideStructure("tuplet")
+    editorStructureButtonLit("tuplet")
   );
   disclosure = document.createElement("button");
   disclosure.type = "button";
@@ -4666,9 +4687,23 @@ function editorPaintLetters(row) {
 }
 
 function editorPaintOctave(row) {
-  var oct = String(editorWorkingOctave());
+  var traits = editorStaffPadTraits();
+  var oct;
   var mark = document.createElement("span");
-  var label = t("edit.noteOctave").replace("{n}", oct);
+  var label;
+  if (traits && traits.octBlank) {
+    oct = "";
+  } else if (
+    traits &&
+    (traits.selection || traits.onEvent) &&
+    traits.oct !== null &&
+    traits.oct !== undefined
+  ) {
+    oct = String(traits.oct);
+  } else {
+    oct = String(editorWorkingOctave());
+  }
+  label = t("edit.noteOctave").replace("{n}", oct || "");
   mark.className = "edit-note-octave";
   mark.setAttribute("data-octave", oct);
   mark.textContent = oct;
@@ -5292,6 +5327,1697 @@ function editorHealStaffLineAfterErase(line) {
   return editorStripTrailingOrphans(line);
 }
 
+/* Caption after " · " stays put while Staff edits rewrite the music. */
+function editorSplitStaffCaption(line) {
+  var dot = " \u00B7 ";
+  var at;
+  line = String(line || "");
+  at = line.indexOf(dot);
+  if (at < 0) {
+    return { music: line, caption: "" };
+  }
+  return { music: line.slice(0, at), caption: line.slice(at) };
+}
+
+function editorNormDur(code) {
+  code = String(code || "").replace(/\./g, "");
+  if (!code || code === "q" || code === "n") {
+    return "";
+  }
+  return code;
+}
+
+function editorDurSuffix(dur, dot) {
+  var code = editorDurCode(dur);
+  if (dot) {
+    return (code || "q") + ".";
+  }
+  return code;
+}
+
+function editorPitchText(letter, acc, oct, dur, dot, affix) {
+  return (
+    String(letter || "C") +
+    (acc || "") +
+    String(editorClampOctave(oct)) +
+    editorDurSuffix(dur, dot) +
+    (affix || "")
+  );
+}
+
+/* Keep a written q when the duration itself is not what changed. */
+function editorPitchTextKept(letter, acc, oct, durRaw, affix) {
+  return String(letter || "C") + (acc || "") + String(editorClampOctave(oct)) + (durRaw || "") + (affix || "");
+}
+
+function editorRestText(dur, dot) {
+  return "r" + (editorDurCode(dur) || "q") + (dot ? "." : "");
+}
+
+function editorSlashText(dur, dot) {
+  return "/" + (editorDurCode(dur) || "q") + (dot ? "." : "");
+}
+
+function editorIsEventPiece(node) {
+  return !!(
+    node &&
+    node.type === "piece" &&
+    (node.kind === "pitch" || node.kind === "rest" || node.kind === "slash" || node.kind === "stack")
+  );
+}
+
+function editorMakeTokenPiece(tok, start, end) {
+  var piece;
+  var pitch;
+  var rest;
+  var slash;
+  var durRaw;
+  piece = {
+    type: "piece",
+    text: tok,
+    start: start,
+    end: end,
+    selected: false,
+    pasted: false,
+    kind: "mark",
+    dur: "",
+    durRaw: "",
+    dot: false,
+    acc: "",
+    oct: null,
+    letter: "",
+    affix: "",
+    pitches: null,
+    beamId: 0,
+    tupletId: 0,
+    tupletNode: null
+  };
+  pitch = /^([A-G])(#|b|n)?(\d)((?:[whqesn]\.?)|\.)?(.*)$/.exec(tok || "");
+  if (pitch) {
+    durRaw = pitch[4] || "";
+    piece.kind = "pitch";
+    piece.letter = pitch[1];
+    piece.acc = pitch[2] || "";
+    piece.oct = parseInt(pitch[3], 10);
+    piece.durRaw = durRaw;
+    piece.dot = durRaw.indexOf(".") >= 0;
+    piece.dur = editorNormDur(durRaw);
+    piece.affix = pitch[5] || "";
+    return piece;
+  }
+  rest = /^r([whqes]?)(\.?)(.*)$/i.exec(tok || "");
+  if (rest) {
+    piece.kind = "rest";
+    piece.durRaw = (rest[1] || "") + (rest[2] || "");
+    piece.dot = rest[2] === ".";
+    piece.dur = editorNormDur(rest[1] || "q");
+    piece.affix = rest[3] || "";
+    return piece;
+  }
+  slash = /^\/([whqes]?)(\.?)(.*)$/.exec(tok || "");
+  if (slash) {
+    piece.kind = "slash";
+    piece.durRaw = (slash[1] || "") + (slash[2] || "");
+    piece.dot = slash[2] === ".";
+    piece.dur = editorNormDur(slash[1] || "q");
+    piece.affix = slash[3] || "";
+    return piece;
+  }
+  if (tok === "|") {
+    piece.kind = "bar";
+  } else if (tok === "~") {
+    piece.kind = "tie";
+  }
+  return piece;
+}
+
+function editorMakeStackPiece(text, start, end) {
+  var close = String(text || "").indexOf("]");
+  var inner = close >= 0 ? text.slice(1, close) : text.slice(1);
+  var parts = inner.trim() ? inner.trim().split(/\s+/) : [];
+  var pitches = [];
+  var i;
+  var p;
+  var dur;
+  var dot;
+  var mixed = false;
+  for (i = 0; i < parts.length; i++) {
+    p = editorMakeTokenPiece(parts[i], 0, parts[i].length);
+    if (p.kind === "pitch") {
+      pitches.push(p);
+    }
+  }
+  dur = pitches.length ? pitches[0].dur : "";
+  dot = pitches.length ? pitches[0].dot : false;
+  for (i = 1; i < pitches.length; i++) {
+    if (pitches[i].dur !== dur || pitches[i].dot !== dot) {
+      mixed = true;
+    }
+  }
+  return {
+    type: "piece",
+    kind: "stack",
+    text: text,
+    start: start,
+    end: end,
+    selected: false,
+    pasted: false,
+    dur: mixed ? null : dur,
+    dot: !mixed && dot,
+    pitches: pitches,
+    affix: close >= 0 ? text.slice(close) : "]",
+    beamId: 0,
+    tupletId: 0,
+    tupletNode: null
+  };
+}
+
+/* One line as beams, tuplets, stacks, and notes. Null when a bracket is unclosed. */
+function editorParseStaffNodes(line) {
+  var i = 0;
+  var bad = false;
+  var nextBeam = 1;
+  var nextTup = 1;
+  var openStack = [];
+  line = String(line || "");
+  function currentId(kind) {
+    var k;
+    for (k = openStack.length - 1; k >= 0; k--) {
+      if (openStack[k].kind === kind) {
+        return openStack[k].id;
+      }
+    }
+    return 0;
+  }
+  function currentNode(kind) {
+    var k;
+    for (k = openStack.length - 1; k >= 0; k--) {
+      if (openStack[k].kind === kind) {
+        return openStack[k].node;
+      }
+    }
+    return null;
+  }
+  function tag(piece) {
+    piece.beamId = currentId("beam");
+    piece.tupletId = currentId("tuplet");
+    piece.tupletNode = currentNode("tuplet");
+    return piece;
+  }
+  function parseList(stopCh) {
+    var nodes = [];
+    var ch;
+    var beamNode;
+    var tup;
+    var tuplet;
+    var close;
+    var end;
+    var w0;
+    var word;
+    var spans;
+    var s;
+    var piece;
+    while (i < line.length && !bad) {
+      ch = line.charAt(i);
+      if (stopCh && ch === stopCh) {
+        break;
+      }
+      if (/\s/.test(ch)) {
+        i += 1;
+        continue;
+      }
+      if (ch === "}" || ch === ")" || ch === "]") {
+        break;
+      }
+      if (ch === "{") {
+        beamNode = {
+          type: "beam",
+          children: [],
+          start: i,
+          end: i,
+          beamId: nextBeam,
+          selected: false,
+          pasted: false
+        };
+        nextBeam += 1;
+        i += 1;
+        openStack.push({ kind: "beam", id: beamNode.beamId, node: beamNode });
+        beamNode.children = parseList("}");
+        openStack.pop();
+        if (bad) {
+          return nodes;
+        }
+        if (line.charAt(i) !== "}") {
+          bad = true;
+          return nodes;
+        }
+        i += 1;
+        beamNode.end = i;
+        nodes.push(beamNode);
+        continue;
+      }
+      if (ch === "(") {
+        tuplet = /^\((\d{1,2})(?::(\d{1,2}))?/.exec(line.slice(i));
+        if (!tuplet) {
+          i += 1;
+          continue;
+        }
+        tup = {
+          type: "tuplet",
+          n: parseInt(tuplet[1], 10),
+          ratio: tuplet[2] || "",
+          children: [],
+          start: i,
+          end: i,
+          tupletId: nextTup,
+          selected: false,
+          pasted: false
+        };
+        nextTup += 1;
+        i += tuplet[0].length;
+        openStack.push({ kind: "tuplet", id: tup.tupletId, node: tup });
+        tup.children = parseList(")");
+        openStack.pop();
+        if (bad) {
+          return nodes;
+        }
+        if (line.charAt(i) !== ")") {
+          bad = true;
+          return nodes;
+        }
+        i += 1;
+        tup.end = i;
+        nodes.push(tup);
+        continue;
+      }
+      if (ch === "[") {
+        close = editorMatchGroupClose(line, i, "[", "]");
+        if (close < 0) {
+          bad = true;
+          return nodes;
+        }
+        end = editorStackAffixEnd(line, close + 1);
+        piece = tag(editorMakeStackPiece(line.slice(i, end), i, end));
+        nodes.push(piece);
+        i = end;
+        continue;
+      }
+      w0 = i;
+      while (i < line.length) {
+        ch = line.charAt(i);
+        if (/\s/.test(ch) || ch === "{" || ch === "}" || ch === "[" || ch === "]" || ch === "(" || ch === ")") {
+          break;
+        }
+        i += 1;
+      }
+      word = line.slice(w0, i);
+      spans = editorMusicEventSpans(word);
+      for (s = 0; s < spans.length; s++) {
+        piece = tag(editorMakeTokenPiece(spans[s].token, w0 + spans[s].start, w0 + spans[s].end));
+        nodes.push(piece);
+      }
+    }
+    return nodes;
+  }
+  var nodes = parseList("");
+  if (bad) {
+    return null;
+  }
+  return nodes;
+}
+
+function editorCollectPieces(nodes, out) {
+  var i;
+  out = out || [];
+  if (!nodes) {
+    return out;
+  }
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i].type === "piece") {
+      out.push(nodes[i]);
+    } else if (nodes[i].children) {
+      editorCollectPieces(nodes[i].children, out);
+    }
+  }
+  return out;
+}
+
+function editorMarkSelectedNodes(nodes, start, end) {
+  var i;
+  var node;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (node.type === "piece") {
+      if (editorIsEventPiece(node) && node.start >= start && node.end <= end) {
+        node.selected = true;
+      }
+    } else if (node.children) {
+      editorMarkSelectedNodes(node.children, start, end);
+    }
+  }
+}
+
+function editorNodeRole(node) {
+  var events;
+  var n = 0;
+  var i;
+  if (!node) {
+    return "none";
+  }
+  if (node.type === "piece") {
+    return editorIsEventPiece(node) && node.selected ? "all" : "none";
+  }
+  events = editorCollectPieces(node.children || []).filter(editorIsEventPiece);
+  if (!events.length) {
+    return "none";
+  }
+  for (i = 0; i < events.length; i++) {
+    if (events[i].selected) {
+      n += 1;
+    }
+  }
+  if (!n) {
+    return "none";
+  }
+  if (n === events.length) {
+    return "all";
+  }
+  return "some";
+}
+
+function editorCloneBox(node, children) {
+  return {
+    type: node.type,
+    n: node.n,
+    ratio: node.ratio || "",
+    children: children,
+    selected: false,
+    pasted: false
+  };
+}
+
+/* Pull a contiguous run out of partial beams and tuplets. Full containers stay whole. */
+function editorPullSelection(nodes) {
+  var before = [];
+  var selected = [];
+  var after = [];
+  var phase = 0;
+  var i;
+  var node;
+  var role;
+  var inner;
+  var j;
+  var later;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    role = editorNodeRole(node);
+    if (phase === 2) {
+      after.push(node);
+      continue;
+    }
+    if (role === "none") {
+      later = false;
+      if (phase === 1 && !editorIsEventPiece(node)) {
+        for (j = i + 1; j < nodes.length; j++) {
+          if (editorNodeRole(nodes[j]) !== "none") {
+            later = true;
+            break;
+          }
+        }
+      }
+      if (later) {
+        selected.push(node);
+      } else if (phase === 0) {
+        before.push(node);
+      } else {
+        phase = 2;
+        after.push(node);
+      }
+      continue;
+    }
+    phase = 1;
+    if (role === "all") {
+      selected.push(node);
+      continue;
+    }
+    inner = editorPullSelection(node.children || []);
+    if (inner.before.length) {
+      before.push(editorCloneBox(node, inner.before));
+    }
+    selected = selected.concat(inner.selected);
+    if (inner.after.length) {
+      phase = 2;
+      after.push(editorCloneBox(node, inner.after));
+    }
+  }
+  return { before: before, selected: selected, after: after };
+}
+
+function editorNodeStaysInBeam(node) {
+  var i;
+  if (!node || node.type === "beam" || node.type === "tuplet") {
+    return false;
+  }
+  if (node.type !== "piece") {
+    return false;
+  }
+  if (node.kind === "tie") {
+    return true;
+  }
+  if (node.kind === "pitch" || node.kind === "slash") {
+    return editorDurationIsShort(node.dur);
+  }
+  if (node.kind === "stack") {
+    if (!node.pitches || !node.pitches.length) {
+      return false;
+    }
+    for (i = 0; i < node.pitches.length; i++) {
+      if (!editorDurationIsShort(node.pitches[i].dur)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+function editorListHasEvent(nodes) {
+  var pieces = editorCollectPieces(nodes);
+  var i;
+  for (i = 0; i < pieces.length; i++) {
+    if (editorIsEventPiece(pieces[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorHealList(nodes) {
+  var out = [];
+  var i;
+  var part;
+  for (i = 0; i < nodes.length; i++) {
+    part = editorHealNode(nodes[i]);
+    if (part && part.length) {
+      out = out.concat(part);
+    }
+  }
+  return out;
+}
+
+/* Rests and long notes step out. A leftover eighth keeps its braces. An empty beam goes. */
+function editorHealBeam(node) {
+  var kids = editorHealList(node.children || []);
+  var items = [];
+  var groups = [];
+  var current = null;
+  var i;
+  var stay;
+  var anyStay = false;
+  var anyLeave = false;
+  var out;
+  for (i = 0; i < kids.length; i++) {
+    items.push(kids[i]);
+  }
+  if (!items.length) {
+    return [];
+  }
+  for (i = 0; i < items.length; i++) {
+    stay = editorNodeStaysInBeam(items[i]);
+    if (!current || current.stay !== stay) {
+      current = { stay: stay, nodes: [items[i]] };
+      groups.push(current);
+    } else {
+      current.nodes.push(items[i]);
+    }
+  }
+  for (i = 0; i < groups.length; i++) {
+    if (groups[i].stay) {
+      anyStay = true;
+    } else {
+      anyLeave = true;
+    }
+  }
+  if (!anyLeave) {
+    return [
+      {
+        type: "beam",
+        children: items,
+        selected: !!node.selected,
+        pasted: !!node.pasted
+      }
+    ];
+  }
+  if (!anyStay) {
+    return items;
+  }
+  out = [];
+  for (i = 0; i < groups.length; i++) {
+    if (groups[i].stay) {
+      out.push({
+        type: "beam",
+        children: groups[i].nodes,
+        selected: false,
+        pasted: false
+      });
+    } else {
+      out = out.concat(groups[i].nodes);
+    }
+  }
+  return out;
+}
+
+/* A bar rides out after the tuplet. A nested tuplet steps out between the pieces. */
+function editorHealTuplet(node) {
+  var kids = editorHealList(node.children || []);
+  var items = [];
+  var bars = [];
+  var groups = [];
+  var current = null;
+  var i;
+  var nested;
+  var out = [];
+  for (i = 0; i < kids.length; i++) {
+    if (kids[i].type === "piece" && kids[i].kind === "bar") {
+      bars.push(kids[i]);
+    } else {
+      items.push(kids[i]);
+    }
+  }
+  for (i = 0; i < items.length; i++) {
+    nested = items[i].type === "tuplet";
+    if (!current || current.nested !== nested) {
+      current = { nested: nested, nodes: [items[i]] };
+      groups.push(current);
+    } else {
+      current.nodes.push(items[i]);
+    }
+  }
+  for (i = 0; i < groups.length; i++) {
+    if (groups[i].nested) {
+      out = out.concat(groups[i].nodes);
+    } else if (editorListHasEvent(groups[i].nodes)) {
+      out.push({
+        type: "tuplet",
+        n: node.n,
+        ratio: node.ratio || "",
+        children: groups[i].nodes,
+        selected: !!node.selected,
+        pasted: !!node.pasted
+      });
+    }
+  }
+  for (i = 0; i < bars.length; i++) {
+    out.push(bars[i]);
+  }
+  return out;
+}
+
+function editorHealNode(node) {
+  if (!node) {
+    return [];
+  }
+  if (node.type === "beam") {
+    return editorHealBeam(node);
+  }
+  if (node.type === "tuplet") {
+    return editorHealTuplet(node);
+  }
+  return [node];
+}
+
+function editorEmitter() {
+  var parts = [];
+  var len = 0;
+  var selStart = -1;
+  var selEnd = -1;
+  var caret = -1;
+  var glue = false;
+  var prevSel = false;
+  function emit(text, flags) {
+    var selected;
+    flags = flags || {};
+    if (!text) {
+      return;
+    }
+    selected = !!flags.selected;
+    if (
+      parts.length &&
+      !glue &&
+      !flags.glueLeft &&
+      !/^\s/.test(text) &&
+      !/\s$/.test(parts[parts.length - 1])
+    ) {
+      parts.push(" ");
+      if (selected && prevSel && selStart >= 0) {
+        selEnd = len + 1;
+      }
+      len += 1;
+    }
+    if (selected && selStart < 0) {
+      selStart = len;
+    }
+    parts.push(text);
+    len += text.length;
+    if (selected) {
+      selEnd = len;
+    }
+    if (flags.pasted || flags.caretAfter) {
+      caret = len;
+    }
+    glue = !!flags.glueRight;
+    prevSel = selected;
+  }
+  return {
+    emit: emit,
+    finish: function () {
+      return { text: parts.join(""), selStart: selStart, selEnd: selEnd, caret: caret };
+    }
+  };
+}
+
+function editorSerializeNode(node, em) {
+  var open;
+  var i;
+  if (!node || !em) {
+    return;
+  }
+  if (node.type === "beam") {
+    em.emit("{", { selected: !!node.selected, glueRight: true, pasted: !!node.pasted });
+    for (i = 0; i < node.children.length; i++) {
+      editorSerializeNode(node.children[i], em);
+    }
+    em.emit("}", { selected: !!node.selected, glueLeft: true, pasted: !!node.pasted });
+    return;
+  }
+  if (node.type === "tuplet") {
+    open = "(" + node.n + (node.ratio ? ":" + node.ratio : "");
+    em.emit(open, { selected: !!node.selected, pasted: !!node.pasted });
+    for (i = 0; i < node.children.length; i++) {
+      editorSerializeNode(node.children[i], em);
+    }
+    em.emit(")", { selected: !!node.selected, glueLeft: true, pasted: !!node.pasted });
+    return;
+  }
+  if (node.type === "piece") {
+    em.emit(node.text, {
+      selected: !!node.selected,
+      pasted: !!node.pasted,
+      caretAfter: !!node.caretAfter
+    });
+  }
+}
+
+function editorSerializeNodes(nodes) {
+  var em = editorEmitter();
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    editorSerializeNode(nodes[i], em);
+  }
+  return em.finish();
+}
+
+function editorStaffMusicDraws(music) {
+  if (!String(music || "").replace(/\s+/g, "")) {
+    return true;
+  }
+  if (typeof parseMusicNotation !== "function") {
+    return true;
+  }
+  return !!parseMusicNotation(music);
+}
+
+function editorSelectionBounds() {
+  var span;
+  var sel;
+  var a;
+  var b;
+  var swap;
+  var raw;
+  var parts;
+  if (!editorStaffOn()) {
+    return null;
+  }
+  span = editorLineSpan();
+  if (!span) {
+    return null;
+  }
+  sel = editorReadSelection(span.field);
+  a = sel.start - span.lineStart;
+  b = sel.end - span.lineStart;
+  if (a === b) {
+    return null;
+  }
+  if (a > b) {
+    swap = a;
+    a = b;
+    b = swap;
+  }
+  raw = span.value.slice(span.lineStart, span.lineEnd);
+  parts = editorSplitStaffCaption(raw);
+  if (a < 0) {
+    a = 0;
+  }
+  if (b > parts.music.length) {
+    b = parts.music.length;
+  }
+  if (a >= b) {
+    return null;
+  }
+  return { span: span, music: parts.music, caption: parts.caption, a: a, b: b };
+}
+
+function editorCommitStaffEdit(bounds, built, mode) {
+  var line;
+  var selStart;
+  var selEnd;
+  var value;
+  var silent;
+  line = built.text + (bounds.caption || "");
+  if (mode === "caret") {
+    selStart = built.caret >= 0 ? built.caret : built.text.length;
+    selEnd = selStart;
+  } else {
+    selStart = built.selStart;
+    selEnd = built.selEnd;
+    if (selStart < 0) {
+      selStart = 0;
+    }
+    if (selEnd < 0) {
+      selEnd = selStart;
+    }
+  }
+  if (!(bounds.skipUndo)) {
+    editorPushSymbolUndo();
+  }
+  value = String(bounds.span.field.value || "");
+  bounds.span.field.value = value.slice(0, bounds.span.lineStart) + line + value.slice(bounds.span.lineEnd);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(
+    bounds.span.field,
+    bounds.span.lineStart + selStart,
+    bounds.span.lineStart + selEnd,
+    silent
+  );
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+function editorSelectEvents(nodes) {
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (editorIsEventPiece(nodes[i])) {
+      nodes[i].selected = true;
+    }
+    if (nodes[i].children) {
+      editorSelectEvents(nodes[i].children);
+    }
+  }
+}
+
+function editorExpandList(nodes) {
+  var out = [];
+  var i;
+  var node;
+  var parsed;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (node.type === "piece" && node.replaceWith != null) {
+      parsed = editorParseStaffNodes(node.replaceWith);
+      if (!parsed) {
+        out.push(node);
+      } else {
+        editorSelectEvents(parsed);
+        out = out.concat(parsed);
+      }
+    } else if (node.children) {
+      node.children = editorExpandList(node.children);
+      out.push(node);
+    } else {
+      out.push(node);
+    }
+  }
+  return out;
+}
+
+function editorAnyReplace(nodes) {
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i].type === "piece" && nodes[i].replaceWith != null && nodes[i].replaceWith !== nodes[i].text) {
+      return true;
+    }
+    if (nodes[i].children && editorAnyReplace(nodes[i].children)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorMapStackText(node, mapPitch) {
+  var close = node.text.indexOf("]");
+  var inner = close >= 0 ? node.text.slice(1, close) : node.text.slice(1);
+  var tail = close >= 0 ? node.text.slice(close) : "]";
+  var parts = inner.split(/(\s+)/);
+  var out = [];
+  var i;
+  var p;
+  for (i = 0; i < parts.length; i++) {
+    if (!parts[i] || /^\s+$/.test(parts[i])) {
+      out.push(parts[i]);
+      continue;
+    }
+    p = editorMakeTokenPiece(parts[i], 0, parts[i].length);
+    if (p.kind === "pitch") {
+      out.push(mapPitch(p));
+    } else {
+      out.push(parts[i]);
+    }
+  }
+  return "[" + out.join("") + tail;
+}
+
+function editorStackWithLetter(node, letter, oct) {
+  var occupied = {};
+  var i;
+  var p;
+  var free;
+  var dur;
+  var dot;
+  var neu;
+  var close;
+  var inner;
+  var tail;
+  for (i = 0; i < node.pitches.length; i++) {
+    p = node.pitches[i];
+    occupied[p.letter + (p.acc || "") + String(p.oct)] = true;
+  }
+  free = editorNextFreeStackOctave(letter, "", oct, occupied);
+  if (free === null) {
+    return null;
+  }
+  dur = node.dur == null ? (node.pitches[0] ? node.pitches[0].dur : "") : node.dur;
+  dot = node.pitches[0] ? node.pitches[0].dot : false;
+  neu = editorPitchText(letter, "", free, dur, dot, "");
+  close = node.text.indexOf("]");
+  inner = (close >= 0 ? node.text.slice(1, close) : node.text.slice(1)).replace(/\s+$/g, "");
+  tail = close >= 0 ? node.text.slice(close) : "]";
+  return "[" + inner + (inner ? " " : "") + neu + tail;
+}
+
+function editorSelectionWriteOctave(events) {
+  var oct = null;
+  var mixed = false;
+  var i;
+  var j;
+  function take(n) {
+    if (oct === null) {
+      oct = n;
+    } else if (oct !== n) {
+      mixed = true;
+    }
+  }
+  for (i = 0; i < events.length; i++) {
+    if (events[i].kind === "pitch") {
+      take(events[i].oct);
+    }
+    if (events[i].kind === "stack" && events[i].pitches) {
+      for (j = 0; j < events[i].pitches.length; j++) {
+        take(events[i].pitches[j].oct);
+      }
+    }
+  }
+  if (oct !== null && !mixed) {
+    return oct;
+  }
+  return editorWorkingOctave();
+}
+
+function editorRunSelection(mutator, mode, opts) {
+  var bounds;
+  var nodes;
+  var events;
+  var healed;
+  var built;
+  bounds = editorSelectionBounds();
+  if (!bounds) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(bounds.music);
+  if (!nodes) {
+    return true;
+  }
+  editorMarkSelectedNodes(nodes, bounds.a, bounds.b);
+  events = editorCollectPieces(nodes).filter(function (p) {
+    return editorIsEventPiece(p) && p.selected;
+  });
+  if (!events.length) {
+    return true;
+  }
+  if (mutator(nodes, events) === false) {
+    return true;
+  }
+  if (!editorAnyReplace(nodes) && mode !== "bar") {
+    editorPaintNotePad();
+    return true;
+  }
+  nodes = editorExpandList(nodes);
+  healed = editorHealList(nodes);
+  built = editorSerializeNodes(healed);
+  if (!editorStaffMusicDraws(built.text)) {
+    return true;
+  }
+  if (built.text + (bounds.caption || "") === bounds.music + (bounds.caption || "") && mode !== "caret") {
+    editorPaintNotePad();
+    return true;
+  }
+  bounds.skipUndo = !!(opts && opts.skipUndo);
+  return editorCommitStaffEdit(bounds, built, mode || "select");
+}
+
+function editorApplySelectionLetter(letter, opts) {
+  return editorRunSelection(function (nodes, events) {
+    var oct = editorSelectionWriteOctave(events);
+    var i;
+    var next;
+    var full = false;
+    for (i = 0; i < events.length; i++) {
+      if (events[i].kind === "pitch") {
+        events[i].replaceWith = editorPitchTextKept(
+          letter,
+          events[i].acc,
+          events[i].oct,
+          events[i].durRaw,
+          events[i].affix
+        );
+      } else if (events[i].kind === "rest" || events[i].kind === "slash") {
+        events[i].replaceWith = editorPitchText(letter, "", oct, events[i].dur, events[i].dot, "");
+      } else if (events[i].kind === "stack") {
+        next = editorStackWithLetter(events[i], letter, oct);
+        if (next === null) {
+          full = true;
+        } else {
+          events[i].replaceWith = next;
+        }
+      }
+    }
+    if (full) {
+      editorNotice(t("edit.refuseStackFull"));
+    }
+    return true;
+  }, "select", opts);
+}
+
+function editorApplySelectionRest(opts) {
+  return editorRunSelection(function (nodes, events) {
+    var i;
+    var ev;
+    var dur;
+    var dot;
+    for (i = 0; i < events.length; i++) {
+      ev = events[i];
+      if (ev.kind === "stack") {
+        dur = ev.dur == null ? (ev.pitches[0] ? ev.pitches[0].dur : "") : ev.dur;
+        dot = ev.pitches[0] ? ev.pitches[0].dot : false;
+      } else {
+        dur = ev.dur;
+        dot = ev.dot;
+      }
+      ev.replaceWith = editorRestText(dur, dot);
+    }
+    return true;
+  }, "select", opts);
+}
+
+function editorApplySelectionSlash(opts) {
+  return editorRunSelection(function (nodes, events) {
+    var i;
+    var ev;
+    var dur;
+    var dot;
+    for (i = 0; i < events.length; i++) {
+      ev = events[i];
+      if (ev.kind === "stack") {
+        dur = ev.dur == null ? (ev.pitches[0] ? ev.pitches[0].dur : "") : ev.dur;
+        dot = ev.pitches[0] ? ev.pitches[0].dot : false;
+      } else {
+        dur = ev.dur;
+        dot = ev.dot;
+      }
+      ev.replaceWith = editorSlashText(dur, dot);
+    }
+    return true;
+  }, "select", opts);
+}
+
+function editorApplySelectionDot(dotOn) {
+  return editorRunSelection(function (nodes, events) {
+    var i;
+    var ev;
+    for (i = 0; i < events.length; i++) {
+      ev = events[i];
+      if (ev.kind === "pitch") {
+        ev.replaceWith = editorPitchText(ev.letter, ev.acc, ev.oct, ev.dur, dotOn, ev.affix);
+      } else if (ev.kind === "rest") {
+        ev.replaceWith = editorRestText(ev.dur, dotOn);
+      } else if (ev.kind === "slash") {
+        ev.replaceWith = editorSlashText(ev.dur, dotOn);
+      } else if (ev.kind === "stack") {
+        ev.replaceWith = editorMapStackText(ev, function (p) {
+          return editorPitchText(p.letter, p.acc, p.oct, p.dur, dotOn, p.affix);
+        });
+      }
+    }
+    return true;
+  }, "select");
+}
+
+function editorInsertAfterNode(nodes, target, extra) {
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i] === target) {
+      nodes.splice(i + 1, 0, extra);
+      return true;
+    }
+    if (nodes[i].children && editorInsertAfterNode(nodes[i].children, target, extra)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorInsertAfterLastSelected(nodes, extra) {
+  var spot = null;
+  function walk(list) {
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].type === "piece" && list[i].selected) {
+        spot = { list: list, index: i };
+      }
+      if (list[i].children) {
+        walk(list[i].children);
+      }
+    }
+  }
+  walk(nodes);
+  if (!spot) {
+    return false;
+  }
+  spot.list.splice(spot.index + 1, 0, extra);
+  return true;
+}
+
+function editorCommonTupletNode(events) {
+  var id;
+  var i;
+  if (!events.length || !events[0].tupletId) {
+    return null;
+  }
+  id = events[0].tupletId;
+  for (i = 0; i < events.length; i++) {
+    if (events[i].tupletId !== id) {
+      return null;
+    }
+  }
+  return events[0].tupletNode || null;
+}
+
+function editorApplySelectionBar() {
+  var bounds = editorSelectionBounds();
+  var nodes;
+  var events;
+  var bar;
+  var tup;
+  var healed;
+  var built;
+  if (!bounds) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(bounds.music);
+  if (!nodes) {
+    return true;
+  }
+  editorMarkSelectedNodes(nodes, bounds.a, bounds.b);
+  events = editorCollectPieces(nodes).filter(function (p) {
+    return editorIsEventPiece(p) && p.selected;
+  });
+  if (!events.length) {
+    return true;
+  }
+  bar = { type: "piece", kind: "bar", text: "|", caretAfter: true, selected: false, pasted: false };
+  tup = editorCommonTupletNode(events);
+  if (tup) {
+    editorInsertAfterNode(nodes, tup, bar);
+  } else {
+    editorInsertAfterLastSelected(nodes, bar);
+  }
+  healed = editorHealList(nodes);
+  built = editorSerializeNodes(healed);
+  if (!editorStaffMusicDraws(built.text)) {
+    return true;
+  }
+  return editorCommitStaffEdit(bounds, built, "caret");
+}
+
+function editorFlagPaste(nodes, mode) {
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    nodes[i].pasted = true;
+    if (mode === "select") {
+      nodes[i].selected = true;
+    }
+    if (nodes[i].children) {
+      editorFlagPaste(nodes[i].children, mode);
+    }
+  }
+}
+
+function editorSpliceAtCaret(nodes, caret, paste) {
+  var i;
+  var node;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if ((node.type === "beam" || node.type === "tuplet") && caret > node.start && caret < node.end) {
+      return editorSpliceAtCaret(node.children, caret, paste);
+    }
+    if (typeof node.start === "number" && node.start >= caret) {
+      nodes.splice.apply(nodes, [i, 0].concat(paste));
+      return true;
+    }
+  }
+  nodes.push.apply(nodes, paste);
+  return true;
+}
+
+function editorPasteOverSelection(text) {
+  var bounds = editorSelectionBounds();
+  var nodes;
+  var pulled;
+  var paste;
+  var healed;
+  var built;
+  if (!bounds) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(bounds.music);
+  if (!nodes) {
+    return true;
+  }
+  editorMarkSelectedNodes(nodes, bounds.a, bounds.b);
+  pulled = editorPullSelection(nodes);
+  if (!pulled.selected.length) {
+    return true;
+  }
+  paste = editorParseStaffNodes(String(text || "").replace(/^\s+|\s+$/g, ""));
+  if (!paste || !paste.length) {
+    return true;
+  }
+  editorFlagPaste(paste, "select");
+  healed = editorHealList(pulled.before.concat(paste).concat(pulled.after));
+  built = editorSerializeNodes(healed);
+  if (!editorStaffMusicDraws(built.text)) {
+    return true;
+  }
+  return editorCommitStaffEdit(bounds, built, "select");
+}
+
+function editorPasteAtCaret(text) {
+  var span;
+  var sel;
+  var raw;
+  var parts;
+  var caret;
+  var nodes;
+  var paste;
+  var healed;
+  var built;
+  var bounds;
+  if (!editorStaffOn()) {
+    return false;
+  }
+  span = editorLineSpan();
+  if (!span) {
+    return false;
+  }
+  sel = editorReadSelection(span.field);
+  if (sel.start !== sel.end) {
+    return false;
+  }
+  raw = span.value.slice(span.lineStart, span.lineEnd);
+  parts = editorSplitStaffCaption(raw);
+  caret = sel.start - span.lineStart;
+  if (caret < 0) {
+    caret = 0;
+  }
+  if (caret > parts.music.length) {
+    caret = parts.music.length;
+  }
+  nodes = editorParseStaffNodes(parts.music);
+  if (!nodes) {
+    return false;
+  }
+  paste = editorParseStaffNodes(String(text || "").replace(/^\s+|\s+$/g, ""));
+  if (!paste || !paste.length) {
+    return false;
+  }
+  editorFlagPaste(paste, "caret");
+  editorSpliceAtCaret(nodes, caret, paste);
+  healed = editorHealList(nodes);
+  built = editorSerializeNodes(healed);
+  if (!editorStaffMusicDraws(built.text)) {
+    return true;
+  }
+  bounds = { span: span, music: parts.music, caption: parts.caption };
+  return editorCommitStaffEdit(bounds, built, "caret");
+}
+
+function editorCopySelection(value, lineStart, selStart, selEnd) {
+  var raw;
+  var parts;
+  var a;
+  var b;
+  var nodes;
+  var pulled;
+  var built;
+  var lineEnd;
+  value = String(value || "");
+  lineEnd = value.indexOf("\n", lineStart);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  raw = value.slice(lineStart, lineEnd);
+  parts = editorSplitStaffCaption(raw);
+  a = selStart - lineStart;
+  b = selEnd - lineStart;
+  if (a > b) {
+    lineEnd = a;
+    a = b;
+    b = lineEnd;
+  }
+  if (a < 0) {
+    a = 0;
+  }
+  if (b > parts.music.length) {
+    b = parts.music.length;
+  }
+  nodes = editorParseStaffNodes(parts.music);
+  if (!nodes) {
+    return null;
+  }
+  editorMarkSelectedNodes(nodes, a, b);
+  pulled = editorPullSelection(nodes);
+  if (!pulled.selected.length) {
+    return "";
+  }
+  built = editorSerializeNodes(pulled.selected);
+  return String(built.text || "").replace(/^\s+|\s+$/g, "");
+}
+
+function editorSelectionTupletAction(line, start, end) {
+  var nodes;
+  var events;
+  var id;
+  var i;
+  var outside;
+  var node;
+  var inner;
+  if (start > end) {
+    i = start;
+    start = end;
+    end = i;
+  }
+  nodes = editorParseStaffNodes(line);
+  if (!nodes) {
+    return { kind: "none", n: 0 };
+  }
+  editorMarkSelectedNodes(nodes, start, end);
+  events = editorCollectPieces(nodes).filter(function (p) {
+    return editorIsEventPiece(p) && p.selected;
+  });
+  if (!events.length) {
+    return { kind: "none", n: 0 };
+  }
+  id = events[0].tupletId || 0;
+  outside = !id;
+  for (i = 0; i < events.length; i++) {
+    if ((events[i].tupletId || 0) !== id || !events[i].tupletId) {
+      outside = true;
+    }
+  }
+  if (!id) {
+    return { kind: "none", n: 0 };
+  }
+  if (outside) {
+    return { kind: "blocked", n: 0 };
+  }
+  node = events[0].tupletNode;
+  inner = editorCollectPieces(node ? [node] : []).filter(editorIsEventPiece);
+  for (i = 0; i < inner.length; i++) {
+    if (!inner[i].selected) {
+      return { kind: "partial", n: node.n || 0 };
+    }
+  }
+  return { kind: "whole", n: node ? node.n : 0 };
+}
+
+function editorRewriteSelectionTuplet(n) {
+  var span = editorLineSpan();
+  var line;
+  var sel;
+  var rel;
+  var endRel;
+  var swap;
+  var g;
+  var oldOpen;
+  var nextOpen;
+  var openN;
+  var value;
+  var delta;
+  var start;
+  var end;
+  var silent;
+  n = editorClampTupletN(n);
+  if (!span) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  sel = editorReadSelection(span.field);
+  rel = sel.start - span.lineStart;
+  endRel = sel.end - span.lineStart;
+  if (rel > endRel) {
+    swap = rel;
+    rel = endRel;
+    endRel = swap;
+  }
+  g = editorMatchingGroupSelection(line, rel, endRel, "tuplet");
+  if (!g) {
+    return false;
+  }
+  oldOpen = line.slice(g.open, g.openEnd);
+  openN = /^\((\d+)/.exec(oldOpen);
+  if (openN && editorClampTupletN(openN[1]) === n && oldOpen === "(" + n) {
+    return false;
+  }
+  nextOpen = "(" + n;
+  if (oldOpen === nextOpen) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  span.field.value =
+    value.slice(0, span.lineStart + g.open) + nextOpen + value.slice(span.lineStart + g.openEnd);
+  delta = nextOpen.length - oldOpen.length;
+  start = sel.start;
+  end = sel.end;
+  if (start >= span.lineStart + g.openEnd) {
+    start += delta;
+  }
+  if (end >= span.lineStart + g.openEnd) {
+    end += delta;
+  }
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, start, end, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+function editorTraitsFromEvents(events) {
+  var dur;
+  var mixedDur = false;
+  var anyRhythm = false;
+  var allDotted = true;
+  var acc;
+  var mixedAcc = false;
+  var anyPitch = false;
+  var oct = null;
+  var mixedOct = false;
+  var beamId;
+  var beamSame = true;
+  var tupId;
+  var tupSame = true;
+  var stacks = 0;
+  var i;
+  var j;
+  var ev;
+  function takeRhythm(code, dotted) {
+    var norm = code == null ? null : editorNormDur(code);
+    anyRhythm = true;
+    if (!dotted) {
+      allDotted = false;
+    }
+    if (dur === undefined) {
+      dur = norm;
+    } else if (dur !== norm) {
+      mixedDur = true;
+    }
+  }
+  function takePitch(p) {
+    var a = p.acc || "";
+    anyPitch = true;
+    if (acc === undefined) {
+      acc = a;
+    } else if (acc !== a) {
+      mixedAcc = true;
+    }
+    if (oct === null) {
+      oct = p.oct;
+    } else if (oct !== p.oct) {
+      mixedOct = true;
+    }
+  }
+  for (i = 0; i < events.length; i++) {
+    ev = events[i];
+    if (ev.kind === "stack") {
+      stacks += 1;
+      if (ev.dur == null) {
+        mixedDur = true;
+        anyRhythm = true;
+        if (!ev.pitches || !ev.pitches.length) {
+          allDotted = false;
+        } else {
+          for (j = 0; j < ev.pitches.length; j++) {
+            if (!ev.pitches[j].dot) {
+              allDotted = false;
+            }
+          }
+        }
+      } else {
+        takeRhythm(ev.dur, ev.dot);
+      }
+      if (ev.pitches) {
+        for (j = 0; j < ev.pitches.length; j++) {
+          takePitch(ev.pitches[j]);
+        }
+      }
+    } else if (ev.kind === "pitch") {
+      takeRhythm(ev.dur, ev.dot);
+      takePitch(ev);
+    } else if (ev.kind === "rest" || ev.kind === "slash") {
+      takeRhythm(ev.dur, ev.dot);
+    }
+    if (beamSame) {
+      if (beamId === undefined) {
+        beamId = ev.beamId || 0;
+      } else if (beamId !== (ev.beamId || 0)) {
+        beamSame = false;
+      }
+    }
+    if (tupSame) {
+      if (tupId === undefined) {
+        tupId = ev.tupletId || 0;
+      } else if (tupId !== (ev.tupletId || 0)) {
+        tupSame = false;
+      }
+    }
+  }
+  return {
+    selection: true,
+    onEvent: false,
+    dur: anyRhythm && !mixedDur ? dur : null,
+    dot: !!(anyRhythm && allDotted),
+    accLit: anyPitch && !mixedAcc && acc ? acc : "",
+    oct: anyPitch && !mixedOct ? oct : null,
+    octBlank: anyPitch && mixedOct,
+    beam: !!(beamSame && beamId),
+    tuplet: !!(tupSame && tupId),
+    stack: stacks === 1 && events.length === 1
+  };
+}
+
+function editorStackDotsAgree(line, stack) {
+  var spans;
+  var i;
+  var m;
+  var dotted;
+  if (!stack) {
+    return false;
+  }
+  spans = editorStackPitchSpans(line, stack);
+  if (!spans.length) {
+    return false;
+  }
+  for (i = 0; i < spans.length; i++) {
+    m = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?)|\.)?/.exec(spans[i].token);
+    dotted = !!(m && String(m[1] || "").indexOf(".") >= 0);
+    if (!dotted) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function editorTraitsFromHit(hit) {
+  var piece;
+  var stack;
+  var span;
+  var line;
+  var shared;
+  var dur;
+  var dot;
+  if (!hit) {
+    return null;
+  }
+  piece = editorMakeTokenPiece(hit.token || "", hit.start, hit.end);
+  if (piece.kind !== "pitch" && piece.kind !== "rest" && piece.kind !== "slash") {
+    return null;
+  }
+  dur = piece.dur;
+  dot = piece.dot;
+  stack = editorStackGroupAtCaret();
+  if (stack) {
+    shared = editorStackSharedDuration();
+    span = editorLineSpan();
+    line = span ? span.value.slice(span.lineStart, span.lineEnd) : "";
+    if (shared) {
+      dur = shared.dur;
+      dot = shared.dot;
+    } else {
+      dur = null;
+      dot = editorStackDotsAgree(line, stack);
+    }
+  }
+  return {
+    selection: false,
+    onEvent: true,
+    dur: dur,
+    dot: !!dot,
+    accLit: piece.kind === "pitch" ? piece.acc || "" : "",
+    oct: piece.kind === "pitch" ? piece.oct : null,
+    octBlank: false,
+    beam: editorCaretInsideStructure("beam"),
+    tuplet: editorCaretInsideStructure("tuplet"),
+    stack: !!stack || editorCaretInsideStructure("stack")
+  };
+}
+
+function editorStaffPadTraits() {
+  var span;
+  var sel;
+  var a;
+  var b;
+  var swap;
+  var raw;
+  var parts;
+  var nodes;
+  var events;
+  var hit;
+  if (!editorStaffOn()) {
+    return null;
+  }
+  span = editorLineSpan();
+  if (!span) {
+    return null;
+  }
+  sel = editorReadSelection(span.field);
+  a = sel.start - span.lineStart;
+  b = sel.end - span.lineStart;
+  if (a > b) {
+    swap = a;
+    a = b;
+    b = swap;
+  }
+  if (a !== b) {
+    raw = span.value.slice(span.lineStart, span.lineEnd);
+    parts = editorSplitStaffCaption(raw);
+    if (a < 0) {
+      a = 0;
+    }
+    if (b > parts.music.length) {
+      b = parts.music.length;
+    }
+    nodes = editorParseStaffNodes(parts.music);
+    if (!nodes) {
+      return {
+        selection: true,
+        onEvent: false,
+        dur: null,
+        dot: false,
+        accLit: "",
+        oct: null,
+        octBlank: false,
+        beam: false,
+        tuplet: false,
+        stack: false
+      };
+    }
+    editorMarkSelectedNodes(nodes, a, b);
+    events = editorCollectPieces(nodes).filter(function (p) {
+      return editorIsEventPiece(p) && p.selected;
+    });
+    if (!events.length) {
+      return {
+        selection: true,
+        onEvent: false,
+        dur: null,
+        dot: false,
+        accLit: "",
+        oct: null,
+        octBlank: false,
+        beam: false,
+        tuplet: false,
+        stack: false
+      };
+    }
+    return editorTraitsFromEvents(events);
+  }
+  hit = editorMusicHitAtCaret();
+  if (!hit) {
+    return null;
+  }
+  return editorTraitsFromHit(hit);
+}
+
+function editorShownRhythmSuffix() {
+  var traits = editorStaffPadTraits();
+  if (traits && (traits.selection || traits.onEvent)) {
+    if (traits.dur === null || traits.dur === undefined) {
+      return "q";
+    }
+    return (editorDurCode(traits.dur) || "q") + (traits.dot ? "." : "");
+  }
+  return editorRhythmSuffix();
+}
+
+function editorStructureButtonLit(kind) {
+  var traits = editorStaffPadTraits();
+  if (traits && traits.selection) {
+    if (kind === "stack") {
+      return !!traits.stack;
+    }
+    if (kind === "beam") {
+      return !!traits.beam;
+    }
+    if (kind === "tuplet") {
+      return !!traits.tuplet;
+    }
+    return false;
+  }
+  return editorCaretInsideStructure(kind);
+}
+
 /* Rewrite pitch / rhythm event tokens inside a selection slice; keep shells. */
 function editorMapSelectionEventTokens(text, mapFn) {
   var ranges;
@@ -5394,83 +7120,49 @@ function editorApplySelectionTextRewrite(rewriteFn) {
 
 function editorApplySelectionAcc(acc) {
   acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
-  return editorApplySelectionTextRewrite(function (raw) {
-    if (!/[A-G]/.test(raw)) {
-      return raw;
+  return editorRunSelection(function (nodes, events) {
+    var traits = editorTraitsFromEvents(events);
+    var nextAcc = traits.accLit === acc && acc ? "" : acc;
+    var i;
+    for (i = 0; i < events.length; i++) {
+      if (events[i].kind === "pitch") {
+        events[i].replaceWith = editorPitchTextKept(
+          events[i].letter,
+          nextAcc,
+          events[i].oct,
+          events[i].durRaw,
+          events[i].affix
+        );
+      } else if (events[i].kind === "stack") {
+        events[i].replaceWith = editorMapStackText(events[i], function (p) {
+          return editorPitchTextKept(p.letter, nextAcc, p.oct, p.durRaw, p.affix);
+        });
+      }
     }
-    return editorMapSelectionEventTokens(raw, function (tok) {
-      return editorRewriteAccidentalToken(tok, acc);
-    });
-  });
+    return true;
+  }, "select");
 }
 
-function editorApplySelectionDuration(dur, dot) {
-  var field = editorActiveField();
-  var sel;
-  var value;
-  var raw;
-  var next;
-  var span;
-  var linePart;
-  var edited;
-  var relStart;
-  var relEnd;
-  var silent;
-  var at;
-  if (!field) {
-    return false;
-  }
-  sel = editorReadSelection(field);
-  if (sel.start === sel.end) {
-    return false;
-  }
-  value = String(field.value || "");
-  raw = value.slice(sel.start, sel.end);
-  if (!raw || raw.indexOf("\n") >= 0) {
-    return false;
-  }
-  if (!/[A-G]|\/|r[whqes]?/i.test(raw)) {
+function editorApplySelectionDuration(dur) {
+  return editorRunSelection(function (nodes, events) {
+    var i;
+    var ev;
+    for (i = 0; i < events.length; i++) {
+      ev = events[i];
+      if (ev.kind === "pitch") {
+        ev.replaceWith = editorPitchText(ev.letter, ev.acc, ev.oct, dur, ev.dot, ev.affix);
+      } else if (ev.kind === "rest") {
+        ev.replaceWith = editorRestText(ev.dur, ev.dot);
+      } else if (ev.kind === "slash") {
+        ev.replaceWith = editorSlashText(ev.dur, ev.dot);
+      } else if (ev.kind === "stack") {
+        ev.replaceWith = editorMapStackText(ev, function (p) {
+          return editorPitchText(p.letter, p.acc, p.oct, dur, p.dot, p.affix);
+        });
+      }
+    }
     return true;
-  }
-  next = editorMapSelectionEventTokens(raw, function (tok) {
-    return editorRewriteDurationEventToken(tok, dur, dot);
-  });
-  span = editorLineSpan();
-  if (!span) {
-    return editorApplySelectionTextRewrite(function () {
-      return next;
-    });
-  }
-  linePart = value.slice(span.lineStart, span.lineEnd);
-  relStart = sel.start - span.lineStart;
-  relEnd = sel.end - span.lineStart;
-  if (relStart < 0) {
-    relStart = 0;
-  }
-  if (relEnd < relStart) {
-    relEnd = relStart;
-  }
-  edited = linePart.slice(0, relStart) + next + linePart.slice(relEnd);
-  if (!editorDurationIsShort(dur)) {
-    edited = editorPeelLongPiecesFromBeams(edited);
-  }
-  if (edited === linePart) {
-    return true;
-  }
-  editorPushSymbolUndo();
-  field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
-  silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  at = edited.indexOf(next, Math.max(0, relStart - 1));
-  if (at >= 0) {
-    editorPlaceCaret(field, span.lineStart + at, span.lineStart + at + next.length, silent);
-  } else {
-    at = Math.min(relStart, edited.length);
-    editorPlaceCaret(field, span.lineStart + at, span.lineStart + at, silent);
-  }
-  clearEditorNotice();
-  refreshEditor();
-  editorPaintNotePad();
-  return true;
+  }, "select");
 }
 
 function editorLineMusicTokenCount(line) {
@@ -5606,7 +7298,16 @@ function editorEnclosingTupletNAtCaret() {
 }
 
 function editorSyncTupletNFromCaret() {
-  var n = editorEnclosingTupletNAtCaret();
+  var span = editorLineSpan();
+  var sel;
+  var n;
+  if (span) {
+    sel = editorReadSelection(span.field);
+    if (sel.start !== sel.end) {
+      return;
+    }
+  }
+  n = editorEnclosingTupletNAtCaret();
   if (n) {
     editorTupletN = n;
   }
@@ -5679,11 +7380,26 @@ function editorToggleTupletMenu() {
 
 /* Arm N from the combo; rewrite an enclosing tuplet opener when inside one. */
 function editorSetTupletN(n) {
+  var span;
+  var sel;
+  var line;
+  var action;
   n = editorClampTupletN(n);
   editorTupletN = n;
   editorTupletMenuOpen = false;
-  if (editorCaretInsideStructure("tuplet")) {
-    editorRewriteEnclosingTupletN(n);
+  span = editorLineSpan();
+  if (span) {
+    sel = editorReadSelection(span.field);
+    if (sel.start !== sel.end) {
+      line = span.value.slice(span.lineStart, span.lineEnd);
+      action = editorSelectionTupletAction(line, sel.start - span.lineStart, sel.end - span.lineStart);
+      if (action.kind === "whole" && action.n !== n) {
+        editorRewriteSelectionTuplet(n);
+        return;
+      }
+    } else if (editorCaretInsideStructure("tuplet")) {
+      editorRewriteEnclosingTupletN(n);
+    }
   }
   editorNotePadStamp = "";
   editorPaintNotePad();
@@ -6792,6 +8508,17 @@ function editorToggleStructure(kind) {
     editorCloseStructure(kind);
     return;
   }
+  if (sel.start !== sel.end && kind === "tuplet") {
+    exact = editorSelectionTupletAction(line, rel, endRel);
+    if (exact.kind === "partial" || exact.kind === "blocked") {
+      editorPaintNotePad();
+      return;
+    }
+    if (exact.kind === "whole" && exact.n !== editorClampTupletN(editorTupletN)) {
+      editorRewriteSelectionTuplet(editorTupletN);
+      return;
+    }
+  }
   if (sel.start !== sel.end) {
     exact = editorMatchingGroupSelection(line, rel, endRel, kind);
     if (exact) {
@@ -6981,8 +8708,14 @@ function editorPaintNoteDefaults() {
 }
 
 function editorPaintModifiers(row) {
+  var traits = editorStaffPadTraits();
   var hit = editorPitchAtCaret();
-  var litAcc = hit ? hit.acc || "" : editorNote.acc || "";
+  var litAcc =
+    traits && (traits.selection || traits.onEvent)
+      ? traits.accLit || ""
+      : hit
+        ? hit.acc || ""
+        : editorNote.acc || "";
   var octaveGroup = document.createElement("div");
   octaveGroup.className = "edit-note-octave-group";
   octaveGroup.setAttribute("role", "group");
@@ -7058,6 +8791,7 @@ function editorSymbolSnapshot() {
     doc: area ? String(area.value || "") : "",
     value: field ? String(field.value || "") : "",
     caret: field ? editorReadSelection(field).start : 0,
+    selEnd: field ? editorReadSelection(field).end : 0,
     focusIndex: editorFocusIndex,
     note: {
       acc: editorNote.acc || "",
@@ -7084,6 +8818,7 @@ function editorCloneSymbolSnap(snap) {
     doc: typeof snap.doc === "string" ? snap.doc : undefined,
     value: snap.value || "",
     caret: snap.caret || 0,
+    selEnd: typeof snap.selEnd === "number" ? snap.selEnd : snap.caret || 0,
     focusIndex: typeof snap.focusIndex === "number" ? snap.focusIndex : 0,
     note: {
       acc: snap.note && snap.note.acc ? snap.note.acc : "",
@@ -7198,13 +8933,23 @@ function editorApplySymbolSnapshot(snap) {
       if (doc === null) {
         editorSyncFocusToArea();
       }
-      editorPlaceCaret(field, snap.caret || 0, snap.caret || 0, !!(editorPadCaret && editorSymbolsIsOpen()));
+      editorPlaceCaret(
+        field,
+        snap.caret || 0,
+        typeof snap.selEnd === "number" ? snap.selEnd : snap.caret || 0,
+        !!(editorPadCaret && editorSymbolsIsOpen())
+      );
     }
   } else {
     field = document.getElementById("allEdit");
     if (field) {
       field.value = doc !== null ? doc : (snap.value || "");
-      editorPlaceCaret(field, snap.caret || 0, snap.caret || 0, !!(editorPadCaret && editorSymbolsIsOpen()));
+      editorPlaceCaret(
+        field,
+        snap.caret || 0,
+        typeof snap.selEnd === "number" ? snap.selEnd : snap.caret || 0,
+        !!(editorPadCaret && editorSymbolsIsOpen())
+      );
     }
   }
   editorNote.acc = snap.note && snap.note.acc ? snap.note.acc : "";
@@ -7305,9 +9050,16 @@ function editorWithKeyboardStaffEdit(fn) {
 }
 
 function editorPaintDurations(row) {
-  var shared = editorStackSharedDuration();
-  var lit = shared ? shared.dur : editorDurCode(editorNote.dur);
-  var litDot = shared ? shared.dot : !!editorNote.dot;
+  var traits = editorStaffPadTraits();
+  var lit;
+  var litDot;
+  if (traits && (traits.selection || traits.onEvent)) {
+    lit = traits.dur;
+    litDot = !!traits.dot;
+  } else {
+    lit = editorDurCode(editorNote.dur);
+    litDot = !!editorNote.dot;
+  }
   var choices = [
     ["w", "dur-w", "edit.noteWhole"],
     ["h", "dur-h", "edit.noteHalf"],
@@ -7317,15 +9069,21 @@ function editorPaintDurations(row) {
   ];
   var i;
   for (i = 0; i < choices.length; i++) {
-    editorPadButton(row, { "data-dur": choices[i][0] }, editorMusicIcon(choices[i][1]), t(choices[i][2]), lit === choices[i][0]);
+    editorPadButton(
+      row,
+      { "data-dur": choices[i][0] },
+      editorMusicIcon(choices[i][1]),
+      t(choices[i][2]),
+      lit !== null && lit !== undefined && lit === choices[i][0]
+    );
   }
   editorPadButton(row, { "data-dot": "1" }, editorMusicIcon("dur-" + (lit || "q") + "."), t("edit.noteDotted"), litDot);
 }
 
 function editorPaintNoteEvents(row) {
-  var rhythm = editorRhythmSuffix();
-  editorPadButton(row, { "data-event": "slash" }, editorMusicIcon("slash-" + rhythm), t("edit.noteSlash") + " " + editorSlashToken());
-  editorPadButton(row, { "data-event": "rest" }, editorMusicIcon("rest-" + rhythm), t("edit.noteRest") + " " + editorRestToken());
+  var rhythm = editorShownRhythmSuffix();
+  editorPadButton(row, { "data-event": "slash" }, editorMusicIcon("slash-" + rhythm), t("edit.noteSlash") + " /" + rhythm);
+  editorPadButton(row, { "data-event": "rest" }, editorMusicIcon("rest-" + rhythm), t("edit.noteRest") + " r" + rhythm);
   editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"), editorCaretHasBarMark());
   editorPadButton(row, { "data-event": "tie" }, editorMusicIcon("tie"), t("edit.noteTie"), editorCaretHasTieMark());
   editorPadButton(
@@ -7333,7 +9091,7 @@ function editorPaintNoteEvents(row) {
     { "data-event": "beam" },
     editorMusicIcon("beam"),
     t("edit.noteBeam"),
-    editorCaretInsideStructure("beam")
+    editorStructureButtonLit("beam")
   );
   editorPaintTupletCombo(row);
   editorPadButton(
@@ -7348,7 +9106,7 @@ function editorPaintNoteEvents(row) {
     { "data-event": "stack" },
     editorMusicIcon("stack"),
     t("edit.noteStack"),
-    editorCaretInsideStructure("stack")
+    editorStructureButtonLit("stack")
   );
 }
 
@@ -7389,6 +9147,9 @@ function editorWriteLetter(letter, opts) {
   var acc;
   var free;
   var suffix;
+  if (editorApplySelectionLetter(letter, opts)) {
+    return;
+  }
   if (editorCaretInsideStructure("beam")) {
     editorForceShortDuration();
   }
@@ -7713,7 +9474,7 @@ function editorSetDuration(dur) {
   var next = editorDurCode(dur);
   var hit;
   editorNote.dur = next;
-  if (editorApplySelectionDuration(next, editorNote.dot)) {
+  if (editorApplySelectionDuration(next)) {
     return;
   }
   if (editorStackGroupAtCaret() && editorApplyStackDuration(next, editorNote.dot)) {
@@ -7727,12 +9488,17 @@ function editorSetDuration(dur) {
 }
 
 function editorToggleDot() {
-  var next = !editorNote.dot;
+  var traits = editorStaffPadTraits();
+  var next;
   var hit;
-  editorNote.dot = next;
-  if (editorApplySelectionDuration(editorNote.dur, next)) {
+  if (traits && traits.selection) {
+    next = !traits.dot;
+    editorNote.dot = next;
+    editorApplySelectionDot(next);
     return;
   }
+  next = !editorNote.dot;
+  editorNote.dot = next;
   if (editorStackGroupAtCaret() && editorApplyStackDuration(editorNote.dur, next)) {
     return;
   }
@@ -8164,6 +9930,9 @@ function editorActivateSymbol(button, opts) {
       editorTupletMenuOpen = false;
     }
     if (eventName === "slash") {
+      if (editorApplySelectionSlash(opts)) {
+        return;
+      }
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
@@ -8175,6 +9944,9 @@ function editorActivateSymbol(button, opts) {
       return;
     }
     if (eventName === "rest") {
+      if (editorApplySelectionRest(opts)) {
+        return;
+      }
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
@@ -8186,6 +9958,9 @@ function editorActivateSymbol(button, opts) {
       return;
     }
     if (eventName === "bar") {
+      if (editorApplySelectionBar()) {
+        return;
+      }
       editorToggleOrInsertBar();
       return;
     }
