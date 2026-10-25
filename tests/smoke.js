@@ -2928,6 +2928,58 @@ function chatCase(w) {
         );
       })()
     );
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase deletes a multi-note selection", focusLine.value === "");
+    placeCaret("C4 D4");
+    w.editorPlaceCaret(focusLine, 0, focusLine.value.length, true);
+    poke(symbolsPanel.querySelector("[data-acc='#']"));
+    check(
+      "accidental rewrites every pitch in a selection",
+      focusLine.value === "C#4 D#4"
+    );
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    check(
+      "duration rewrites every pitch in a selection",
+      focusLine.value === "C#4e D#4e"
+    );
+    placeCaret("{C4e D4e E4e}");
+    w.editorPlaceCaret(focusLine, 1, 13, true);
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet wraps a drag-selected beam interior",
+      /^\(3\s*\{C4e D4e E4e\}\)$/.test(focusLine.value.replace(/\s+/g, " ").trim()) ||
+        focusLine.value.indexOf("(3") === 0 &&
+          focusLine.value.indexOf("{C4e D4e E4e}") >= 0 &&
+          focusLine.value.charAt(focusLine.value.length - 1) === ")"
+    );
+    placeCaret("(3 C4e D4e E4e)");
+    w.editorPlaceCaret(focusLine, 3, 14, true);
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet unwraps a drag-selected tuplet interior",
+      focusLine.value === "C4e D4e E4e"
+    );
+    placeCaret("{C4e D4e}");
+    w.editorPlaceCaret(focusLine, 1, 9, true);
+    poke(symbolsPanel.querySelector("[data-dur='']"));
+    check(
+      "long duration on a beamed selection peels out of the braces",
+      focusLine.value === "C4 D4" || focusLine.value === "C4q D4q"
+    );
+    placeCaret("{C4e D4e} (3 E4e F4e G4e)");
+    /* D4e through F4e — leaves {C4e … G4e) before heal. */
+    w.editorPlaceCaret(focusLine, 5, 20, true);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "selection erase across groups heals unbalanced shells",
+      !!(
+        focusLine.value.indexOf("{") < 0 &&
+        focusLine.value.indexOf("(") < 0 &&
+        /C4e/.test(focusLine.value) &&
+        /G4e/.test(focusLine.value) &&
+        w.parseMusicNotation(focusLine.value)
+      )
+    );
     placeCaret("B4e_6");
     focusLine.setSelectionRange(2, 2);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));

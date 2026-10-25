@@ -4678,6 +4678,255 @@ function editorStripTrailingOrphans(line) {
   return String(line || "").replace(/(?:\s*[|~])+\s*$/g, "").replace(/\s+$/g, "");
 }
 
+/*
+ * After a mid-group / cross-group selection erase, drop delimiter marks that
+ * are no longer in a balanced {} / [] / (N…) and clear empty shells.
+ */
+function editorRemoveUnbalancedGroupMarks(line) {
+  var groups;
+  var keep = {};
+  var i;
+  var j;
+  var g;
+  var ch;
+  var tuplet;
+  var out = [];
+  line = String(line || "");
+  groups = editorFindBalancedGroups(line);
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    for (j = g.open; j < g.openEnd; j++) {
+      keep[j] = true;
+    }
+    keep[g.closeStart] = true;
+  }
+  for (i = 0; i < line.length; i++) {
+    ch = line.charAt(i);
+    if (ch === "{" || ch === "}" || ch === "[" || ch === "]") {
+      if (!keep[i]) {
+        continue;
+      }
+      out.push(ch);
+      continue;
+    }
+    if (ch === "(") {
+      tuplet = /^\((\d{1,2})(?::(\d{1,2}))?/.exec(line.slice(i));
+      if (tuplet && !keep[i]) {
+        i += tuplet[0].length - 1;
+        continue;
+      }
+    }
+    if (ch === ")" && !keep[i]) {
+      continue;
+    }
+    out.push(ch);
+  }
+  return out.join("");
+}
+
+function editorRemoveEmptyStaffShells(line) {
+  var prev;
+  var guard = 0;
+  line = String(line || "");
+  do {
+    prev = line;
+    line = line.replace(/\{\s*\}/g, "");
+    line = line.replace(/\[\s*\](?:[\^_][^\s]*)?/g, "");
+    line = line.replace(/\(\d{1,2}(?::\d{1,2})?\s*\)/g, "");
+    line = line.replace(/[ \t]{2,}/g, " ");
+    line = line.replace(/^\s+|\s+$/g, "");
+    guard += 1;
+  } while (line !== prev && guard < 24);
+  return line;
+}
+
+function editorHealStaffLineAfterErase(line) {
+  line = editorRemoveUnbalancedGroupMarks(line);
+  line = editorRemoveEmptyStaffShells(line);
+  return editorStripTrailingOrphans(line);
+}
+
+/* Rewrite pitch / rhythm event tokens inside a selection slice; keep shells. */
+function editorMapSelectionEventTokens(text, mapFn) {
+  var ranges;
+  var parts = [];
+  var pos = 0;
+  var i;
+  var r;
+  var spans;
+  var j;
+  var piece;
+  var last;
+  var mapped;
+  text = String(text || "");
+  if (!text || typeof mapFn !== "function") {
+    return text;
+  }
+  ranges = editorMusicTokenRanges(text);
+  for (i = 0; i < ranges.length; i++) {
+    r = ranges[i];
+    parts.push(text.slice(pos, r.start));
+    spans = editorMusicEventSpans(r.tok);
+    piece = "";
+    last = 0;
+    for (j = 0; j < spans.length; j++) {
+      piece += r.tok.slice(last, spans[j].start);
+      mapped = mapFn(spans[j].token);
+      piece += mapped == null ? spans[j].token : mapped;
+      last = spans[j].end;
+    }
+    piece += r.tok.slice(last);
+    parts.push(piece);
+    pos = r.end;
+  }
+  parts.push(text.slice(pos));
+  return parts.join("");
+}
+
+function editorRewriteAccidentalToken(tok, acc) {
+  var m = /^([A-G])(#|b|n)?(\d)(.*)$/.exec(tok || "");
+  var cur;
+  var next;
+  if (!m) {
+    return tok;
+  }
+  acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
+  cur = m[2] || "";
+  next = cur === acc ? "" : acc;
+  return m[1] + next + m[3] + (m[4] || "");
+}
+
+function editorRewriteDurationEventToken(tok, dur, dot) {
+  var rhythmM;
+  var hit;
+  if (/^[A-G]/.test(tok || "")) {
+    return editorRewritePitchDurationToken(tok, dur, dot);
+  }
+  rhythmM = /^(\/[whqes]?\.?|r[whqes]?\.?)((?:[\^_']|[>\-])[^\s]*)?$/i.exec(tok || "");
+  if (!rhythmM) {
+    return tok;
+  }
+  hit = editorParseRhythmToken(rhythmM[1]);
+  if (!hit) {
+    return tok;
+  }
+  return editorRhythmTokenWith(hit, dur, dot) + (rhythmM[2] || "");
+}
+
+function editorApplySelectionTextRewrite(rewriteFn) {
+  var field = editorActiveField();
+  var sel;
+  var value;
+  var raw;
+  var next;
+  var silent;
+  if (!field || typeof rewriteFn !== "function") {
+    return false;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start === sel.end) {
+    return false;
+  }
+  value = String(field.value || "");
+  raw = value.slice(sel.start, sel.end);
+  if (!raw || raw.indexOf("\n") >= 0) {
+    return false;
+  }
+  next = rewriteFn(raw);
+  if (next === raw) {
+    return true;
+  }
+  editorPushSymbolUndo();
+  field.value = value.slice(0, sel.start) + next + value.slice(sel.end);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, sel.start, sel.start + next.length, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
+function editorApplySelectionAcc(acc) {
+  acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
+  return editorApplySelectionTextRewrite(function (raw) {
+    if (!/[A-G]/.test(raw)) {
+      return raw;
+    }
+    return editorMapSelectionEventTokens(raw, function (tok) {
+      return editorRewriteAccidentalToken(tok, acc);
+    });
+  });
+}
+
+function editorApplySelectionDuration(dur, dot) {
+  var field = editorActiveField();
+  var sel;
+  var value;
+  var raw;
+  var next;
+  var span;
+  var linePart;
+  var edited;
+  var relStart;
+  var relEnd;
+  var silent;
+  var at;
+  if (!field) {
+    return false;
+  }
+  sel = editorReadSelection(field);
+  if (sel.start === sel.end) {
+    return false;
+  }
+  value = String(field.value || "");
+  raw = value.slice(sel.start, sel.end);
+  if (!raw || raw.indexOf("\n") >= 0) {
+    return false;
+  }
+  if (!/[A-G]|\/|r[whqes]?/i.test(raw)) {
+    return true;
+  }
+  next = editorMapSelectionEventTokens(raw, function (tok) {
+    return editorRewriteDurationEventToken(tok, dur, dot);
+  });
+  span = editorLineSpan();
+  if (!span) {
+    return editorApplySelectionTextRewrite(function () {
+      return next;
+    });
+  }
+  linePart = value.slice(span.lineStart, span.lineEnd);
+  relStart = sel.start - span.lineStart;
+  relEnd = sel.end - span.lineStart;
+  if (relStart < 0) {
+    relStart = 0;
+  }
+  if (relEnd < relStart) {
+    relEnd = relStart;
+  }
+  edited = linePart.slice(0, relStart) + next + linePart.slice(relEnd);
+  if (!editorDurationIsShort(dur)) {
+    edited = editorPeelLongPiecesFromBeams(edited);
+  }
+  if (edited === linePart) {
+    return true;
+  }
+  editorPushSymbolUndo();
+  field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  at = edited.indexOf(next, Math.max(0, relStart - 1));
+  if (at >= 0) {
+    editorPlaceCaret(field, span.lineStart + at, span.lineStart + at + next.length, silent);
+  } else {
+    at = Math.min(relStart, edited.length);
+    editorPlaceCaret(field, span.lineStart + at, span.lineStart + at, silent);
+  }
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
 function editorLineMusicTokenCount(line) {
   var words;
   var i;
@@ -5366,6 +5615,62 @@ function editorExactGroupSelection(line, start, end, kind) {
   return null;
 }
 
+/*
+ * True when [start, end) covers every music event inside g and stays within
+ * that shell — so a staff drag over all beamed notes counts as that beam.
+ */
+function editorSelectionCoversGroupInterior(line, start, end, g) {
+  var music;
+  var i;
+  if (!g || start >= end) {
+    return false;
+  }
+  if (start < g.open || end > g.closeEnd) {
+    return false;
+  }
+  music = editorInnerMusicSpans(line, g);
+  if (!music.length) {
+    return false;
+  }
+  for (i = 0; i < music.length; i++) {
+    if (music[i].start < start || music[i].end > end) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*
+ * Exact shell selection, or a drag that covers all interior music of one group
+ * (innermost when several match).
+ */
+function editorMatchingGroupSelection(line, start, end, kind) {
+  var exact;
+  var groups;
+  var i;
+  var g;
+  var best;
+  exact = editorExactGroupSelection(line, start, end, kind);
+  if (exact) {
+    return exact;
+  }
+  groups = editorFindBalancedGroups(line);
+  best = null;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (kind && g.kind !== kind) {
+      continue;
+    }
+    if (!editorSelectionCoversGroupInterior(line, start, end, g)) {
+      continue;
+    }
+    if (!best || g.closeEnd - g.open < best.closeEnd - best.open) {
+      best = g;
+    }
+  }
+  return best;
+}
+
 function editorEnterStructureGroup(g) {
   var span = editorLineSpan();
   var silent;
@@ -5425,8 +5730,11 @@ function editorRangeNestsStructure(line, start, end, kind) {
     if (g.kind !== kind) {
       continue;
     }
-    /* Exact shell selection unwraps; any other overlap would nest. */
+    /* Full shell or full interior selection unwraps / wraps that group. */
     if (start === g.open && end === g.closeEnd) {
+      continue;
+    }
+    if (editorSelectionCoversGroupInterior(line, start, end, g)) {
       continue;
     }
     if (start < g.closeEnd && end > g.open) {
@@ -5463,6 +5771,112 @@ function editorFormatBeamShell(pieceTexts) {
     return pieceTexts[0];
   }
   return "{" + pieceTexts.join(" ") + "}";
+}
+
+function editorEventTokenDurationCode(tok) {
+  var pitch;
+  var rhythm;
+  tok = String(tok || "");
+  pitch = /^[A-G](?:#|b|n)?\d((?:[whqesn]\.?)|\.)?/.exec(tok);
+  if (pitch) {
+    return String(pitch[1] || "q").replace(".", "");
+  }
+  rhythm = /^\/([whqes]?)(\.?)/.exec(tok) || /^r([whqes]?)(\.?)/i.exec(tok);
+  if (rhythm) {
+    return rhythm[1] || "q";
+  }
+  return "";
+}
+
+function editorBeamPieceTextIsShort(text) {
+  var groups;
+  var spans;
+  var i;
+  var code;
+  text = String(text || "");
+  if (text.charAt(0) === "[") {
+    groups = editorFindBalancedGroups(text);
+    if (groups.length && groups[0].kind === "stack") {
+      return editorStackAllShort(text, groups[0]);
+    }
+  }
+  spans = editorMusicEventSpans(text.replace(/^\{/, "").replace(/\}$/, ""));
+  if (!spans.length) {
+    return true;
+  }
+  for (i = 0; i < spans.length; i++) {
+    if (!editorIsMusicEraseToken(spans[i].token)) {
+      continue;
+    }
+    code = editorEventTokenDurationCode(spans[i].token);
+    if (code !== "e" && code !== "s") {
+      return false;
+    }
+  }
+  return true;
+}
+
+/* Peel one beam piece out (or split the braces). Does not push undo. */
+function editorPeelOneBeamPiece(line, beam, pieceIdx) {
+  var pieces;
+  var before;
+  var after;
+  var i;
+  var mid;
+  var replacement;
+  pieces = editorBeamPieces(line, beam);
+  if (pieceIdx < 0 || pieceIdx >= pieces.length) {
+    return line;
+  }
+  before = [];
+  after = [];
+  for (i = 0; i < pieceIdx; i++) {
+    before.push(pieces[i].text);
+  }
+  for (i = pieceIdx + 1; i < pieces.length; i++) {
+    after.push(pieces[i].text);
+  }
+  mid = pieces[pieceIdx].text;
+  replacement = [editorFormatBeamShell(before), mid, editorFormatBeamShell(after)]
+    .filter(Boolean)
+    .join(" ");
+  return line.slice(0, beam.open) + replacement + line.slice(beam.closeEnd);
+}
+
+/* After a long duration rewrite, pull non-e/s pieces out of {} beams. */
+function editorPeelLongPiecesFromBeams(line) {
+  var guard = 0;
+  var groups;
+  var b;
+  var pieces;
+  var i;
+  var peeled;
+  line = String(line || "");
+  while (guard < 48) {
+    guard += 1;
+    peeled = false;
+    groups = editorFindBalancedGroups(line);
+    for (b = 0; b < groups.length; b++) {
+      if (groups[b].kind !== "beam") {
+        continue;
+      }
+      pieces = editorBeamPieces(line, groups[b]);
+      for (i = 0; i < pieces.length; i++) {
+        if (!editorBeamPieceTextIsShort(pieces[i].text)) {
+          line = editorPeelOneBeamPiece(line, groups[b], i);
+          peeled = true;
+          break;
+        }
+      }
+      if (peeled) {
+        break;
+      }
+    }
+    if (!peeled) {
+      break;
+    }
+  }
+  return line.replace(/[ \t]{2,}/g, " ").replace(/^\s+|\s+$/g, "");
 }
 
 /*
@@ -5833,7 +6247,7 @@ function editorToggleStructure(kind) {
     return;
   }
   if (sel.start !== sel.end) {
-    exact = editorExactGroupSelection(line, rel, endRel, kind);
+    exact = editorMatchingGroupSelection(line, rel, endRel, kind);
     if (exact) {
       editorUnwrapStructureGroup(exact);
       return;
@@ -5852,8 +6266,8 @@ function editorToggleStructure(kind) {
     }
   }
   if (sel.start !== sel.end && kind === "tuplet") {
-    exact = editorExactGroupSelection(line, rel, endRel, "beam") ||
-      editorExactGroupSelection(line, rel, endRel, "stack");
+    exact = editorMatchingGroupSelection(line, rel, endRel, "beam") ||
+      editorMatchingGroupSelection(line, rel, endRel, "stack");
     if (exact && editorWrapExistingGroup(exact, editorTupletOpenText(), ")")) {
       return;
     }
@@ -5983,7 +6397,7 @@ function editorEraseStep(opts) {
   if (relEnd > linePart.length) {
     relEnd = linePart.length;
   }
-  edited = editorStripTrailingOrphans(linePart.slice(0, relStart) + linePart.slice(relEnd));
+  edited = editorHealStaffLineAfterErase(linePart.slice(0, relStart) + linePart.slice(relEnd));
   field.value = value.slice(0, lineStart) + edited + value.slice(lineEnd);
   caret = lineStart + Math.min(relStart, edited.length);
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
@@ -6465,6 +6879,10 @@ function editorArmAcc(acc) {
   var suffix;
   var next;
   acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
+  if (editorApplySelectionAcc(acc)) {
+    editorNote.acc = "";
+    return;
+  }
   hit = editorPitchAtCaret();
   if (hit) {
     nextAcc = (hit.acc || "") === acc ? "" : acc;
@@ -6749,6 +7167,9 @@ function editorSetDuration(dur) {
   var next = editorDurCode(dur);
   var hit;
   editorNote.dur = next;
+  if (editorApplySelectionDuration(next, editorNote.dot)) {
+    return;
+  }
   if (editorStackGroupAtCaret() && editorApplyStackDuration(next, editorNote.dot)) {
     return;
   }
@@ -6763,6 +7184,9 @@ function editorToggleDot() {
   var next = !editorNote.dot;
   var hit;
   editorNote.dot = next;
+  if (editorApplySelectionDuration(editorNote.dur, next)) {
+    return;
+  }
   if (editorStackGroupAtCaret() && editorApplyStackDuration(editorNote.dur, next)) {
     return;
   }
