@@ -5125,6 +5125,24 @@ function chatCase(w) {
           focusLineT.value.indexOf("@key=") < 0 &&
           focusLineT.selectionStart !== focusLineT.selectionEnd
       );
+      focusLineT.value = "C4";
+      focusLineT.dispatchEvent(new w.Event("input", { bubbles: true }));
+      focusLineT.focus();
+      focusLineT.setSelectionRange(2, 2);
+      w.editorPadCaret = { start: 2, end: 2 };
+      w.editorNotePadStamp = "";
+      w.editorPaintNotePad();
+      check(
+        "the interval stays after the selection is gone",
+        symbolsPanel.querySelector("[data-move-menu]").textContent === "M2"
+      );
+      poke(symbolsPanel.querySelector("[data-move-by='1']"));
+      check("one note moves by the interval that stayed", focusLineT.value === "D4");
+      focusLineT.value = "C4 E4 F#4 F4";
+      focusLineT.dispatchEvent(new w.Event("input", { bubbles: true }));
+      focusLineT.focus();
+      focusLineT.setSelectionRange(3, 8);
+      w.editorPadCaret = { start: 3, end: 8 };
       w.document.getElementById("editTranspose").click();
       check(
         "transpose still copies the whole example while a passage is selected",

@@ -1787,10 +1787,6 @@ function refreshEditor() {
     editorSyncFocusToArea();
   }
   editorUpdateFocusChrome();
-  if (editorResetIntervalUnlessSelected()) {
-    editorNotePadStamp = "";
-    editorPaintNotePad();
-  }
   editorSyncSymbolKind();
   var total = visibleLineCount(area.value);
   if (count) {
@@ -4432,7 +4428,6 @@ function editorLetterToken(letter) {
 function editorNotePadStampNow() {
   var field = editorActiveField();
   var defaults = editorReadDefaults();
-  editorResetIntervalUnlessSelected();
   return [
     editorStaffOn() ? "staff" : "text",
     editorNote.acc || "",
@@ -9853,7 +9848,7 @@ function editorPaintModifiers(row) {
   editorPaintIntervalStepper(row);
 }
 
-/* ↓ · 8ve · ↑ . The middle picks the interval. With no selection it stays an octave. */
+/* ↓ · 8ve · ↑ . The middle picks the interval and keeps it until the next pick. */
 function editorPaintIntervalStepper(row) {
   var group = document.createElement("div");
   var current = editorMoveInterval();
@@ -12542,23 +12537,6 @@ function editorMoveInterval() {
   }
   editorMoveSemis = 12;
   return EDITOR_MOVE_INTERVALS[EDITOR_MOVE_INTERVALS.length - 1];
-}
-
-/* A passage may keep another interval. A bare caret returns the stepper to an octave. */
-function editorResetIntervalUnlessSelected() {
-  var field;
-  var bounds;
-  var prev = editorMoveSemis;
-  field = editorActiveField();
-  if (!field) {
-    editorMoveSemis = 12;
-    return prev !== editorMoveSemis;
-  }
-  bounds = editorTransposeBounds(field);
-  if (!bounds || bounds.cross || bounds.selStart === bounds.selEnd) {
-    editorMoveSemis = 12;
-  }
-  return prev !== editorMoveSemis;
 }
 
 function editorCloseMoveMenu() {
