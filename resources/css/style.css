@@ -2728,6 +2728,7 @@ body.is-editing #counter {
   line-height: 0;
   white-space: normal;
   cursor: text;
+  -webkit-touch-callout: none;
 }
 
 /* Broken / mid-typing staff: keep last good SVG, red inset frame + cue instead of text flip. */
@@ -2932,20 +2933,13 @@ body.is-editing #counter {
   pointer-events: none;
 }
 
-#editNoteHistory .edit-clip-combo {
-  position: relative;
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-
-#editNoteHistory .edit-clip-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: 8;
+.edit-clip-menu {
+  position: fixed;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin: 0;
   padding: 6px;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 4px;
@@ -2955,10 +2949,24 @@ body.is-editing #counter {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
-#editNoteHistory .edit-clip-menu button {
+.edit-clip-menu button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--face-font);
   font-size: 16px;
+  line-height: 1;
   white-space: nowrap;
   text-align: left;
+  cursor: pointer;
+}
+
+.edit-clip-menu button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 #editStaffNote {

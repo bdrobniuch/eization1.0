@@ -2277,7 +2277,7 @@ function chatCase(w) {
         !!w.document.querySelector("#editNoteHistory [data-undo]") &&
         !!w.document.querySelector("#editNoteHistory [data-redo]") &&
         !!w.document.querySelector("#editNoteHistory [data-erase]") &&
-        !!w.document.querySelector("#editNoteHistory [data-clip-menu]") &&
+        !w.document.querySelector("#editNoteHistory [data-clip-menu]") &&
         w.I18N.en["edit.noteHigher"] === "Higher" &&
         w.I18N.es["edit.noteHigher"] === "M\u00E1s aguda" &&
         w.I18N.en["edit.noteLower"] === "Lower" &&
@@ -3201,7 +3201,7 @@ function chatCase(w) {
       })()
     );
     check(
-      "Copy and Paste are chosen from the history menu",
+      "a held finger or a right-click opens Copy and Paste",
       (function () {
         var preview = w.document.getElementById("editPreview");
         var svg;
@@ -3261,7 +3261,15 @@ function chatCase(w) {
         if (focusLine.value !== "C4 D4 E4" || w.editorStaffCopy !== "") {
           return false;
         }
-        poke(w.document.querySelector("#editNoteHistory [data-clip-menu]"));
+        fire("pointerdown", layout.cols[1].x, 1);
+        if (!w.editorStaffClipHold) {
+          return false;
+        }
+        var heldAt = screenAt(layout.cols[1].x);
+        w.editorStaffPreviewHoldClipAt(heldAt.x, heldAt.y);
+        if (!w.document.getElementById("editClipMenu") || focusLine.value !== "C4 D4 E4") {
+          return false;
+        }
         var copyBtn = w.document.querySelector("[data-clip-copy]");
         var pasteBtn = w.document.querySelector("[data-clip-paste]");
         if (!copyBtn || copyBtn.disabled || copyBtn.textContent !== "Copy" || !pasteBtn || !pasteBtn.disabled) {
@@ -3281,7 +3289,17 @@ function chatCase(w) {
         if (focusLine.value !== "C4 D4 E4") {
           return false;
         }
-        poke(w.document.querySelector("#editNoteHistory [data-clip-menu]"));
+        var pasteAt = screenAt(w.editorStaffCaretX(layout, layout.cols.length));
+        preview.dispatchEvent(
+          new w.MouseEvent("contextmenu", {
+            clientX: pasteAt.x,
+            clientY: pasteAt.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            button: 2
+          })
+        );
         pasteBtn = w.document.querySelector("[data-clip-paste]");
         if (!pasteBtn || pasteBtn.disabled || pasteBtn.textContent !== "Paste") {
           return false;

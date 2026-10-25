@@ -82,6 +82,11 @@ var editorStaffEdgeScrollTimer = null;
 /* Music stored by Copy. Paste inserts it at the caret. */
 var editorStaffCopy = "";
 var editorStaffClipMenuOpen = false;
+/* Long-press on the staff opens Copy and Paste. A sideways drag cancels it. */
+var EDITOR_STAFF_CLIP_HOLD = 500;
+var editorStaffClipHold = null;
+var editorStaffClipHoldX = 0;
+var editorStaffClipHoldY = 0;
 /* Ctrl/Cmd+V already inserted editorStaffCopy; swallow the follow-up paste event. */
 var editorStaffKeyPaste = false;
 /* After Chord ^, allow typing the name until the next pad action. */
@@ -1223,6 +1228,10 @@ function editorCloseQuiet() {
   editorCloseStaffHelp({ focus: false });
   editorCloseMore();
   editorCloseSymbols();
+  editorStaffCloseClipMenu();
+  editorStaffPreviewClearClipHold();
+  editorStaffPreviewStopEdgeScroll();
+  editorStaffDrag = null;
   clearEditStaffNote();
   editorLastGoodStaffHtml = "";
   editorStaffPendingLine = null;
@@ -2716,25 +2725,76 @@ function editorStaffWriteClipboard(text) {
   } catch (errClip) {}
 }
 
+function editorStaffCloseClipMenu() {
+  var menu = document.getElementById("editClipMenu");
+  editorStaffClipMenuOpen = false;
+  if (menu && menu.parentNode) {
+    menu.parentNode.removeChild(menu);
+  }
+}
+
+/* Copy and Paste at the pointer: right-click, or a finger held on the staff. */
+function editorStaffOpenClipMenu(clientX, clientY) {
+  var menu;
+  var copyBtn;
+  var pasteBtn;
+  var rect;
+  var x;
+  var y;
+  editorStaffCloseClipMenu();
+  editorStaffClipMenuOpen = true;
+  menu = document.createElement("div");
+  menu.id = "editClipMenu";
+  menu.className = "edit-clip-menu";
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-label", t("edit.clipMenu"));
+  copyBtn = editorPadButton(menu, { "data-clip-copy": "1" }, t("edit.copy"), t("edit.copy"));
+  pasteBtn = editorPadButton(menu, { "data-clip-paste": "1" }, t("edit.paste"), t("edit.paste"));
+  copyBtn.setAttribute("role", "menuitem");
+  pasteBtn.setAttribute("role", "menuitem");
+  copyBtn.disabled = !editorStaffSelectionText(editorActiveField());
+  pasteBtn.disabled = !editorStaffCopy;
+  document.body.appendChild(menu);
+  rect = menu.getBoundingClientRect();
+  x = clientX;
+  y = clientY;
+  if (x + rect.width > window.innerWidth - 8) {
+    x = window.innerWidth - rect.width - 8;
+  }
+  if (y + rect.height > window.innerHeight - 8) {
+    y = window.innerHeight - rect.height - 8;
+  }
+  if (x < 8) {
+    x = 8;
+  }
+  if (y < 8) {
+    y = 8;
+  }
+  menu.style.left = x + "px";
+  menu.style.top = y + "px";
+  menu.addEventListener("pointerdown", function (event) {
+    var button = event.target && event.target.closest ? event.target.closest("button") : null;
+    event.preventDefault();
+    event.stopPropagation();
+    if (!button || button.disabled) {
+      return;
+    }
+    if (button.hasAttribute("data-clip-copy")) {
+      editorStaffCopyFromSelection();
+    } else if (button.hasAttribute("data-clip-paste")) {
+      editorStaffPasteCopy();
+    }
+  });
+}
+
 /* Copy the current column selection into the menu buffer. */
 function editorStaffCopyFromSelection() {
   if (!editorStaffTakeCopy(editorActiveField())) {
     return false;
   }
   editorStaffWriteClipboard(editorStaffCopy);
-  editorStaffClipMenuOpen = false;
-  editorPaintUndoRedo();
+  editorStaffCloseClipMenu();
   return true;
-}
-
-function editorToggleStaffClipMenu() {
-  editorStaffClipMenuOpen = !editorStaffClipMenuOpen;
-  if (editorStaffClipMenuOpen && editorTupletMenuOpen) {
-    editorTupletMenuOpen = false;
-    editorNotePadStamp = "";
-    editorPaintNotePad();
-  }
-  editorPaintUndoRedo();
 }
 
 /* Insert the preview copy at the caret. One undo step. */
@@ -2748,7 +2808,7 @@ function editorStaffPasteCopy() {
   if (!field) {
     return false;
   }
-  editorStaffClipMenuOpen = false;
+  editorStaffCloseClipMenu();
   editorPushSymbolUndo();
   padded = editorPadSymbolGaps(editorStaffCopy, 0);
   editorAnalyticsMark("used_paste");
@@ -2871,6 +2931,46 @@ function editorStaffPreviewCapture(preview, pointerId) {
   } catch (errCap) {}
 }
 
+function editorStaffPreviewClearClipHold() {
+  if (!editorStaffClipHold) {
+    return;
+  }
+  window.clearTimeout(editorStaffClipHold);
+  editorStaffClipHold = null;
+}
+
+function editorStaffPreviewHoldClipAt(x, y) {
+  editorStaffPreviewClearClipHold();
+  editorStaffPreviewStopEdgeScroll();
+  editorStaffDrag = null;
+  editorStaffOpenClipMenu(x, y);
+}
+
+function editorStaffPreviewArmClipHold(event) {
+  editorStaffPreviewClearClipHold();
+  editorStaffClipHoldX = event.clientX;
+  editorStaffClipHoldY = event.clientY;
+  editorStaffClipHold = window.setTimeout(function () {
+    editorStaffPreviewHoldClipAt(editorStaffClipHoldX, editorStaffClipHoldY);
+  }, EDITOR_STAFF_CLIP_HOLD);
+}
+
+function editorStaffPreviewContextMenu(event) {
+  var preview;
+  if (!event || !editorIsOpen() || !editorStaffOn()) {
+    return;
+  }
+  preview = document.getElementById("editPreview");
+  if (!preview || !preview.classList.contains("is-staff")) {
+    return;
+  }
+  event.preventDefault();
+  editorStaffPreviewClearClipHold();
+  editorStaffPreviewStopEdgeScroll();
+  editorStaffDrag = null;
+  editorStaffOpenClipMenu(event.clientX, event.clientY);
+}
+
 function editorStaffPreviewPointerDown(event) {
   var hit;
   if (!event || (typeof event.button === "number" && event.button !== 0)) {
@@ -2880,6 +2980,7 @@ function editorStaffPreviewPointerDown(event) {
   if (!hit) {
     return;
   }
+  editorStaffPreviewArmClipHold(event);
   editorStaffDrag = {
     pointerId: event.pointerId,
     startInsert: hit.insertIndex,
@@ -2912,6 +3013,7 @@ function editorStaffPreviewPointerMove(event) {
     if (dx * dx + dy * dy < EDITOR_STAFF_DRAG_SLOP * EDITOR_STAFF_DRAG_SLOP) {
       return;
     }
+    editorStaffPreviewClearClipHold();
     /* A vertical finger scrolls the Edit sheet. A sideways finger selects. */
     if (Math.abs(dy) > Math.abs(dx)) {
       editorStaffPreviewStopEdgeScroll();
@@ -2936,6 +3038,7 @@ function editorStaffPreviewPointerUp(event) {
   var hit;
   var col;
   var preview;
+  editorStaffPreviewClearClipHold();
   if (!drag || (event.pointerId != null && event.pointerId !== drag.pointerId)) {
     return;
   }
@@ -2993,6 +3096,7 @@ function editorStaffPreviewPointerCancel(event) {
   if (event && event.pointerId != null && event.pointerId !== drag.pointerId) {
     return;
   }
+  editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
   editorStaffDrag = null;
   preview = document.getElementById("editPreview");
@@ -7009,7 +7113,6 @@ function editorPaintUndoRedo() {
   undoBtn.disabled = !editorSymbolUndo.length && !editorCanUndoStaffTyping();
   redoBtn.disabled = !editorSymbolRedo.length;
   eraseBtn.disabled = !editorCanErase();
-  editorPaintStaffClipMenu(host);
   /* One gentle pulse when a staff example first fails to draw — not a constant nag. */
   if (
     !undoBtn.disabled &&
@@ -7020,34 +7123,6 @@ function editorPaintUndoRedo() {
     editorStaffPendingUndoHinted = true;
     undoBtn.classList.add("is-staff-undo-hint");
   }
-}
-
-/* History-row menu: Copy stores the selection, Paste inserts it at the caret. */
-function editorPaintStaffClipMenu(host) {
-  var wrap = document.createElement("span");
-  var toggle;
-  var menu;
-  var copyBtn;
-  var pasteBtn;
-  wrap.className = "edit-clip-combo" + (editorStaffClipMenuOpen ? " is-open" : "");
-  toggle = editorPadButton(wrap, { "data-clip-menu": "1" }, "\u25BE", t("edit.clipMenu"));
-  toggle.setAttribute("aria-haspopup", "menu");
-  toggle.setAttribute("aria-expanded", editorStaffClipMenuOpen ? "true" : "false");
-  toggle.setAttribute("aria-controls", "editClipMenu");
-  if (editorStaffClipMenuOpen) {
-    menu = document.createElement("span");
-    menu.id = "editClipMenu";
-    menu.className = "edit-clip-menu";
-    menu.setAttribute("role", "menu");
-    copyBtn = editorPadButton(menu, { "data-clip-copy": "1" }, t("edit.copy"), t("edit.copy"));
-    pasteBtn = editorPadButton(menu, { "data-clip-paste": "1" }, t("edit.paste"), t("edit.paste"));
-    copyBtn.setAttribute("role", "menuitem");
-    pasteBtn.setAttribute("role", "menuitem");
-    copyBtn.disabled = !editorStaffSelectionText(editorActiveField());
-    pasteBtn.disabled = !editorStaffCopy;
-    wrap.appendChild(menu);
-  }
-  host.appendChild(wrap);
 }
 
 function editorWithKeyboardStaffEdit(fn) {
@@ -7871,20 +7946,8 @@ function editorActivateSymbol(button, opts) {
     editorSetTupletN(button.getAttribute("data-tuplet-pick"));
     return;
   }
-  if (button.hasAttribute("data-clip-menu")) {
-    editorToggleStaffClipMenu();
-    return;
-  }
-  if (button.hasAttribute("data-clip-copy")) {
-    editorStaffCopyFromSelection();
-    return;
-  }
-  if (button.hasAttribute("data-clip-paste")) {
-    editorStaffPasteCopy();
-    return;
-  }
   if (button.hasAttribute("data-undo")) {
-    editorStaffClipMenuOpen = false;
+    editorStaffCloseClipMenu();
     editorCloseTupletMenu();
     editorSymbolUndoStep();
     return;
@@ -9736,15 +9799,14 @@ function initEditor() {
   editorBindPadPointer(symbols);
   editorBindHistoryPointer(document.getElementById("editNoteHistory"));
   document.addEventListener("pointerdown", function (event) {
-    var history = document.getElementById("editNoteHistory");
+    var menu = document.getElementById("editClipMenu");
     if (!editorStaffClipMenuOpen) {
       return;
     }
-    if (history && event.target && history.contains(event.target)) {
+    if (menu && event.target && menu.contains(event.target)) {
       return;
     }
-    editorStaffClipMenuOpen = false;
-    editorPaintUndoRedo();
+    editorStaffCloseClipMenu();
   });
   function editorOnFieldFocusForPad(event) {
     var target = event && event.target;
@@ -9765,6 +9827,7 @@ function initEditor() {
     editPreview.addEventListener("pointermove", editorStaffPreviewPointerMove);
     editPreview.addEventListener("pointerup", editorStaffPreviewPointerUp);
     editPreview.addEventListener("pointercancel", editorStaffPreviewPointerCancel);
+    editPreview.addEventListener("contextmenu", editorStaffPreviewContextMenu);
   }
   document.addEventListener("keydown", function (event) {
     var key;
