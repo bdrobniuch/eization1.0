@@ -4411,6 +4411,16 @@ function chatCase(w) {
       selectSpan("C4q D4q E4e F4e", "D4q E4e");
       poke(symbolsPanel.querySelector("[data-dur='e']"));
       check("eighth rewrites each selected event", focusLine.value === "C4q D4e E4e F4e" && selectedText() === "D4e E4e");
+      w.editorNote.dots = 0;
+      check("duration reaches rests and rhythm slashes", selectSpan("C4e re.^P /e_R", "C4e re.^P /e_R"));
+      poke(symbolsPanel.querySelector("[data-dur='h']"));
+      check(
+        "half rewrites a note, a dotted rest, and a rhythm slash",
+        focusLine.value === "C4h rh.^P /h_R" && selectedText() === "C4h rh.^P /h_R" && draws()
+      );
+      check("a long slash selection leaves the beam", selectSpan("{/e /e}", "/e /e"));
+      poke(symbolsPanel.querySelector("[data-dur='']"));
+      check("quarter rewrites beamed rhythm slashes", focusLine.value === "/q /q" && draws());
       selectSpan("C4q D4q E4e F4e", "D4q E4e");
       poke(symbolsPanel.querySelector("[data-event='bar']"));
       check(

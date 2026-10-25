@@ -7323,9 +7323,9 @@ function editorApplySelectionDuration(dur) {
       if (ev.kind === "pitch") {
         ev.replaceWith = editorPitchText(ev.letter, ev.acc, ev.oct, dur, ev.dot, ev.affix);
       } else if (ev.kind === "rest") {
-        ev.replaceWith = editorRestText(ev.dur, ev.dot);
+        ev.replaceWith = editorRestText(dur, ev.dot) + (ev.affix || "");
       } else if (ev.kind === "slash") {
-        ev.replaceWith = editorSlashText(ev.dur, ev.dot);
+        ev.replaceWith = editorSlashText(dur, ev.dot) + (ev.affix || "");
       } else if (ev.kind === "stack") {
         ev.replaceWith = editorMapStackText(ev, function (p) {
           return editorPitchText(p.letter, p.acc, p.oct, dur, p.dot, p.affix);
