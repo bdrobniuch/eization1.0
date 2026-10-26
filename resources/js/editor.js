@@ -2291,6 +2291,26 @@ function editorStaffBeamInnerNote(tok) {
   return false;
 }
 
+/* A stack column exists only when the staff will draw pitches. [] and []^name do not. */
+function editorStaffStackHasPitch(buf) {
+  var open;
+  var close;
+  var inner;
+  var pitches;
+  buf = String(buf || "");
+  open = buf.indexOf("[");
+  close = buf.indexOf("]");
+  if (open < 0 || close <= open) {
+    return false;
+  }
+  inner = buf.slice(open + 1, close);
+  if (typeof staffParseStackInner !== "function") {
+    return !!inner.replace(/\s+/g, "");
+  }
+  pitches = staffParseStackInner(inner);
+  return !!(pitches && pitches.length);
+}
+
 /* Tuplet opener or a lone ratio token — not a drawn note column. */
 function editorStaffTupletOpenerTok(tok) {
   return /^\((\d{1,2})(?::(\d{1,2}))?$/.test(String(tok || "")) ||
@@ -2348,6 +2368,8 @@ function editorStaffColumnStarts(music) {
   }
 
   function consumeStack() {
+    var buf;
+    var piece;
     skipNoise();
     if (i >= ranges.length) {
       return;
@@ -2359,18 +2381,23 @@ function editorStaffColumnStarts(music) {
         return;
       }
       openStart = ranges[i].start + 1;
+      piece = t.slice(1);
     } else if (t.charAt(0) === "[") {
       openStart = ranges[i].start;
+      piece = t;
     } else {
       return;
     }
-    while (i < ranges.length) {
+    buf = piece;
+    i += 1;
+    while (buf.indexOf("]") < 0 && i < ranges.length) {
       t = ranges[i].tok;
+      buf += " " + t;
       i += 1;
-      if (t.indexOf("]") >= 0) {
-        starts.push(openStart);
-        break;
-      }
+    }
+    /* No pitches: the staff draws no column, so this must not shift the next note. */
+    if (buf.indexOf("]") >= 0 && editorStaffStackHasPitch(buf)) {
+      starts.push(openStart);
     }
   }
 
@@ -2388,9 +2415,11 @@ function editorStaffColumnStarts(music) {
         break;
       }
       if (typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(t)) {
-        /* Glued close: E4e) still counts as a note column. */
-        if (editorStaffBeamInnerNote(t) || (t.length > 1 && !editorStaffTupletOpenerTok(t))) {
-          starts.push(ranges[i].start);
+        /* Glued close: E4e) is a note. []) is an empty stack and is not a column. */
+        if (editorStaffBeamInnerNote(t)) {
+          starts.push(ranges[i].start + (t.charAt(0) === "{" ? 1 : 0));
+        } else if (t.indexOf("[") >= 0 && editorStaffStackHasPitch(t)) {
+          starts.push(ranges[i].start + t.indexOf("["));
         }
         i += 1;
         break;
@@ -7295,6 +7324,72 @@ function editorCopySelection(value, lineStart, selStart, selEnd) {
   return String(built.text || "").replace(/^\s+|\s+$/g, "");
 }
 
+function editorTimedUnitCount(nodes) {
+  var n = 0;
+  var i;
+  var node;
+  var pieces;
+  if (!nodes) {
+    return 0;
+  }
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (!node) {
+      continue;
+    }
+    if (node.type === "beam" || node.type === "tuplet") {
+      pieces = editorCollectPieces(node.children || []).filter(editorIsEventPiece);
+      n += pieces.length;
+    } else if (editorIsEventPiece(node)) {
+      n += 1;
+    }
+  }
+  return n;
+}
+
+/* Fewer than two attacks: the staff draws and times it as a plain event. */
+function editorTupletIsLeftover(node) {
+  return !!(node && node.type === "tuplet" && editorTimedUnitCount(node.children || []) < 2);
+}
+
+/* One attack, or none. A chord is one attack even when it has several pitches. */
+function editorBeamIsLeftover(node) {
+  return !!(node && node.type === "beam" && editorTimedUnitCount([node]) < 2);
+}
+
+function editorMarkCoveredShells(nodes, start, end) {
+  var i;
+  var node;
+  if (!nodes) {
+    return;
+  }
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (
+      node &&
+      (node.type === "beam" || node.type === "tuplet") &&
+      typeof node.start === "number" &&
+      node.start >= start &&
+      node.end <= end
+    ) {
+      node.covered = true;
+    }
+    if (node && node.children) {
+      editorMarkCoveredShells(node.children, start, end);
+    }
+  }
+}
+
+function editorPieceTupletId(ev) {
+  if (!ev || !ev.tupletId) {
+    return 0;
+  }
+  if (ev.tupletNode && editorTupletIsLeftover(ev.tupletNode)) {
+    return 0;
+  }
+  return ev.tupletId;
+}
+
 function editorSelectionTupletAction(line, start, end) {
   var nodes;
   var events;
@@ -7319,10 +7414,10 @@ function editorSelectionTupletAction(line, start, end) {
   if (!events.length) {
     return { kind: "none", n: 0 };
   }
-  id = events[0].tupletId || 0;
+  id = editorPieceTupletId(events[0]);
   outside = !id;
   for (i = 0; i < events.length; i++) {
-    if ((events[i].tupletId || 0) !== id || !events[i].tupletId) {
+    if (editorPieceTupletId(events[i]) !== id || !editorPieceTupletId(events[i])) {
       outside = true;
     }
   }
@@ -9389,6 +9484,11 @@ function editorRegroupInto(nodes, kind, buf, out) {
   for (i = 0; i < nodes.length; i++) {
     node = nodes[i];
     if (node.type === "tuplet") {
+      /* A one-note triplet is not a group yet. Its note joins the new run. */
+      if (editorTupletIsLeftover(node) && (node.covered || editorNodeRole(node) !== "none")) {
+        editorRegroupInto(node.children || [], kind, buf, out);
+        continue;
+      }
       editorRegroupFlush(kind, buf, out);
       childOut = [];
       childBuf = [];
@@ -9406,7 +9506,19 @@ function editorRegroupInto(nodes, kind, buf, out) {
     }
     if (node.type === "beam") {
       role = editorNodeRole(node);
+      /* One attack: Beam pulls it into the run. Tuplet keeps the brace. */
+      if (editorBeamIsLeftover(node) && role === "all") {
+        if (kind === "beam") {
+          editorRegroupInto(node.children || [], kind, buf, out);
+        } else {
+          buf.push(node);
+        }
+        continue;
+      }
       if (role === "none") {
+        if (node.covered && editorBeamIsLeftover(node) && editorTimedUnitCount([node]) < 1) {
+          continue;
+        }
         editorRegroupFlush(kind, buf, out);
         out.push(node);
         continue;
@@ -9447,8 +9559,8 @@ function editorRegroupInto(nodes, kind, buf, out) {
 
 /*
  * Beam shortens the selected notes, lets a rest or a bar split the run, and
- * splits beams the run crosses. A run that enters or leaves a triplet stays
- * put. A partial triplet tap says the group is already open.
+ * splits beams the run crosses. A one-note triplet or beam joins the run.
+ * A triplet you can see stays put. A partial triplet tap says the group is already open.
  */
 function editorStructureRegroupSelection(kind, line, start, end) {
   var parts;
@@ -9482,6 +9594,7 @@ function editorStructureRegroupSelection(kind, line, start, end) {
   }
   editorMarkSelectedNodes(nodes, start, end);
   editorMarkTouchedStacks(nodes, start, end);
+  editorMarkCoveredShells(nodes, start, end);
   events = editorCollectPieces(nodes).filter(function (piece) {
     return editorIsEventPiece(piece) && piece.selected;
   });

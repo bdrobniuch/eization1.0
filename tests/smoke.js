@@ -3290,6 +3290,57 @@ function chatCase(w) {
       "beam joins the last beamed note with the next",
       focusLine.value === "{C4e D4e} {E4e F4e}" && !!w.parseMusicNotation(focusLine.value)
     );
+    placeCaret("{C4e} D4e E4e");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam pulls a one-note beam into the run",
+      focusLine.value === "{C4e D4e E4e}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("{[E4s G4s]} F4s");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam pulls a one-chord beam into the run",
+      focusLine.value === "{[E4s G4s] F4s}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 {C4e_1}) (3 {D4e_2}) {[E4s_3 G4s D4s]}");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam drops one-note triplets and beams the notes",
+      focusLine.value === "{C4e_1 D4e_2 [E4s_3 G4s D4s]}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 {C4e_1}) (3 {D4e_2}) {[E4s_3 G4s D4s]}");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    w.editorTupletN = 3;
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet joins one-note triplets and keeps their beams",
+      focusLine.value === "(3 {C4e_1} {D4e_2} {[E4s_3 G4s D4s]})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 ) C4e D4e");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    w.editorTupletN = 3;
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "tuplet absorbs an empty shell in the selection",
+      focusLine.value === "(3 {C4e D4e})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 C4e D4e E4e) (3 F4e G4e A4e)");
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+    check(
+      "two visible triplets stay two triplets",
+      focusLine.value === "(3 C4e D4e E4e) (3 F4e G4e A4e)" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseNest")
+    );
     placeCaret("{A4e B4e C4e} {D4e E4e F4e}");
     focusLine.setSelectionRange(focusLine.value.indexOf("C4e"), focusLine.value.indexOf("E4e"));
     w.editorPadCaret = {
@@ -3738,6 +3789,35 @@ function chatCase(w) {
           cols &&
           cols.length === 3
         );
+      })()
+    );
+    check(
+      "an empty stack is not a staff column",
+      (function () {
+        var samples = ["| [] G4", "| []^C G4", "(3 []) G4e", "[ ] G4"];
+        var i;
+        var s;
+        var starts;
+        var svg;
+        var cols;
+        var caret;
+        var bracket;
+        for (i = 0; i < samples.length; i++) {
+          s = samples[i];
+          starts = w.editorStaffColumnStarts(s);
+          svg = w.renderMusicStaff(s, "current");
+          cols = svg && svg._staffCaretLayout && svg._staffCaretLayout.cols;
+          bracket = s.indexOf("[");
+          if (!cols || starts.length !== cols.length) {
+            return false;
+          }
+          if (bracket >= 0 && starts.indexOf(bracket) >= 0) {
+            return false;
+          }
+        }
+        s = "| [] G4";
+        caret = s.indexOf("[") + 1;
+        return w.editorStaffCaretInsertionIndex(s, caret) === 1;
       })()
     );
     check(
