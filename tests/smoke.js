@@ -3332,6 +3332,25 @@ function chatCase(w) {
       "tuplet absorbs an empty shell in the selection",
       focusLine.value === "(3 {C4e D4e})" && !!w.parseMusicNotation(focusLine.value)
     );
+    placeCaret("(3 C4e) D4e");
+    w.editorPlaceCaret(focusLine, focusLine.value.indexOf("C4e"), focusLine.value.indexOf("C4e") + 3, true);
+    check(
+      "copy of a one-note triplet is the note",
+      w.editorStaffSelectionText(focusLine) === "C4e"
+    );
+    w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e"), true);
+    w.editorStaffSweepAfterEdit();
+    check("leaving a one-note triplet drops the shell", focusLine.value === "C4e D4e");
+    placeCaret("[C4] D4");
+    w.editorPlaceCaret(focusLine, 0, focusLine.value.indexOf("] ") + 1, true);
+    check("copy of a one-note chord keeps the brackets", w.editorStaffSelectionText(focusLine) === "[C4]");
+    w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4"), focusLine.value.indexOf("D4"), true);
+    w.editorStaffSweepAfterEdit();
+    check("leaving a one-note chord keeps it", focusLine.value === "[C4] D4");
+    placeCaret("{C4e} D4e");
+    w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e"), true);
+    w.editorStaffSweepAfterEdit();
+    check("leaving a one-note beam drops the braces", focusLine.value === "C4e D4e");
     placeCaret("(3 C4e D4e E4e) (3 F4e G4e A4e)");
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
@@ -5116,9 +5135,9 @@ function chatCase(w) {
       check("a letter is written after those notes inside the beam", focusLine.value === "{C4e D4e E4e B4e F4e}" && draws());
       selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
       poke(symbolsPanel.querySelector("[data-dur='']"));
-      check("quarter steps out and leaves the eighths beamed", focusLine.value === "{C4e} D4 E4 {F4e}" && selectedText() === "D4 E4" && draws());
+      check("quarter steps out and leaves the eighths bare", focusLine.value === "C4e D4 E4 F4e" && selectedText() === "D4 E4" && draws());
       poke(symbolsPanel.querySelector("[data-dur='h']"));
-      check("half does the same", focusLine.value === "{C4e} D4h E4h {F4e}" && draws());
+      check("half does the same", focusLine.value === "C4e D4h E4h F4e" && draws());
       selectSpan("{C4e D4e E4e F4e}", "D4e E4e");
       check("a partial beam copies the notes alone", w.editorStaffSelectionText(focusLine) === "D4e E4e");
       selectSpan("{C4e D4e E4e F4e}", "C4e D4e");

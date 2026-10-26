@@ -2589,6 +2589,14 @@ function editorStaffMoveCaret(dir) {
     musicAt = 0;
   }
   fieldCaret = span.lineStart + musicAt + next;
+  fieldCaret = editorStaffSettleLeftovers(
+    span.field,
+    span.lineStart,
+    musicAt,
+    mapped.music,
+    fieldCaret,
+    null
+  );
   editorPlaceCaret(span.field, fieldCaret, fieldCaret, !!(editorPadCaret && editorSymbolsIsOpen()));
   editorPaintNotePad();
   return true;
@@ -2873,13 +2881,14 @@ function editorStaffPreviewBeginEdit() {
   }
 }
 
-/* Collapsed pad caret at a drawn insert gap (tap). */
-function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIndex) {
+/* Collapsed pad caret at a drawn insert gap (tap). A gap that holds an empty shell re-enters it. */
+function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIndex, opts) {
   var a;
   if (!field) {
     return;
   }
   a = lineStart + musicAt + editorMusicCaretFromInsertIndex(String(music || ""), insertIndex);
+  a = editorStaffSettleLeftovers(field, lineStart, musicAt, String(music || ""), a, opts || { reenter: true });
   editorPlaceCaret(field, a, a, true);
 }
 
@@ -2962,6 +2971,9 @@ function editorStaffExpandCopySpan(line, start, end) {
       if (first < 0) {
         continue;
       }
+      if (editorStaffShellIsDisposable(line, g)) {
+        continue;
+      }
       lastEnd = editorMusicColumnContentEnd(line, last);
       if (start <= first && end >= lastEnd) {
         if (start > g.open) {
@@ -2976,6 +2988,305 @@ function editorStaffExpandCopySpan(line, start, end) {
     }
   } while (grew && guard < 8);
   return { start: start, end: end };
+}
+
+/* Empty shells, and a beam or triplet that holds one plain note. A chord stays. */
+function editorStaffGroupAttackCount(line, g) {
+  var nodes;
+  if (!g) {
+    return 0;
+  }
+  nodes = editorParseStaffNodes(String(line || "").slice(g.open, g.closeEnd));
+  if (!nodes) {
+    return 2;
+  }
+  return editorTimedUnitCount(nodes);
+}
+
+function editorStaffGroupIsOnlyStack(line, g) {
+  var inner = String(line || "").slice(g.innerStart, g.innerEnd).replace(/^\s+|\s+$/g, "");
+  return inner.charAt(0) === "[";
+}
+
+function editorStaffShellIsDisposable(line, g) {
+  var n;
+  if (!g) {
+    return false;
+  }
+  if (g.kind === "stack") {
+    return !String(line || "").slice(g.innerStart, g.innerEnd).replace(/\s+/g, "");
+  }
+  if (g.kind !== "beam" && g.kind !== "tuplet") {
+    return false;
+  }
+  n = editorStaffGroupAttackCount(line, g);
+  if (n >= 2) {
+    return false;
+  }
+  if (g.kind === "beam" && editorStaffGroupIsOnlyStack(line, g)) {
+    return false;
+  }
+  return true;
+}
+
+function editorStaffHitColumnStart(hit) {
+  var starts;
+  if (!hit || !editorStaffPointerOnColumn(hit)) {
+    return -1;
+  }
+  starts = editorStaffColumnStarts(hit.music);
+  if (hit.columnIndex < 0 || hit.columnIndex >= starts.length) {
+    return -1;
+  }
+  return starts[hit.columnIndex];
+}
+
+function editorStaffCaretInsideGroup(caret, g) {
+  return !!(g && caret >= g.open && caret < g.closeEnd);
+}
+
+/* Drop disposable shells the caret has left. Re-enter an empty shell in the tapped gap. */
+function editorStaffSettleLeftovers(field, lineStart, musicAt, music, fieldCaret, opts) {
+  var span;
+  var line;
+  var rel;
+  var groups;
+  var keep;
+  var i;
+  var g;
+  var starts;
+  var prevEnd;
+  var nextStart;
+  var insertIndex;
+  var cuts;
+  var cut;
+  var rep;
+  var nextLine;
+  var nextRel;
+  var pos;
+  var value;
+  var sel;
+  var selStart;
+  var selEnd;
+  var changed;
+  var guard;
+  var n;
+  opts = opts || {};
+  if (!field || !editorStaffOn()) {
+    return fieldCaret;
+  }
+  span = editorLineSpan();
+  if (!span || span.field !== field) {
+    return fieldCaret;
+  }
+  value = String(field.value || "");
+  line = value.slice(span.lineStart, span.lineEnd);
+  music = String(music || "");
+  rel = fieldCaret - span.lineStart - musicAt;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > music.length) {
+    rel = music.length;
+  }
+  line = music;
+  groups = editorFindBalancedGroups(line);
+  if (opts.reenter) {
+    starts = editorStaffColumnStarts(music);
+    insertIndex = editorStaffCaretInsertionIndex(music, rel);
+    prevEnd = insertIndex <= 0 ? 0 : editorMusicColumnContentEnd(music, starts[insertIndex - 1]);
+    nextStart = insertIndex >= starts.length ? music.length : starts[insertIndex];
+    keep = null;
+    for (i = 0; i < groups.length; i++) {
+      g = groups[i];
+      if (!editorStaffShellIsDisposable(line, g)) {
+        continue;
+      }
+      if (editorStaffGroupAttackCount(line, g) > 0 && g.kind !== "stack") {
+        continue;
+      }
+      if (g.kind === "stack" && String(line.slice(g.innerStart, g.innerEnd)).replace(/\s+/g, "")) {
+        continue;
+      }
+      if (g.open < prevEnd || g.closeEnd > nextStart) {
+        continue;
+      }
+      if (!keep || g.closeEnd - g.open < keep.closeEnd - keep.open) {
+        keep = g;
+      }
+    }
+    if (keep) {
+      rel = keep.closeStart;
+    }
+  }
+  if (typeof opts.columnStart === "number" && opts.columnStart >= 0) {
+    for (i = 0; i < groups.length; i++) {
+      g = groups[i];
+      if (!editorStaffShellIsDisposable(line, g)) {
+        continue;
+      }
+      if (opts.columnStart >= g.open && opts.columnStart < g.closeEnd) {
+        if (!editorStaffCaretInsideGroup(rel, g)) {
+          rel = g.closeStart;
+        }
+      }
+    }
+  }
+  cuts = [];
+  nextLine = line;
+  nextRel = rel;
+  sel = editorReadSelection(field);
+  selStart = sel.start - span.lineStart - musicAt;
+  selEnd = sel.end - span.lineStart - musicAt;
+  changed = false;
+  guard = 0;
+  while (guard < 8) {
+    guard += 1;
+    groups = editorFindBalancedGroups(nextLine);
+    cuts = [];
+    for (i = 0; i < groups.length; i++) {
+      g = groups[i];
+      if (!editorStaffShellIsDisposable(nextLine, g)) {
+        continue;
+      }
+      if (editorStaffCaretInsideGroup(nextRel, g)) {
+        continue;
+      }
+      if (g.kind === "stack" || editorStaffGroupAttackCount(nextLine, g) < 1) {
+        rep = "";
+      } else {
+        rep = nextLine.slice(g.innerStart, g.innerEnd).replace(/^\s+|\s+$/g, "");
+      }
+      cut = { start: g.open, end: g.closeEnd, rep: rep };
+      if (!rep && cut.start > 0 && /\s/.test(nextLine.charAt(cut.start - 1))) {
+        cut.start -= 1;
+      }
+      cuts.push(cut);
+    }
+    if (!cuts.length) {
+      break;
+    }
+    cuts = cuts.filter(function (one) {
+      for (n = 0; n < cuts.length; n++) {
+        if (cuts[n] !== one && cuts[n].start <= one.start && cuts[n].end >= one.end) {
+          return false;
+        }
+      }
+      return true;
+    });
+    if (!changed && opts.undo !== false) {
+      editorPushSymbolUndo();
+    }
+    changed = true;
+    cuts.sort(function (a, b) {
+      return b.start - a.start;
+    });
+    for (i = 0; i < cuts.length; i++) {
+      cut = cuts[i];
+      if (cut.start < 0 || cut.end > nextLine.length || cut.end < cut.start) {
+        continue;
+      }
+      nextLine = nextLine.slice(0, cut.start) + cut.rep + nextLine.slice(cut.end);
+      pos = function (p) {
+        if (p >= cut.end) {
+          return p - (cut.end - cut.start) + cut.rep.length;
+        }
+        if (p > cut.start) {
+          return cut.start + cut.rep.length;
+        }
+        return p;
+      };
+      nextRel = pos(nextRel);
+      selStart = pos(selStart);
+      selEnd = pos(selEnd);
+    }
+  }
+  if (!changed) {
+    return span.lineStart + musicAt + rel;
+  }
+  field.value = value.slice(0, span.lineStart + musicAt) + nextLine + value.slice(span.lineStart + musicAt + music.length);
+  if (editorIsFocusMode()) {
+    editorSyncFocusToArea();
+  }
+  if (sel.start !== sel.end) {
+    editorPlaceCaret(
+      field,
+      span.lineStart + musicAt + selStart,
+      span.lineStart + musicAt + selEnd,
+      true
+    );
+  }
+  return span.lineStart + musicAt + nextRel;
+}
+
+function editorCopyStripLeftovers(nodes) {
+  var out = [];
+  var i;
+  var node;
+  var copy;
+  var pieces;
+  var bare;
+  if (!nodes) {
+    return out;
+  }
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (!node) {
+      continue;
+    }
+    if (node.type === "piece" && node.kind === "stack" && (!node.pitches || !node.pitches.length)) {
+      continue;
+    }
+    if (node.type === "tuplet" && editorTupletIsLeftover(node)) {
+      out = out.concat(editorCopyStripLeftovers(node.children || []));
+      continue;
+    }
+    if (node.type === "beam" && editorBeamIsLeftover(node)) {
+      pieces = editorCollectPieces(node.children || []).filter(editorIsEventPiece);
+      bare = !pieces.length || pieces[0].kind !== "stack";
+      if (bare) {
+        out = out.concat(editorCopyStripLeftovers(node.children || []));
+        continue;
+      }
+    }
+    if ((node.type === "beam" || node.type === "tuplet") && node.children) {
+      copy = {
+        type: node.type,
+        n: node.n,
+        ratio: node.ratio || "",
+        children: editorCopyStripLeftovers(node.children),
+        selected: !!node.selected,
+        pasted: !!node.pasted
+      };
+      out.push(copy);
+      continue;
+    }
+    out.push(node);
+  }
+  return out;
+}
+
+function editorStaffSweepAfterEdit() {
+  var span = editorLineSpan();
+  var sel;
+  var line;
+  var mapped;
+  var musicAt;
+  var caret;
+  if (!span || !editorStaffOn()) {
+    return;
+  }
+  sel = editorReadSelection(span.field);
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  mapped = editorMusicCaretInLine(itemToLine(line), Math.min(sel.start, sel.end) - span.lineStart);
+  musicAt = String(line || "").indexOf(mapped.music);
+  if (musicAt < 0) {
+    musicAt = 0;
+  }
+  caret = editorStaffSettleLeftovers(span.field, span.lineStart, musicAt, mapped.music, sel.start, { undo: false });
+  if (sel.start === sel.end && caret !== sel.start) {
+    editorPlaceCaret(span.field, caret, caret, true);
+  }
 }
 
 /* Music text of the current same-line selection, shell included when it is whole. */
@@ -3821,7 +4132,11 @@ function editorStaffPreviewPointerUp(event) {
       drag.lineStart,
       drag.musicAt,
       drag.music,
-      hit ? hit.insertIndex : drag.startInsert
+      hit ? hit.insertIndex : drag.startInsert,
+      {
+        reenter: true,
+        columnStart: editorStaffHitColumnStart(hit)
+      }
     );
   } else {
     col = hit ? hit.columnIndex : drag.startColumn;
@@ -7320,7 +7635,7 @@ function editorCopySelection(value, lineStart, selStart, selEnd) {
   if (!pulled.selected.length) {
     return "";
   }
-  built = editorSerializeNodes(pulled.selected);
+  built = editorSerializeNodes(editorCopyStripLeftovers(pulled.selected));
   return String(built.text || "").replace(/^\s+|\s+$/g, "");
 }
 
@@ -10087,6 +10402,7 @@ function editorEraseStep(opts) {
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
   editorPlaceCaret(field, caret, caret, silent);
   editorSnapCaretBeforeGroupCloser(field, lineStart, caret);
+  editorStaffSweepAfterEdit();
   clearEditorNotice();
   refreshEditor();
   return true;
@@ -12350,13 +12666,16 @@ function editorSetDuration(dur) {
   var hit;
   editorNote.dur = next;
   if (editorApplySelectionDuration(next)) {
+    editorStaffSweepAfterEdit();
     return;
   }
   if (editorStackGroupAtCaret() && editorApplyStackDuration(next, editorNote.dot)) {
+    editorStaffSweepAfterEdit();
     return;
   }
   hit = editorPitchAtCaret() || editorRhythmAtCaret();
   if (hit && editorApplyDurationToHit(hit, next, editorNote.dot)) {
+    editorStaffSweepAfterEdit();
     return;
   }
   editorPaintNotePad();
@@ -12371,6 +12690,7 @@ function editorToggleDot() {
     editorNote.dot = next;
     editorNote.dots = next ? 1 : 0;
     editorApplySelectionDot(next);
+    editorStaffSweepAfterEdit();
     return;
   }
   next = !editorNote.dot;
