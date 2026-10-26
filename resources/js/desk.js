@@ -1707,6 +1707,9 @@ function restoreDefaults() {
   if (typeof forgetHello === "function") {
     forgetHello();
   }
+  if (typeof forgetStaffGesture === "function") {
+    forgetStaffGesture();
+  }
   if (typeof forgetInstall === "function") {
     forgetInstall();
   }

@@ -29,6 +29,11 @@ function finish() {
     } else {
       localStorage.setItem("eization-backup", savedBackup);
     }
+    if (savedGesture === null) {
+      localStorage.removeItem("eization-staff-gesture");
+    } else {
+      localStorage.setItem("eization-staff-gesture", savedGesture);
+    }
   } catch (err) {}
   lines.push(failed ? failed + " failed" : "all passed");
   document.getElementById("out").textContent = lines.join("\n");
@@ -38,12 +43,15 @@ function finish() {
 var savedDesk = null;
 var savedInstall = null;
 var savedBackup = null;
+var savedGesture = null;
 try {
   savedDesk = localStorage.getItem("eization-desk");
   savedInstall = localStorage.getItem("eization-install");
   savedBackup = localStorage.getItem("eization-backup");
+  savedGesture = localStorage.getItem("eization-staff-gesture");
   localStorage.removeItem("eization-desk");
   localStorage.setItem("eization-hello", "1");
+  localStorage.setItem("eization-staff-gesture", "1");
 } catch (err) {}
 
 var frame = document.createElement("iframe");
@@ -3858,20 +3866,25 @@ function chatCase(w) {
       )
     );
     check(
-      "staff frames the event under the caret",
+      "a caret does not draw a selection frame",
       !!(function () {
         var svg = w.document.querySelector("#editPreview svg.music-staff");
-        var hi = svg && svg.querySelector(".staff-event-highlight");
-        return !!(hi && parseFloat(hi.getAttribute("width")) > 0);
+        var stroke = svg && svg.querySelector(".staff-caret-target");
+        var frame = svg && svg.querySelector(".staff-event-highlight");
+        return !stroke && !frame;
       })()
     );
     placeCaret("C4 D4");
-    w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+    w.editorPlaceCaret(focusLine, 0, 2, true);
     w.editorUpdateStaffCaretMark();
     var staffHiOne = (function () {
       var svg = w.document.querySelector("#editPreview svg.music-staff");
       var hi = svg && svg.querySelector(".staff-event-highlight");
-      return hi ? parseFloat(hi.getAttribute("width")) : 0;
+      var stroke = svg && svg.querySelector(".staff-caret-target");
+      if (stroke || !hi) {
+        return 0;
+      }
+      return parseFloat(hi.getAttribute("width")) || 0;
     })();
     w.editorPlaceCaret(focusLine, 0, focusLine.value.length, true);
     w.editorUpdateStaffCaretMark();
@@ -3880,13 +3893,112 @@ function chatCase(w) {
       (function () {
         var svg = w.document.querySelector("#editPreview svg.music-staff");
         var hi = svg && svg.querySelector(".staff-event-highlight");
+        var stroke = svg && svg.querySelector(".staff-caret-target");
         var wide = hi ? parseFloat(hi.getAttribute("width")) : 0;
-        return staffHiOne > 0 && wide > staffHiOne + 4;
+        return !stroke && staffHiOne > 0 && wide > staffHiOne + 4;
       })()
     );
     w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
     placeCaret("C4 D4 E4");
     w.refreshEditor();
+    check(
+      "the staff line explains tap and drag until the staff is used",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var hint;
+        var svg;
+        var layout;
+        var ctm;
+        var pt;
+        var screen;
+        localStorage.removeItem("eization-staff-gesture");
+        w.refreshEditor();
+        hint = w.document.getElementById("editStaffGesture");
+        if (!hint || hint.textContent !== w.t("edit.staffGesture") || hint.parentNode !== preview) {
+          return false;
+        }
+        w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+        if (!w.document.getElementById("editStaffGesture")) {
+          return false;
+        }
+        svg = preview.querySelector("svg.music-staff");
+        layout = preview._staffCaretLayout;
+        ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (!svg || !layout || !layout.cols || !layout.cols.length || !ctm) {
+          return false;
+        }
+        pt = svg.createSVGPoint();
+        pt.x = layout.cols[0].x;
+        pt.y = (layout.staffTop + layout.staffBot) / 2;
+        screen = pt.matrixTransform(ctm);
+        preview.dispatchEvent(new w.PointerEvent("pointerdown", {
+          clientX: screen.x,
+          clientY: screen.y,
+          bubbles: true,
+          cancelable: true,
+          view: w,
+          pointerId: 41,
+          pointerType: "mouse",
+          button: 0,
+          buttons: 1
+        }));
+        preview.dispatchEvent(new w.PointerEvent("pointerup", {
+          clientX: screen.x,
+          clientY: screen.y,
+          bubbles: true,
+          cancelable: true,
+          view: w,
+          pointerId: 41,
+          pointerType: "mouse",
+          button: 0,
+          buttons: 0
+        }));
+        return !w.document.getElementById("editStaffGesture") && localStorage.getItem("eization-staff-gesture") === "1";
+      })()
+    );
+    check(
+      "a hold on a note selects it when nothing is selected",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg;
+        var layout;
+        var ctm;
+        var pt;
+        var onNote;
+        var inGap;
+        var copyBtn;
+        var sel;
+        placeCaret("C4 D4 E4");
+        w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+        w.refreshEditor();
+        svg = preview.querySelector("svg.music-staff");
+        layout = preview._staffCaretLayout;
+        ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (!svg || !layout || !layout.cols || layout.cols.length < 3 || !ctm) {
+          return false;
+        }
+        pt = svg.createSVGPoint();
+        pt.y = (layout.staffTop + layout.staffBot) / 2;
+        pt.x = layout.cols[0].x;
+        onNote = pt.matrixTransform(ctm);
+        w.editorStaffPreviewHoldClipAt(onNote.x, onNote.y);
+        copyBtn = w.document.querySelector("[data-clip-copy]");
+        sel = w.editorReadSelection(focusLine);
+        if (!copyBtn || copyBtn.disabled || sel.start === sel.end || focusLine.value.slice(sel.start, sel.end).indexOf("D4") >= 0) {
+          return false;
+        }
+        w.editorStaffCloseClipMenu();
+        w.editorPlaceCaret(focusLine, 0, focusLine.value.length, true);
+        pt.x = w.editorStaffCaretX(layout, layout.cols.length);
+        inGap = pt.matrixTransform(ctm);
+        w.editorStaffPreviewHoldClipAt(inGap.x, inGap.y);
+        sel = w.editorReadSelection(focusLine);
+        copyBtn = w.document.querySelector("[data-clip-copy]");
+        w.editorStaffCloseClipMenu();
+        w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+        return sel.start === 0 && sel.end === focusLine.value.length && copyBtn && !copyBtn.disabled;
+      })()
+    );
     check(
       "preview drag selects columns across the staff",
       (function () {

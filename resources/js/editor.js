@@ -112,7 +112,7 @@ var editorStaffRevealTries = 0;
 /* Music stored by Copy. Paste inserts it at the caret. */
 var editorStaffCopy = "";
 var editorStaffClipMenuOpen = false;
-/* Long-press on the staff opens Copy and Paste. A sideways drag cancels it. */
+/* Long-press on the staff opens Copy and Paste. A sideways drag cancels it. A hold on a note selects that note when nothing is selected. */
 var EDITOR_STAFF_CLIP_HOLD = 500;
 var editorStaffClipHold = null;
 var editorStaffClipHoldX = 0;
@@ -3239,10 +3239,53 @@ function editorStaffPreviewClearClipHold() {
   editorStaffClipHold = null;
 }
 
+/* True when the pointer is on a note, slash, rest, or stack — not a gap or a barline. */
+function editorStaffPointerOnColumn(hit) {
+  var cols;
+  var col;
+  var half;
+  if (!hit || !hit.layout || typeof hit.localX !== "number") {
+    return false;
+  }
+  cols = hit.layout.cols || [];
+  col = cols[hit.columnIndex];
+  if (!col || col.type === "barline") {
+    return false;
+  }
+  half = hit.layout.half > 0 ? hit.layout.half : 6;
+  return Math.abs(hit.localX - col.x) <= half;
+}
+
+/*
+ * Hold or right-click on a note selects that one column when nothing is selected,
+ * so Copy can take it. An existing selection stays. A gap stays a caret, so Paste inserts.
+ */
+function editorStaffSelectNoteUnderPointer(clientX, clientY) {
+  var hit;
+  var sel;
+  hit = editorStaffPreviewHitContext({ clientX: clientX, clientY: clientY });
+  if (!hit || !editorStaffPointerOnColumn(hit)) {
+    return;
+  }
+  sel = editorReadSelection(hit.field);
+  if (sel.start !== sel.end) {
+    return;
+  }
+  editorStaffPreviewApplyColumnRange(
+    hit.field,
+    hit.lineStart,
+    hit.musicAt,
+    hit.music,
+    hit.columnIndex,
+    hit.columnIndex
+  );
+}
+
 function editorStaffPreviewHoldClipAt(x, y) {
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
   editorStaffDrag = null;
+  editorStaffSelectNoteUnderPointer(x, y);
   editorStaffOpenClipMenu(x, y);
 }
 
@@ -3268,6 +3311,7 @@ function editorStaffPreviewContextMenu(event) {
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
   editorStaffDrag = null;
+  editorStaffSelectNoteUnderPointer(event.clientX, event.clientY);
   editorStaffOpenClipMenu(event.clientX, event.clientY);
 }
 
@@ -3419,6 +3463,101 @@ function editorStaffPreviewNoteCaret(insertIndex, x, musicLength) {
   editorStaffPreviewScheduleRevealCaret();
 }
 
+/* The line under the staff, once, until a tap or a drag on a staff that has notes. */
+var EDITOR_STAFF_GESTURE_KEY = "eization-staff-gesture";
+
+function editorStaffGestureSeen() {
+  try {
+    return localStorage.getItem(EDITOR_STAFF_GESTURE_KEY) === "1";
+  } catch (errGesture) {
+    return false;
+  }
+}
+
+function forgetStaffGesture() {
+  try {
+    localStorage.removeItem(EDITOR_STAFF_GESTURE_KEY);
+  } catch (errForgetGesture) {}
+}
+
+function editorStaffHasNoteColumn(preview) {
+  var layout;
+  var cols;
+  var i;
+  if (!preview) {
+    return false;
+  }
+  layout = preview._staffCaretLayout;
+  cols = layout && layout.cols;
+  if (!cols) {
+    return false;
+  }
+  for (i = 0; i < cols.length; i++) {
+    if (cols[i] && cols[i].type !== "barline") {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorStaffGestureFit() {
+  var hint = document.getElementById("editStaffGesture");
+  var preview = document.getElementById("editPreview");
+  if (!hint || !preview || hint.parentNode !== preview) {
+    return;
+  }
+  hint.style.width = editorStaffPreviewViewWidth(preview) + "px";
+}
+
+function editorStaffGestureMarkSeen() {
+  var preview = document.getElementById("editPreview");
+  if (!editorStaffHasNoteColumn(preview)) {
+    return;
+  }
+  try {
+    localStorage.setItem(EDITOR_STAFF_GESTURE_KEY, "1");
+  } catch (errMarkGesture) {}
+  editorSyncStaffGesture();
+}
+
+function editorSyncStaffGesture() {
+  var preview = document.getElementById("editPreview");
+  var hint;
+  var show;
+  var bar;
+  if (!preview) {
+    return;
+  }
+  hint = document.getElementById("editStaffGesture");
+  show =
+    editorStaffOn() &&
+    preview.classList.contains("is-staff") &&
+    !editorStaffGestureSeen() &&
+    editorStaffHasNoteColumn(preview);
+  if (!show) {
+    if (hint && hint.parentNode) {
+      hint.parentNode.removeChild(hint);
+    }
+    return;
+  }
+  if (!hint) {
+    hint = document.createElement("p");
+    hint.id = "editStaffGesture";
+    hint.className = "edit-staff-gesture";
+    hint.setAttribute("data-i18n", "edit.staffGesture");
+  }
+  hint.textContent = t("edit.staffGesture");
+  bar = editorStaffScrollBar;
+  if (hint.parentNode !== preview) {
+    if (bar && bar.parentNode === preview) {
+      preview.insertBefore(hint, bar);
+    } else {
+      preview.appendChild(hint);
+    }
+  }
+  editorStaffGestureFit();
+}
+
 /* A bar under the staff moves a line that is wider than the preview. Dragging the notes selects. */
 function editorStaffPreviewSyncScrollBar() {
   var preview = document.getElementById("editPreview");
@@ -3432,6 +3571,7 @@ function editorStaffPreviewSyncScrollBar() {
   if (!preview) {
     return;
   }
+  editorStaffGestureFit();
   if (!bar) {
     bar = document.createElement("div");
     bar.id = "editPreviewScroll";
@@ -3665,6 +3805,7 @@ function editorStaffPreviewPointerUp(event) {
       col
     );
   }
+  editorStaffGestureMarkSeen();
   editorBeginPadInput();
   editorPaintNotePad();
   editorSyncTokenHighlight();
@@ -3696,34 +3837,20 @@ function editorStaffPreviewPointerCancel(event) {
 }
 
 /*
- * Field range Acc / Dur / Erase would affect: a same-line selection, else the
- * erase target (note / shell), else the current event under the caret.
+ * Same-line selection only. The blue frame means these columns are selected.
+ * A caret is an insertion point, not a selection, even when it sits on a note.
  */
-function editorStaffHighlightTargetRange() {
+function editorStaffSelectionRange() {
   var field = editorActiveField();
   var sel;
-  var target;
-  var current;
-  var token;
   if (!field || !editorStaffOn()) {
     return null;
   }
   sel = editorReadSelection(field);
-  if (sel.start !== sel.end) {
-    return { start: sel.start, end: sel.end };
+  if (sel.start === sel.end) {
+    return null;
   }
-  target = editorStaffEraseTarget();
-  if (target && target.start < target.end && target.kind !== "char") {
-    token = String(target.token || "");
-    if (token !== "}" && token !== "]" && token !== ")") {
-      return { start: target.start, end: target.end };
-    }
-  }
-  current = editorCurrentEventAtCaret();
-  if (editorTokenIsHighlightable(current)) {
-    return { start: current.start, end: current.end };
-  }
-  return null;
+  return { start: sel.start, end: sel.end };
 }
 
 /* Drawn column indexes whose tokens overlap a music-string [from, to). */
@@ -3751,8 +3878,7 @@ function editorStaffColumnsForMusicRange(music, from, to) {
   return out;
 }
 
-function editorStaffHighlightColumnIndexes(span) {
-  var range;
+function editorStaffColumnsForFieldRange(span, range) {
   var line;
   var mapped;
   var musicAt;
@@ -3760,11 +3886,7 @@ function editorStaffHighlightColumnIndexes(span) {
   var toAbs;
   var from;
   var to;
-  if (!span) {
-    return [];
-  }
-  range = editorStaffHighlightTargetRange();
-  if (!range) {
+  if (!span || !range) {
     return [];
   }
   fromAbs = Math.max(range.start, span.lineStart);
@@ -3798,13 +3920,13 @@ function editorStaffHighlightColumnIndexes(span) {
   return editorStaffColumnsForMusicRange(mapped.music, from, to);
 }
 
-function editorClearStaffEventHighlight(svg) {
+function editorClearStaffCue(svg, selector) {
   var list;
   var i;
   if (!svg) {
     return;
   }
-  list = svg.querySelectorAll(".staff-event-highlight");
+  list = svg.querySelectorAll(selector);
   for (i = list.length - 1; i >= 0; i--) {
     if (list[i].parentNode) {
       list[i].parentNode.removeChild(list[i]);
@@ -3812,17 +3934,29 @@ function editorClearStaffEventHighlight(svg) {
   }
 }
 
-/* Soft frame over the column(s) Acc / Dur / Erase would rewrite or remove. */
+function editorClearStaffEventHighlight(svg) {
+  editorClearStaffCue(svg, ".staff-event-highlight");
+}
+
+function editorInsertStaffCue(svg, node) {
+  var mark = svg.querySelector(".staff-caret-mark");
+  if (mark && mark.parentNode === svg) {
+    svg.insertBefore(node, mark);
+  } else {
+    svg.appendChild(node);
+  }
+}
+
+/* Soft frame over a same-line selection. Empty indexes clear a leftover frame. */
 function editorPaintStaffEventHighlight(svg, layout, colIndexes) {
   var cols;
   var half;
   var first;
   var last;
   var rect;
-  var mark;
   var x0;
   var width;
-  editorClearStaffEventHighlight(svg);
+  editorClearStaffCue(svg, ".staff-event-highlight");
   if (!svg || !layout || !colIndexes || !colIndexes.length) {
     return;
   }
@@ -3850,12 +3984,7 @@ function editorPaintStaffEventHighlight(svg, layout, colIndexes) {
   rect.setAttribute("rx", "3");
   rect.setAttribute("ry", "3");
   rect.setAttribute("pointer-events", "none");
-  mark = svg.querySelector(".staff-caret-mark");
-  if (mark && mark.parentNode === svg) {
-    svg.insertBefore(rect, mark);
-  } else {
-    svg.appendChild(rect);
-  }
+  editorInsertStaffCue(svg, rect);
 }
 
 function editorClearStaffCaretMark(preview) {
@@ -3866,6 +3995,7 @@ function editorClearStaffCaretMark(preview) {
   }
   svg = preview.querySelector("svg.music-staff");
   if (!svg) {
+    editorSyncStaffGesture();
     return;
   }
   editorClearStaffEventHighlight(svg);
@@ -3873,6 +4003,7 @@ function editorClearStaffCaretMark(preview) {
   if (mark && mark.parentNode) {
     mark.parentNode.removeChild(mark);
   }
+  editorSyncStaffGesture();
 }
 
 function editorUpdateStaffCaretMark() {
@@ -3943,8 +4074,13 @@ function editorUpdateStaffCaretMark() {
   mark.setAttribute("x2", String(x));
   mark.setAttribute("y1", String(layout.staffTop - 3));
   mark.setAttribute("y2", String(layout.staffBot + 3));
-  editorPaintStaffEventHighlight(svg, layout, editorStaffHighlightColumnIndexes(span));
+  editorPaintStaffEventHighlight(
+    svg,
+    layout,
+    editorStaffColumnsForFieldRange(span, editorStaffSelectionRange())
+  );
   editorSyncTokenHighlight();
+  editorSyncStaffGesture();
   editorStaffPreviewNoteCaret(insertIndex, x, mapped.music.length);
 }
 

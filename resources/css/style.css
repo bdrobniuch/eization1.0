@@ -3217,7 +3217,7 @@ body.is-editing #counter {
   color: #111;
 }
 
-/* Soft frame: column(s) Acc / Dur / Erase would affect (under the caret mark). */
+/* Soft frame: a same-line selection. */
 #editPreview.is-staff .staff-event-highlight {
   fill: rgba(47, 110, 180, 0.16);
   stroke: rgba(47, 110, 180, 0.45);
@@ -3226,6 +3226,20 @@ body.is-editing #counter {
 
 #editPreview.is-staff.is-staff-pending .staff-event-highlight {
   opacity: 0.55;
+}
+
+/* One line under the staff until a tap or a drag. Quiet, not the yellow fault note. */
+#editPreview.is-staff .edit-staff-gesture {
+  position: sticky;
+  left: 0;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: rgba(17, 17, 17, 0.62);
+  white-space: normal;
+  pointer-events: none;
 }
 
 /* Soft insertion mark: tracks text/pad caret between staff columns. */
@@ -3257,10 +3271,17 @@ body.is-editing #counter {
   animation: none;
 }
 
-/* Notes open: show the current token in the example field (pad caret stays the insert point). */
+/* A real selection in the example field. Stronger than the token under the caret. */
+#editFocusLine::selection,
+#allEdit::selection {
+  background: rgba(47, 110, 180, 0.55);
+  color: #ffffff;
+}
+
+/* Notes open: the token under the caret. Lighter than a selection, so it does not read as one. */
 #editFocusLine.has-token-highlight::selection,
 #allEdit.has-token-highlight::selection {
-  background: rgba(47, 110, 180, 0.38);
+  background: rgba(47, 110, 180, 0.22);
   color: inherit;
 }
 
