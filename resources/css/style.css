@@ -3309,6 +3309,8 @@ button.edit-staff-pending-cue .edit-staff-pending-msg {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
 }
 
 #editNoteHistory {
