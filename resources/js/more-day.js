@@ -178,7 +178,10 @@ var moreDayOrder = [
   "more0204",
   "more0205",
   "more0206",
-  "more0207"
+  "more0207",
+  "more0208",
+  "more0209",
+  "more0210"
 ];
 
 var moreExercisesCache = null;

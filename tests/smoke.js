@@ -177,7 +177,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
   check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
-  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 179));
+  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 182));
   var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));
