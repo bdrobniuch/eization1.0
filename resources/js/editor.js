@@ -92,6 +92,9 @@ var editorStaffTypingDirty = false;
 var editorKeyboardStaffEdit = false;
 /* While Symbols/Notes is open, keep caret here and avoid focusing the field (no soft keyboard). */
 var editorPadCaret = null;
+/* Pad button for the tap in progress, so a refusal can pulse that control. */
+var editorPadActionButton = null;
+var editorPadRefuseHint = "";
 /* Staff preview drag-to-select: pointerId + start insert gap until pointerup. */
 var editorStaffDrag = null;
 var EDITOR_STAFF_DRAG_SLOP = 6;
@@ -590,28 +593,96 @@ function editorNotice(message) {
   editorMessage(message, false);
 }
 
+function editorPadHintSelector(button) {
+  var keys = [
+    "data-event",
+    "data-note",
+    "data-dyn",
+    "data-art",
+    "data-acc",
+    "data-dur",
+    "data-dot",
+    "data-enharmonic",
+    "data-transpose",
+    "data-transpose-key",
+    "data-move-by",
+    "data-default-clef"
+  ];
+  var i;
+  var name;
+  var value;
+  if (!button || !button.getAttribute) {
+    return "";
+  }
+  for (i = 0; i < keys.length; i++) {
+    name = keys[i];
+    if (!button.hasAttribute(name)) {
+      continue;
+    }
+    value = String(button.getAttribute(name) || "").replace(/"/g, "");
+    return "[" + name + '="' + value + '"]';
+  }
+  return "";
+}
+
+function editorFlashRefusedPadButton() {
+  var selector = editorPadRefuseHint;
+  var button;
+  if (!selector) {
+    return;
+  }
+  editorPadRefuseHint = "";
+  button = document.querySelector("#editSymbols " + selector) || document.querySelector("#textdiv " + selector);
+  if (!button) {
+    return;
+  }
+  button.classList.remove("is-staff-refuse-hint");
+  void button.offsetWidth;
+  button.classList.add("is-staff-refuse-hint");
+}
+
+/* Same yellow line as the other pad refusals, plus one pulse on the button. */
+function editorRefuse(message) {
+  editorNotice(message);
+  editorPadRefuseHint = editorPadHintSelector(editorPadActionButton);
+  window.setTimeout(editorFlashRefusedPadButton, 0);
+}
+
 function editorStatus(message) {
   editorMessage(message, true);
 }
 
+function editorNoticeText(error) {
+  var text;
+  if (!error) {
+    return null;
+  }
+  text = error.querySelector(".edit-notice-msg");
+  return text || error;
+}
+
 function editorMessage(message, note) {
   var error = document.getElementById("editError");
+  var text;
   if (!error) {
     return;
   }
+  text = editorNoticeText(error);
   error.hidden = false;
   error.classList.toggle("is-note", !!note);
-  error.textContent = message;
+  text.textContent = message;
 }
 
 function clearEditorNotice() {
   var error = document.getElementById("editError");
+  var text;
   if (!error) {
     return;
   }
+  text = editorNoticeText(error);
   error.hidden = true;
   error.classList.remove("is-note");
-  error.textContent = "";
+  text.textContent = "";
 }
 
 function setEditButton(open) {
@@ -6819,7 +6890,7 @@ function editorApplySelectionLetter(letter, opts) {
       }
     }
     if (full) {
-      editorNotice(t("edit.refuseStackFull"));
+      editorRefuse(t("edit.refuseStackFull"));
     }
     return true;
   }, "select", opts);
@@ -9283,17 +9354,17 @@ function editorStructureRegroupSelection(kind, line, start, end) {
   }
   tup = editorSelectionTupletAction(music, start, end);
   if (kind === "tuplet" && (tup.kind === "partial" || tup.kind === "blocked")) {
-    editorNotice(t("edit.refuseNest"));
+    editorRefuse(t("edit.refuseNest"));
     editorPaintNotePad();
     return true;
   }
   if (kind === "beam" && tup.kind === "blocked") {
-    editorNotice(t("edit.refuseNest"));
+    editorRefuse(t("edit.refuseNest"));
     editorPaintNotePad();
     return true;
   }
   if (kind === "beam" && editorSelectedShareOneBeam(events)) {
-    editorNotice(t("edit.refuseNest"));
+    editorRefuse(t("edit.refuseNest"));
     editorPaintNotePad();
     return true;
   }
@@ -9311,7 +9382,7 @@ function editorStructureRegroupSelection(kind, line, start, end) {
     return false;
   }
   if (!editorLineMusicOk(edited)) {
-    editorNotice(t("edit.refuseWrap"));
+    editorRefuse(t("edit.refuseWrap"));
     editorPaintNotePad();
     return true;
   }
@@ -9587,7 +9658,7 @@ function editorToggleStructure(kind) {
   if (sel.start !== sel.end && kind === "tuplet") {
     exact = editorSelectionTupletAction(line, rel, endRel);
     if (exact.kind === "partial" || exact.kind === "blocked") {
-      editorNotice(t("edit.refuseNest"));
+      editorRefuse(t("edit.refuseNest"));
       editorPaintNotePad();
       return;
     }
@@ -9641,12 +9712,12 @@ function editorToggleStructure(kind) {
     }
   }
   if (sel.start === sel.end && editorStructureParentBlocks(kind, line, rel)) {
-    editorNotice(t("edit.refuseWrap"));
+    editorRefuse(t("edit.refuseWrap"));
     editorPaintNotePad();
     return;
   }
   if (editorStructureWouldNest(kind)) {
-    editorNotice(t("edit.refuseNest"));
+    editorRefuse(t("edit.refuseNest"));
     editorPaintNotePad();
     return;
   }
@@ -9659,7 +9730,7 @@ function editorToggleStructure(kind) {
       return;
     }
     /* Selection present but illegal for this shell: do not seed. */
-    editorNotice(t("edit.refuseWrap"));
+    editorRefuse(t("edit.refuseWrap"));
     editorPaintNotePad();
     return;
   }
@@ -9669,7 +9740,7 @@ function editorToggleStructure(kind) {
       editorForceShortDuration();
     }
     if (!editorStructureWrapHit(kind, hit)) {
-      editorNotice(t("edit.refuseWrap"));
+      editorRefuse(t("edit.refuseWrap"));
       editorPaintNotePad();
     }
     return;
@@ -10074,6 +10145,7 @@ function editorToggleArticulation(id) {
   var caret;
   var silent;
   if (!hosts.length) {
+    editorRefuse(t("edit.refuseNeedsNote"));
     editorPaintNotePad();
     return;
   }
@@ -10370,6 +10442,9 @@ function editorApplyDynamic(word) {
   var nextLine;
   var silent;
   if (!ctx.hosts.length || !editorStaffOn()) {
+    if (editorStaffOn()) {
+      editorRefuse(t("edit.refuseNeedsNote"));
+    }
     return;
   }
   remove = editorDynamicWordLit(word);
@@ -10652,7 +10727,7 @@ function editorApplyEnharmonic() {
   }
   result = editorEnharmonicMusic(line, range);
   if (!result.ok) {
-    editorNotice(t("edit.refuseSamePitch"));
+    editorRefuse(t("edit.refuseSamePitch"));
     editorPaintNotePad();
     return;
   }
@@ -11342,7 +11417,7 @@ function editorWriteLetter(letter, opts) {
       occupied = editorStackOccupiedKeys(line, stack);
       free = editorNextFreeStackOctave(letter, acc, oct, occupied);
       if (free === null) {
-        editorNotice(t("edit.refuseStackFull"));
+        editorRefuse(t("edit.refuseStackFull"));
         editorPaintNotePad();
         return;
       }
@@ -12072,6 +12147,75 @@ function editorCaretHasTieMark() {
   return before.charAt(before.length - 1) === "~";
 }
 
+function editorMusicTokensBeforeCaret() {
+  var before = editorTextBeforeCaretTrimmed();
+  if (!before) {
+    return [];
+  }
+  if (typeof staffTokenize === "function") {
+    return staffTokenize(before);
+  }
+  return before.split(/\s+/);
+}
+
+function editorStripClosers(tok) {
+  return String(tok || "").replace(/[}\])]+$/, "");
+}
+
+/* A pitch, slash, or stack can take a tie. A marcato hat on a note still can. */
+function editorTokenIsTieable(tok) {
+  var bare = editorStripClosers(tok);
+  if (!bare) {
+    return false;
+  }
+  if (bare.charAt(0) === "[") {
+    return true;
+  }
+  if (typeof staffParsePitchToken === "function" && staffParsePitchToken(bare)) {
+    return true;
+  }
+  if (typeof staffParseSlashToken === "function" && staffParseSlashToken(bare, "treble")) {
+    return true;
+  }
+  return false;
+}
+
+/* Last attack before the caret, skipping barlines and clef/key directives. */
+function editorTieTargetBeforeCaret() {
+  var tokens = editorMusicTokensBeforeCaret();
+  var i;
+  var tok;
+  for (i = tokens.length - 1; i >= 0; i--) {
+    tok = tokens[i];
+    if (!tok || tok === "|" || tok === "~" || tok.charAt(0) === "@") {
+      continue;
+    }
+    return tok;
+  }
+  return "";
+}
+
+function editorCaretAfterChordSymbol() {
+  var tok = editorTieTargetBeforeCaret();
+  if (!tok) {
+    return false;
+  }
+  if (tok.charAt(0) === "^") {
+    return true;
+  }
+  return tok.charAt(tok.length - 1) === "^" && !editorTokenIsTieable(tok);
+}
+
+function editorCaretHasTieableAttack() {
+  return editorTokenIsTieable(editorTieTargetBeforeCaret());
+}
+
+/* The tie sits on a slash, so another slash may follow it. */
+function editorTieLeavesSlash() {
+  var bare = editorStripClosers(editorTieTargetBeforeCaret());
+  return bare.charAt(0) === "/";
+}
+
 function editorCaretHasBarMark() {
   var before = editorTextBeforeCaretTrimmed();
   return before.charAt(before.length - 1) === "|";
@@ -12243,7 +12387,17 @@ function editorToggleOrInsertTie() {
     return;
   }
   if (editorCaretBeforeRest()) {
-    editorNotice(t("edit.refuseTieRest"));
+    editorRefuse(t("edit.refuseTieRest"));
+    editorPaintNotePad();
+    return;
+  }
+  if (editorCaretAfterChordSymbol()) {
+    editorRefuse(t("edit.refuseTieChord"));
+    editorPaintNotePad();
+    return;
+  }
+  if (!editorCaretHasTieableAttack()) {
+    editorRefuse(t("edit.refuseTieBefore"));
     editorPaintNotePad();
     return;
   }
@@ -12287,6 +12441,11 @@ function editorToggleOrInsertChord() {
   editorEndLabelTyping();
   if (mark) {
     editorRemoveRangeBeforeCaret(mark.start, mark.end);
+    return;
+  }
+  if (editorCaretHasTieMark()) {
+    editorRefuse(t("edit.refuseChordTie"));
+    editorPaintNotePad();
     return;
   }
   hit = editorPitchAtCaret() || editorRhythmAtCaret();
@@ -13036,12 +13195,12 @@ function editorApplyTranspose(opts) {
     return;
   }
   if (bounds.cross) {
-    editorNotice(t("edit.refuseTransposeLine"));
+    editorRefuse(t("edit.refuseTransposeLine"));
     return;
   }
   line = bounds.value.slice(bounds.lineStart, bounds.lineEnd);
   if (!String(line).replace(/\s/g, "")) {
-    editorNotice(t("edit.refuseTransposeEmpty"));
+    editorRefuse(t("edit.refuseTransposeEmpty"));
     return;
   }
   sourceKey = editorExampleKeyRaw(line);
@@ -13091,7 +13250,7 @@ function editorApplyTranspose(opts) {
   }
   result = editorTransposeMusic(line, steps, spellMajor, range);
   if (!result.ok) {
-    editorNotice(t(result.reason === "stack" ? "edit.refuseTransposeStack" : "edit.refuseTransposeRange"));
+    editorRefuse(t(result.reason === "stack" ? "edit.refuseTransposeStack" : "edit.refuseTransposeRange"));
     return;
   }
   newLine = whole ? editorStampLineKey(result.text, destKey) : result.text;
@@ -13105,7 +13264,7 @@ function editorApplyTranspose(opts) {
     srcMusic = staffExampleParts(line).music;
     nextMusic = staffExampleParts(newLine).music;
     if (parseMusicNotation(srcMusic) && !parseMusicNotation(nextMusic)) {
-      editorNotice(t("edit.refuseTransposeDraw"));
+      editorRefuse(t("edit.refuseTransposeDraw"));
       return;
     }
   }
@@ -13569,7 +13728,7 @@ function editorShiftOctave(dir) {
   }
   oct = editorClampOctave(hit.oct + dir);
   if (oct === hit.oct) {
-    editorNotice(t("edit.refuseOctave"));
+    editorRefuse(t("edit.refuseOctave"));
     editorPaintNotePad();
     return;
   }
@@ -13583,7 +13742,7 @@ function editorShiftOctave(dir) {
       key = hit.letter + (hit.acc || "") + String(oct);
       delete occupied[selfKey];
       if (occupied[key]) {
-        editorNotice(t("edit.refuseStackFull"));
+        editorRefuse(t("edit.refuseStackFull"));
         editorPaintNotePad();
         return;
       }
@@ -13609,6 +13768,7 @@ function editorActivateSymbol(button, opts) {
   if (!button) {
     return;
   }
+  editorPadActionButton = button;
   /* Any pad tap ends chord-name typing (except we re-enter after Chord). */
   if (!button.hasAttribute("data-event") || button.getAttribute("data-event") !== "chord") {
     editorEndLabelTyping();
@@ -13724,6 +13884,11 @@ function editorActivateSymbol(button, opts) {
     }
     if (eventName === "slash") {
       editorParkAfterSelection();
+      if (editorCaretHasTieMark() && !editorTieLeavesSlash()) {
+        editorRefuse(t("edit.refuseSlashTie"));
+        editorPaintNotePad();
+        return;
+      }
       if (!skipUndo) {
         editorPushSymbolUndo();
       }
@@ -13736,6 +13901,11 @@ function editorActivateSymbol(button, opts) {
     }
     if (eventName === "rest") {
       editorParkAfterSelection();
+      if (editorCaretHasTieMark()) {
+        editorRefuse(t("edit.refuseRestTie"));
+        editorPaintNotePad();
+        return;
+      }
       if (!skipUndo) {
         editorPushSymbolUndo();
       }

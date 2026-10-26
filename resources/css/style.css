@@ -2320,16 +2320,16 @@ body.is-editing #counter {
 }
 
 #editPreview {
-  order: 42;
+  order: 43;
 }
 
 #editFocusLine,
 #allEdit {
-  order: 43;
+  order: 44;
 }
 
 #editStaffNote {
-  order: 44;
+  order: 45;
 }
 
 #editStaffPanel {
@@ -2422,6 +2422,28 @@ body.is-editing #counter {
 #editSymbols button[aria-pressed="true"] {
   background: #ffffff;
   color: #111111;
+}
+
+#editSymbols button.is-staff-refuse-hint,
+#editNoteHistory button.is-staff-refuse-hint {
+  animation: staff-refuse-hint 0.75s ease-out 1;
+}
+
+@keyframes staff-refuse-hint {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  40% {
+    box-shadow: inset 0 0 0 3px #ffe08a;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #editSymbols button.is-staff-refuse-hint,
+  #editNoteHistory button.is-staff-refuse-hint {
+    animation: none;
+  }
 }
 
 #editSymbols.is-text #editNotePad {
@@ -3473,13 +3495,46 @@ button.edit-staff-pending-cue .edit-staff-pending-msg {
   box-sizing: border-box;
 }
 
-#editError {
-  font-size: 14px;
-  color: #ffe08a;
+#editError[hidden] {
+  display: none !important;
+}
+
+/* Same chip as the staff warning, between the pad and the staff. Yellow is a tap that did not happen. */
+#editError:not([hidden]) {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  align-self: flex-start;
+  order: 42;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px 8px 4px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #8a5a00;
+  font-family: "Open Sans", "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 #editError.is-note {
-  color: #ffffff;
+  color: #143024;
+}
+
+#editError.is-note .edit-notice-icon {
+  display: none;
+}
+
+.edit-notice-icon {
+  flex: 0 0 auto;
+  width: 1.15em;
+  height: 1.15em;
+  margin-top: 0.05em;
+}
+
+.edit-notice-msg {
+  min-width: 0;
 }
 
 #editOpen.is-armed {
@@ -3572,12 +3627,12 @@ body.is-about #counter {
       "head head head head head"
       "name name name name name"
       "count count count count count"
-      "err err err err err"
       "setup setup setup setup setup"
       "sym view share more glyphend"
       "menu menu menu menu menu"
       "focus focus focus focus focus"
       "sympanel sympanel sympanel sympanel sympanel"
+      "err err err err err"
       "prev prev prev prev prev"
       "area area area area area"
       "note note note note note"
@@ -3861,11 +3916,11 @@ body.is-about #counter {
       "head head head head head"
       "name name name name name"
       "count count count count count"
-      "err err err err err"
       "setup sym view share more"
       "menu menu menu menu menu"
       "focus focus focus focus focus"
       "sympanel sympanel sympanel sympanel sympanel"
+      "err err err err err"
       "prev prev prev prev prev"
       "area area area area area"
       "note note note note note"

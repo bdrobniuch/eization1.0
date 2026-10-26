@@ -3043,6 +3043,64 @@ function chatCase(w) {
         !w.document.getElementById("editError").hidden &&
         w.document.getElementById("editError").textContent === w.t("edit.refuseTieRest")
     );
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie with no note before it is refused",
+      focusLine.value === "" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTieBefore")
+    );
+    placeCaret("|");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie just after a bar is refused",
+      focusLine.value === "|" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTieBefore")
+    );
+    placeCaret("^G7");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie after a chord symbol is refused",
+      focusLine.value === "^G7" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTieChord")
+    );
+    placeCaret("C4~");
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "a chord symbol after a tie is refused",
+      focusLine.value === "C4~" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseChordTie")
+    );
+    poke(symbolsPanel.querySelector("[data-event='rest']"));
+    check(
+      "a rest after a tie is refused",
+      focusLine.value === "C4~" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseRestTie")
+    );
+    poke(symbolsPanel.querySelector("[data-event='slash']"));
+    check(
+      "a slash after a tie from a note is refused",
+      focusLine.value === "C4~" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseSlashTie")
+    );
+    placeCaret("/q~");
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='slash']"));
+    check(
+      "a slash may follow a tie from a slash",
+      focusLine.value === "/q~ " + w.editorSlashToken()
+    );
+    placeCaret("C4 |");
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check("a tie may follow a note across a bar", focusLine.value.indexOf("~") >= 0);
+    placeCaret("");
+    w.editorApplyDynamic("p");
+    check(
+      "a dynamic with no note is refused",
+      focusLine.value === "" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseNeedsNote")
+    );
     placeCaret("C4h");
     poke(symbolsPanel.querySelector("[data-event='beam']"));
     check(
