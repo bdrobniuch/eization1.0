@@ -178,7 +178,10 @@ var moreDayOrder = [
   "more0204",
   "more0205",
   "more0206",
-  "more0207"
+  "more0207",
+  "diatonicBlockChords",
+  "barryHarrisVoicings",
+  "quartalHarmony"
 ];
 
 var moreExercisesCache = null;

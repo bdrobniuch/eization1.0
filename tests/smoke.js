@@ -154,7 +154,26 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 26);
+  check("hidden exercises still registered", hidden === 29);
+  var voicingCatalogOk = function (seedId, n) {
+    var ex = w.exercises[seedId];
+    var vi;
+    if (!ex || ex.inMenu || ex.bars !== 2 || ex.staff !== true || !ex.items || ex.items.length !== n) {
+      return false;
+    }
+    for (vi = 0; vi < ex.items.length; vi++) {
+      if (ex.items[vi].length > 240 || !w.parseMusicNotation(ex.items[vi])) {
+        return false;
+      }
+    }
+    return true;
+  };
+  check(
+    "block, barry harris, and quartal voicings parse",
+    voicingCatalogOk("diatonicBlockChords", 84) &&
+      voicingCatalogOk("barryHarrisVoicings", 60) &&
+      voicingCatalogOk("quartalHarmony", 60)
+  );
   check(
     "scales is the seven modes",
     w.exercises.scales.items.length === 84 &&
@@ -177,7 +196,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
   check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
-  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 179));
+  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 182));
   var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));

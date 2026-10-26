@@ -12360,5 +12360,108 @@
             "beats": 4,
             "unit": 4
         }
+    },
+    {
+        "id": "more0208",
+        "slug": "diatonic-block-chords",
+        "group": "changes",
+        "staff": true,
+        "bars": 2,
+        "exercise": "diatonicBlockChords",
+        "nameEn": "Diatonic Block Chords",
+        "nameEs": "Acordes en bloque diatónicos",
+        "descEn": "Two bars of quarter-note block chords walking up the scale. Major, minor, dominant, altered, half-diminished, diminished, and minor-major, each in all twelve keys. You see one example.",
+        "descEs": "Dos compases de acordes en bloque en negras, subiendo por la escala. Mayor, menor, dominante, alterado, semidisminuido, disminuido y menor con séptima mayor, cada uno en las doce tonalidades. Ves un ejemplo.",
+        "books": [
+            {
+                "href": "./changes.html#levine-piano",
+                "en": "The Jazz Piano Book",
+                "es": "The Jazz Piano Book"
+            },
+            {
+                "href": "./changes.html#mantooth-voicings",
+                "en": "Voicings for Jazz Keyboard",
+                "es": "Voicings for Jazz Keyboard"
+            },
+            {
+                "href": "./changes.html#haerle-voicings",
+                "en": "Jazz Piano Voicing Skills",
+                "es": "Jazz Piano Voicing Skills"
+            }
+        ],
+        "lines": [
+            "^CMaj7 [C4q E4q G4q B4q] [D4q F4q A4q C5q] [E4q G4q B4q D5q] [F4q A4q C5q E5q] | [G4q B4q D5q F5q] [A4q C5q E5q G5q] [B4q D5q F5q A5q] [C5q E5q G5q B5q] |"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
+    },
+    {
+        "id": "more0209",
+        "slug": "barry-harris-voicings",
+        "group": "changes",
+        "staff": true,
+        "bars": 2,
+        "exercise": "barryHarrisVoicings",
+        "nameEn": "Barry Harris Voicings",
+        "nameEs": "Voicings de Barry Harris",
+        "descEn": "Two bars of quarter-note sixth-diminished voicings walking up. Major 6th, minor 6th, dominant, dominant flat five, and minor-major, each in all twelve keys. You see one example.",
+        "descEs": "Dos compases de voicings de sexta disminuida en negras, subiendo. Sexta mayor, sexta menor, dominante, dominante con quinta bemol y menor-mayor, cada uno en las doce tonalidades. Ves un ejemplo.",
+        "books": [
+            {
+                "href": "./changes.html#kingstone-barry-harris",
+                "en": "The Barry Harris Harmonic Method",
+                "es": "The Barry Harris Harmonic Method"
+            },
+            {
+                "href": "./changes.html#ben-hur-talk-jazz",
+                "en": "Talk Jazz",
+                "es": "Talk Jazz"
+            }
+        ],
+        "lines": [
+            "^C6dim [C4q E4q G4q A4q] [D4q F4q Ab4q B4q] [E4q G4q A4q C5q] [F4q Ab4q B4q D5q] | [G4q A4q C5q E5q] [Ab4q B4q D5q F5q] [A4q C5q E5q G5q] [B4q D5q F5q Ab5q] |"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
+    },
+    {
+        "id": "more0210",
+        "slug": "quartal-harmony",
+        "group": "changes",
+        "staff": true,
+        "bars": 2,
+        "exercise": "quartalHarmony",
+        "nameEn": "Quartal Harmony",
+        "nameEs": "Armonía por cuartas",
+        "descEn": "Two bars of quarter-note quartal voicings walking up by fourths. Major, minor, dominant, altered, and half-diminished, each in all twelve keys. You see one example.",
+        "descEs": "Dos compases de voicings por cuartas en negras, subiendo. Mayor, menor, dominante, alterado y semidisminuido, cada uno en las doce tonalidades. Ves un ejemplo.",
+        "books": [
+            {
+                "href": "./changes.html#levine-piano",
+                "en": "The Jazz Piano Book",
+                "es": "The Jazz Piano Book"
+            },
+            {
+                "href": "./changes.html#miller-modal",
+                "en": "Modal Jazz Composition & Harmony",
+                "es": "Modal Jazz Composition & Harmony"
+            },
+            {
+                "href": "./scales-and-sets.html#ricker-fourths",
+                "en": "Technique Development in Fourths",
+                "es": "Technique Development in Fourths"
+            }
+        ],
+        "lines": [
+            "^CMaj7 [C4q F4q B4q E5q] [D4q G4q C5q F5q] [E4q A4q D5q G5q] [F4q B4q E5q A5q] | [G4q C5q F5q B5q] [A4q D5q G5q C6q] [B4q E5q A5q D6q] [C5q F5q B5q E6q] |"
+        ],
+        "meter": {
+            "beats": 4,
+            "unit": 4
+        }
     }
 ]
