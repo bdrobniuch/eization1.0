@@ -3242,6 +3242,32 @@ body.is-editing #counter {
   color: inherit;
 }
 
+/* The letters that keep this example from drawing. Same red as the pending frame. */
+#editFocusLine.has-error-highlight::selection,
+#allEdit.has-error-highlight::selection {
+  background: rgba(201, 76, 76, 0.45);
+  color: inherit;
+}
+
+button.edit-staff-pending-cue {
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  color: #c94c4c;
+}
+
+button.edit-staff-pending-cue .edit-staff-pending-msg {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 #editNoteHistory {
   display: inline-flex;
   flex: 0 0 auto;

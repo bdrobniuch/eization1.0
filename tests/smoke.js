@@ -428,6 +428,44 @@ function staffNotation(w) {
     "valid staff status keeps caption",
     !!(okStatus && okStatus.ok && okStatus.music === "C4q" && okStatus.caption === "Caption")
   );
+  var tieBad = w.staffNotationStatus("C4q~E4q");
+  check(
+    "tie mismatch points at that tie",
+    !!(
+      tieBad &&
+      !tieBad.ok &&
+      tieBad.start === 3 &&
+      tieBad.end === 4 &&
+      tieBad.music.slice(tieBad.start, tieBad.end) === "~"
+    )
+  );
+  var tieSecond = w.staffNotationStatus("C4q~C4q D4q~E4q");
+  check(
+    "the later mismatched tie is the one marked",
+    !!(tieSecond && tieSecond.start === 11 && tieSecond.end === 12)
+  );
+  var badTok = w.staffNotationStatus("C4q ZZZ");
+  check(
+    "a bad token is the marked span",
+    !!(badTok && badTok.music.slice(badTok.start, badTok.end) === "ZZZ")
+  );
+  var badBeam = w.staffNotationStatus("{C4e D4q}");
+  check(
+    "a beam marks the note that will not draw",
+    !!(badBeam && badBeam.music.slice(badBeam.start, badBeam.end) === "D4q")
+  );
+  var openTup = w.staffNotationStatus("(3 C4e D4e");
+  check(
+    "an unclosed tuplet keeps a span and stays open",
+    !!(openTup && openTup.open && openTup.start === 0 && openTup.end === "(3 C4e D4e".length)
+  );
+  var noNotes = w.staffNotationStatus("@key=G |");
+  check(
+    "a line with no notes has no span",
+    !!(noNotes && !noNotes.ok && !(noNotes.end > noNotes.start))
+  );
+  var stillTied = w.staffNotationStatus("C4q~C4q");
+  check("a matching tie still draws", !!(stillTied && stillTied.ok && !(stillTied.end > stillTied.start)));
   var slash = w.parseMusicNotation("/q. /e rh");
   check(
     "slash charleston parses",
@@ -5075,6 +5113,59 @@ function chatCase(w) {
         staffNote.hidden
       )
     );
+    var pendingCue = pendingPreview.querySelector(".edit-staff-pending-cue");
+    if (pendingCue) {
+      pendingCue.click();
+    }
+    check(
+      "pending cue selects the failing tie",
+      !!(
+        pendingCue &&
+        pendingCue.tagName === "BUTTON" &&
+        focusLine.classList.contains("has-error-highlight") &&
+        focusLine.selectionStart === 3 &&
+        focusLine.selectionEnd === 4 &&
+        focusLine.value.slice(3, 4) === "~"
+      )
+    );
+    focusLine.focus();
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
+    w.refreshEditor();
+    check(
+      "typing leaves the caret where it is",
+      focusLine.selectionStart === focusLine.value.length &&
+        focusLine.selectionEnd === focusLine.value.length &&
+        !focusLine.classList.contains("has-error-highlight")
+    );
+    focusLine.blur();
+    w.refreshEditor();
+    check(
+      "leaving the example marks the failing tie",
+      focusLine.classList.contains("has-error-highlight") &&
+        focusLine.selectionStart === 3 &&
+        focusLine.selectionEnd === 4
+    );
+    placeCaret("C4q (3 D4e");
+    focusLine.setSelectionRange(0, 0);
+    w.editorPadCaret = { start: 0, end: 0 };
+    w.document.getElementById("editCancel").focus();
+    w.refreshEditor();
+    check(
+      "an unclosed group is marked once the caret leaves it",
+      (function () {
+        var marked = focusLine.value.slice(focusLine.selectionStart, focusLine.selectionEnd);
+        return focusLine.classList.contains("has-error-highlight") && marked.indexOf("(3") === 0;
+      })()
+    );
+    placeCaret("(3 C4e");
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    w.document.getElementById("editCancel").focus();
+    w.refreshEditor();
+    check(
+      "an unclosed group stays unmarked while the caret is inside",
+      !focusLine.classList.contains("has-error-highlight")
+    );
+    focusLine.focus();
     w.setEditorStaff(true);
     w.editorSymbolUndo = [];
     w.editorSymbolRedo = [];

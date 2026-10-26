@@ -51,6 +51,8 @@ var STAFF_KEY_POS_BASS = {
 var staffAstCache = new Map();
 /* Last parseMusicNotation fail reason (for Edit pending cue). Cleared on each parse. */
 var staffLastParseError = "";
+/* Character range of that failure in the trimmed music string. Null when there is no single span. */
+var staffLastParseSpan = null;
 /* Whole-exercise defaults applied before line @treble / @bass / @key=. */
 var staffActiveDefaults = { clef: "treble", keyName: "C" };
 
@@ -877,6 +879,96 @@ function staffTokenize(raw) {
     .filter(Boolean);
 }
 
+/* Ranges into `raw` for each staffTokenize token. `~` and `|` are their own tokens. */
+function staffTokenRanges(raw) {
+  var s = String(raw || "");
+  var tokens = staffTokenize(s);
+  var out = [];
+  var pos = 0;
+  var i;
+  var idx;
+  for (i = 0; i < tokens.length; i++) {
+    idx = s.indexOf(tokens[i], pos);
+    if (idx < 0) {
+      idx = pos;
+    }
+    out.push({ start: idx, end: idx + tokens[i].length });
+    pos = idx + tokens[i].length;
+  }
+  return out;
+}
+
+function staffSpan(ranges, index, endIndex) {
+  var end;
+  var a;
+  var b;
+  if (!ranges || index == null || index < 0 || index >= ranges.length) {
+    return null;
+  }
+  end = endIndex == null ? index : endIndex;
+  if (end < index) {
+    end = index;
+  }
+  if (end >= ranges.length) {
+    end = ranges.length - 1;
+  }
+  a = ranges[index];
+  b = ranges[end];
+  if (!a || !b || !(b.end > a.start)) {
+    return null;
+  }
+  return { start: a.start, end: b.end };
+}
+
+function staffFailSpan(reason, tok, span, open) {
+  var err = { error: reason, tok: tok || "" };
+  if (span && typeof span.start === "number" && span.end > span.start) {
+    err.start = span.start;
+    err.end = span.end;
+  }
+  if (open) {
+    err.open = true;
+  }
+  return err;
+}
+
+function staffForwardError(child, fallbackSpan) {
+  var span = null;
+  if (!child) {
+    return staffFailSpan("", "");
+  }
+  if (typeof child.start === "number" && child.end > child.start) {
+    span = { start: child.start, end: child.end };
+  } else {
+    span = fallbackSpan || null;
+  }
+  return staffFailSpan(child.error, child.tok, span, child.open);
+}
+
+/* Drop locate-only fields so a drawn line matches the previous AST shape. */
+function staffClearTieSpans(events) {
+  var i;
+  var n;
+  if (!events) {
+    return;
+  }
+  for (i = 0; i < events.length; i++) {
+    if (events[i] && events[i].tieSpan) {
+      delete events[i].tieSpan;
+    }
+    if (events[i] && events[i].type === "beam" && events[i].notes) {
+      for (n = 0; n < events[i].notes.length; n++) {
+        if (events[i].notes[n] && events[i].notes[n].tieSpan) {
+          delete events[i].notes[n].tieSpan;
+        }
+      }
+    }
+    if (events[i] && events[i].type === "tuplet") {
+      staffClearTieSpans(events[i].events);
+    }
+  }
+}
+
 /* Same written pitch, or any slash with any slash. Natural matches a bare letter. */
 function staffTieKey(pitch) {
   if (!pitch) {
@@ -1047,14 +1139,14 @@ function staffBindTies(events) {
     }
     if (ev.type === "rest" || ev.type === "simile") {
       if (open) {
-        return { error: "tie needs a note after it", tok: "~" };
+        return staffFailSpan("tie needs a note after it", "~", open.tieSpan);
       }
       continue;
     }
     if (open) {
       matched = staffMatchTie(open, ev);
       if (matched.error) {
-        return matched;
+        return staffFailSpan(matched.error, matched.tok || "~", open.tieSpan);
       }
       open.tieOutKeys = matched.keys;
       open = null;
@@ -1073,12 +1165,12 @@ function staffBindTies(events) {
     if (openAt >= 0 && (staffOnlyBarlinesAfter(events, openAt + 1) || openAt === events.length - 1)) {
       hangKeys = staffOutgoingKeys(open);
       if (!hangKeys.length) {
-        return { error: "tie needs a note after it", tok: "~" };
+        return staffFailSpan("tie needs a note after it", "~", open.tieSpan);
       }
       open.tieOutKeys = hangKeys;
       open.tieHang = true;
     } else {
-      return { error: "tie needs a note after it", tok: "~" };
+      return staffFailSpan("tie needs a note after it", "~", open.tieSpan);
     }
   }
   return { ok: true };
@@ -1110,7 +1202,7 @@ function staffEventsHaveTie(events) {
 }
 
 /* Reassemble [stack] tokens that were space-split inside a beam. */
-function staffTakeBeamStackParts(parts, start) {
+function staffTakeBeamStackParts(parts, start, partRanges) {
   var buf = parts[start];
   var i = start;
   var close;
@@ -1121,18 +1213,18 @@ function staffTakeBeamStackParts(parts, start) {
     return null;
   }
   if (buf.indexOf("[", 1) >= 0) {
-    return { error: "nested stack brackets", tok: buf };
+    return staffFailSpan("nested stack brackets", buf, staffSpan(partRanges, start));
   }
   while (buf.indexOf("]") < 0 && i + 1 < parts.length) {
     i++;
     if (parts[i].indexOf("[") >= 0) {
-      return { error: "nested stack brackets", tok: parts[i] };
+      return staffFailSpan("nested stack brackets", parts[i], staffSpan(partRanges, i));
     }
     buf += " " + parts[i];
   }
   close = buf.indexOf("]");
   if (close < 0) {
-    return { error: "unclosed stack", tok: parts[start] };
+    return staffFailSpan("unclosed stack", parts[start], staffSpan(partRanges, start, i), true);
   }
   after = buf.slice(close + 1);
   /* Soft-draw a bare ]^ while the name is still being typed. */
@@ -1141,18 +1233,18 @@ function staffTakeBeamStackParts(parts, start) {
   } else {
     aff = staffParseAffixes(after);
     if (!aff || aff.articulations.length) {
-      return { error: "stack label must use _ or ^", tok: after || buf };
+      return staffFailSpan("stack label must use _ or ^", after || buf, staffSpan(partRanges, start, i));
     }
   }
   pitches = staffParseStackInner(buf.slice(1, close));
   if (!pitches) {
-    return { error: "bad stack pitches", tok: buf.slice(1, close) };
+    return staffFailSpan("bad stack pitches", buf.slice(1, close), staffSpan(partRanges, start, i));
   }
   if (!pitches.length) {
-    return { error: "bad stack pitches", tok: buf.slice(1, close) };
+    return staffFailSpan("bad stack pitches", buf.slice(1, close), staffSpan(partRanges, start, i));
   }
   if (!staffIsShortDuration(pitches[0].duration || "q")) {
-    return { error: "bad beam pitches (need e/s notes)", tok: buf };
+    return staffFailSpan("bad beam pitches (need e/s notes)", buf, staffSpan(partRanges, start, i));
   }
   return {
     next: i + 1,
@@ -1166,13 +1258,14 @@ function staffTakeBeamStackParts(parts, start) {
   };
 }
 
-function staffParseBeamInner(inner, clef) {
+function staffParseBeamInner(inner, clef, partRanges) {
   var parts = inner.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) {
     return null;
   }
   var notes = [];
   var hangTie = false;
+  var tieSpan = null;
   var i;
   var stackTaken;
   var p;
@@ -1182,28 +1275,28 @@ function staffParseBeamInner(inner, clef) {
   for (i = 0; i < parts.length; ) {
     if (parts[i] === "~") {
       if (!notes.length || hangTie) {
-        return { error: "tie needs a note before it", tok: "~" };
+        return staffFailSpan("tie needs a note before it", "~", staffSpan(partRanges, i));
       }
+      tieSpan = staffSpan(partRanges, i);
       hangTie = true;
       i++;
       continue;
     }
     if (parts[i].charAt(0) === "[") {
-      stackTaken = staffTakeBeamStackParts(parts, i);
+      stackTaken = staffTakeBeamStackParts(parts, i, partRanges);
       if (!stackTaken || stackTaken.error) {
-        return stackTaken && stackTaken.error
-          ? { error: stackTaken.error, tok: stackTaken.tok }
-          : null;
+        return stackTaken && stackTaken.error ? staffForwardError(stackTaken) : null;
       }
       if (hangTie) {
         prev = notes[notes.length - 1];
         prevKey = staffOutgoingKeys(prev)[0];
         nextKey = staffIncomingKeys(stackTaken.note)[0];
         if (!prevKey || prevKey !== nextKey) {
-          return { error: "tie needs the same pitch", tok: "~" };
+          return staffFailSpan("tie needs the same pitch", "~", tieSpan);
         }
         prev.tieToNext = true;
         prev.tieOutKey = nextKey;
+        prev.tieSpan = tieSpan;
         hangTie = false;
       }
       notes.push(stackTaken.note);
@@ -1211,21 +1304,19 @@ function staffParseBeamInner(inner, clef) {
       continue;
     }
     p = staffParsePitchToken(parts[i]) || staffParseSlashToken(parts[i], clef || "treble");
-    if (!p) {
-      return null;
-    }
-    if (!staffIsShortDuration(p.duration || "q")) {
-      return null;
+    if (!p || !staffIsShortDuration(p.duration || "q")) {
+      return staffFailSpan("bad beam pitches (need e/s notes)", parts[i], staffSpan(partRanges, i));
     }
     if (hangTie) {
       prev = notes[notes.length - 1];
       prevKey = staffOutgoingKeys(prev)[0];
       nextKey = staffTieKey(p);
       if (!prevKey || prevKey !== nextKey) {
-        return { error: "tie needs the same pitch", tok: "~" };
+        return staffFailSpan("tie needs the same pitch", "~", tieSpan);
       }
       prev.tieToNext = true;
       prev.tieOutKey = nextKey;
+      prev.tieSpan = tieSpan;
       hangTie = false;
     }
     notes.push({
@@ -1242,7 +1333,7 @@ function staffParseBeamInner(inner, clef) {
     i++;
   }
   /* A trailing ~ leaves the group and ties into whatever follows the brace. */
-  return { notes: notes, tieToNext: hangTie };
+  return { notes: notes, tieToNext: hangTie, tieSpan: hangTie ? tieSpan : null };
 }
 
 function staffParseStackInner(inner) {
@@ -1511,10 +1602,70 @@ function staffMeasureText(text, fontSize) {
 }
 
 /*
+ * Parts inside the first open/close pair, aligned with a whitespace split of that inside.
+ * Returns null when the split does not match, so the caller can fall back to the whole group.
+ */
+function staffBracePartRanges(tokens, ranges, from, to, openCh, closeCh, parts) {
+  var located = [];
+  var locatedRanges = [];
+  var k;
+  var text;
+  var span;
+  var opened = false;
+  var cut;
+  var piece;
+  if (!parts || !ranges) {
+    return null;
+  }
+  for (k = from; k <= to && k < tokens.length; k++) {
+    text = tokens[k];
+    span = ranges[k] ? { start: ranges[k].start, end: ranges[k].end } : null;
+    if (!opened) {
+      if (!text || text.charAt(0) !== openCh) {
+        continue;
+      }
+      opened = true;
+      text = text.slice(1);
+      if (span) {
+        span = { start: span.start + 1, end: span.end };
+      }
+    }
+    if (!text) {
+      continue;
+    }
+    cut = text.indexOf(closeCh);
+    if (cut >= 0) {
+      piece = text.slice(0, cut);
+      if (piece) {
+        located.push(piece);
+        if (span) {
+          locatedRanges.push({ start: span.start, end: span.start + piece.length });
+        }
+      }
+      break;
+    }
+    located.push(text);
+    if (span) {
+      locatedRanges.push(span);
+    }
+  }
+  if (located.length !== parts.length || locatedRanges.length !== parts.length) {
+    return null;
+  }
+  for (k = 0; k < parts.length; k++) {
+    if (located[k] !== parts[k]) {
+      return null;
+    }
+  }
+  return locatedRanges;
+}
+
+/*
  * One note, slash, rest, {beam} or [stack] starting at tokens[i].
  * Returns { event, next } or { error, tok }.
  */
-function staffParseEventAt(tokens, i, clef) {
+function staffParseEventAt(tokens, i, clef, ranges) {
+  var from = i;
   var tok = tokens[i];
   var rest = staffParseRestToken(tok);
   if (rest) {
@@ -1522,56 +1673,71 @@ function staffParseEventAt(tokens, i, clef) {
   }
   if (tok.charAt(0) === "{") {
     if (tok.indexOf("{", 1) >= 0) {
-      return { error: "nested beam braces", tok: tok };
+      return staffFailSpan("nested beam braces", tok, staffSpan(ranges, from));
     }
     var beamBuf = tok;
     while (beamBuf.indexOf("}") < 0 && i + 1 < tokens.length) {
       i++;
       if (tokens[i].indexOf("{") >= 0) {
-        return { error: "nested beam braces", tok: tokens[i] };
+        return staffFailSpan("nested beam braces", tokens[i], staffSpan(ranges, i));
       }
       beamBuf += " " + tokens[i];
     }
     var beamClose = beamBuf.indexOf("}");
+    var groupSpan = staffSpan(ranges, from, i);
     if (beamClose < 0) {
-      return { error: "unclosed beam", tok: tok };
+      return staffFailSpan("unclosed beam", tok, groupSpan, true);
     }
     if (beamBuf.slice(beamClose + 1)) {
-      return { error: "junk after beam", tok: beamBuf.slice(beamClose + 1) };
+      var braceInTok = tokens[i].indexOf("}");
+      var junkSpan = null;
+      if (ranges && ranges[i] && braceInTok >= 0 && braceInTok < tokens[i].length - 1) {
+        junkSpan = { start: ranges[i].start + braceInTok + 1, end: ranges[i].end };
+      }
+      return staffFailSpan("junk after beam", beamBuf.slice(beamClose + 1), junkSpan || groupSpan);
     }
     var beamInner = beamBuf.slice(1, beamClose);
     /* Soft-draw an empty {} while notes are still being typed. */
     if (!String(beamInner || "").replace(/\s+/g, "")) {
       return { event: { type: "beam", notes: [] }, next: i + 1 };
     }
-    var beamParsed = staffParseBeamInner(beamInner, clef);
+    var beamParts = String(beamInner || "").trim().split(/\s+/).filter(Boolean);
+    var beamParsed = staffParseBeamInner(
+      beamInner,
+      clef,
+      staffBracePartRanges(tokens, ranges, from, i, "{", "}", beamParts)
+    );
     if (!beamParsed || beamParsed.error || !beamParsed.notes || beamParsed.notes.length < 1) {
-      return {
-        error: beamParsed && beamParsed.error ? beamParsed.error : "bad beam pitches (need e/s notes)",
-        tok: beamParsed && beamParsed.tok ? beamParsed.tok : beamInner
-      };
+      if (beamParsed && beamParsed.error) {
+        return staffForwardError(beamParsed, groupSpan);
+      }
+      return staffFailSpan("bad beam pitches (need e/s notes)", beamInner, groupSpan);
     }
     var beamEv = { type: "beam", notes: beamParsed.notes };
     if (beamParsed.tieToNext) {
       beamEv.tieToNext = true;
+      if (beamParsed.tieSpan) {
+        beamEv.tieSpan = beamParsed.tieSpan;
+      }
     }
     return { event: beamEv, next: i + 1 };
   }
   if (tok.charAt(0) === "[") {
     if (tok.indexOf("[", 1) >= 0) {
-      return { error: "nested stack brackets", tok: tok };
+      return staffFailSpan("nested stack brackets", tok, staffSpan(ranges, from));
     }
     var buf = tok;
     while (buf.indexOf("]") < 0 && i + 1 < tokens.length) {
       i++;
       if (tokens[i].indexOf("[") >= 0) {
-        return { error: "nested stack brackets", tok: tokens[i] };
+        return staffFailSpan("nested stack brackets", tokens[i], staffSpan(ranges, i));
       }
       buf += " " + tokens[i];
     }
     var close = buf.indexOf("]");
+    var stackSpan = staffSpan(ranges, from, i);
     if (close < 0) {
-      return { error: "unclosed stack", tok: tok };
+      return staffFailSpan("unclosed stack", tok, stackSpan, true);
     }
     var after = buf.slice(close + 1);
     var stackAff;
@@ -1581,13 +1747,13 @@ function staffParseEventAt(tokens, i, clef) {
     } else {
       stackAff = staffParseAffixes(after);
       if (!stackAff || stackAff.articulations.length) {
-        return { error: "stack label must use _ or ^", tok: after || tok };
+        return staffFailSpan("stack label must use _ or ^", after || tok, stackSpan);
       }
     }
     var inner = buf.slice(1, close);
     var pitches = staffParseStackInner(inner);
     if (!pitches) {
-      return { error: "bad stack pitches", tok: inner };
+      return staffFailSpan("bad stack pitches", inner, stackSpan);
     }
     return {
       event: {
@@ -1602,7 +1768,7 @@ function staffParseEventAt(tokens, i, clef) {
   }
   var pitch = staffParsePitchToken(tok) || staffParseSlashToken(tok, clef);
   if (!pitch) {
-    return { error: "bad token", tok: tok };
+    return staffFailSpan("bad token", tok, staffSpan(ranges, from));
   }
   var ev = {
     type: "note",
@@ -1641,42 +1807,53 @@ function staffTokenClosesTuplet(tok) {
 }
 
 /* `(3 … )` or `(5:4 … )`. Returns { event, next } or { error, tok }. */
-function staffParseTupletAt(tokens, i, clef) {
+function staffParseTupletAt(tokens, i, clef, ranges) {
   var open = /^\((\d{1,2})(?::(\d{1,2}))?$/.exec(tokens[i]);
   if (!open) {
-    return { error: "bad tuplet (write (3 … ) or (5:4 … ))", tok: tokens[i] };
+    return staffFailSpan("bad tuplet (write (3 … ) or (5:4 … ))", tokens[i], staffSpan(ranges, i));
   }
   var n = parseInt(open[1], 10);
   var m = open[2] ? parseInt(open[2], 10) : staffTupletDefaultM(n);
   if (n < 2 || n > 16 || m < 1 || m > 16) {
-    return { error: "bad tuplet ratio", tok: tokens[i] };
+    return staffFailSpan("bad tuplet ratio", tokens[i], staffSpan(ranges, i));
   }
   var inner = [];
+  var innerRanges = [];
   var j;
   var closed = false;
   for (j = i + 1; j < tokens.length; j++) {
     var t = tokens[j];
     if (t.charAt(0) === "(") {
-      return { error: "nested tuplet", tok: t };
+      return staffFailSpan("nested tuplet", t, staffSpan(ranges, j));
     }
     if (t === "|") {
-      return { error: "barline inside tuplet", tok: t };
+      return staffFailSpan("barline inside tuplet", t, staffSpan(ranges, j));
     }
     if (staffTokenClosesTuplet(t)) {
       if (t.length > 1) {
         inner.push(t.slice(0, -1));
+        if (ranges) {
+          innerRanges.push(
+            ranges[j]
+              ? { start: ranges[j].start, end: ranges[j].end - 1 }
+              : null
+          );
+        }
       }
       closed = true;
       break;
     }
     inner.push(t);
+    if (ranges) {
+      innerRanges.push(ranges[j] || null);
+    }
   }
   if (!closed) {
-    return { error: "unclosed tuplet", tok: tokens[i] };
+    return staffFailSpan("unclosed tuplet", tokens[i], staffSpan(ranges, i, tokens.length - 1), true);
   }
-  var seq = staffParseSequence(inner, clef, { allowBarline: false, allowTuplet: false });
+  var seq = staffParseSequence(inner, clef, { allowBarline: false, allowTuplet: false }, innerRanges);
   if (seq.error) {
-    return { error: seq.error, tok: seq.tok };
+    return staffForwardError(seq);
   }
   var events = seq.events;
   var count = 0;
@@ -1709,6 +1886,9 @@ function staffParseTupletAt(tokens, i, clef) {
   var tupletEv = { type: "tuplet", n: n, m: m, showRatio: !!open[2], events: events };
   if (tieOn) {
     tupletEv.tieToNext = true;
+    if (hang.tieSpan) {
+      tupletEv.tieSpan = hang.tieSpan;
+    }
   }
   return { event: tupletEv, next: j + 1 };
 }
@@ -1751,7 +1931,7 @@ function staffFinishMarks(marks, events) {
   }
   if (marks.dynamic) {
     if (!hasHost) {
-      return { error: "dangling dynamic", tok: marks.dynamic };
+      return staffFailSpan("dangling dynamic", marks.dynamic, marks.dynamicSpan);
     }
     /* Soft-draw: drop an unfinished dynamic after notes while editing. */
     marks.dynamic = "";
@@ -1765,7 +1945,7 @@ function staffFinishMarks(marks, events) {
     marks.chord = "";
   }
   if (marks.hairpin && !marks.hairpin.start) {
-    return { error: "hairpin needs a note", tok: marks.hairpin.kind };
+    return staffFailSpan("hairpin needs a note", marks.hairpin.kind, marks.hairpin.span);
   }
   if (marks.hairpin && marks.hairpin.start) {
     last = null;
@@ -1776,7 +1956,7 @@ function staffFinishMarks(marks, events) {
       }
     }
     if (!last) {
-      return { error: "hairpin needs a note", tok: marks.hairpin.kind };
+      return staffFailSpan("hairpin needs a note", marks.hairpin.kind, marks.hairpin.span);
     }
     marks.hairpin.end = last;
     marks.hairpin.closedByDynamic = false;
@@ -1793,7 +1973,7 @@ function staffFinishMarks(marks, events) {
   return null;
 }
 
-function staffParseSequence(tokens, clef, opts) {
+function staffParseSequence(tokens, clef, opts, ranges) {
   var events = [];
   var sawMusic = false;
   var i = 0;
@@ -1805,7 +1985,7 @@ function staffParseSequence(tokens, clef, opts) {
       if (tok.length < 2) {
         /* Soft-draw a bare ^ after music; alone it stays illegal. */
         if (!sawMusic && !events.length) {
-          return { error: "empty chord symbol", tok: tok };
+          return staffFailSpan("empty chord symbol", tok, staffSpan(ranges, i));
         }
         i++;
         continue;
@@ -1817,12 +1997,13 @@ function staffParseSequence(tokens, clef, opts) {
     }
     if (staffIsDynamic(tok)) {
       marks.dynamic = tok;
+      marks.dynamicSpan = staffSpan(ranges, i);
       i++;
       continue;
     }
     if (staffIsHairpin(tok)) {
       if (marks.hairpin && !marks.hairpin.start) {
-        return { error: "hairpin needs a note", tok: marks.hairpin.kind };
+        return staffFailSpan("hairpin needs a note", marks.hairpin.kind, marks.hairpin.span);
       }
       if (marks.hairpin && marks.hairpin.start) {
         var prevTimed = null;
@@ -1834,19 +2015,19 @@ function staffParseSequence(tokens, clef, opts) {
           }
         }
         if (!prevTimed) {
-          return { error: "hairpin needs a note", tok: marks.hairpin.kind };
+          return staffFailSpan("hairpin needs a note", marks.hairpin.kind, marks.hairpin.span);
         }
         marks.hairpin.end = prevTimed;
         marks.hairpin.closedByDynamic = false;
         marks.hairpins.push(marks.hairpin);
       }
-      marks.hairpin = { kind: tok, start: null, end: null, closedByDynamic: false };
+      marks.hairpin = { kind: tok, start: null, end: null, closedByDynamic: false, span: staffSpan(ranges, i) };
       i++;
       continue;
     }
     if (tok === "%") {
       if (!opts.allowBarline) {
-        return { error: "simile inside tuplet", tok: tok };
+        return staffFailSpan("simile inside tuplet", tok, staffSpan(ranges, i));
       }
       var simile = { type: "simile" };
       staffAttachMarks(simile, marks);
@@ -1865,15 +2046,16 @@ function staffParseSequence(tokens, clef, opts) {
         }
       }
       if (!prev || prev.type === "rest") {
-        return { error: "tie needs a note before it", tok: tok };
+        return staffFailSpan("tie needs a note before it", tok, staffSpan(ranges, i));
       }
       prev.tieToNext = true;
+      prev.tieSpan = staffSpan(ranges, i);
       i++;
       continue;
     }
     if (tok === "|") {
       if (!opts.allowBarline) {
-        return { error: "barline inside tuplet", tok: tok };
+        return staffFailSpan("barline inside tuplet", tok, staffSpan(ranges, i));
       }
       events.push({ type: "barline" });
       i++;
@@ -1882,14 +2064,14 @@ function staffParseSequence(tokens, clef, opts) {
     var one;
     if (tok.charAt(0) === "(") {
       if (!opts.allowTuplet) {
-        return { error: "nested tuplet", tok: tok };
+        return staffFailSpan("nested tuplet", tok, staffSpan(ranges, i));
       }
-      one = staffParseTupletAt(tokens, i, clef);
+      one = staffParseTupletAt(tokens, i, clef, ranges);
     } else {
-      one = staffParseEventAt(tokens, i, clef);
+      one = staffParseEventAt(tokens, i, clef, ranges);
     }
     if (one.error) {
-      return { error: one.error, tok: one.tok };
+      return staffForwardError(one, staffSpan(ranges, i));
     }
     staffAttachMarks(one.event, marks);
     sawMusic = true;
@@ -1898,7 +2080,7 @@ function staffParseSequence(tokens, clef, opts) {
   }
   var markDone = staffFinishMarks(marks, events);
   if (markDone && markDone.error) {
-    return markDone;
+    return staffForwardError(markDone);
   }
   return {
     events: events,
@@ -1930,6 +2112,7 @@ function staffEventQuarters(ev) {
 }
 
 function parseMusicNotation(source) {
+  staffLastParseSpan = null;
   if (typeof source !== "string") {
     return null;
   }
@@ -1945,12 +2128,17 @@ function parseMusicNotation(source) {
   if (!tokens.length) {
     return null;
   }
+  var ranges = staffTokenRanges(raw);
   var notationIsh = staffLooksNotationIsh(tokens);
   staffLastParseError = "";
-  function fail(reason, tok) {
+  function fail(reason, tok, span, open) {
     staffLastParseError = String(reason || "");
     if (tok) {
       staffLastParseError += staffLastParseError ? " · " + tok : String(tok);
+    }
+    staffLastParseSpan = null;
+    if (span && typeof span.start === "number" && span.end > span.start) {
+      staffLastParseSpan = { start: span.start, end: span.end, open: !!open };
     }
     if (notationIsh && typeof console !== "undefined" && console.warn) {
       console.warn(
@@ -1979,14 +2167,14 @@ function parseMusicNotation(source) {
     if (dir.indexOf("@key=") === 0) {
       var parsedKey = staffParseKeyName(dir.slice(5));
       if (!parsedKey) {
-        return fail("bad @key", dir);
+        return fail("bad @key", dir, staffSpan(ranges, i));
       }
       keyName = parsedKey;
       i++;
       continue;
     }
     if (dir.charAt(0) === "@") {
-      return fail("unknown directive", dir);
+      return fail("unknown directive", dir, staffSpan(ranges, i));
     }
     break;
   }
@@ -1994,9 +2182,14 @@ function parseMusicNotation(source) {
   var seq = staffParseSequence(tokens.slice(i), clef, {
     allowBarline: true,
     allowTuplet: true
-  });
+  }, ranges.slice(i));
   if (seq.error) {
-    return fail(seq.error, seq.tok);
+    return fail(
+      seq.error,
+      seq.tok,
+      seq.end > seq.start ? { start: seq.start, end: seq.end } : null,
+      seq.open
+    );
   }
   var events = seq.events;
   chordSymbol = seq.chordSymbol || "";
@@ -2013,8 +2206,15 @@ function parseMusicNotation(source) {
   }
   var tied = staffBindTies(events);
   if (tied.error) {
-    return fail(tied.error, tied.tok);
+    return fail(
+      tied.error,
+      tied.tok,
+      tied.end > tied.start ? { start: tied.start, end: tied.end } : null,
+      tied.open
+    );
   }
+
+  staffClearTieSpans(events);
 
   var ast = {
     source: raw,
@@ -2092,21 +2292,26 @@ function staffNotationStatus(source) {
   var parts = staffExampleParts(source);
   var music = parts.music || "";
   if (!music) {
-    return { ok: false, notationIsh: false, music: "", caption: parts.caption || "", error: "" };
+    return { ok: false, notationIsh: false, music: "", caption: parts.caption || "", error: "", start: -1, end: -1, open: false };
   }
   if (/[<&]/.test(music)) {
-    return { ok: false, notationIsh: false, music: music, caption: parts.caption || "", error: "" };
+    return { ok: false, notationIsh: false, music: music, caption: parts.caption || "", error: "", start: -1, end: -1, open: false };
   }
   var tokens = staffTokenize(music);
   var notationIsh = staffLooksNotationIsh(tokens);
   staffLastParseError = "";
+  staffLastParseSpan = null;
   var ast = parseMusicNotation(music);
+  var span = !ast && staffLastParseSpan && staffLastParseSpan.end > staffLastParseSpan.start ? staffLastParseSpan : null;
   return {
     ok: !!ast,
     notationIsh: notationIsh,
     music: music,
     caption: parts.caption || "",
-    error: ast ? "" : staffLastParseError
+    error: ast ? "" : staffLastParseError,
+    start: span ? span.start : -1,
+    end: span ? span.end : -1,
+    open: !!(span && span.open)
   };
 }
 

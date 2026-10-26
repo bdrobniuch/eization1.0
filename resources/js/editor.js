@@ -18,6 +18,10 @@ var editorLastGoodStaffHtml = "";
 var editorStaffPendingLine = null;
 /* One-shot Undo hint for the current pending episode (not every keystroke). */
 var editorStaffPendingUndoHinted = false;
+/* Failing span in the active example field. Null when the line draws or has no single culprit. */
+var editorStaffErrorMark = null;
+/* True while the cue itself is focusing the field, so focusin does not clear the mark. */
+var editorStaffErrorHold = false;
 var editorStaffHelpSelection = { start: 0, end: 0 };
 var editorFocusIndex = 0;
 var editorViewOverride = null;
@@ -1796,13 +1800,15 @@ function refreshEditor() {
   if (!preview) {
     return;
   }
-  var line = itemToLine(currentEditorLine());
+  var rawLine = currentEditorLine();
+  var line = itemToLine(rawLine);
   preview.classList.remove("is-staff", "is-staff-pending");
   preview.innerHTML = "";
   preview._staffCaretLayout = null;
   if (!line) {
     editorStaffPendingLine = null;
     editorStaffPendingUndoHinted = false;
+    editorStaffErrorMark = null;
     preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
     if (editorStaffOn() && typeof renderMusicStaff === "function") {
@@ -1816,6 +1822,7 @@ function refreshEditor() {
     editorSyncStaffHistoryAfterRefresh("", { ok: true });
     refreshEditorHint();
     editorStaffPreviewScheduleScrollBar();
+    editorApplyStaffErrorHighlight();
     return;
   }
   preview.classList.remove("is-empty");
@@ -1826,6 +1833,7 @@ function refreshEditor() {
   if (editorStaffOn() && status.ok && typeof renderMusicStaff === "function") {
     editorStaffPendingLine = null;
     editorStaffPendingUndoHinted = false;
+    editorStaffErrorMark = null;
     preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
     editorPaintStaffPreview(preview, status.music, status.caption);
@@ -1842,7 +1850,7 @@ function refreshEditor() {
       editorPaintStaffPreview(preview, "", "");
       preview.classList.add("is-staff-pending");
     }
-    editorPaintStaffPendingCue(preview, status && status.error);
+    editorPaintStaffPendingCue(preview, status && status.error, editorSyncStaffErrorMark(rawLine, status));
     if (pendingPulse) {
       editorPulseStaffPending(preview);
     }
@@ -1853,6 +1861,7 @@ function refreshEditor() {
   } else {
     editorStaffPendingLine = null;
     editorStaffPendingUndoHinted = false;
+    editorStaffErrorMark = null;
     preview.classList.remove("is-staff-pending-pulse");
     editorLastGoodStaffHtml = "";
     preview.innerHTML = lineToItem(line);
@@ -1862,6 +1871,7 @@ function refreshEditor() {
   editorSyncStaffHistoryAfterRefresh(line, status);
   refreshEditorHint();
   editorStaffPreviewScheduleScrollBar();
+  editorApplyStaffErrorHighlight();
 }
 
 function editorPreviewMeterOpts() {
@@ -1871,6 +1881,147 @@ function editorPreviewMeterOpts() {
   }
   /* Any: layout still follows Setup, but do not print a time signature. */
   return { showMeter: false };
+}
+
+function editorStaffErrorMarkFrom(rawLine, lineStart, status) {
+  var music;
+  var at;
+  if (!status || typeof status.start !== "number" || !(status.end > status.start)) {
+    return null;
+  }
+  music = status.music || "";
+  if (!music) {
+    return null;
+  }
+  at = String(rawLine || "").indexOf(music);
+  if (at < 0) {
+    return null;
+  }
+  return {
+    start: lineStart + at + status.start,
+    end: lineStart + at + status.end,
+    open: !!status.open
+  };
+}
+
+/* Store the failing span for the line on screen. Returns true when a cue can select it. */
+function editorSyncStaffErrorMark(rawLine, status) {
+  var span = editorLineSpan();
+  var lineStart = span ? span.lineStart : 0;
+  var rawStatus;
+  editorStaffErrorMark = editorStaffErrorMarkFrom(rawLine, lineStart, status);
+  if (!editorStaffErrorMark && rawLine !== itemToLine(rawLine) && typeof staffNotationStatus === "function") {
+    rawStatus = staffNotationStatus(rawLine);
+    editorStaffErrorMark = editorStaffErrorMarkFrom(rawLine, lineStart, rawStatus);
+  }
+  return !!editorStaffErrorMark;
+}
+
+function editorCaretInsideStaffError(mark) {
+  var field = editorActiveField();
+  var caret;
+  var len;
+  if (!field || !mark) {
+    return false;
+  }
+  len = String(field.value || "").length;
+  caret = field.selectionStart || 0;
+  /*
+   * Notes keeps its own insert point while the field is blurred. Ignore a pad
+   * caret that no longer falls inside this example (it belongs to another line).
+   */
+  if (
+    document.activeElement !== field &&
+    editorPadCaret &&
+    editorSymbolsIsOpen() &&
+    editorPadCaret.start >= 0 &&
+    editorPadCaret.start <= len
+  ) {
+    caret = editorPadCaret.start;
+  }
+  return caret >= mark.start && caret <= mark.end;
+}
+
+/*
+ * Paint the failing span in red when the example field is not being typed in.
+ * An unclosed group stays quiet while the caret is still inside it.
+ * A focused field keeps its caret; a selection that already is the span stays red.
+ */
+function editorApplyStaffErrorHighlight() {
+  var field = editorActiveField();
+  var mark = editorStaffErrorMark;
+  if (!field) {
+    return false;
+  }
+  if (!editorIsOpen() || !editorStaffOn() || !mark) {
+    field.classList.remove("has-error-highlight");
+    return false;
+  }
+  if (document.activeElement === field) {
+    if (field.selectionStart === mark.start && field.selectionEnd === mark.end) {
+      field.classList.remove("has-token-highlight");
+      field.classList.add("has-error-highlight");
+      return true;
+    }
+    field.classList.remove("has-error-highlight");
+    return false;
+  }
+  if (mark.open && editorCaretInsideStaffError(mark)) {
+    field.classList.remove("has-error-highlight");
+    return false;
+  }
+  try {
+    field.setSelectionRange(mark.start, mark.end);
+  } catch (errMark) {}
+  field.classList.remove("has-token-highlight");
+  field.classList.add("has-error-highlight");
+  return true;
+}
+
+function editorScrollFieldToSelection(field) {
+  var end;
+  var line;
+  var style;
+  var lineHeight;
+  var target;
+  if (!field || String(field.tagName || "").toLowerCase() !== "textarea") {
+    return;
+  }
+  end = field.selectionEnd || 0;
+  line = String(field.value || "").slice(0, end).split("\n").length;
+  style = window.getComputedStyle(field);
+  lineHeight = parseFloat(style.lineHeight);
+  if (!lineHeight || lineHeight !== lineHeight) {
+    lineHeight = (parseFloat(style.fontSize) || 16) * 1.4;
+  }
+  target = (line - 1) * lineHeight - field.clientHeight / 2;
+  if (target < 0) {
+    target = 0;
+  }
+  field.scrollTop = target;
+}
+
+function editorScheduleStaffErrorHighlight() {
+  window.setTimeout(function () {
+    editorApplyStaffErrorHighlight();
+  }, 0);
+}
+
+function editorRevealStaffError() {
+  var field = editorActiveField();
+  var mark = editorStaffErrorMark;
+  if (!field || !mark) {
+    return;
+  }
+  editorStaffErrorHold = true;
+  try {
+    field.focus();
+    field.setSelectionRange(mark.start, mark.end);
+  } catch (errReveal) {}
+  editorScrollFieldToSelection(field);
+  field.classList.remove("has-token-highlight");
+  field.classList.add("has-error-highlight");
+  editorStaffErrorHold = false;
 }
 
 function editorStaffPendingWarnIcon() {
@@ -1895,7 +2046,7 @@ function editorStaffPendingWarnIcon() {
   return svg;
 }
 
-function editorPaintStaffPendingCue(preview, why) {
+function editorPaintStaffPendingCue(preview, why, canShow) {
   var cue;
   var msg;
   var text;
@@ -1906,10 +2057,15 @@ function editorPaintStaffPendingCue(preview, why) {
   if (cue && cue.parentNode) {
     cue.parentNode.removeChild(cue);
   }
-  cue = document.createElement("div");
+  cue = document.createElement(canShow ? "button" : "div");
   cue.className = "edit-staff-pending-cue";
-  cue.setAttribute("role", "status");
-  cue.setAttribute("aria-live", "polite");
+  if (canShow) {
+    cue.type = "button";
+    cue.title = t("edit.staffPendingShow");
+  } else {
+    cue.setAttribute("role", "status");
+    cue.setAttribute("aria-live", "polite");
+  }
   cue.appendChild(editorStaffPendingWarnIcon());
   msg = document.createElement("span");
   msg.className = "edit-staff-pending-msg";
@@ -1920,6 +2076,18 @@ function editorPaintStaffPendingCue(preview, why) {
     text = t("edit.staffPending");
   }
   msg.textContent = text;
+  if (canShow) {
+    cue.setAttribute("aria-label", text + " " + t("edit.staffPendingShow"));
+    cue.addEventListener("pointerdown", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    cue.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      editorRevealStaffError();
+    });
+  }
   cue.appendChild(msg);
   preview.appendChild(cue);
 }
@@ -2504,6 +2672,10 @@ function editorSyncTokenHighlight() {
   if (!field) {
     return;
   }
+  if (editorApplyStaffErrorHighlight()) {
+    return;
+  }
+  field.classList.remove("has-error-highlight");
   if (!editorStaffOn() || !editorSymbolsIsOpen() || editorLabelTyping) {
     field.classList.remove("has-token-highlight");
     return;
@@ -15473,6 +15645,9 @@ function initEditor() {
       editorPadCaret = null;
       editorSetPadInputMode(false);
       target.classList.remove("has-token-highlight");
+      if (!editorStaffErrorHold) {
+        target.classList.remove("has-error-highlight");
+      }
       editorEnsureFieldVisible(target);
     }
   }
@@ -15721,6 +15896,10 @@ function initEditor() {
   });
   area.addEventListener("keyup", refreshEditor);
   area.addEventListener("click", refreshEditor);
+  area.addEventListener("blur", editorScheduleStaffErrorHighlight);
+  if (focusField) {
+    focusField.addEventListener("blur", editorScheduleStaffErrorHighlight);
+  }
   document.addEventListener("selectionchange", function () {
     if (!editorIsOpen()) {
       return;
