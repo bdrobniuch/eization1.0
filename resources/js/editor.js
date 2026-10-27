@@ -2149,7 +2149,8 @@ var EDITOR_FAULT_WHY = {
   "dangling dynamic": "edit.faultDynamic",
   "hairpin needs a note": "edit.faultHairpin",
   "empty chord symbol": "edit.faultChord",
-  "simile inside tuplet": "edit.faultSimile"
+  "simile inside tuplet": "edit.faultSimile",
+  "clef change needs a bar": "edit.faultClefBar"
 };
 
 function editorStaffFaultReason(raw) {
@@ -4761,14 +4762,67 @@ function editorActiveField() {
 }
 
 function editorClefName() {
-  var lead = editorLineDirectives(currentEditorLine());
-  if (lead.indexOf("@bass") >= 0) {
-    return "bass";
+  var span = editorLineSpan();
+  var line;
+  var mapped;
+  var ranges;
+  var clef = editorReadDefaults().clef === "bass" ? "bass" : "treble";
+  var i;
+  var tok;
+  if (!span) {
+    return clef;
   }
-  if (lead.indexOf("@treble") >= 0) {
-    return "treble";
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  if (typeof itemToLine === "function") {
+    line = itemToLine(line);
   }
-  return editorReadDefaults().clef === "bass" ? "bass" : "treble";
+  mapped = editorMusicCaretInLine(line, span.caret - span.lineStart);
+  if (typeof staffTokenRanges !== "function") {
+    return clef;
+  }
+  ranges = staffTokenRanges(mapped.music);
+  for (i = 0; i < ranges.length; i++) {
+    if (ranges[i].end > mapped.caret) {
+      break;
+    }
+    tok = ranges[i].tok;
+    if (tok === "@bass") {
+      clef = "bass";
+    } else if (tok === "@treble") {
+      clef = "treble";
+    }
+  }
+  return clef;
+}
+
+/* A clef word after the previous note starts the next letter in that clef's octave. */
+function editorClefAfterLastPitch() {
+  var field = editorActiveField();
+  var before;
+  var re;
+  var lastEnd = -1;
+  var m;
+  var prev;
+  var tail;
+  if (!field) {
+    return false;
+  }
+  before = String(field.value || "").slice(0, editorReadSelection(field).start);
+  re = /[A-G](?:##|bb|x|X|#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?/g;
+  while ((m = re.exec(before))) {
+    if (m.index > 0) {
+      prev = before.charAt(m.index - 1);
+      if (typeof editorPitchTokenBoundary === "function" && !editorPitchTokenBoundary(prev)) {
+        continue;
+      }
+    }
+    lastEnd = m.index + m[0].length;
+  }
+  if (lastEnd < 0) {
+    return false;
+  }
+  tail = before.slice(lastEnd);
+  return /@bass\b/.test(tail) || /@treble\b/.test(tail);
 }
 
 function editorClampOctave(oct) {
@@ -4788,8 +4842,12 @@ function editorWorkingOctave() {
   if (editorNote.oct !== null && editorNote.oct !== undefined) {
     return editorClampOctave(editorNote.oct);
   }
-  hit = editorPitchAtCaret() || editorEarlierPitch();
+  hit = editorPitchAtCaret();
   if (hit) {
+    return editorClampOctave(hit.oct);
+  }
+  hit = editorEarlierPitch();
+  if (hit && !editorClefAfterLastPitch()) {
     return editorClampOctave(hit.oct);
   }
   return editorClefName() === "bass" ? 3 : 5;
@@ -16359,9 +16417,9 @@ function editorLinesUseStaff(lines) {
 
 function chatStaffSpelling(lang) {
   if (lang === "es") {
-    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s n y un puntillo o dos (C4q..). C4 es una negra. C4n es una negra sin plica, un tiempo. C#4, Db4, Cn4. n. y n.. no valen. El signo se imprime si la nota difiere de la armadura o de una nota anterior del compás; ! lo fuerza. @treble o @bass y @key=Eb van primero. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^t=100 pone el metrónomo a 100 solo en ese ejemplo. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
+    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s n y un puntillo o dos (C4q..). C4 es una negra. C4n es una negra sin plica, un tiempo. C#4, Db4, Cn4. n. y n.. no valen. El signo se imprime si la nota difiere de la armadura o de una nota anterior del compás; ! lo fuerza. @treble o @bass y @key=Eb van primero. Después de una barra, @treble o @bass cambia la clave; la clave nueva es más pequeña y la armadura se imprime otra vez. Un cambio de clave que no va después de una barra no se lee. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^t=100 pone el metrónomo a 100 solo en ese ejemplo. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
   }
-  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s n and one or two dots (C4q..). C4 is a quarter. C4n is a quarter notehead with no stem, one beat. C#4, Db4, Cn4. n. and n.. are rejected. A sign prints when the note differs from the key or from an earlier note in the bar; ! forces it. @treble or @bass and @key=Eb come first. ^Name sits on the next note or slash and can change: ^G / ^D /. ^t=100 sets the metronome to 100 for that example only. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
+  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s n and one or two dots (C4q..). C4 is a quarter. C4n is a quarter notehead with no stem, one beat. C#4, Db4, Cn4. n. and n.. are rejected. A sign prints when the note differs from the key or from an earlier note in the bar; ! forces it. @treble or @bass and @key=Eb come first. After a bar, @treble or @bass changes the clef; the new clef is smaller and the key signature prints again. A clef change that is not after a bar is rejected. ^Name sits on the next note or slash and can change: ^G / ^D /. ^t=100 sets the metronome to 100 for that example only. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
 }
 
 function chatPromptRules(lang, staff) {

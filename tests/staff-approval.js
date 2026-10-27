@@ -33,6 +33,7 @@ var approvalCases = [
   { group: "Pitch", title: "A courtesy accidental", meter: [4, 4], source: "F4q F4q!" },
   { group: "Pitch", title: "A tie across the bar", meter: [4, 4], source: "C#4q~ | C#4q" },
   { group: "Pitch", title: "Bass and three flats", meter: [4, 4], source: "@bass @key=Eb G2q Bb2q D3q F3q" },
+  { group: "Pitch", title: "Clef change after the bar", meter: [4, 4], source: "@key=Eb C4q D4q E4q F4q | @bass G2q Bb2q D3q F3q" },
   { group: "Pitch", title: "A sharp key", meter: [4, 4], source: "@key=F# F#4q C#5q" },
   { group: "Pitch", title: "Ledgers", meter: [4, 4], source: "C6w | C3q B3q" },
   { group: "Pitch", title: "High and low beams", meter: [4, 4], source: "{C6e D6e E6e F6e} | {C3e D3e E3e F3e}" },

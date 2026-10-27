@@ -408,6 +408,62 @@ function staffNotation(w) {
       bassKeySvg.querySelector(".staff-lines line")
     )
   );
+  var clefChange = w.parseMusicNotation("@key=Eb C4q D4q E4q F4q | @bass G2q Bb2q D3q F3q");
+  var clefChangeSvg = w.renderMusicStaff("@key=Eb C4q D4q E4q F4q | @bass G2q Bb2q D3q F3q", "current");
+  var clefChangeBar = clefChange && clefChange.events ? clefChange.events.filter(function (ev) { return ev.type === "barline"; })[0] : null;
+  var clefOpenScale = 0;
+  var clefChangeScale = 0;
+  var clefScaleMatch;
+  if (clefChangeSvg) {
+    clefScaleMatch = /scale\(([^)]+)\)/.exec((clefChangeSvg.querySelector("[data-glyph='gClef']") || {}).getAttribute ? clefChangeSvg.querySelector("[data-glyph='gClef']").getAttribute("transform") || "" : "");
+    clefOpenScale = clefScaleMatch ? parseFloat(clefScaleMatch[1]) : 0;
+    clefScaleMatch = /scale\(([^)]+)\)/.exec((clefChangeSvg.querySelector(".staff-clef-change") || {}).getAttribute ? clefChangeSvg.querySelector(".staff-clef-change").getAttribute("transform") || "" : "");
+    clefChangeScale = clefScaleMatch ? parseFloat(clefScaleMatch[1]) : 0;
+  }
+  var slashAfter = w.parseMusicNotation("@bass C3q | @treble /q");
+  var slashNote = null;
+  var slashI;
+  if (slashAfter && slashAfter.events) {
+    for (slashI = 0; slashI < slashAfter.events.length; slashI++) {
+      if (slashAfter.events[slashI].head === "slash" || (slashAfter.events[slashI].pitch && slashAfter.events[slashI].pitch.head === "slash")) {
+        slashNote = slashAfter.events[slashI];
+      }
+    }
+  }
+  check(
+    "a clef change after a bar draws a smaller clef and reprints the key",
+    !!(
+      clefChange &&
+      clefChange.clef === "treble" &&
+      clefChangeBar &&
+      clefChangeBar.clefChange === "bass" &&
+      clefChangeSvg &&
+      clefChangeSvg.querySelector(".staff-clef-change") &&
+      clefChangeSvg.querySelector(".staff-clef-change").getAttribute("data-glyph") === "fClef" &&
+      clefOpenScale > 0 &&
+      Math.abs(clefChangeScale / clefOpenScale - 0.75) < 0.02 &&
+      clefChangeSvg.querySelectorAll("[data-glyph='accidentalFlat']").length === 6
+    )
+  );
+  check(
+    "the same clef after a bar does not draw a second clef",
+    !!(
+      w.parseMusicNotation("C4q | @treble D4q") &&
+      w.renderMusicStaff("C4q | @treble D4q", "current") &&
+      !w.renderMusicStaff("C4q | @treble D4q", "current").querySelector(".staff-clef-change")
+    )
+  );
+  check(
+    "a slash after a clef change sits on that clef's middle line",
+    !!(slashNote && slashNote.pitch && slashNote.pitch.letter === "B" && slashNote.pitch.octave === 4 && slashNote.clef === "treble")
+  );
+  check(
+    "a clef change mid-bar is rejected",
+    !w.parseMusicNotation("C4q @bass D3q") &&
+      w.staffNotationStatus("C4q @bass D3q").error.indexOf("clef change needs a bar") === 0
+  );
+  check("a clef change inside a tuplet is rejected", !w.parseMusicNotation("(3 C4e @bass D4e E4e)"));
+  check("a tie across a clef change keeps the written pitch", !!w.parseMusicNotation("C4q~ | @bass C4q"));
   var lineChord = w.parseMusicNotation("@key=G ^G_Major");
   var lineChordSvg = w.renderMusicStaff("@key=G ^G_Major", "current");
   check(

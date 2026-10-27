@@ -88,6 +88,7 @@
 
         <h2>Clave y armadura</h2>
         <p><code>@treble</code> o <code>@bass</code>, y <code>@key=</code>, en cualquier orden. Por defecto es clave de sol, tonalidad de do. <code>@key=Eb</code> es mi bemol mayor. <code>@key=Am</code> imprime la armadura del relativo mayor (do). Un <code>!</code> después de la octava imprime la alteración aunque la armadura ya la tenga (<code>F#4!</code>).</p>
+        <p>Después de una barra, <code>@treble</code> o <code>@bass</code> cambia la clave en el resto de ese ejemplo. La clave nueva es más pequeña. La armadura se imprime otra vez después. Un cambio de clave que no va después de una barra no se lee.</p>
         <p>En Editar, Metro (⋯) fija la clave, la tonalidad y el compás recomendado de todo el ejercicio. <code>@bass</code> / <code>@treble</code> / <code>@key=</code> en la línea siguen mandando. El compás no se escribe en la línea; un metro recomendado puede actualizar Ajustes al abrir el ejercicio. Pentagrama junto a Compases abre una guía corta; toca un ejemplo para insertar esa línea.</p>
         <figure class="notation-sample">
             <pre>@key=Eb Eb4 F4 G4 Ab4 Bb4</pre>
@@ -95,6 +96,10 @@
         </figure>
         <figure class="notation-sample">
             <pre>@bass @key=F C3 E3 F3 A3</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample">
+            <pre>@key=Eb C4q D4q E4q F4q | @bass G2q Bb2q D3q F3q</pre>
             <div class="notation-staff"></div>
         </figure>
         <p>Solo clave y armadura siguen dibujando un pentagrama vacío. Un cifrado sin nota después es un acorde de línea sobre ese pentagrama vacío.</p>
