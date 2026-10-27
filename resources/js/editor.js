@@ -8980,6 +8980,52 @@ function editorSelectionCoversGroupInterior(line, start, end, g) {
  * Exact shell selection, or a drag that covers all interior music of one group
  * (innermost when several match).
  */
+function editorTrimTrailingTupletCloser(line, start, end) {
+  line = String(line || "");
+  while (end > start && /[\s)}\]]/.test(line.charAt(end - 1))) {
+    end -= 1;
+  }
+  return end;
+}
+
+/* Every real triplet the selection touches is fully selected, so they may join. */
+function editorTupletMergeAllowed(line, start, end) {
+  var nodes;
+  var events;
+  var seen = {};
+  var i;
+  var id;
+  var node;
+  var inner;
+  var j;
+  nodes = editorParseStaffNodes(line);
+  if (!nodes) {
+    return false;
+  }
+  editorMarkSelectedNodes(nodes, start, end);
+  events = editorCollectPieces(nodes).filter(function (piece) {
+    return editorIsEventPiece(piece) && piece.selected;
+  });
+  if (!events.length) {
+    return true;
+  }
+  for (i = 0; i < events.length; i++) {
+    id = editorPieceTupletId(events[i]);
+    if (!id || seen[id]) {
+      continue;
+    }
+    seen[id] = true;
+    node = events[i].tupletNode;
+    inner = editorCollectPieces(node ? [node] : []).filter(editorIsEventPiece);
+    for (j = 0; j < inner.length; j++) {
+      if (!inner[j].selected) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 function editorMatchingGroupSelection(line, start, end, kind) {
   var exact;
   var groups;
@@ -9799,7 +9845,11 @@ function editorRegroupInto(nodes, kind, buf, out) {
   for (i = 0; i < nodes.length; i++) {
     node = nodes[i];
     if (node.type === "tuplet") {
-      /* A one-note triplet is not a group yet. Its note joins the new run. */
+      /* A whole triplet joins the new tuplet. Beam keeps the triplet and joins inside it. */
+      if (kind === "tuplet" && editorNodeRole(node) === "all") {
+        editorRegroupInto(node.children || [], kind, buf, out);
+        continue;
+      }
       if (editorTupletIsLeftover(node) && (node.covered || editorNodeRole(node) !== "none")) {
         editorRegroupInto(node.children || [], kind, buf, out);
         continue;
@@ -9839,12 +9889,8 @@ function editorRegroupInto(nodes, kind, buf, out) {
         continue;
       }
       if (role === "all") {
-        editorRegroupFlush(kind, buf, out);
-        if (kind === "tuplet") {
-          out.push(editorShellAround("tuplet", [node]));
-        } else {
-          out.push(node);
-        }
+        /* A finished beam in the selection opens so its notes join the neighbors. */
+        editorRegroupInto(node.children || [], kind, buf, out);
         continue;
       }
       editorRegroupBeamSome(node, kind, buf, out);
@@ -9874,8 +9920,9 @@ function editorRegroupInto(nodes, kind, buf, out) {
 
 /*
  * Beam shortens the selected notes, lets a rest or a bar split the run, and
- * splits beams the run crosses. A one-note triplet or beam joins the run.
- * A triplet you can see stays put. A partial triplet tap says the group is already open.
+ * splits beams the run crosses. A finished beam in the selection joins the
+ * notes beside it. Whole triplets join into one triplet of the armed number.
+ * A rest stays in a triplet and still splits a beam. A partial triplet refuses.
  */
 function editorStructureRegroupSelection(kind, line, start, end) {
   var parts;
@@ -9917,7 +9964,7 @@ function editorStructureRegroupSelection(kind, line, start, end) {
     return false;
   }
   tup = editorSelectionTupletAction(music, start, end);
-  if (kind === "tuplet" && (tup.kind === "partial" || tup.kind === "blocked")) {
+  if (kind === "tuplet" && !editorTupletMergeAllowed(music, start, end)) {
     editorRefuse(t("edit.refuseNest"));
     editorPaintNotePad();
     return true;
@@ -10219,20 +10266,25 @@ function editorToggleStructure(kind) {
     editorCloseStructure(kind);
     return;
   }
+  if (sel.start !== sel.end && kind === "tuplet" && !editorTupletMergeAllowed(line, rel, endRel)) {
+    editorRefuse(t("edit.refuseNest"));
+    editorPaintNotePad();
+    return;
+  }
   if (sel.start !== sel.end && kind === "tuplet") {
     exact = editorSelectionTupletAction(line, rel, endRel);
-    if (exact.kind === "partial" || exact.kind === "blocked") {
-      editorRefuse(t("edit.refuseNest"));
-      editorPaintNotePad();
-      return;
-    }
     if (exact.kind === "whole" && exact.n !== editorClampTupletN(editorTupletN)) {
       editorRewriteSelectionTuplet(editorTupletN);
       return;
     }
   }
   if (sel.start !== sel.end) {
-    exact = editorMatchingGroupSelection(line, rel, endRel, kind);
+    exact = editorMatchingGroupSelection(
+      line,
+      rel,
+      kind === "beam" ? editorTrimTrailingTupletCloser(line, rel, endRel) : endRel,
+      kind
+    );
     if (exact) {
       editorUnwrapStructureGroup(exact);
       return;

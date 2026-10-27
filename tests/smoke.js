@@ -3351,14 +3351,68 @@ function chatCase(w) {
     w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e"), true);
     w.editorStaffSweepAfterEdit();
     check("leaving a one-note beam drops the braces", focusLine.value === "C4e D4e");
+    check(
+      "beam joins notes with the beam beside them",
+      (function () {
+        placeCaret("C4e_1 D4e_2 {E4s_3 F4s_4}");
+        focusLine.setSelectionRange(0, focusLine.value.length);
+        w.editorPadCaret = { start: 0, end: focusLine.value.length };
+        poke(symbolsPanel.querySelector("[data-event='beam']"));
+        return focusLine.value === "{C4e_1 D4e_2 E4s_3 F4s_4}" && !!w.parseMusicNotation(focusLine.value);
+      })()
+    );
+    check(
+      "beam joins every beam in a triplet",
+      (function () {
+        placeCaret("(3 {C4e_1 D4e_2} {E4s_3 F4s_4})");
+        focusLine.setSelectionRange(0, focusLine.value.length);
+        w.editorPadCaret = { start: 0, end: focusLine.value.length };
+        poke(symbolsPanel.querySelector("[data-event='beam']"));
+        return focusLine.value === "(3 {C4e_1 D4e_2 E4s_3 F4s_4})" && !!w.parseMusicNotation(focusLine.value);
+      })()
+    );
+    check(
+      "tuplet absorbs the note before a whole triplet",
+      (function () {
+        placeCaret("D4e_2 (3 E4s_3 F4s_4)");
+        focusLine.setSelectionRange(0, focusLine.value.length);
+        w.editorPadCaret = { start: 0, end: focusLine.value.length };
+        w.editorTupletN = 3;
+        poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+        return focusLine.value === "(3 {D4e_2 E4s_3 F4s_4})" && !!w.parseMusicNotation(focusLine.value);
+      })()
+    );
+    check(
+      "tuplet keeps a rest inside the group",
+      (function () {
+        placeCaret("D4e_2 re (3 E4s_3 F4s_4)");
+        focusLine.setSelectionRange(0, focusLine.value.length);
+        w.editorPadCaret = { start: 0, end: focusLine.value.length };
+        w.editorTupletN = 3;
+        poke(symbolsPanel.querySelector("[data-event='tuplet']"));
+        return focusLine.value === "(3 D4e_2 re E4s_3 F4s_4)" && !!w.parseMusicNotation(focusLine.value);
+      })()
+    );
+    check(
+      "unbeam the last beam inside a triplet",
+      (function () {
+        var line = "(3 {C4e_1 D4e_2} {E4s_3 F4s_4})";
+        var from = line.indexOf("{E4s_3");
+        placeCaret(line);
+        focusLine.setSelectionRange(from, line.length);
+        w.editorPadCaret = { start: from, end: line.length };
+        poke(symbolsPanel.querySelector("[data-event='beam']"));
+        return focusLine.value === "(3 {C4e_1 D4e_2} E4s_3 F4s_4)" && !!w.parseMusicNotation(focusLine.value);
+      })()
+    );
     placeCaret("(3 C4e D4e E4e) (3 F4e G4e A4e)");
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    w.editorTupletN = 3;
     poke(symbolsPanel.querySelector("[data-event='tuplet']"));
     check(
-      "two visible triplets stay two triplets",
-      focusLine.value === "(3 C4e D4e E4e) (3 F4e G4e A4e)" &&
-        w.document.getElementById("editError").textContent === w.t("edit.refuseNest")
+      "two whole triplets become one",
+      focusLine.value === "(3 {C4e D4e E4e F4e G4e A4e})" && !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("{A4e B4e C4e} {D4e E4e F4e}");
     focusLine.setSelectionRange(focusLine.value.indexOf("C4e"), focusLine.value.indexOf("E4e"));
