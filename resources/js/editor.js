@@ -8766,7 +8766,7 @@ function editorStackAllShort(line, stack) {
 }
 
 /* Wrap an existing group with open/close; caret stays just before the old closer. */
-function editorWrapExistingGroup(g, open, close) {
+function editorWrapExistingGroup(g, open, close, opts) {
   var span = editorLineSpan();
   var value;
   var silent;
@@ -8774,6 +8774,7 @@ function editorWrapExistingGroup(g, open, close) {
   var body;
   var line;
   var edited;
+  var wrapped;
   if (!span || !g) {
     return false;
   }
@@ -8786,9 +8787,14 @@ function editorWrapExistingGroup(g, open, close) {
   }
   editorPushSymbolUndo();
   span.field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
-  caret = span.lineStart + g.open + open.length + (g.closeStart - g.open);
+  wrapped = open + body + close;
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  editorPlaceCaret(span.field, caret, caret, silent);
+  if (opts && opts.keepSelection) {
+    editorPlaceCaret(span.field, span.lineStart + g.open, span.lineStart + g.open + wrapped.length, silent);
+  } else {
+    caret = span.lineStart + g.open + open.length + (g.closeStart - g.open);
+    editorPlaceCaret(span.field, caret, caret, silent);
+  }
   clearEditorNotice();
   refreshEditor();
   editorPaintNotePad();
@@ -9482,7 +9488,7 @@ function editorFormatTupletAroundPieces(pieceTexts) {
 }
 
 /* Write one example line when it still parses. Caret is a line offset. */
-function editorCommitLineEdit(span, editedLine, caretRel) {
+function editorCommitLineEdit(span, editedLine, caretRel, selEndRel) {
   var value;
   var silent;
   if (!span || !editorLineMusicOk(editedLine)) {
@@ -9497,8 +9503,22 @@ function editorCommitLineEdit(span, editedLine, caretRel) {
   if (caretRel > editedLine.length) {
     caretRel = editedLine.length;
   }
+  if (typeof selEndRel !== "number") {
+    selEndRel = caretRel;
+  }
+  if (selEndRel < 0) {
+    selEndRel = 0;
+  }
+  if (selEndRel > editedLine.length) {
+    selEndRel = editedLine.length;
+  }
+  if (selEndRel < caretRel) {
+    var selSwap = caretRel;
+    caretRel = selEndRel;
+    selEndRel = selSwap;
+  }
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  editorPlaceCaret(span.field, span.lineStart + caretRel, span.lineStart + caretRel, silent);
+  editorPlaceCaret(span.field, span.lineStart + caretRel, span.lineStart + selEndRel, silent);
   clearEditorNotice();
   refreshEditor();
   editorPaintNotePad();
@@ -9575,7 +9595,8 @@ function editorTupletSplitBeam(line, start, end) {
     at = 0;
   }
   span = editorLineSpan();
-  return editorCommitLineEdit(span, edited, beam.open + at + tupletText.length - 1);
+  /* The new triplet stays selected so Tuplet can peel it without another drag. */
+  return editorCommitLineEdit(span, edited, beam.open + at, beam.open + at + tupletText.length);
 }
 
 /* Beam or triplet on pitches inside […]: the stack is one object. */
@@ -9614,7 +9635,7 @@ function editorStructureWrapStackSelection(kind, line, start, end) {
   if (!pair) {
     return false;
   }
-  return editorWrapExistingGroup(stack, pair.open, pair.close);
+  return editorWrapExistingGroup(stack, pair.open, pair.close, { keepSelection: true });
 }
 
 function editorShellAround(kind, children) {
@@ -9998,7 +10019,11 @@ function editorStructureRegroupSelection(kind, line, start, end) {
     return true;
   }
   span = editorLineSpan();
-  return editorCommitLineEdit(span, edited, built.text.length);
+  /* Notes and rests that were selected stay selected, braces included or not. */
+  if (!(built.selEnd > built.selStart) || built.selStart < 0) {
+    return editorCommitLineEdit(span, edited, built.text.length);
+  }
+  return editorCommitLineEdit(span, edited, built.selStart, built.selEnd);
 }
 
 /*
@@ -10072,6 +10097,13 @@ function editorWrapSelection(open, close, kind) {
   editorPlaceCaret(field, span.lineStart + plan.from, span.lineStart + plan.to, silent);
   editorPushSymbolUndo();
   insertEditorText(plan.replacement, String(close || "").length);
+  /* The new shell stays selected so the same button can unwrap it. */
+  editorPlaceCaret(
+    field,
+    span.lineStart + plan.from,
+    span.lineStart + plan.from + String(plan.replacement || "").length,
+    silent
+  );
   return true;
 }
 

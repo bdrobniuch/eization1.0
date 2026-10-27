@@ -3181,6 +3181,24 @@ function chatCase(w) {
         focusLine.selectionStart === 0 &&
         focusLine.selectionEnd === focusLine.value.length
     );
+    check(
+      "beam unwrap keeps the staff selection",
+      w.editorReadSelection(focusLine).start !== w.editorReadSelection(focusLine).end &&
+        !!w.document.querySelector("#editPreview .staff-event-highlight")
+    );
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam again groups the same notes",
+      focusLine.value === "{C4e D4e}" &&
+        w.editorReadSelection(focusLine).start !== w.editorReadSelection(focusLine).end &&
+        !!w.document.querySelector("#editPreview .staff-event-highlight")
+    );
+    poke(symbolsPanel.querySelector("[data-event='beam']"));
+    check(
+      "beam again unwraps the same notes",
+      focusLine.value === "C4e D4e" &&
+        w.editorReadSelection(focusLine).start !== w.editorReadSelection(focusLine).end
+    );
     placeCaret("(3 C4e D4e E4e)");
     focusLine.setSelectionRange(0, focusLine.value.length);
     w.editorPadCaret = { start: 0, end: focusLine.value.length };
