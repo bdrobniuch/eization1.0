@@ -7707,6 +7707,11 @@ function editorIsEventPiece(node) {
   );
 }
 
+/* Notes, rests, slashes, chords, bars, and simile. A hang word is not one of these. */
+function editorPieceErases(node) {
+  return !!(node && (editorIsEventPiece(node) || node.kind === "bar" || node.text === "%"));
+}
+
 function editorMakeTokenPiece(tok, start, end) {
   var piece;
   var pitch;
@@ -7958,6 +7963,11 @@ function editorParseStaffNodes(line) {
         i += 1;
       }
       word = line.slice(w0, i);
+      /* mf / cresc are one word. Splitting them would turn the dynamic into letters. */
+      if (editorIsDynamicWord(word) || editorIsHairpinWord(word)) {
+        nodes.push(tag(editorMakeTokenPiece(word, w0, i)));
+        continue;
+      }
       spans = editorMusicEventSpans(word);
       for (s = 0; s < spans.length; s++) {
         piece = tag(editorMakeTokenPiece(spans[s].token, w0 + spans[s].start, w0 + spans[s].end));
@@ -8013,7 +8023,7 @@ function editorNodeRole(node) {
     return "none";
   }
   if (node.type === "piece") {
-    return editorIsEventPiece(node) && node.selected ? "all" : "none";
+    return node.selected && editorPieceErases(node) ? "all" : "none";
   }
   events = editorCollectPieces(node.children || []).filter(editorIsEventPiece);
   if (!events.length) {
@@ -8044,8 +8054,12 @@ function editorCloneBox(node, children) {
   };
 }
 
-/* Pull a contiguous run out of partial beams and tuplets. Full containers stay whole. */
-function editorPullSelection(nodes) {
+/*
+ * Pull a contiguous run out of partial beams and tuplets. Full containers stay whole.
+ * opts.eraseSplit: a tuplet hit through the middle unwraps; a mark with no note
+ * of its own rides with the side that still has one.
+ */
+function editorPullSelection(nodes, opts) {
   var before = [];
   var selected = [];
   var after = [];
@@ -8054,6 +8068,7 @@ function editorPullSelection(nodes) {
   var node;
   var role;
   var inner;
+  var joined;
   var j;
   var later;
   for (i = 0; i < nodes.length; i++) {
@@ -8088,7 +8103,24 @@ function editorPullSelection(nodes) {
       selected.push(node);
       continue;
     }
-    inner = editorPullSelection(node.children || []);
+    inner = editorPullSelection(node.children || [], opts);
+    if (opts && opts.eraseSplit) {
+      joined = editorAttachMarkOnlySide(inner.before, inner.after);
+      inner.before = joined.before;
+      inner.after = joined.after;
+      /* A hole cannot stay one tuplet. Each side keeps its own beam. */
+      if (
+        node.type === "tuplet" &&
+        editorListHasEvent(inner.before) &&
+        editorListHasEvent(inner.after)
+      ) {
+        before = before.concat(inner.before);
+        selected = selected.concat(inner.selected);
+        phase = 2;
+        after = after.concat(inner.after);
+        continue;
+      }
+    }
     if (inner.before.length) {
       before.push(editorCloneBox(node, inner.before));
     }
@@ -8316,8 +8348,12 @@ function editorEmitter() {
     glue = !!flags.glueRight;
     prevSel = selected;
   }
+  function markCaret() {
+    caret = len;
+  }
   return {
     emit: emit,
+    markCaret: markCaret,
     finish: function () {
       return { text: parts.join(""), selStart: selStart, selEnd: selEnd, caret: caret };
     }
@@ -8329,6 +8365,10 @@ function editorSerializeNode(node, em) {
   var i;
   if (!node || !em) {
     return;
+  }
+  if (node._eraseCaret && em.markCaret) {
+    em.markCaret();
+    node._eraseCaret = false;
   }
   if (node.type === "beam") {
     em.emit("{", { selected: !!node.selected, glueRight: true, pasted: !!node.pasted });
@@ -8351,7 +8391,8 @@ function editorSerializeNode(node, em) {
     em.emit(node.text, {
       selected: !!node.selected,
       pasted: !!node.pasted,
-      caretAfter: !!node.caretAfter
+      caretAfter: !!node.caretAfter,
+      glueLeft: node.kind === "tie"
     });
   }
 }
@@ -11783,6 +11824,443 @@ function editorInsertStackGroup() {
   editorToggleStructure("stack");
 }
 
+/* A hang with no timed event of its own sticks to the side that still has one. */
+function editorAttachMarkOnlySide(before, after) {
+  if (!editorListHasEvent(before) && before.length && editorListHasEvent(after)) {
+    return { before: [], after: before.concat(after) };
+  }
+  if (!editorListHasEvent(after) && after.length && editorListHasEvent(before)) {
+    return { before: before.concat(after), after: [] };
+  }
+  return { before: before, after: after };
+}
+
+function editorMarkEraseTargets(nodes, start, end) {
+  var i;
+  var node;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (node.type === "piece") {
+      if (editorPieceErases(node) && node.start >= start && node.start < end) {
+        node.selected = true;
+      }
+    } else if (node.children) {
+      editorMarkEraseTargets(node.children, start, end);
+    }
+  }
+}
+
+function editorEraseHasTarget(nodes) {
+  var pieces = editorCollectPieces(nodes);
+  var i;
+  for (i = 0; i < pieces.length; i++) {
+    if (pieces[i].selected && editorPieceErases(pieces[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/* Spacing around ~ and | does not count; the tokens do. */
+function editorEraseCanon(text) {
+  return String(text || "")
+    .replace(/~/g, " ~ ")
+    .replace(/\|/g, " | ")
+    .replace(/\s+/g, " ")
+    .replace(/^\s+|\s+$/g, "");
+}
+
+function editorEraseTieKeys(piece) {
+  var keys = [];
+  var i;
+  var p;
+  function one(letter, accRaw, oct) {
+    var acc = accRaw === "n" ? "" : accRaw || "";
+    if (typeof staffNormAccidental === "function") {
+      acc = staffNormAccidental(acc);
+      if (acc === "n") {
+        acc = "";
+      }
+    }
+    keys.push(String(letter || "") + acc + String(oct));
+  }
+  if (!piece) {
+    return keys;
+  }
+  if (piece.kind === "slash") {
+    return ["slash"];
+  }
+  if (piece.kind === "pitch") {
+    one(piece.letter, piece.acc, piece.oct);
+    return keys;
+  }
+  if (piece.kind === "stack" && piece.pitches) {
+    for (i = 0; i < piece.pitches.length; i++) {
+      p = piece.pitches[i];
+      one(p.letter, p.acc, p.oct);
+    }
+  }
+  return keys;
+}
+
+function editorEraseKeysShare(a, b) {
+  var i;
+  var j;
+  if (!a || !b) {
+    return false;
+  }
+  for (i = 0; i < a.length; i++) {
+    for (j = 0; j < b.length; j++) {
+      if (a[i] && a[i] === b[j]) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/* Direct ties, and a stub ~ with nothing after it. */
+function editorEraseTiePlan(nodes) {
+  var pieces = editorCollectPieces(nodes);
+  var links = [];
+  var stubs = [];
+  var prev = null;
+  var i;
+  var j;
+  var next;
+  for (i = 0; i < pieces.length; i++) {
+    if (pieces[i].kind === "tie") {
+      next = null;
+      for (j = i + 1; j < pieces.length; j++) {
+        if (pieces[j].kind === "tie") {
+          break;
+        }
+        if (editorIsEventPiece(pieces[j])) {
+          next = pieces[j];
+          break;
+        }
+      }
+      if (prev && next) {
+        links.push({ from: prev, to: next });
+      } else if (prev && !next) {
+        stubs.push(prev);
+      }
+      continue;
+    }
+    if (editorIsEventPiece(pieces[i])) {
+      prev = pieces[i];
+    }
+  }
+  return { links: links, stubs: stubs };
+}
+
+function editorStripTies(nodes) {
+  var out = [];
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i].type === "piece" && nodes[i].kind === "tie") {
+      continue;
+    }
+    if (nodes[i].children) {
+      nodes[i].children = editorStripTies(nodes[i].children);
+    }
+    out.push(nodes[i]);
+  }
+  return out;
+}
+
+function editorPieceStillThere(nodes, piece) {
+  var pieces = editorCollectPieces(nodes);
+  var i;
+  for (i = 0; i < pieces.length; i++) {
+    if (pieces[i] === piece) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorInsertTieAfter(nodes, piece) {
+  var i;
+  var tie;
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i] === piece) {
+      if (nodes[i + 1] && nodes[i + 1].kind === "tie") {
+        return true;
+      }
+      tie = {
+        type: "piece",
+        kind: "tie",
+        text: "~",
+        selected: false,
+        pasted: false,
+        start: -1,
+        end: -1
+      };
+      nodes.splice(i + 1, 0, tie);
+      return true;
+    }
+    if (nodes[i].children && editorInsertTieAfter(nodes[i].children, piece)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/* Survivors of one tie chain keep a single ~ when they still share a pitch. */
+function editorReinsertEraseTies(nodes, plan) {
+  var chains = [];
+  var i;
+  var c;
+  var j;
+  var link;
+  var idx;
+  var survivors;
+  for (i = 0; i < plan.links.length; i++) {
+    link = plan.links[i];
+    idx = -1;
+    for (c = 0; c < chains.length; c++) {
+      if (chains[c][chains[c].length - 1] === link.from) {
+        idx = c;
+        break;
+      }
+    }
+    if (idx < 0) {
+      chains.push([link.from, link.to]);
+    } else {
+      chains[idx].push(link.to);
+    }
+  }
+  for (c = 0; c < chains.length; c++) {
+    survivors = [];
+    for (j = 0; j < chains[c].length; j++) {
+      if (editorPieceStillThere(nodes, chains[c][j])) {
+        survivors.push(chains[c][j]);
+      }
+    }
+    for (j = 0; j + 1 < survivors.length; j++) {
+      if (editorEraseKeysShare(editorEraseTieKeys(survivors[j]), editorEraseTieKeys(survivors[j + 1]))) {
+        editorInsertTieAfter(nodes, survivors[j]);
+      }
+    }
+  }
+  for (i = 0; i < plan.stubs.length; i++) {
+    if (editorPieceStillThere(nodes, plan.stubs[i])) {
+      editorInsertTieAfter(nodes, plan.stubs[i]);
+    }
+  }
+  return nodes;
+}
+
+function editorIsTempoMark(node) {
+  var t;
+  if (!node || node.type !== "piece") {
+    return false;
+  }
+  t = String(node.text || "");
+  if (t.charAt(0) !== "^") {
+    return false;
+  }
+  return typeof staffTempoLabel === "function" && !!staffTempoLabel(t.slice(1));
+}
+
+function editorIsEraseHang(node) {
+  var t;
+  if (!node || node.type !== "piece" || node.kind === "tie" || node.kind === "bar") {
+    return false;
+  }
+  t = String(node.text || "");
+  if (editorIsDynamicWord(t) || editorIsHairpinWord(t)) {
+    return true;
+  }
+  if (t.charAt(0) === "^" && !editorIsTempoMark(node)) {
+    return true;
+  }
+  return false;
+}
+
+function editorHangHasHost(nodes, index) {
+  var i;
+  for (i = index + 1; i < nodes.length; i++) {
+    if (editorListHasEvent([nodes[i]])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function editorDropOrphanHangs(nodes) {
+  var out = [];
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i].children) {
+      nodes[i].children = editorDropOrphanHangs(nodes[i].children);
+    }
+    if (editorIsEraseHang(nodes[i]) && !editorHangHasHost(nodes, i)) {
+      continue;
+    }
+    out.push(nodes[i]);
+  }
+  return out;
+}
+
+function editorIsClefToken(node) {
+  return !!(node && node.type === "piece" && (node.text === "@bass" || node.text === "@treble"));
+}
+
+/* A clef at the start of the line stays. One that no longer follows a bar goes. */
+function editorDropOrphanClefs(nodes) {
+  var out = [];
+  var i;
+  var seenEvent = false;
+  var prevBar = false;
+  var node;
+  for (i = 0; i < nodes.length; i++) {
+    node = nodes[i];
+    if (node.children) {
+      node.children = editorDropOrphanClefs(node.children);
+    }
+    if (editorIsClefToken(node)) {
+      if (seenEvent && !prevBar) {
+        continue;
+      }
+      out.push(node);
+      prevBar = false;
+      continue;
+    }
+    out.push(node);
+    if (node.type === "piece" && node.kind === "bar") {
+      prevBar = true;
+      seenEvent = true;
+    } else if (editorListHasEvent([node])) {
+      prevBar = false;
+      seenEvent = true;
+    }
+  }
+  return out;
+}
+
+/* A bar with no notes left does not draw. */
+function editorDropIdleBars(nodes) {
+  var out = [];
+  var i;
+  if (editorListHasEvent(nodes)) {
+    for (i = 0; i < nodes.length; i++) {
+      if (nodes[i].children) {
+        nodes[i].children = editorDropIdleBars(nodes[i].children);
+      }
+    }
+    return nodes;
+  }
+  for (i = 0; i < nodes.length; i++) {
+    if (nodes[i].type === "piece" && nodes[i].kind === "bar") {
+      continue;
+    }
+    if (nodes[i].children) {
+      continue;
+    }
+    out.push(nodes[i]);
+  }
+  return out;
+}
+
+function editorStampFromAfter(nodes) {
+  var pieces = editorCollectPieces(nodes);
+  var i;
+  for (i = 0; i < pieces.length; i++) {
+    if (editorPieceErases(pieces[i])) {
+      pieces[i]._fromAfter = true;
+    }
+  }
+}
+
+function editorMarkEraseCaret(nodes) {
+  var pieces = editorCollectPieces(nodes);
+  var i;
+  for (i = 0; i < pieces.length; i++) {
+    if (pieces[i]._fromAfter) {
+      pieces[i]._eraseCaret = true;
+      return;
+    }
+  }
+}
+
+/*
+ * Selection erase rebuilds beams and tuplets around the notes that remain.
+ * Null means the character cut is still the right tool (a broken line, or a
+ * span this tree cannot round-trip). refuse means the rebuild would not draw.
+ */
+function editorEraseSelectionStructural(line, relStart, relEnd) {
+  var parts;
+  var music;
+  var nodes;
+  var healed;
+  var builtRound;
+  var a;
+  var b;
+  var swap;
+  var plan;
+  var pulled;
+  var joined;
+  var list;
+  var built;
+  parts = editorSplitStaffCaption(line);
+  music = parts.music;
+  a = relStart;
+  b = relEnd;
+  if (a > b) {
+    swap = a;
+    a = b;
+    b = swap;
+  }
+  if (a < 0) {
+    a = 0;
+  }
+  if (b > music.length) {
+    return null;
+  }
+  nodes = editorParseStaffNodes(music);
+  if (!nodes) {
+    return null;
+  }
+  healed = editorHealList(nodes);
+  builtRound = editorSerializeNodes(healed);
+  if (editorEraseCanon(builtRound.text) !== editorEraseCanon(music)) {
+    return null;
+  }
+  nodes = editorParseStaffNodes(music);
+  if (!nodes) {
+    return null;
+  }
+  editorMarkEraseTargets(nodes, a, b);
+  if (!editorEraseHasTarget(nodes)) {
+    return null;
+  }
+  plan = editorEraseTiePlan(nodes);
+  pulled = editorPullSelection(nodes, { eraseSplit: true });
+  editorStampFromAfter(pulled.after);
+  joined = editorAttachMarkOnlySide(pulled.before, pulled.after);
+  list = editorStripTies(joined.before.concat(joined.after));
+  list = editorHealList(list);
+  list = editorReinsertEraseTies(list, plan);
+  list = editorDropOrphanClefs(list);
+  list = editorDropOrphanHangs(list);
+  list = editorDropIdleBars(list);
+  list = editorHealList(list);
+  editorMarkEraseCaret(list);
+  built = editorSerializeNodes(list);
+  if (!editorStaffMusicDraws(built.text)) {
+    if (editorLineMusicOk(music)) {
+      return { refuse: true };
+    }
+    return null;
+  }
+  return {
+    text: built.text + (parts.caption || ""),
+    caret: built.caret >= 0 ? built.caret : built.text.length
+  };
+}
+
 /* opts.skipUndo: hold-repeat steps share one undo pushed by the first tap. */
 function editorEraseStep(opts) {
   var field;
@@ -11795,8 +12273,10 @@ function editorEraseStep(opts) {
   var lineEnd;
   var linePart;
   var edited;
+  var structural;
   var relStart;
   var relEnd;
+  var caretRel;
   var caret;
   var now;
   var doubleTap;
@@ -11854,23 +12334,47 @@ function editorEraseStep(opts) {
   if (relEnd > linePart.length) {
     relEnd = linePart.length;
   }
-  edited = editorHealStaffLineAfterErase(linePart.slice(0, relStart) + linePart.slice(relEnd));
-  wasOk = editorLineMusicOk(linePart);
-  fault = editorStaffBreakStatus(edited);
-  if (wasOk && fault) {
-    editorRefuse(editorStaffBreakWarning(fault.error));
+  structural = null;
+  if (target.kind === "selection") {
+    structural = editorEraseSelectionStructural(linePart, relStart, relEnd);
+  }
+  if (structural && structural.refuse) {
+    editorRefuse(t("edit.refuseDraw"));
     editorPaintNotePad();
     return false;
+  }
+  if (structural) {
+    edited = structural.text;
+    caretRel = structural.caret;
+  } else {
+    edited = editorHealStaffLineAfterErase(linePart.slice(0, relStart) + linePart.slice(relEnd));
+    wasOk = editorLineMusicOk(linePart);
+    fault = editorStaffBreakStatus(edited);
+    if (wasOk && fault) {
+      editorRefuse(editorStaffBreakWarning(fault.error));
+      editorPaintNotePad();
+      return false;
+    }
+    caretRel = Math.min(relStart, edited.length);
+  }
+  if (caretRel < 0) {
+    caretRel = 0;
+  }
+  if (caretRel > edited.length) {
+    caretRel = edited.length;
   }
   if (!skipUndo) {
     editorPushSymbolUndo();
   }
   field.value = value.slice(0, lineStart) + edited + value.slice(lineEnd);
-  caret = lineStart + Math.min(relStart, edited.length);
+  caret = lineStart + caretRel;
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
   editorPlaceCaret(field, caret, caret, silent);
   editorSnapCaretBeforeGroupCloser(field, lineStart, caret);
-  editorStaffSweepAfterEdit();
+  /* A selection rebuild keeps a one-note beam or tuplet. Sweep would drop it. */
+  if (!structural) {
+    editorStaffSweepAfterEdit();
+  }
   clearEditorNotice();
   refreshEditor();
   return true;

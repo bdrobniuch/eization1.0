@@ -5186,19 +5186,121 @@ function chatCase(w) {
       focusLine.value === "C4 D4" || focusLine.value === "C4q D4q"
     );
     placeCaret("{C4e D4e} (3 E4e F4e G4e)");
-    /* D4e through F4e — leaves {C4e … G4e) before heal. */
+    /* D4e through F4e — each shell closes around the note that remains. */
     w.editorPlaceCaret(focusLine, 5, 20, true);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check(
-      "selection erase across groups heals unbalanced shells",
-      !!(
-        focusLine.value.indexOf("{") < 0 &&
-        focusLine.value.indexOf("(") < 0 &&
-        /C4e/.test(focusLine.value) &&
-        /G4e/.test(focusLine.value) &&
-        w.parseMusicNotation(focusLine.value)
-      )
+      "selection erase across groups shortens each shell",
+      focusLine.value === "{C4e} (3 G4e)" && !!w.parseMusicNotation(focusLine.value)
     );
+    (function () {
+      function selectFrag(text, from, to) {
+        var a;
+        var b;
+        placeCaret(text);
+        a = text.indexOf(from);
+        b = text.indexOf(to, a < 0 ? 0 : a);
+        if (a < 0 || b < 0) {
+          return false;
+        }
+        w.editorPlaceCaret(focusLine, a, b + to.length, true);
+        return true;
+      }
+      function erased(text, from, to, next) {
+        if (!selectFrag(text, from, to)) {
+          return false;
+        }
+        poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+        return focusLine.value === next && (next === "" || !!w.parseMusicNotation(focusLine.value));
+      }
+      check(
+        "erase deletes a whole tuplet",
+        erased("(3 C4e D4e E4e)", "C4e", "E4e)", "")
+      );
+      check(
+        "erase deletes a whole beamed tuplet",
+        erased("(3 {C4e D4e E4e})", "C4e", "E4e}", "")
+      );
+      check(
+        "erase deletes a tuplet that holds one chord",
+        erased("(3 {[C4e E4e G4e]})", "[C4e", "G4e]", "")
+      );
+      check(
+        "erase from the right edge shortens the tuplet and the beam",
+        erased("(3 {C4e D4e E4e})", "E4e", "E4e}", "(3 {C4e D4e})")
+      );
+      check(
+        "erase from the left edge shortens the tuplet and the beam",
+        erased("(3 {C4e D4e E4e})", "C4e", "C4e", "(3 {D4e E4e})")
+      );
+      check(
+        "erase across a tuplet edge keeps the notes outside it",
+        erased("(3 {C4e D4e E4e}) F4e", "E4e", "F4e", "(3 {C4e D4e})")
+      );
+      check(
+        "erase across two tuplets shortens each one",
+        erased(
+          "(3 C4e D4e E4e) (3 F4e G4e A4e)",
+          "E4e)",
+          "F4e",
+          "(3 C4e D4e) (3 G4e A4e)"
+        )
+      );
+      check(
+        "erase through the middle of a beam leaves two beams",
+        erased("{C4e D4e E4e F4e}", "D4e", "E4e", "{C4e} {F4e}")
+      );
+      check(
+        "erase through the middle of a tuplet unwraps it",
+        erased("(3 {C4e D4e E4e F4e})", "D4e", "D4e", "{C4e} {E4e F4e}")
+      );
+      check(
+        "erase that leaves one tuplet note keeps the shell",
+        erased("(3 C4e D4e E4e)", "D4e", "E4e)", "(3 C4e)")
+      );
+      function selectNth(text, frag, n, next) {
+        var a = -1;
+        var i;
+        placeCaret(text);
+        for (i = 0; i < n; i++) {
+          a = text.indexOf(frag, a + 1);
+        }
+        if (a < 0) {
+          return false;
+        }
+        w.editorPlaceCaret(focusLine, a, a + frag.length, true);
+        poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+        return focusLine.value === next && (next === "" || !!w.parseMusicNotation(focusLine.value));
+      }
+      check(
+        "erase drops a tie that loses its other note",
+        selectNth("C4q~ C4q", "C4q", 2, "C4q")
+      );
+      check(
+        "erase keeps one tie when the notes on either side match",
+        selectNth("C4q~ C4q~ C4q", "C4q", 2, "C4q~ C4q")
+      );
+      check(
+        "erase drops a tie that does not reach the next note",
+        selectNth("C4q~ C4q D4q", "C4q", 2, "C4q D4q")
+      );
+      check(
+        "erase drops a dynamic that hung only on the deleted tuplet",
+        erased("mf (3 C4e D4e E4e)", "C4e", "E4e)", "")
+      );
+      check(
+        "erase moves a dynamic onto the next note",
+        erased("mf C4e D4e", "C4e", "C4e", "mf D4e")
+      );
+      check(
+        "erase drops a hairpin whose note is gone",
+        erased("C4e cresc D4e", "D4e", "D4e", "C4e")
+      );
+      check(
+        "erase drops a clef change whose bar is gone",
+        erased("C4q | @bass D4q", "|", "|", "C4q D4q")
+      );
+    })();
     placeCaret("B4e_6");
     focusLine.setSelectionRange(2, 2);
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
