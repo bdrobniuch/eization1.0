@@ -57,7 +57,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 
 An example line that parses as music notation renders as an SVG staff instead of HTML text. A trailing ` · ` caption (or HTML `prog-changes` / `prog-name`) is stripped before parse and shown under the staff. The music side still rejects `<` or `&`. Notation-ish lines that fail to parse fall back to HTML text and log a `console.warn`.
 
-- Clef / key: leading `@treble` or `@bass` and `@key=NAME` in any order (default treble, key C). Unknown `@…` tokens are rejected. Clefs and keys alone (no notes) still draw an empty staff. After a bar, `@treble` or `@bass` changes the clef for the rest of that example (`C4q D4q E4q F4q | @bass G2q`). The new clef is about three quarters the size of the opening clef, and the key signature prints again in the new clef. A clef change that is not after a bar is rejected
+- Clef / key: leading `@treble` or `@bass` and `@key=NAME` in any order (default treble, key C). Unknown `@…` tokens are rejected. Clefs and keys alone (no notes) still draw an empty staff. After a bar, `@treble` or `@bass` changes the clef for the rest of that example (`C4q D4q E4q F4q | @bass G2q`). The new clef is the smaller change-clef drawing, and the key signature prints again in the new clef. A clef change that is not after a bar is rejected
 - Key names: major (`@key=G`, `@key=Eb`, `@key=F#`) or minor aliases that map to the relative major for the signature only:
 
   | Alias | Signature | Alias | Signature |

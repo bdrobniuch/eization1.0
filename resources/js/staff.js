@@ -3257,10 +3257,10 @@ function renderMusicStaff(source, role, opts) {
     cursorX = keyX + key.count * keyStep + lineGap * 0.5;
   }
 
-  /* A clef after a bar is about three quarters of the opening clef. The key reprints at full size. */
+  /* Bravura gClefChange / fClefChange are the smaller drawings. Same staff size as the opening clef. */
   function staffClefChangeMetrics(clefName) {
-    var space = lineGap * 0.75;
-    var glyph = clefName === "bass" ? "fClef" : "gClef";
+    var space = lineGap;
+    var glyph = clefName === "bass" ? "fClefChange" : "gClefChange";
     var adv = staffGlyphAdvance(glyph, space);
     var positions = clefName === "bass" ? STAFF_KEY_POS_BASS : STAFF_KEY_POS_TREBLE;
     var list = key.kind === "sharp" ? positions.sharp : positions.flat;

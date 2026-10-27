@@ -439,9 +439,9 @@ function staffNotation(w) {
       clefChangeBar.clefChange === "bass" &&
       clefChangeSvg &&
       clefChangeSvg.querySelector(".staff-clef-change") &&
-      clefChangeSvg.querySelector(".staff-clef-change").getAttribute("data-glyph") === "fClef" &&
+      clefChangeSvg.querySelector(".staff-clef-change").getAttribute("data-glyph") === "fClefChange" &&
       clefOpenScale > 0 &&
-      Math.abs(clefChangeScale / clefOpenScale - 0.75) < 0.02 &&
+      Math.abs(clefChangeScale - clefOpenScale) < 0.0001 &&
       clefChangeSvg.querySelectorAll("[data-glyph='accidentalFlat']").length === 6
     )
   );
