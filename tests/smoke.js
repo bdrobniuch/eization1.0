@@ -3036,6 +3036,55 @@ function chatCase(w) {
     placeCaret("C4");
     poke(symbolsPanel.querySelector("[data-event='tie']"));
     check("a tie stays glued", focusLine.value === "C4~");
+    placeCaret("C4 D4");
+    focusLine.setSelectionRange(2, 2);
+    w.editorPadCaret = { start: 2, end: 2 };
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie to a different pitch is refused",
+      focusLine.value === "C4 D4" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTiePitch") &&
+        !w.document.getElementById("editError").classList.contains("is-fault")
+    );
+    placeCaret("C4 re");
+    focusLine.setSelectionRange(2, 2);
+    w.editorPadCaret = { start: 2, end: 2 };
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie before a rest is refused",
+      focusLine.value === "C4 re" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTieAfter")
+    );
+    placeCaret("C4~ C4");
+    focusLine.setSelectionRange(2, 2);
+    w.editorPadCaret = { start: 2, end: 2 };
+    poke(symbolsPanel.querySelector("[data-acc='#']"));
+    check(
+      "an accidental carries the other end of a tie",
+      focusLine.value === "C#4~ C#4" && !!w.parseMusicNotation(focusLine.value)
+    );
+    poke(symbolsPanel.querySelector("[data-move-by='1']"));
+    check(
+      "an octave carries the other end of a tie",
+      focusLine.value === "C#5~ C#5" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("C4~ C4");
+    focusLine.setSelectionRange(2, 2);
+    w.editorPadCaret = { start: 2, end: 2 };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase will not strand a tie",
+      focusLine.value === "C4~ C4" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseTieBefore")
+    );
+    placeCaret("");
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord with no note is refused",
+      focusLine.value === "" &&
+        w.document.getElementById("editError").textContent === w.t("edit.refuseNeedsNote")
+    );
+    placeCaret("C4~");
     poke(symbolsPanel.querySelector("[data-event='tie']"));
     check("a second tie tap removes the mark", focusLine.value === "C4");
     placeCaret("C4 | ");
@@ -5439,30 +5488,31 @@ function chatCase(w) {
     placeCaret("C4q~E4q");
     var pendingPreview = w.document.getElementById("editPreview");
     var staffNote = w.document.getElementById("editStaffNote");
+    var faultChip = w.document.getElementById("editError");
     check(
-      "broken staff keeps last draw with pending frame",
+      "broken staff keeps last draw with the fault above the preview",
       !!(
         pendingPreview.classList.contains("is-staff") &&
         pendingPreview.classList.contains("is-staff-pending") &&
         pendingPreview.querySelector("svg.music-staff") &&
-        pendingPreview.querySelector(".edit-staff-pending-cue") &&
-        pendingPreview.querySelector(".edit-staff-pending-msg") &&
-        pendingPreview.querySelector(".edit-staff-pending-msg").textContent.indexOf(
-          w.t("edit.staffPending").replace(/\.$/, "")
-        ) === 0 &&
+        !pendingPreview.querySelector(".edit-staff-pending-cue") &&
+        faultChip &&
+        !faultChip.hidden &&
+        faultChip.classList.contains("is-fault") &&
+        faultChip.querySelector(".edit-fault-icon") &&
+        faultChip.textContent.indexOf(w.t("edit.staffPending").replace(/\.$/, "")) === 0 &&
+        faultChip.textContent.indexOf(w.t("edit.faultTiePitch")) > 0 &&
         staffNote &&
         staffNote.hidden
       )
     );
-    var pendingCue = pendingPreview.querySelector(".edit-staff-pending-cue");
-    if (pendingCue) {
-      pendingCue.click();
+    if (faultChip) {
+      faultChip.click();
     }
     check(
-      "pending cue selects the failing tie",
+      "the fault chip selects the failing tie",
       !!(
-        pendingCue &&
-        pendingCue.tagName === "BUTTON" &&
+        faultChip &&
         focusLine.classList.contains("has-error-highlight") &&
         focusLine.selectionStart === 3 &&
         focusLine.selectionEnd === 4 &&

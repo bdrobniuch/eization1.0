@@ -670,6 +670,15 @@ function editorMessage(message, note) {
   text = editorNoticeText(error);
   error.hidden = false;
   error.classList.toggle("is-note", !!note);
+  error.classList.remove("is-fault");
+  error.classList.remove("is-fault-show");
+  error.onclick = null;
+  error.removeAttribute("title");
+  if (error.getAttribute("data-fault-role") === "button") {
+    error.setAttribute("role", "status");
+    error.removeAttribute("data-fault-role");
+    error.removeAttribute("tabindex");
+  }
   text.textContent = message;
 }
 
@@ -682,7 +691,25 @@ function clearEditorNotice() {
   text = editorNoticeText(error);
   error.hidden = true;
   error.classList.remove("is-note");
+  error.classList.remove("is-fault");
+  error.classList.remove("is-fault-show");
+  error.onclick = null;
+  error.removeAttribute("title");
+  if (error.getAttribute("data-fault-role") === "button") {
+    error.setAttribute("role", "status");
+    error.removeAttribute("data-fault-role");
+    error.removeAttribute("tabindex");
+  }
   text.textContent = "";
+}
+
+/* A line that will not draw. Same chip as a warning, above the preview, with the circle. */
+function editorClearStaffFault() {
+  var error = document.getElementById("editError");
+  if (!error || !error.classList.contains("is-fault")) {
+    return;
+  }
+  clearEditorNotice();
 }
 
 function setEditButton(open) {
@@ -1882,6 +1909,7 @@ function refreshEditor() {
     editorStaffErrorMark = null;
     preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
+    editorClearStaffFault();
     if (editorStaffOn() && typeof renderMusicStaff === "function") {
       preview.classList.remove("is-empty");
       editorPaintStaffPreview(preview, "", "");
@@ -1907,6 +1935,7 @@ function refreshEditor() {
     editorStaffErrorMark = null;
     preview.classList.remove("is-staff-pending-pulse");
     clearEditStaffNote();
+    editorClearStaffFault();
     editorPaintStaffPreview(preview, status.music, status.caption);
   } else if (editorStaffOn()) {
     /* Staff mode: never flip to text preview — keep last good (or empty staff) + pending frame. */
@@ -1934,6 +1963,7 @@ function refreshEditor() {
     editorStaffPendingUndoHinted = false;
     editorStaffErrorMark = null;
     preview.classList.remove("is-staff-pending-pulse");
+    editorClearStaffFault();
     editorLastGoodStaffHtml = "";
     preview.innerHTML = lineToItem(line);
     clearEditStaffNote();
@@ -2095,72 +2125,126 @@ function editorRevealStaffError() {
   editorStaffErrorHold = false;
 }
 
-function editorStaffPendingWarnIcon() {
-  var svg = editorSvgEl("svg", {
-    viewBox: "0 0 16 16",
-    class: "edit-staff-pending-icon",
-    "aria-hidden": "true",
-    focusable: "false"
-  });
-  svg.appendChild(
-    editorSvgEl("path", {
-      d: "M8 1.6 L15.2 14.2 H0.8 Z",
-      fill: "currentColor"
-    })
-  );
-  svg.appendChild(
-    editorSvgEl("path", {
-      d: "M7.35 5.4 h1.3 v4.2 h-1.3 Z M7.35 11.1 h1.3 v1.3 h-1.3 Z",
-      fill: "#fff"
-    })
-  );
-  return svg;
+var EDITOR_FAULT_WHY = {
+  "tie needs the same pitch": "edit.faultTiePitch",
+  "tie needs a note after it": "edit.faultTieAfter",
+  "tie needs a note before it": "edit.faultTieBefore",
+  "bad @key": "edit.faultKey",
+  "unknown directive": "edit.faultDirective",
+  "no notes or rests": "edit.faultEmpty",
+  "nested stack brackets": "edit.faultStackNest",
+  "unclosed stack": "edit.faultStackOpen",
+  "stack label must use _ or ^": "edit.faultStackLabel",
+  "bad stack pitches": "edit.faultStackPitches",
+  "bad beam pitches (need e/s notes)": "edit.faultBeamPitches",
+  "nested beam braces": "edit.faultBeamNest",
+  "unclosed beam": "edit.faultBeamOpen",
+  "junk after beam": "edit.faultBeamJunk",
+  "bad token": "edit.faultToken",
+  "bad tuplet (write (3 … ) or (5:4 … ))": "edit.faultTuplet",
+  "bad tuplet ratio": "edit.faultTupletRatio",
+  "nested tuplet": "edit.faultTupletNest",
+  "barline inside tuplet": "edit.faultTupletBar",
+  "unclosed tuplet": "edit.faultTupletOpen",
+  "dangling dynamic": "edit.faultDynamic",
+  "hairpin needs a note": "edit.faultHairpin",
+  "empty chord symbol": "edit.faultChord",
+  "simile inside tuplet": "edit.faultSimile"
+};
+
+function editorStaffFaultReason(raw) {
+  return String(raw || "").split(" \u00B7 ")[0].replace(/^\s+|\s+$/g, "");
 }
 
-function editorPaintStaffPendingCue(preview, why, canShow) {
-  var cue;
-  var msg;
+function editorStaffFaultText(raw) {
+  var reason = editorStaffFaultReason(raw);
+  var key;
+  var why;
+  if (!reason) {
+    return t("edit.staffPending");
+  }
+  key = EDITOR_FAULT_WHY[reason];
+  why = key ? t(key) : reason;
+  if (!why || why.length >= 80) {
+    return t("edit.staffPending");
+  }
+  return t("edit.staffPendingWhy").replace("{why}", why);
+}
+
+/* A blocked pad tap. Tie faults keep their own sentence; anything else is one line. */
+function editorStaffBreakWarning(raw) {
+  var reason = editorStaffFaultReason(raw);
+  if (reason === "tie needs the same pitch") {
+    return t("edit.refuseTiePitch");
+  }
+  if (reason === "tie needs a note after it") {
+    return t("edit.refuseTieAfter");
+  }
+  if (reason === "tie needs a note before it") {
+    return t("edit.refuseTieBefore");
+  }
+  return t("edit.refuseDraw");
+}
+
+function editorStaffBreakStatus(line) {
+  var status;
+  if (!String(line || "").replace(/\s+/g, "")) {
+    return null;
+  }
+  if (typeof staffNotationStatus !== "function") {
+    return null;
+  }
+  status = staffNotationStatus(line);
+  if (!status || status.ok || !status.notationIsh) {
+    return null;
+  }
+  return status;
+}
+
+function editorShowStaffFault(message, canShow) {
+  var error = document.getElementById("editError");
   var text;
-  if (!preview) {
+  if (!error) {
     return;
   }
-  cue = preview.querySelector(".edit-staff-pending-cue");
-  if (cue && cue.parentNode) {
-    cue.parentNode.removeChild(cue);
+  /* A yellow refusal or a save notice stays. Typing has already cleared the chip. */
+  if (!error.hidden && !error.classList.contains("is-fault") && !error.classList.contains("is-note")) {
+    return;
   }
-  cue = document.createElement(canShow ? "button" : "div");
-  cue.className = "edit-staff-pending-cue";
+  text = editorNoticeText(error);
+  error.hidden = false;
+  error.classList.remove("is-note");
+  error.classList.add("is-fault");
+  error.classList.toggle("is-fault-show", !!canShow);
+  text.textContent = message;
   if (canShow) {
-    cue.type = "button";
-    cue.title = t("edit.staffPendingShow");
-  } else {
-    cue.setAttribute("role", "status");
-    cue.setAttribute("aria-live", "polite");
-  }
-  cue.appendChild(editorStaffPendingWarnIcon());
-  msg = document.createElement("span");
-  msg.className = "edit-staff-pending-msg";
-  why = String(why || "").replace(/^\s+|\s+$/g, "");
-  if (why && why.length < 80) {
-    text = t("edit.staffPendingWhy").replace("{why}", why);
-  } else {
-    text = t("edit.staffPending");
-  }
-  msg.textContent = text;
-  if (canShow) {
-    cue.setAttribute("aria-label", text + " " + t("edit.staffPendingShow"));
-    cue.addEventListener("pointerdown", function (event) {
+    error.title = t("edit.staffPendingShow");
+    error.setAttribute("role", "button");
+    error.setAttribute("data-fault-role", "button");
+    error.setAttribute("tabindex", "0");
+    error.onclick = function (event) {
       event.preventDefault();
-      event.stopPropagation();
-    });
-    cue.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
       editorRevealStaffError();
-    });
+    };
+  } else {
+    error.removeAttribute("title");
+    error.setAttribute("role", "status");
+    error.removeAttribute("data-fault-role");
+    error.removeAttribute("tabindex");
+    error.onclick = null;
   }
-  cue.appendChild(msg);
-  preview.appendChild(cue);
+}
+
+/* The red frame stays on the staff. The words sit above it, with the other notices. */
+function editorPaintStaffPendingCue(preview, why, canShow) {
+  var cue;
+  if (preview) {
+    cue = preview.querySelector(".edit-staff-pending-cue");
+    if (cue && cue.parentNode) {
+      cue.parentNode.removeChild(cue);
+    }
+  }
+  editorShowStaffFault(editorStaffFaultText(why), !!canShow);
 }
 
 function editorPulseStaffPending(preview) {
@@ -7333,6 +7417,8 @@ function editorRunSelection(mutator, mode, opts) {
   healed = editorHealList(nodes);
   built = editorSerializeNodes(healed);
   if (!editorStaffMusicDraws(built.text)) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
     return true;
   }
   if (built.text + (bounds.caption || "") === bounds.music + (bounds.caption || "") && mode !== "caret") {
@@ -7480,6 +7566,8 @@ function editorApplySelectionBar() {
   healed = editorHealList(nodes);
   built = editorSerializeNodes(healed);
   if (!editorStaffMusicDraws(built.text)) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
     return true;
   }
   return editorCommitStaffEdit(bounds, built, "caret");
@@ -7542,6 +7630,8 @@ function editorPasteOverSelection(text) {
   healed = editorHealList(pulled.before.concat(paste).concat(pulled.after));
   built = editorSerializeNodes(healed);
   if (!editorStaffMusicDraws(built.text)) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
     return true;
   }
   return editorCommitStaffEdit(bounds, built, "select");
@@ -7591,6 +7681,8 @@ function editorPasteAtCaret(text) {
   healed = editorHealList(nodes);
   built = editorSerializeNodes(healed);
   if (!editorStaffMusicDraws(built.text)) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
     return true;
   }
   bounds = { span: span, music: parts.music, caption: parts.caption };
@@ -8191,28 +8283,86 @@ function editorApplySelectionTextRewrite(rewriteFn) {
 }
 
 function editorApplySelectionAcc(acc) {
+  var bounds;
+  var nodes;
+  var events;
+  var traits;
+  var nextAcc;
+  var scanned;
+  var seeds;
+  var i;
+  var result;
+  var field;
+  var value;
+  var silent;
+  var selStart;
+  var selEnd;
   acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
-  return editorRunSelection(function (nodes, events) {
-    var traits = editorTraitsFromEvents(events);
-    var nextAcc = traits.accLit === acc && acc ? "" : acc;
-    var i;
-    for (i = 0; i < events.length; i++) {
-      if (events[i].kind === "pitch") {
-        events[i].replaceWith = editorPitchTextKept(
-          events[i].letter,
-          nextAcc,
-          events[i].oct,
-          events[i].durRaw,
-          events[i].affix
-        );
-      } else if (events[i].kind === "stack") {
-        events[i].replaceWith = editorMapStackText(events[i], function (p) {
-          return editorPitchTextKept(p.letter, nextAcc, p.oct, p.durRaw, p.affix);
-        });
-      }
-    }
+  bounds = editorSelectionBounds();
+  if (!bounds) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(bounds.music);
+  if (!nodes) {
     return true;
-  }, "select");
+  }
+  editorMarkSelectedNodes(nodes, bounds.a, bounds.b);
+  events = editorCollectPieces(nodes).filter(function (p) {
+    return editorIsEventPiece(p) && p.selected;
+  });
+  if (!events.length) {
+    return true;
+  }
+  traits = editorTraitsFromEvents(events);
+  nextAcc = traits.accLit === acc && acc ? "" : acc;
+  scanned = editorScanTranspose(bounds.music);
+  seeds = [];
+  for (i = 0; i < scanned.pitches.length; i++) {
+    if (scanned.pitches[i].start < bounds.a || scanned.pitches[i].end > bounds.b) {
+      continue;
+    }
+    seeds.push({
+      start: scanned.pitches[i].start,
+      letter: scanned.pitches[i].letter,
+      acc: nextAcc,
+      oct: scanned.pitches[i].oct
+    });
+  }
+  if (!seeds.length) {
+    editorPaintNotePad();
+    return true;
+  }
+  result = editorApplyPitchSpelling(bounds.music, seeds);
+  if (!result.ok) {
+    editorRefuse(t(result.reason === "stack" ? "edit.refuseSamePitch" : "edit.refuseOctave"));
+    editorPaintNotePad();
+    return true;
+  }
+  if (!result.changed) {
+    editorPaintNotePad();
+    return true;
+  }
+  if (!editorLineMusicOk(result.text + (bounds.caption || ""))) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
+    return true;
+  }
+  field = bounds.span.field;
+  value = String(field.value || "");
+  editorPushSymbolUndo();
+  field.value =
+    value.slice(0, bounds.span.lineStart) +
+    result.text +
+    (bounds.caption || "") +
+    value.slice(bounds.span.lineEnd);
+  selStart = editorMapTransposeIndex(bounds.a, result.reps);
+  selEnd = editorMapTransposeIndex(bounds.b, result.reps);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(field, bounds.span.lineStart + selStart, bounds.span.lineStart + selEnd, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
 }
 
 function editorApplySelectionDuration(dur) {
@@ -8568,6 +8718,34 @@ function editorExitEnclosingStructures(kinds) {
 function editorInsertOutsideStructures(text, caretBack, kinds) {
   editorExitEnclosingStructures(kinds || []);
   editorInsertSymbol(text, caretBack);
+}
+
+/* The line a pad insert would write, including stepping out of the named shells. */
+function editorProspectiveInsert(text, kinds) {
+  var span = editorLineSpan();
+  var line;
+  var rel;
+  var g;
+  var guard;
+  if (!span) {
+    return "";
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  rel = span.caret - span.lineStart;
+  if (rel < 0) {
+    rel = 0;
+  }
+  if (rel > line.length) {
+    rel = line.length;
+  }
+  for (guard = 0; guard < 8; guard++) {
+    g = editorInnermostEnclosingGroup(line, rel);
+    if (!g || !kinds || kinds.indexOf(g.kind) < 0) {
+      break;
+    }
+    rel = g.closeEnd;
+  }
+  return line.slice(0, rel) + String(text || "") + line.slice(rel);
 }
 
 /*
@@ -10426,6 +10604,8 @@ function editorEraseStep(opts) {
   var now;
   var doubleTap;
   var span;
+  var fault;
+  var wasOk;
   if (!editorCanErase()) {
     return false;
   }
@@ -10461,9 +10641,6 @@ function editorEraseStep(opts) {
   if (!field) {
     return false;
   }
-  if (!skipUndo) {
-    editorPushSymbolUndo();
-  }
   value = String(field.value || "");
   span = editorLineSpan();
   lineStart = span ? span.lineStart : 0;
@@ -10481,6 +10658,16 @@ function editorEraseStep(opts) {
     relEnd = linePart.length;
   }
   edited = editorHealStaffLineAfterErase(linePart.slice(0, relStart) + linePart.slice(relEnd));
+  wasOk = editorLineMusicOk(linePart);
+  fault = editorStaffBreakStatus(edited);
+  if (wasOk && fault) {
+    editorRefuse(editorStaffBreakWarning(fault.error));
+    editorPaintNotePad();
+    return false;
+  }
+  if (!skipUndo) {
+    editorPushSymbolUndo();
+  }
   field.value = value.slice(0, lineStart) + edited + value.slice(lineEnd);
   caret = lineStart + Math.min(relStart, edited.length);
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
@@ -11144,6 +11331,133 @@ function editorTieKey(letter, acc, oct) {
     norm = "";
   }
   return String(letter || "").toUpperCase() + norm + String(oct);
+}
+
+/*
+ * Rewrite the named pitch heads. A tie copies that spelling onto the other end
+ * so the two attacks stay the same pitch. reps use the original music offsets.
+ */
+function editorApplyPitchSpelling(music, seeds) {
+  var scanned;
+  var pitches;
+  var spelled;
+  var attacks;
+  var grew;
+  var guard;
+  var i;
+  var s;
+  var n;
+  var k;
+  var before;
+  var after;
+  var oldKey;
+  var nextKey;
+  var seen;
+  var stackKey;
+  var written;
+  var reps;
+  var head;
+  var text;
+  music = String(music || "");
+  scanned = editorScanTranspose(music);
+  pitches = scanned.pitches;
+  spelled = [];
+  for (i = 0; i < pitches.length; i++) {
+    spelled.push(null);
+  }
+  for (s = 0; s < seeds.length; s++) {
+    if (seeds[s].oct < 0 || seeds[s].oct > 9) {
+      return { ok: false, reason: "octave", text: music, changed: false, reps: [] };
+    }
+    for (i = 0; i < pitches.length; i++) {
+      if (pitches[i].start === seeds[s].start || (pitches[i].start <= seeds[s].start && seeds[s].start < pitches[i].end)) {
+        spelled[i] = {
+          letter: String(seeds[s].letter || pitches[i].letter).toUpperCase(),
+          acc: seeds[s].acc || "",
+          oct: seeds[s].oct
+        };
+      }
+    }
+  }
+  attacks = editorTransposeAttacks(pitches);
+  grew = true;
+  guard = 0;
+  while (grew && guard < 24) {
+    grew = false;
+    guard++;
+    for (i = 0; i < scanned.ties.length; i++) {
+      before = editorAttackBefore(attacks, scanned.ties[i]);
+      after = editorAttackAfter(attacks, scanned.ties[i]);
+      if (!before || !after) {
+        continue;
+      }
+      function pull(from, to) {
+        var idx;
+        var partner;
+        var spell;
+        for (idx = 0; idx < from.indexes.length; idx++) {
+          if (!spelled[from.indexes[idx]]) {
+            continue;
+          }
+          oldKey = editorTieKey(
+            pitches[from.indexes[idx]].letter,
+            pitches[from.indexes[idx]].acc,
+            pitches[from.indexes[idx]].oct
+          );
+          spell = spelled[from.indexes[idx]];
+          for (partner = 0; partner < to.indexes.length; partner++) {
+            k = to.indexes[partner];
+            if (spelled[k]) {
+              continue;
+            }
+            if (editorTieKey(pitches[k].letter, pitches[k].acc, pitches[k].oct) !== oldKey) {
+              continue;
+            }
+            spelled[k] = { letter: spell.letter, acc: spell.acc, oct: spell.oct };
+            grew = true;
+          }
+        }
+      }
+      pull(before, after);
+      pull(after, before);
+    }
+  }
+  seen = {};
+  for (i = 0; i < pitches.length; i++) {
+    if (!pitches[i].stack) {
+      continue;
+    }
+    written = spelled[i]
+      ? editorTieKey(spelled[i].letter, spelled[i].acc, spelled[i].oct)
+      : editorTieKey(pitches[i].letter, pitches[i].acc, pitches[i].oct);
+    stackKey = String(pitches[i].stack);
+    if (!seen[stackKey]) {
+      seen[stackKey] = {};
+    }
+    if (seen[stackKey][written]) {
+      return { ok: false, reason: "stack", text: music, changed: false, reps: [] };
+    }
+    seen[stackKey][written] = true;
+  }
+  reps = [];
+  for (i = 0; i < pitches.length; i++) {
+    if (!spelled[i]) {
+      continue;
+    }
+    head =
+      spelled[i].letter +
+      (spelled[i].acc || "") +
+      String(spelled[i].oct) +
+      pitches[i].dur +
+      pitches[i].dots +
+      pitches[i].bang;
+    if (head === music.slice(pitches[i].start, pitches[i].end)) {
+      continue;
+    }
+    reps.push({ start: pitches[i].start, end: pitches[i].end, text: head });
+  }
+  text = reps.length ? editorApplyTransposeReps(music, reps) : music;
+  return { ok: true, reason: "", text: text, changed: reps.length > 0, reps: reps };
 }
 
 /* Ordinary pairs swap. A double moves once onto the plain spelling of that sound. */
@@ -12455,11 +12769,60 @@ function editorMidiCommit(notes) {
   editorNote.oct = null;
 }
 
+function editorCommitPitchSpelling(hit, letter, acc, oct) {
+  var span;
+  var line;
+  var parts;
+  var rel;
+  var result;
+  var value;
+  var silent;
+  var caret;
+  if (!hit || !hit.field) {
+    return false;
+  }
+  span = editorLineSpan();
+  if (!span) {
+    return false;
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  parts = editorSplitStaffCaption(line);
+  rel = hit.start - span.lineStart;
+  result = editorApplyPitchSpelling(parts.music, [{
+    start: rel,
+    letter: letter,
+    acc: acc || "",
+    oct: oct
+  }]);
+  if (!result.ok) {
+    editorRefuse(t(result.reason === "stack" ? "edit.refuseSamePitch" : "edit.refuseOctave"));
+    editorPaintNotePad();
+    return true;
+  }
+  if (!result.changed) {
+    return true;
+  }
+  if (!editorLineMusicOk(result.text + (parts.caption || ""))) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
+    return true;
+  }
+  editorPushSymbolUndo();
+  value = String(hit.field.value || "");
+  hit.field.value =
+    value.slice(0, span.lineStart) + result.text + (parts.caption || "") + value.slice(span.lineEnd);
+  caret = span.lineStart + editorMapTransposeIndex(hit.end - span.lineStart, result.reps);
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(hit.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorPaintNotePad();
+  return true;
+}
+
 function editorArmAcc(acc) {
   var hit;
   var nextAcc;
-  var suffix;
-  var next;
   acc = acc === "b" || acc === "#" || acc === "n" ? acc : "";
   if (editorApplySelectionAcc(acc)) {
     editorNote.acc = "";
@@ -12468,9 +12831,7 @@ function editorArmAcc(acc) {
   hit = editorPitchAtCaret();
   if (hit) {
     nextAcc = (hit.acc || "") === acc ? "" : acc;
-    suffix = hit.token.slice((hit.letter + (hit.acc || "") + String(hit.oct)).length);
-    next = hit.letter + nextAcc + String(hit.oct) + suffix;
-    if (editorReplaceCaretToken(hit, next)) {
+    if (editorCommitPitchSpelling(hit, hit.letter, nextAcc, hit.oct)) {
       editorNote.acc = "";
       return;
     }
@@ -13032,6 +13393,7 @@ function editorToggleOrInsertTie() {
   var before;
   var start;
   var end;
+  var fault;
   if (editorCaretHasTieMark()) {
     before = String(editorActiveField().value || "").slice(0, editorReadSelection(editorActiveField()).start);
     end = before.length;
@@ -13051,6 +13413,12 @@ function editorToggleOrInsertTie() {
   }
   if (!editorCaretHasTieableAttack()) {
     editorRefuse(t("edit.refuseTieBefore"));
+    editorPaintNotePad();
+    return;
+  }
+  fault = editorStaffBreakStatus(editorProspectiveInsert("~", ["stack"]));
+  if (fault) {
+    editorRefuse(editorStaffBreakWarning(fault.error));
     editorPaintNotePad();
     return;
   }
@@ -13102,6 +13470,13 @@ function editorToggleOrInsertChord() {
     return;
   }
   hit = editorPitchAtCaret() || editorRhythmAtCaret();
+  span = editorLineSpan();
+  line = span ? span.value.slice(span.lineStart, span.lineEnd) : "";
+  if (!editorLineHasTimedAttack(line)) {
+    editorRefuse(t("edit.refuseNeedsNote"));
+    editorPaintNotePad();
+    return;
+  }
   editorPushSymbolUndo();
   if (hit && hit.field && editorCaretInsideStructure("beam") && !editorCaretInsideStructure("stack")) {
     value = String(hit.field.value || "");
@@ -13115,9 +13490,7 @@ function editorToggleOrInsertChord() {
     return;
   }
   /* Inside (or just after) a stack: chord name belongs after ], not on one pitch. */
-  span = editorLineSpan();
   if (span) {
-    line = span.value.slice(span.lineStart, span.lineEnd);
     rel = span.caret - span.lineStart;
     if (rel < 0) {
       rel = 0;
@@ -13143,6 +13516,30 @@ function editorToggleOrInsertChord() {
   }
   editorInsertSymbol("^");
   editorAllowLabelTyping();
+}
+
+function editorLineHasTimedAttack(line) {
+  var tokens;
+  var i;
+  var tok;
+  if (typeof staffTokenize !== "function") {
+    return !!String(line || "").replace(/\s+/g, "");
+  }
+  tokens = staffTokenize(String(line || ""));
+  for (i = 0; i < tokens.length; i++) {
+    tok = editorStripClosers(tokens[i]);
+    if (!tok || tok === "|" || tok === "~" || tok.charAt(0) === "@" || tok.charAt(0) === "^") {
+      continue;
+    }
+    if (tok.charAt(0) === "{" || tok.charAt(0) === "}" || tok.charAt(0) === "(" || tok.charAt(0) === ")" || tok.charAt(0) === "]") {
+      continue;
+    }
+    if (typeof staffIsDynamic === "function" && (staffIsDynamic(tok) || staffIsHairpin(tok))) {
+      continue;
+    }
+    return true;
+  }
+  return false;
 }
 
 /*
@@ -14311,49 +14708,72 @@ function editorApplyIntervalStep(dir) {
   });
 }
 
-/*
- * Shift every pitch octave in text. Boundaries avoid ^chord / _label letters
- * (only after space, start, or openers).
- */
-function editorShiftOctavesInText(text, dir) {
-  dir = dir < 0 ? -1 : 1;
-  return String(text || "").replace(
-    /(^|[\s\[{(])([A-G](?:##|bb|x|X|#|b|n)?)(\d)/g,
-    function (all, boundary, head, octDigit) {
-      var oct = editorClampOctave(parseInt(octDigit, 10) + dir);
-      return boundary + head + String(oct);
-    }
-  );
-}
-
 /* Selection ↑↓: move every pitch, keep durations and marks; keep the selection. */
 function editorShiftSelectionOctaves(dir) {
-  var field = editorActiveField();
-  var sel;
+  var bounds;
+  var scanned;
+  var seeds;
+  var i;
+  var oct;
+  var result;
+  var field;
   var value;
-  var raw;
-  var next;
   var silent;
-  if (!field) {
+  var selStart;
+  var selEnd;
+  dir = dir < 0 ? -1 : 1;
+  bounds = editorSelectionBounds();
+  if (!bounds) {
     return false;
   }
-  sel = editorReadSelection(field);
-  if (sel.start === sel.end) {
-    return false;
+  scanned = editorScanTranspose(bounds.music);
+  seeds = [];
+  for (i = 0; i < scanned.pitches.length; i++) {
+    if (scanned.pitches[i].start < bounds.a || scanned.pitches[i].end > bounds.b) {
+      continue;
+    }
+    oct = scanned.pitches[i].oct + dir;
+    if (oct < 0 || oct > 9) {
+      editorRefuse(t("edit.refuseOctave"));
+      editorPaintNotePad();
+      return true;
+    }
+    seeds.push({
+      start: scanned.pitches[i].start,
+      letter: scanned.pitches[i].letter,
+      acc: scanned.pitches[i].acc || "",
+      oct: oct
+    });
   }
-  value = String(field.value || "");
-  raw = value.slice(sel.start, sel.end);
-  if (!raw || raw.indexOf("\n") >= 0) {
-    return false;
-  }
-  next = editorShiftOctavesInText(raw, dir);
-  if (next === raw) {
+  if (!seeds.length) {
     return true;
   }
+  result = editorApplyPitchSpelling(bounds.music, seeds);
+  if (!result.ok) {
+    editorRefuse(t(result.reason === "stack" ? "edit.refuseSamePitch" : "edit.refuseOctave"));
+    editorPaintNotePad();
+    return true;
+  }
+  if (!result.changed) {
+    return true;
+  }
+  if (!editorLineMusicOk(result.text + (bounds.caption || ""))) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
+    return true;
+  }
+  field = bounds.span.field;
+  value = String(field.value || "");
   editorPushSymbolUndo();
-  field.value = value.slice(0, sel.start) + next + value.slice(sel.end);
+  field.value =
+    value.slice(0, bounds.span.lineStart) +
+    result.text +
+    (bounds.caption || "") +
+    value.slice(bounds.span.lineEnd);
+  selStart = editorMapTransposeIndex(bounds.a, result.reps);
+  selEnd = editorMapTransposeIndex(bounds.b, result.reps);
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
-  editorPlaceMovedCaret(field, sel.start, next, 0, next.length, silent);
+  editorPlaceCaret(field, bounds.span.lineStart + selStart, bounds.span.lineStart + selEnd, silent);
   clearEditorNotice();
   refreshEditor();
   editorPaintNotePad();
@@ -14363,8 +14783,6 @@ function editorShiftSelectionOctaves(dir) {
 function editorShiftOctave(dir) {
   var hit;
   var oct;
-  var suffix;
-  var next;
   var span;
   var line;
   var stack;
@@ -14401,17 +14819,7 @@ function editorShiftOctave(dir) {
       }
     }
   }
-  suffix = hit.token.slice((hit.letter + (hit.acc || "") + String(hit.oct)).length);
-  next = hit.letter + (hit.acc || "") + String(oct) + suffix;
-  if (!editorReplaceCaretToken(hit, next)) {
-    return;
-  }
-  editorPlaceCaret(
-    hit.field,
-    hit.start + next.length,
-    hit.start + next.length,
-    !!(editorPadCaret && editorSymbolsIsOpen())
-  );
+  editorCommitPitchSpelling(hit, hit.letter, hit.acc || "", oct);
   editorNote.oct = null;
 }
 

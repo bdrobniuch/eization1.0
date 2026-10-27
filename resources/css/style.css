@@ -3545,15 +3545,39 @@ button.edit-staff-pending-cue .edit-staff-pending-msg {
   color: #143024;
 }
 
-#editError.is-note .edit-notice-icon {
+#editError.is-fault {
+  color: #c94c4c;
+}
+
+#editError.is-fault.is-fault-show {
+  cursor: pointer;
+}
+
+#editError.is-fault.is-fault-show .edit-notice-msg {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+#editError.is-note .edit-notice-icon,
+#editError.is-fault .edit-notice-icon,
+#editError.is-note .edit-fault-icon {
   display: none;
 }
 
-.edit-notice-icon {
+#editError.is-fault .edit-fault-icon {
+  display: block;
+}
+
+.edit-notice-icon,
+.edit-fault-icon {
   flex: 0 0 auto;
   width: 1.15em;
   height: 1.15em;
   margin-top: 0.05em;
+}
+
+.edit-fault-icon {
+  display: none;
 }
 
 .edit-notice-msg {
