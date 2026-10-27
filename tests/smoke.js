@@ -4692,6 +4692,57 @@ function chatCase(w) {
       })()
     );
     check(
+      "a hold with nothing to copy or paste stays closed",
+      (function () {
+        var preview = w.document.getElementById("editPreview");
+        var svg;
+        var layout;
+        var ctm;
+        var pt;
+        var onNote;
+        var inGap;
+        var sel;
+        placeCaret("C4 D4 E4");
+        w.editorStaffCopy = "";
+        w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+        w.refreshEditor();
+        svg = preview.querySelector("svg.music-staff");
+        layout = preview._staffCaretLayout;
+        ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (!svg || !layout || !layout.cols || layout.cols.length < 3 || !ctm) {
+          return false;
+        }
+        pt = svg.createSVGPoint();
+        pt.y = (layout.staffTop + layout.staffBot) / 2;
+        pt.x = layout.cols[0].x;
+        onNote = pt.matrixTransform(ctm);
+        w.editorStaffPreviewHoldClipAt(onNote.x, onNote.y);
+        if (!w.document.getElementById("editClipMenu")) {
+          return false;
+        }
+        w.editorStaffCopy = "";
+        w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
+        pt.x = w.editorStaffCaretX(layout, layout.cols.length);
+        inGap = pt.matrixTransform(ctm);
+        w.editorStaffPreviewHoldClipAt(inGap.x, inGap.y);
+        sel = w.editorReadSelection(focusLine);
+        if (w.document.getElementById("editClipMenu") || w.editorStaffClipMenuOpen || sel.start !== sel.end) {
+          return false;
+        }
+        preview.dispatchEvent(
+          new w.MouseEvent("contextmenu", {
+            clientX: inGap.x,
+            clientY: inGap.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            button: 2
+          })
+        );
+        return !w.document.getElementById("editClipMenu") && focusLine.value === "C4 D4 E4";
+      })()
+    );
+    check(
       "preview drag selects columns across the staff",
       (function () {
         var preview = w.document.getElementById("editPreview");

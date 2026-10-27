@@ -3445,7 +3445,8 @@ function editorStaffCloseClipMenu() {
   }
 }
 
-/* Copy and Paste at the pointer: right-click, or a finger held on the staff. */
+/* Copy and Paste at the pointer: right-click, or a finger held on the staff.
+   Stay closed when neither action can run. */
 function editorStaffOpenClipMenu(clientX, clientY) {
   var menu;
   var copyBtn;
@@ -3454,7 +3455,14 @@ function editorStaffOpenClipMenu(clientX, clientY) {
   var frame;
   var dx;
   var dy;
+  var canCopy;
+  var canPaste;
   editorStaffCloseClipMenu();
+  canCopy = !!editorStaffSelectionText(editorActiveField());
+  canPaste = !!editorStaffCopy;
+  if (!canCopy && !canPaste) {
+    return;
+  }
   editorStaffClipMenuOpen = true;
   menu = document.createElement("div");
   menu.id = "editClipMenu";
@@ -3465,8 +3473,8 @@ function editorStaffOpenClipMenu(clientX, clientY) {
   pasteBtn = editorPadButton(menu, { "data-clip-paste": "1" }, t("edit.paste"), t("edit.paste"));
   copyBtn.setAttribute("role", "menuitem");
   pasteBtn.setAttribute("role", "menuitem");
-  copyBtn.disabled = !editorStaffSelectionText(editorActiveField());
-  pasteBtn.disabled = !editorStaffCopy;
+  copyBtn.disabled = !canCopy;
+  pasteBtn.disabled = !canPaste;
   document.body.appendChild(menu);
   dx = 0;
   dy = 0;
