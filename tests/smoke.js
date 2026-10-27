@@ -3940,6 +3940,63 @@ function chatCase(w) {
     w.editorPadCaret = { start: 4, end: 4 };
     poke(symbolsPanel.querySelector("[data-event='stack']"));
     check("stack wraps a beamed note", focusLine.value === "{[C4e] D4e}");
+    (function () {
+      function stackSpan(text, from, to) {
+        var a;
+        var b;
+        placeCaret(text);
+        a = text.indexOf(from);
+        b = text.indexOf(to, a < 0 ? 0 : a);
+        if (a < 0 || b < 0) {
+          return false;
+        }
+        b += to.length;
+        w.editorPlaceCaret(focusLine, a, b, true);
+        poke(symbolsPanel.querySelector("[data-event='stack']"));
+        return true;
+      }
+      check(
+        "stack wraps the last note of a beamed triplet",
+        stackSpan("(3 {C4e D4e E4e})", "E4e})", "E4e})") &&
+          focusLine.value === "(3 {C4e D4e [E4e]})" &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+      poke(symbolsPanel.querySelector("[data-event='stack']"));
+      check(
+        "stack unwraps that chord inside the triplet",
+        focusLine.value === "(3 {C4e D4e E4e})" && !!w.parseMusicNotation(focusLine.value)
+      );
+      check(
+        "stack wraps a run that ends on the last triplet note",
+        stackSpan("(3 {C4e D4e E4e})", "D4e", "E4e})") &&
+          focusLine.value === "(3 {C4e [D4e E4e]})" &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+      check(
+        "stack wraps the last note of a beam",
+        stackSpan("{C4e D4e E4e}", "E4e}", "E4e}") &&
+          focusLine.value === "{C4e D4e [E4e]}" &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+      check(
+        "stack keeps a figure on the chord",
+        stackSpan("{C4e D4e E4e_6}", "E4e_6}", "E4e_6}") &&
+          focusLine.value === "{C4e D4e [E4e]_6}" &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+      check(
+        "stack keeps a tie after the chord",
+        stackSpan("{C4e D4e E4e~}", "E4e~}", "E4e~}") &&
+          focusLine.value === "{C4e D4e [E4e]~}" &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+      check(
+        "stack leaves a selection that crosses out of the triplet",
+        stackSpan("(3 {C4e D4e E4e}) F4e", "E4e})", "F4e") &&
+          focusLine.value === "(3 {C4e D4e E4e}) F4e" &&
+          w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
+      );
+    })();
     placeCaret("[C4 E4 G4]");
     focusLine.setSelectionRange(3, 3);
     w.editorPadCaret = { start: 3, end: 3 };

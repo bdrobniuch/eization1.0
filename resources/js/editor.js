@@ -12074,6 +12074,204 @@ function editorStructureSeed(kind) {
   return editorStructureOpenEmpty(kind);
 }
 
+/* The list that holds every selected note, or "split" when they sit in different shells. */
+function editorStackSelectionHost(nodes, need) {
+  var host = null;
+  function walk(list) {
+    var idxs = [];
+    var i;
+    var child;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].children) {
+        child = walk(list[i].children);
+        if (child === "split") {
+          return "split";
+        }
+      }
+      if (list[i].type === "piece" && list[i].selected && editorIsEventPiece(list[i])) {
+        idxs.push(i);
+      }
+    }
+    if (!idxs.length) {
+      return null;
+    }
+    if (idxs.length !== need || host) {
+      return "split";
+    }
+    host = { list: list, indexes: idxs };
+    return null;
+  }
+  if (walk(nodes) === "split" || !host) {
+    return null;
+  }
+  return host;
+}
+
+/* Articulations stay on each pitch. A shared _ or ^ moves onto the chord. */
+function editorStackChordText(pitches) {
+  var inners = [];
+  var tails = [];
+  var i;
+  var model;
+  var local;
+  var tail;
+  var shared;
+  for (i = 0; i < pitches.length; i++) {
+    model = editorAffixModel(pitches[i].affix || "");
+    if (!model) {
+      inners.push(pitches[i].text);
+      tails.push(null);
+      continue;
+    }
+    local = editorAffixText({ force: model.force, arts: model.arts, above: "", label: "" });
+    tail = "";
+    if (model.above) {
+      tail += "^" + model.above;
+    }
+    if (model.label) {
+      tail += "_" + model.label;
+    }
+    inners.push(editorPitchTextKept(pitches[i].letter, pitches[i].acc, pitches[i].oct, pitches[i].durRaw, local));
+    tails.push(tail);
+  }
+  shared = tails[0];
+  for (i = 1; i < tails.length; i++) {
+    if (tails[i] !== shared) {
+      shared = null;
+    }
+  }
+  if (shared === null) {
+    inners = [];
+    for (i = 0; i < pitches.length; i++) {
+      inners.push(
+        editorPitchTextKept(
+          pitches[i].letter,
+          pitches[i].acc,
+          pitches[i].oct,
+          pitches[i].durRaw,
+          pitches[i].affix || ""
+        )
+      );
+    }
+    shared = "";
+  }
+  return "[" + inners.join(" ") + "]" + (shared || "");
+}
+
+/*
+ * One stacked chord from the selected notes, inside the beam and tuplet that
+ * already hold them. A glued } or ) stays outside the brackets. A run that
+ * crosses a shell is left alone.
+ * Returns true when the tap is finished (written or refused).
+ */
+function editorStackSelection(line, start, end) {
+  var parts;
+  var music;
+  var nodes;
+  var events;
+  var host;
+  var list;
+  var indexes;
+  var first;
+  var last;
+  var i;
+  var node;
+  var pitches;
+  var moved;
+  var text;
+  var stack;
+  var args;
+  var healed;
+  var built;
+  var span;
+  parts = editorSplitStaffCaption(line);
+  music = parts.music;
+  if (start > end) {
+    i = start;
+    start = end;
+    end = i;
+  }
+  if (start < 0) {
+    start = 0;
+  }
+  if (end > music.length) {
+    end = music.length;
+  }
+  if (start >= end) {
+    return false;
+  }
+  nodes = editorParseStaffNodes(music);
+  if (!nodes) {
+    return false;
+  }
+  editorMarkSelectedNodes(nodes, start, end);
+  events = editorCollectPieces(nodes).filter(function (piece) {
+    return editorIsEventPiece(piece) && piece.selected;
+  });
+  if (!events.length) {
+    return false;
+  }
+  host = editorStackSelectionHost(nodes, events.length);
+  if (!host) {
+    editorRefuse(t("edit.refuseWrap"));
+    editorPaintNotePad();
+    return true;
+  }
+  list = host.list;
+  indexes = host.indexes;
+  first = indexes[0];
+  last = indexes[indexes.length - 1];
+  pitches = [];
+  moved = [];
+  for (i = first; i <= last; i++) {
+    node = list[i];
+    if (node.selected && editorIsEventPiece(node)) {
+      if (node.kind !== "pitch") {
+        editorRefuse(t("edit.refuseWrap"));
+        editorPaintNotePad();
+        return true;
+      }
+      pitches.push(node);
+      continue;
+    }
+    if (node.kind === "tie") {
+      continue;
+    }
+    if (node.type !== "piece" || editorIsEventPiece(node) || node.kind === "bar") {
+      editorRefuse(t("edit.refuseWrap"));
+      editorPaintNotePad();
+      return true;
+    }
+    moved.push(node);
+  }
+  if (!pitches.length) {
+    return false;
+  }
+  text = editorStackChordText(pitches);
+  stack = editorMakeStackPiece(text, pitches[0].start, pitches[pitches.length - 1].end);
+  if (!stack || stack.kind !== "stack") {
+    editorRefuse(t("edit.refuseWrap"));
+    editorPaintNotePad();
+    return true;
+  }
+  stack.selected = true;
+  args = [first, last - first + 1].concat(moved);
+  args.push(stack);
+  list.splice.apply(list, args);
+  healed = editorHealList(nodes);
+  built = editorSerializeNodes(healed);
+  if (!editorLineMusicOk(built.text)) {
+    editorRefuse(t("edit.refuseWrap"));
+    editorPaintNotePad();
+    return true;
+  }
+  span = editorLineSpan();
+  if (!(built.selEnd > built.selStart) || built.selStart < 0) {
+    return editorCommitLineEdit(span, built.text + (parts.caption || ""), built.text.length);
+  }
+  return editorCommitLineEdit(span, built.text + (parts.caption || ""), built.selStart, built.selEnd);
+}
+
 /*
  * Beam / Stack / Triplet: lit while the caret is inside that shell. First tap
  * wraps the note (or selection) or opens an empty shell; second tap on an empty
@@ -12203,6 +12401,11 @@ function editorToggleStructure(kind) {
   }
   if (kind === "beam" || (kind === "stack" && editorRelInsideStructure(line, rel, "beam"))) {
     editorForceShortDuration();
+  }
+  if (sel.start !== sel.end && kind === "stack") {
+    if (editorStackSelection(line, rel, endRel)) {
+      return;
+    }
   }
   if (sel.start !== sel.end) {
     if (editorWrapSelection(pair.open, pair.close, kind)) {
