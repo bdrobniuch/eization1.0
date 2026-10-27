@@ -3271,6 +3271,29 @@ body.is-editing #counter {
   animation: none;
 }
 
+/* Mouse or pen over a notehead: up and down. The head itself turns blue. */
+#editPreview.is-staff.is-pitch-hot,
+#editPreview.is-staff.is-pitch-drag {
+  cursor: ns-resize;
+}
+
+#editPreview.is-staff [data-pitch-col].is-pitch-hot {
+  fill: #5b8fc7;
+}
+
+#editPreview.is-staff [data-pitch-col].is-pitch-drag {
+  fill: #2f6eb4;
+}
+
+#editPreview.is-staff .staff-pitch-ghost {
+  fill: rgba(17, 17, 17, 0.35);
+}
+
+#editPreview.is-staff .staff-pitch-ghost-line {
+  stroke: rgba(17, 17, 17, 0.35);
+  stroke-width: 1.15;
+}
+
 /* A real selection in the example field. Stronger than the token under the caret. */
 #editFocusLine::selection,
 #allEdit::selection {

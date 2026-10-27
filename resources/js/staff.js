@@ -353,6 +353,7 @@ function staffPlaceGlyph(svg, name, x, y, space, className) {
   group.setAttribute("data-glyph", name);
   group.appendChild(staffSvgEl("path", { d: g.d }));
   svg.appendChild(group);
+  svg._staffLastGlyph = group;
   return g.advance * space;
 }
 
@@ -4574,7 +4575,8 @@ function renderMusicStaff(source, role, opts) {
       right: headLeft + headAdv,
       accLeft: accLeft,
       dotRight: null,
-      step: step
+      step: step,
+      glyph: svg._staffLastGlyph || null
     };
   }
 
@@ -4598,6 +4600,29 @@ function renderMusicStaff(source, role, opts) {
   var colStem = [];
   /* Notehead edges per column, keyed by staff step, so a tie can find its pitch. */
   var headInk = [];
+  /* Pitched heads a mouse or pen can drag. Slashes and rests are not heads. */
+  var pitchHeads = [];
+
+  function staffRememberPitchHead(colIndex, drawn, pitch) {
+    var rx;
+    if (!drawn || !pitch || pitch.head === "slash" || pitch.head === "beat") {
+      return;
+    }
+    rx = drawn.headRx > 0 ? drawn.headRx : noteHeadRx;
+    pitchHeads.push({
+      col: colIndex,
+      step: pitch.step,
+      x: (drawn.left + drawn.right) / 2,
+      y: drawn.ny,
+      rx: rx,
+      ry: noteHeadRy,
+      key: staffTieKey(pitch)
+    });
+    if (drawn.glyph && drawn.glyph.setAttribute) {
+      drawn.glyph.setAttribute("data-pitch-col", String(colIndex));
+      drawn.glyph.setAttribute("data-pitch-step", String(pitch.step));
+    }
+  }
 
   function staffStoreHead(colIndex, step, drawn, dur, slash, key) {
     var box;
@@ -4778,6 +4803,9 @@ function renderMusicStaff(source, role, opts) {
         drawn.dotRight = noteDots[0].dotRight;
       }
       staffStoreHead(e, ev.pitch.step, drawn, ev.duration || "q", isSlash || isBeat, staffTieKey(ev.pitch));
+      if (!isSlash && !isBeat) {
+        staffRememberPitchHead(e, drawn, ev.pitch);
+      }
       var ny = drawn.ny;
       colNy[e] = ny;
       var g = colGroup[e];
@@ -4848,6 +4876,7 @@ function renderMusicStaff(source, role, opts) {
           false,
           staffTieKey(ev.pitches[p])
         );
+        staffRememberPitchHead(e, drawnP, ev.pitches[p]);
         stackHeads.push(stored);
         stackLedger.push({
           x: cx + offsets[p],
@@ -5657,14 +5686,27 @@ function renderMusicStaff(source, role, opts) {
   }
 
   /* Edit preview caret: column centers + staff band (JS property; not in innerHTML). */
+  var pitchHeadSeen = {};
+  var pitchHeadI;
+  var pitchHeadKey;
+  for (pitchHeadI = 0; pitchHeadI < pitchHeads.length; pitchHeadI++) {
+    pitchHeadKey = pitchHeads[pitchHeadI].col + "\0" + pitchHeads[pitchHeadI].key;
+    if (!pitchHeadSeen[pitchHeadKey]) {
+      pitchHeadSeen[pitchHeadKey] = 0;
+    }
+    pitchHeads[pitchHeadI].keyIndex = pitchHeadSeen[pitchHeadKey];
+    pitchHeadSeen[pitchHeadKey] += 1;
+  }
   svg._staffCaretLayout = {
     staffTop: staffTop,
     staffBot: staffTop + staffHeight,
     notesStartX: notesStartX,
     endX: width - padR,
     half: noteHeadRx,
+    lineGap: lineGap,
+    heads: pitchHeads,
     cols: columns.map(function (col, ci) {
-      return { type: col.type, x: colX[ci] };
+      return { type: col.type, x: colX[ci], clef: (col && col.clef) || ast.clef };
     })
   };
 

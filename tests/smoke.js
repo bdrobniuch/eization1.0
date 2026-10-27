@@ -1211,6 +1211,152 @@ function staffEngraving(w) {
       parseFloat(aloneLine.getAttribute("x2")) - parseFloat(aloneLine.getAttribute("x1")) + 4;
   }
   check("a second shares one ledger", secLines.length === 1 && secWide);
+  var dragHeads = w.renderMusicStaff("C4q | D4q", "current");
+  var dragLay = dragHeads && dragHeads._staffCaretLayout;
+  var secondHeads = w.renderMusicStaff("[C4q D4q]", "current");
+  var secondLay = secondHeads && secondHeads._staffCaretLayout;
+  check(
+    "a notehead is recorded on its column",
+    !!(
+      dragLay &&
+      dragLay.heads &&
+      dragLay.heads.length === 2 &&
+      dragLay.heads[0].col === 0 &&
+      dragLay.heads[1].col === 2 &&
+      dragLay.heads[0].key === "C4" &&
+      dragLay.heads[1].key === "D4" &&
+      dragLay.lineGap === 12
+    )
+  );
+  check(
+    "a second records both ovals",
+    !!(
+      secondLay &&
+      secondLay.heads &&
+      secondLay.heads.length === 2 &&
+      secondLay.heads[0].x !== secondLay.heads[1].x
+    )
+  );
+  check(
+    "drag up spells the next staff step",
+    w.editorStaffPitchDragMusic("C4q", "C", [{ start: 0, steps: 1 }]).text === "D4q"
+  );
+  check(
+    "drag keeps a name and a figure",
+    w.editorStaffPitchDragMusic("C5e_1^Cm7", "C", [{ start: 0, steps: 1 }]).text === "D5e_1^Cm7"
+  );
+  check(
+    "drag in G spells F sharp",
+    w.editorStaffPitchDragMusic("E4q", "G", [{ start: 0, steps: 1 }]).text === "F#4q"
+  );
+  check(
+    "a sharp does not travel with the head",
+    w.editorStaffPitchDragMusic("F#4q", "G", [{ start: 0, steps: 1 }]).text === "G4q"
+  );
+  check(
+    "drag drops a forced accidental",
+    w.editorStaffPitchDragMusic("C4q!", "C", [{ start: 0, steps: 1 }]).text === "D4q"
+  );
+  check(
+    "drag pulls the other end of a tie",
+    w.editorStaffPitchDragMusic("C4q~ C4q", "C", [{ start: 0, steps: 1 }]).text === "D4q~ D4q"
+  );
+  check(
+    "zero steps leaves the line",
+    w.editorStaffPitchDragMusic("Fn4q", "G", [{ start: 0, steps: 0 }]).text === "Fn4q" &&
+      !w.editorStaffPitchDragMusic("Fn4q", "G", [{ start: 0, steps: 0 }]).changed
+  );
+  var chordDrag = w.editorStaffPitchTry(
+    {
+      originMusic: "[C4q E4q G4q]",
+      keyName: "C",
+      caption: "",
+      captionOk: true,
+      targets: [
+        {
+          start: 5,
+          originStep: w.STAFF_LETTER_STEPS.E + 4 * 7,
+          blocked: { 32: true }
+        }
+      ]
+    },
+    2
+  );
+  check("a chord tone will not sit on another note", chordDrag.text === "[C4q F4q G4q]");
+  var chordJump = w.editorStaffPitchTry(
+    {
+      originMusic: "[C4q E4q G4q]",
+      keyName: "C",
+      caption: "",
+      captionOk: true,
+      primaryStart: 5,
+      targets: [
+        {
+          start: 5,
+          originStep: w.STAFF_LETTER_STEPS.E + 4 * 7,
+          blocked: { 32: true }
+        }
+      ]
+    },
+    3
+  );
+  check("a chord tone jumps past the note in the way", chordJump.text === "[C4q A4q G4q]");
+  var wallDrag = w.editorStaffPitchTry(
+    {
+      originMusic: "C4q B9q",
+      keyName: "C",
+      caption: "",
+      captionOk: true,
+      targets: [
+        { start: 0, originStep: 4 * 7, blocked: null },
+        { start: 4, originStep: w.STAFF_LETTER_STEPS.B + 9 * 7, blocked: null }
+      ]
+    },
+    1
+  );
+  check("a selection stops when one note is at the top", wallDrag.text === "C4q B9q");
+  check(
+    "staff help mentions the mouse drag",
+    w.I18N.en["edit.staffHelpLead"].indexOf("drag a notehead up or down") >= 0 &&
+      w.I18N.en["edit.staffHelpLead"].indexOf("click to place a note") >= 0 &&
+      w.I18N.es["edit.staffHelpLead"].indexOf("arrastra una cabeza") >= 0
+  );
+  check(
+    "a pitch drag keeps the next example",
+    w.editorStaffSpliceMusic("C4e_1 D4e_2\nE4q", 0, "C4e_1 D4e_2".length, "C4e_1 D4e_2", "C4e_1 G4e_2") ===
+      "C4e_1 G4e_2\nE4q"
+  );
+  check(
+    "a ghost note lands between two notes",
+    w.editorStaffGhostInsertMusic("C4q D4q", 1, "E4q").text === "C4q E4q D4q"
+  );
+  check(
+    "a ghost note can join a chord",
+    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "G4q").text === "[C4q E4q G4q]"
+  );
+  check(
+    "a ghost note will not repeat a chord tone",
+    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "E4q") === null
+  );
+  var tagged = w.renderMusicStaff("C4q", "current");
+  check(
+    "a notehead can be colored without a ring",
+    !!(tagged && tagged.querySelector("[data-pitch-col][data-glyph]"))
+  );
+  var flagged = w.renderMusicStaff("C4e", "current");
+  var flaggedHead = flagged && flagged.querySelector("[data-pitch-col]");
+  var flaggedHome = flaggedHead && flaggedHead.nextSibling;
+  if (flagged && flaggedHead) {
+    w.editorStaffLiftPitchHead(flagged, flaggedHead);
+  }
+  check(
+    "a blue head sits in front of its flag",
+    !!(flaggedHead && flaggedHead === flagged.lastChild && flagged.querySelector('[data-glyph="flag8thUp"], [data-glyph="flag8thDown"]'))
+  );
+  if (flaggedHead) {
+    w.editorStaffDropPitchHead(flaggedHead);
+  }
+  check("the head returns behind its flag", !!(flaggedHead && flaggedHead.nextSibling === flaggedHome));
   var wholeLed = w.renderMusicStaff("C6w", "current");
   var quarterLed = w.renderMusicStaff("C6q", "current");
   function staffWidestLedger(svg) {
@@ -4796,9 +4942,14 @@ function chatCase(w) {
         y = (layout.staffTop + layout.staffBot) / 2;
         fire("pointerdown", w.editorStaffCaretX(layout, layout.cols.length), 1);
         fire("pointerup", w.editorStaffCaretX(layout, layout.cols.length), 0);
+        if (focusLine.value === "C4 D4 E4") {
+          return false;
+        }
+        poke(w.document.querySelector("#editNoteHistory [data-undo]"));
         if (focusLine.value !== "C4 D4 E4") {
           return false;
         }
+        w.editorPlaceCaret(focusLine, focusLine.value.length, focusLine.value.length, true);
         var pasteAt = screenAt(w.editorStaffCaretX(layout, layout.cols.length));
         preview.dispatchEvent(
           new w.MouseEvent("contextmenu", {
