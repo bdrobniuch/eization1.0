@@ -7541,6 +7541,15 @@ function editorIsMusicEraseToken(tok) {
   return false;
 }
 
+/* ( 3 { [ and a tuplet number are not notes. Backspace must not punch one of them out. */
+function editorEraseSkipsToken(tok) {
+  tok = String(tok || "");
+  if (tok === "(" || tok === ")" || tok === "{" || tok === "}" || tok === "[" || tok === "]") {
+    return true;
+  }
+  return /^\d{1,2}(:\d{1,2})?$/.test(tok);
+}
+
 function editorStackAffixEnd(line, afterBracket) {
   var best = afterBracket;
   var k;
@@ -7939,8 +7948,11 @@ function editorStaffEraseTarget() {
       kind: "token"
     };
   }
-  /* Same event Acc/Dur would rewrite — one resolver for mark grain + erase. */
+  /* A caret on (3, {, or [ is not a note. Deleting that mark would not draw. */
   current = editorCurrentEventAtCaret();
+  if (current && editorEraseSkipsToken(current.token)) {
+    return null;
+  }
   if (current) {
     start = current.start;
     end = current.end;
@@ -19178,7 +19190,10 @@ function initEditor() {
     host.addEventListener("pointerdown", function (event) {
       var button = event.target.closest("button");
       var swallowClick;
-      if (!button || !host.contains(button) || button.disabled) {
+      if (!button || !host.contains(button)) {
+        return;
+      }
+      if (button.disabled && !(button.hasAttribute("data-erase") && editorCanErase())) {
         return;
       }
       event.preventDefault();

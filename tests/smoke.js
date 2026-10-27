@@ -5617,6 +5617,35 @@ function chatCase(w) {
     placeCaret("(3 {[C4e E4e]})");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase clears a triplet that held only a chord", focusLine.value === "");
+    (function () {
+      var twin = "(3 {G4e A4e}) (3 {G4e A4e C5e}) C5e";
+      var at;
+      placeCaret(twin);
+      w.editorPlaceCaret(focusLine, 0, 0, true);
+      poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+      check(
+        "erase at the start of a line leaves the opening tuplet",
+        focusLine.value === twin &&
+          w.document.getElementById("editError").textContent !== w.t("edit.refuseDraw")
+      );
+      at = twin.indexOf("(3", 1);
+      w.editorPlaceCaret(focusLine, at, at, true);
+      poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+      check(
+        "erase just before the next tuplet peels the previous note",
+        focusLine.value === "(3 {G4e}) (3 {G4e A4e C5e}) C5e" &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+      placeCaret(twin);
+      at = twin.indexOf("G4e");
+      w.editorPlaceCaret(focusLine, at + 1, at + 1, true);
+      poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+      check(
+        "erase on the first note of a tuplet removes that note",
+        /^\(3 \{\s*A4e\}\) \(3 \{G4e A4e C5e\}\) C5e$/.test(focusLine.value) &&
+          !!w.parseMusicNotation(focusLine.value)
+      );
+    })();
     placeCaret("(3 C4e D4e E4e)");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase after a tuplet peels the last inner note", focusLine.value === "(3 C4e D4e)");
