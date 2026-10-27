@@ -5601,9 +5601,22 @@ function chatCase(w) {
     );
     placeCaret("[C4 E4]^C");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
-    check("erase after a stack peels the last pitch", focusLine.value === "[C4]^C");
+    check("erase removes a stacked chord in one tap", focusLine.value === "");
+    placeCaret("{C4e [E4e G4e]}");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
-    check("erase removes the last stack pitch with its shell", focusLine.value === "");
+    check(
+      "erase removes a stacked chord and keeps the beam",
+      focusLine.value === "{C4e}" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 {C4e [E4e G4e]})");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase removes a stacked chord and keeps the triplet",
+      focusLine.value === "(3 {C4e})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 {[C4e E4e]})");
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase clears a triplet that held only a chord", focusLine.value === "");
     placeCaret("(3 C4e D4e E4e)");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("erase after a tuplet peels the last inner note", focusLine.value === "(3 C4e D4e)");

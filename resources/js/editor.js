@@ -7727,6 +7727,26 @@ function editorStaffGroupShellTarget(line, g) {
   return { start: start, end: end, token: line.slice(g.open, g.closeEnd), kind: "token" };
 }
 
+/* Smallest stack whose brackets contain at. A chord is one attack. */
+function editorInnermostStackContaining(groups, at) {
+  var i;
+  var g;
+  var best = null;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== "stack") {
+      continue;
+    }
+    if (at < g.open || at >= g.closeEnd) {
+      continue;
+    }
+    if (!best || g.closeEnd - g.open < best.closeEnd - best.open) {
+      best = g;
+    }
+  }
+  return best;
+}
+
 /*
  * Climb to the outermost {} / [] / (N…) that still has no music beyond
  * optional onlySpan (the note about to be peeled). Collapses (3 {}) in one erase.
@@ -7766,9 +7786,10 @@ function editorOutermostCollapsibleGroup(line, groups, inner, onlySpan) {
 }
 
 /*
- * On a drawn staff, Erase after } ] ) peels the last inner event for {}, [],
- * and (N…). The last note (or an empty shell) clears nested empty parents in
- * one tap — so (3 {}) and (3 {F#4s}) do not leave a bare (3).
+ * On a drawn staff, Erase after } ] ) peels the last inner event for {} and
+ * (N…). A stack goes in one tap — pitches, brackets, and the name — because
+ * the staff draws it as one attack. The last note (or an empty shell) clears
+ * nested empty parents in one tap — so (3 {}) and (3 {F#4s}) do not leave a bare (3).
  */
 function editorStaffGroupEraseTarget(line, rel) {
   var groups;
@@ -7776,6 +7797,7 @@ function editorStaffGroupEraseTarget(line, rel) {
   var i;
   var music;
   var last;
+  var stack;
   var start;
   var end;
   var onCloser;
@@ -7827,11 +7849,19 @@ function editorStaffGroupEraseTarget(line, rel) {
     }
     return null;
   }
+  /* A chord is one column. Backspace removes it, not the last pitch that was typed. */
+  if (g.kind === "stack" && (onCloser || inside || rel === g.closeEnd)) {
+    return editorStaffGroupShellTarget(line, g);
+  }
   /* Peel last inner even while the line is pending — recovery for stuck shells. */
   if (!onCloser) {
     return null;
   }
   last = music[music.length - 1];
+  stack = editorInnermostStackContaining(groups, last.start);
+  if (stack && stack.open >= g.open && stack.closeEnd <= g.closeEnd) {
+    return editorStaffGroupShellTarget(line, stack);
+  }
   /* Last music event: drop the shell (and empty nested parents) in one tap. */
   if (music.length === 1) {
     clear = editorOutermostCollapsibleGroup(line, groups, g, last);
