@@ -3285,13 +3285,26 @@ body.is-editing #counter {
   fill: #2f6eb4;
 }
 
+#editPreview.is-staff .staff-pitch-drag-line {
+  stroke: #2f6eb4;
+  stroke-width: 1.15;
+}
+
 #editPreview.is-staff .staff-pitch-ghost {
-  fill: rgba(17, 17, 17, 0.35);
+  fill: rgba(17, 17, 17, 0.22);
+}
+
+#editPreview.is-staff .staff-pitch-ghost.is-ready {
+  fill: rgba(17, 17, 17, 0.55);
 }
 
 #editPreview.is-staff .staff-pitch-ghost-line {
-  stroke: rgba(17, 17, 17, 0.35);
+  stroke: rgba(17, 17, 17, 0.22);
   stroke-width: 1.15;
+}
+
+#editPreview.is-staff .staff-pitch-ghost-line.is-ready {
+  stroke: rgba(17, 17, 17, 0.55);
 }
 
 /* A real selection in the example field. Stronger than the token under the caret. */

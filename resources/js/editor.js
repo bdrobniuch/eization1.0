@@ -99,7 +99,7 @@ var editorPadRefuseHint = "";
 var editorStaffDrag = null;
 /* Notehead under a mouse or pen: col + staff step. dragging means a pitch drag is in hand. */
 var editorStaffPitchHot = null;
-/* Gray note about to be placed. Notes only; rests and slashes stay on their buttons. */
+/* Gray note about to be placed. It appears only during a vertical drag. */
 var editorStaffGhost = null;
 var EDITOR_STAFF_DRAG_SLOP = 6;
 /* Finger this close to the preview's left or right edge scrolls the staff while selecting. */
@@ -4616,6 +4616,9 @@ function editorStaffPitchDragArm(drag) {
   line = plan.originMusic + plan.caption;
   plan.captionOk = editorLineMusicOk(line);
   drag.pitch = plan;
+  if (drag.layout && drag.layout.cols && drag.layout.cols[drag.pitchHead.col]) {
+    drag.pitchClef = drag.layout.cols[drag.pitchHead.col].clef || drag.pitchClef;
+  }
   editorStaffPitchHot = {
     col: drag.pitchHead.col,
     step: drag.pitchHead.step,
@@ -4624,43 +4627,268 @@ function editorStaffPitchDragArm(drag) {
   return true;
 }
 
-function editorStaffPitchDragMove(drag, clientY) {
+/* Staff steps the pointer has traveled. Screen pixels, so a redraw does not jump the note. */
+function editorStaffPitchDragDelta(drag, event) {
+  var hit;
+  var gap;
+  var scale;
+  var ctm;
+  var px;
+  gap = drag && drag.layoutLineGap > 0 ? drag.layoutLineGap : 12;
+  scale = 1;
+  hit = editorStaffPreviewHitContext(event);
+  if (hit && hit.svg && typeof hit.svg.getScreenCTM === "function") {
+    ctm = hit.svg.getScreenCTM();
+    if (ctm && Math.abs(ctm.d) > 0) {
+      scale = Math.abs(ctm.d);
+    }
+  }
+  px = (gap / 2) * scale;
+  if (!(px > 0)) {
+    px = gap / 2;
+  }
+  return Math.round(((drag && drag.startY) - (event && event.clientY)) / px);
+}
+
+function editorStaffShiftPitchHead(node, y) {
+  var raw;
+  var found;
+  var scaleAt;
+  if (!node) {
+    return;
+  }
+  if (node._pitchDragTransform == null) {
+    node._pitchDragTransform = node.getAttribute("transform") || "";
+  }
+  raw = node._pitchDragTransform;
+  found = /translate\(\s*([-0-9.eE+]+)\s*,\s*([-0-9.eE+]+)\s*\)/.exec(raw);
+  if (!found) {
+    return;
+  }
+  scaleAt = raw.indexOf("scale(");
+  node.setAttribute(
+    "transform",
+    "translate(" + found[1] + "," + y + ")" + (scaleAt >= 0 ? " " + raw.slice(scaleAt) : "")
+  );
+}
+
+function editorStaffPitchDragLedger(svg, x, halfW, y) {
+  var line;
+  line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("class", "staff-pitch-drag-line");
+  line.setAttribute("x1", String(x - halfW));
+  line.setAttribute("x2", String(x + halfW));
+  line.setAttribute("y1", String(y));
+  line.setAttribute("y2", String(y));
+  line.setAttribute("pointer-events", "none");
+  svg.appendChild(line);
+}
+
+/* Slide the grabbed heads to the snapped step. The example stays put until release. */
+function editorStaffPitchDragSlide(drag, result) {
+  var preview;
+  var svg;
+  var layout;
+  var moves;
+  var byStart;
+  var heads;
+  var i;
+  var head;
+  var pitch;
+  var move;
+  var node;
+  var col;
+  var clef;
+  var gap;
+  var y;
+  var bottom;
+  var top;
+  var s;
+  var lineY;
+  preview = document.getElementById("editPreview");
+  svg = preview && preview.querySelector("svg.music-staff");
+  layout = (drag && drag.layout) || (preview && preview._staffCaretLayout);
+  if (!svg || !layout || !drag) {
+    return;
+  }
+  editorClearStaffCue(svg, ".staff-pitch-drag-line");
+  moves = (result && result.moves) || [];
+  byStart = {};
+  for (i = 0; i < moves.length; i++) {
+    byStart[moves[i].start] = moves[i];
+  }
+  heads = layout.heads || [];
+  gap = drag.layoutLineGap > 0 ? drag.layoutLineGap : 12;
+  for (i = 0; i < heads.length; i++) {
+    head = heads[i];
+    pitch = editorStaffColumnPitch(drag.music, head);
+    move = pitch ? byStart[pitch.start] : null;
+    if (!move) {
+      continue;
+    }
+    node = svg.querySelector(
+      '[data-pitch-col="' + head.col + '"][data-pitch-step="' + head.step + '"]'
+    );
+    if (!node) {
+      continue;
+    }
+    col = layout.cols[head.col];
+    clef = (col && col.clef) || drag.pitchClef || "treble";
+    y = typeof staffPitchY === "function" ? staffPitchY(move.landing, clef, layout.staffTop, gap) : head.y;
+    editorStaffShiftPitchHead(node, y);
+    node.classList.add("is-pitch-drag");
+    editorStaffLiftPitchHead(svg, node);
+    if (typeof staffBottomLineStep !== "function" || typeof staffPitchY !== "function") {
+      continue;
+    }
+    bottom = staffBottomLineStep(clef);
+    top = bottom + 8;
+    if (move.landing > top) {
+      for (s = top + 2; s <= move.landing; s += 2) {
+        lineY = staffPitchY(s, clef, layout.staffTop, gap);
+        editorStaffPitchDragLedger(svg, head.x, head.rx > 0 ? head.rx : 6, lineY);
+      }
+    } else if (move.landing < bottom) {
+      for (s = bottom - 2; s >= move.landing; s -= 2) {
+        lineY = staffPitchY(s, clef, layout.staffTop, gap);
+        editorStaffPitchDragLedger(svg, head.x, head.rx > 0 ? head.rx : 6, lineY);
+      }
+    }
+  }
+  preview.classList.add("is-pitch-drag");
+  preview.classList.add("is-pitch-hot");
+}
+
+function editorStaffPitchDragMove(drag, event) {
   var plan;
-  var half;
   var delta;
   var result;
+  plan = drag && drag.pitch;
+  if (!plan || !event) {
+    return;
+  }
+  delta = editorStaffPitchDragDelta(drag, event);
+  if (delta === plan.lastDelta) {
+    return;
+  }
+  plan.lastDelta = delta;
+  result = editorStaffPitchTry(plan, delta);
+  plan.pending = result;
+  editorStaffPitchDragApply(drag, result);
+}
+
+/* Draw the whole staff at this pitch, stems and beams included. */
+function editorStaffPitchDragApply(drag, result) {
+  var plan;
   var preview;
-  var end;
+  var landing;
+  var i;
   var reps;
+  var end;
+  plan = drag && drag.pitch;
+  if (!plan || !result) {
+    return;
+  }
+  if (result.text !== plan.liveMusic) {
+    if (result.text !== plan.originMusic) {
+      editorStaffPitchDragRememberUndo(plan);
+    } else {
+      editorStaffPitchDragForgetUndo(plan);
+    }
+    if (!editorStaffPitchDragWrite(drag, plan, result.text)) {
+      return;
+    }
+    plan.liveMusic = result.text;
+    reps = result.reps || [];
+    if (plan.keepSelection && plan.originCaret) {
+      editorPlaceCaret(
+        drag.field,
+        editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.start, reps),
+        editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.end, reps),
+        true
+      );
+    } else if (result.text !== plan.originMusic) {
+      end = drag.lineStart + drag.musicAt + editorMapTransposeIndex(plan.primaryEnd, reps);
+      end = editorGluedTailEnd(String(drag.field.value || ""), end);
+      editorPlaceCaret(drag.field, end, end, true);
+    }
+  }
+  landing = plan.head.step;
+  if (result.moves) {
+    for (i = 0; i < result.moves.length; i++) {
+      if (result.moves[i].start === plan.primaryStart) {
+        landing = result.moves[i].landing;
+      }
+    }
+  }
+  drag.repainting = true;
+  refreshEditor();
+  drag.repainting = false;
+  preview = document.getElementById("editPreview");
+  if (preview) {
+    drag.layout = preview._staffCaretLayout || drag.layout;
+  }
+  editorStaffPitchHot = { col: plan.head.col, step: landing, dragging: true };
+  editorPaintStaffPitchHot(preview);
+  if (preview) {
+    preview.classList.add("is-pitch-drag");
+    preview.classList.add("is-pitch-hot");
+    editorStaffPreviewCapture(preview, drag.pointerId);
+  }
+}
+
+/* The step under the pointer, before a chord or a tie pulls it back. */
+function editorStaffPitchDragFollow(plan, delta) {
+  var moves = [];
+  var i;
+  var target;
+  var landing;
+  if (!plan || !plan.targets) {
+    return moves;
+  }
+  for (i = 0; i < plan.targets.length; i++) {
+    target = plan.targets[i];
+    landing = target.originStep + (delta || 0);
+    if (landing < 0) {
+      landing = 0;
+    }
+    if (landing > 69) {
+      landing = 69;
+    }
+    moves.push({
+      start: target.start,
+      steps: landing - target.originStep,
+      landing: landing
+    });
+  }
+  return moves;
+}
+
+/* Write the pitch the head was holding. One undo for the whole drag. */
+function editorStaffPitchDragFinish(drag) {
+  var plan;
+  var result;
+  var reps;
+  var end;
   plan = drag && drag.pitch;
   if (!plan) {
     return;
   }
-  half = plan.lineGap > 0 ? plan.lineGap / 2 : 6;
-  delta = Math.round((drag.startY - clientY) / half);
-  if (delta === plan.lastDelta) {
+  result = plan.pending || editorStaffPitchTry(plan, plan.lastDelta || 0);
+  if (!result || result.text === plan.originMusic) {
+    if (plan.lastDelta) {
+      editorRefuse(t("edit.refuseSamePitch"));
+      editorPaintNotePad();
+    }
     return;
   }
-  result = editorStaffPitchTry(plan, delta);
-  plan.lastDelta = delta;
-  if (!result || result.text === plan.liveMusic) {
-    return;
-  }
-  if (result.text !== plan.originMusic) {
-    editorStaffPitchDragRememberUndo(plan);
-  } else {
-    editorStaffPitchDragForgetUndo(plan);
-  }
+  editorStaffPitchDragRememberUndo(plan);
   if (!editorStaffPitchDragWrite(drag, plan, result.text)) {
+    editorStaffPitchDragForgetUndo(plan);
     return;
   }
   plan.liveMusic = result.text;
   reps = result.reps || [];
-  editorStaffPitchHot = {
-    col: plan.head.col,
-    step: editorStaffPitchPrimaryLanding(plan, result.moves),
-    dragging: true
-  };
   if (plan.keepSelection && plan.originCaret) {
     editorPlaceCaret(
       drag.field,
@@ -4672,11 +4900,6 @@ function editorStaffPitchDragMove(drag, clientY) {
     end = drag.lineStart + drag.musicAt + editorMapTransposeIndex(plan.primaryEnd, reps);
     end = editorGluedTailEnd(String(drag.field.value || ""), end);
     editorPlaceCaret(drag.field, end, end, true);
-  }
-  preview = document.getElementById("editPreview");
-  if (preview) {
-    preview.classList.add("is-pitch-drag");
-    preview.classList.add("is-pitch-hot");
   }
   refreshEditor();
 }
@@ -4738,34 +4961,6 @@ function editorStaffClefNear(layout, x) {
     return clef;
   }
   return typeof editorClefName === "function" ? editorClefName() : "treble";
-}
-
-/* A stack column under the pointer, or -1 when the pointer is in a gap. */
-function editorStaffStackColumnNear(layout, x) {
-  var cols;
-  var reach;
-  var i;
-  var d;
-  var best;
-  var bestD;
-  cols = (layout && layout.cols) || [];
-  reach = ((layout && layout.half) || 6) * 2.4;
-  best = -1;
-  bestD = Infinity;
-  for (i = 0; i < cols.length; i++) {
-    if (!cols[i] || cols[i].type !== "stack") {
-      continue;
-    }
-    d = Math.abs((cols[i].x || 0) - x);
-    if (d < bestD) {
-      bestD = d;
-      best = i;
-    }
-  }
-  if (best >= 0 && bestD <= reach) {
-    return best;
-  }
-  return -1;
 }
 
 function editorStaffGhostToken(spelled, suffix) {
@@ -4846,7 +5041,7 @@ function editorStaffGhostStackMusic(music, colStart, token) {
     if (pitch.start <= colStart || pitch.start >= close) {
       continue;
     }
-    if (pitch.letter === letter && pitch.oct === oct) {
+    if (editorTieKey(pitch.letter, pitch.acc, pitch.oct) === editorTieKey(letter, head[2] || "", oct)) {
       return null;
     }
   }
@@ -4974,10 +5169,7 @@ function editorPaintStaffGhost(preview) {
   if (!ghost || !layout || typeof staffPlaceGlyph !== "function") {
     return;
   }
-  dur = editorDurCode(editorNote.dur) || "q";
-  if (editorNote.dot) {
-    dur += editorNote.dots === 2 ? ".." : ".";
-  }
+  dur = ghost.dur || "q";
   name = typeof staffDurationGlyph === "function" ? staffDurationGlyph(dur) : "noteheadBlack";
   adv = typeof staffGlyphAdvance === "function" ? staffGlyphAdvance(name, ghost.lineGap || 12) : 12;
   left = ghost.x - adv / 2;
@@ -4988,7 +5180,7 @@ function editorPaintStaffGhost(preview) {
     for (s = top + 2; s <= ghost.step; s += 2) {
       y = typeof staffPitchY === "function" ? staffPitchY(s, ghost.clef, layout.staffTop, ghost.lineGap) : 0;
       line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("class", "staff-pitch-ghost-line");
+      line.setAttribute("class", "staff-pitch-ghost-line is-ready");
       line.setAttribute("x1", String(ghost.x - half));
       line.setAttribute("x2", String(ghost.x + half));
       line.setAttribute("y1", String(y));
@@ -5000,7 +5192,7 @@ function editorPaintStaffGhost(preview) {
     for (s = bottom - 2; s >= ghost.step; s -= 2) {
       y = typeof staffPitchY === "function" ? staffPitchY(s, ghost.clef, layout.staffTop, ghost.lineGap) : 0;
       line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("class", "staff-pitch-ghost-line");
+      line.setAttribute("class", "staff-pitch-ghost-line is-ready");
       line.setAttribute("x1", String(ghost.x - half));
       line.setAttribute("x2", String(ghost.x + half));
       line.setAttribute("y1", String(y));
@@ -5009,7 +5201,136 @@ function editorPaintStaffGhost(preview) {
       svg.appendChild(line);
     }
   }
-  staffPlaceGlyph(svg, name, left, ghost.y, ghost.lineGap || 12, "staff-pitch-ghost");
+  staffPlaceGlyph(svg, name, left, ghost.y, ghost.lineGap || 12, "staff-pitch-ghost is-ready");
+}
+
+function editorStaffPitchColumnNear(layout, x) {
+  var cols;
+  var reach;
+  var i;
+  var d;
+  var best;
+  var bestD;
+  cols = (layout && layout.cols) || [];
+  reach = ((layout && layout.half) || 6) * 1.05;
+  best = -1;
+  bestD = Infinity;
+  for (i = 0; i < cols.length; i++) {
+    if (!cols[i] || (cols[i].type !== "note" && cols[i].type !== "stack")) {
+      continue;
+    }
+    d = Math.abs((cols[i].x || 0) - x);
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  if (best < 0 || bestD > reach) {
+    return -1;
+  }
+  return best;
+}
+
+function editorStaffBeamOpen(music, index) {
+  var depth;
+  var i;
+  music = String(music || "");
+  if (index > music.length) {
+    index = music.length;
+  }
+  depth = 0;
+  for (i = 0; i < index; i++) {
+    if (music.charAt(i) === "{") {
+      depth += 1;
+    } else if (music.charAt(i) === "}") {
+      depth = depth > 0 ? depth - 1 : 0;
+    }
+  }
+  return depth > 0;
+}
+
+/* A new note inside a beam has to be an eighth or a sixteenth. */
+function editorStaffGhostGapSuffix(music, index) {
+  var suffix;
+  var base;
+  var dots;
+  suffix = editorPitchSuffix();
+  if (!editorStaffBeamOpen(music, index)) {
+    return suffix;
+  }
+  base = String(suffix || "").replace(/\./g, "");
+  if (base === "e" || base === "s") {
+    return suffix;
+  }
+  dots = suffix.indexOf("..") >= 0 ? ".." : suffix.indexOf(".") >= 0 ? "." : "";
+  return "e" + dots;
+}
+
+/* A plain note becomes a stack. Null when that letter and octave are already the note. */
+function editorStaffGhostMorphMusic(music, colStart, spelled) {
+  var end;
+  var raw;
+  var closers;
+  var body;
+  var head;
+  var letter;
+  var oct;
+  var suffix;
+  var neu;
+  var wrapped;
+  music = String(music || "");
+  end = editorMusicColumnContentEnd(music, colStart);
+  raw = music.slice(colStart, end);
+  closers = "";
+  body = raw;
+  while (body.length && (body.charAt(body.length - 1) === "}" || body.charAt(body.length - 1) === ")")) {
+    closers = body.charAt(body.length - 1) + closers;
+    body = body.slice(0, -1);
+  }
+  head = typeof EDITOR_PITCH_HEAD !== "undefined" ? EDITOR_PITCH_HEAD.exec(body) : null;
+  if (!head || !spelled) {
+    return null;
+  }
+  letter = head[1].toUpperCase();
+  oct = parseInt(head[3], 10);
+  if (editorTieKey(letter, head[2] || "", oct) === editorTieKey(spelled.letter, spelled.acc, spelled.oct)) {
+    return null;
+  }
+  suffix = (head[4] || "") + (head[5] || "");
+  neu = spelled.letter + (spelled.acc || "") + String(spelled.oct) + suffix;
+  wrapped = "[" + body + " " + neu + "]" + closers;
+  return {
+    text: music.slice(0, colStart) + wrapped + music.slice(end),
+    caret: colStart + wrapped.length - closers.length
+  };
+}
+
+function editorStaffNoteDurSuffix(music, colStart) {
+  var scanned;
+  var i;
+  var pitch;
+  scanned = editorScanTranspose(music);
+  for (i = 0; i < scanned.pitches.length; i++) {
+    pitch = scanned.pitches[i];
+    if (pitch.start === colStart) {
+      return (pitch.dur || "") + (pitch.dots || "");
+    }
+  }
+  return editorPitchSuffix();
+}
+
+function editorStaffGhostDurSuffix(hit, stackCol, noteCol) {
+  var starts;
+  var at;
+  starts = editorStaffColumnStarts(hit.music);
+  if (stackCol >= 0 && typeof starts[stackCol] === "number") {
+    return editorStaffStackDurSuffix(hit.music, starts[stackCol]) || "q";
+  }
+  if (noteCol >= 0 && typeof starts[noteCol] === "number") {
+    return editorStaffNoteDurSuffix(hit.music, starts[noteCol]) || "q";
+  }
+  at = editorMusicCaretFromInsertIndex(hit.music, hit.insertIndex);
+  return editorStaffGhostGapSuffix(hit.music, at) || "q";
 }
 
 function editorStaffGhostAt(hit) {
@@ -5018,10 +5339,12 @@ function editorStaffGhostAt(hit) {
   var gap;
   var step;
   var raw;
-  var stackCol;
-  var x;
   var y;
   var band;
+  var col;
+  var stackCol;
+  var noteCol;
+  var x;
   if (!hit || !hit.layout || typeof hit.localY !== "number") {
     return null;
   }
@@ -5040,9 +5363,15 @@ function editorStaffGhostAt(hit) {
   } else {
     step = raw;
   }
-  stackCol = editorStaffStackColumnNear(layout, hit.localX);
-  if (stackCol >= 0 && layout.cols[stackCol]) {
-    x = layout.cols[stackCol].x;
+  col = editorStaffPitchColumnNear(layout, hit.localX);
+  stackCol = -1;
+  noteCol = -1;
+  if (col >= 0 && layout.cols[col] && layout.cols[col].type === "stack") {
+    stackCol = col;
+    x = layout.cols[col].x;
+  } else if (col >= 0 && layout.cols[col]) {
+    noteCol = col;
+    x = layout.cols[col].x;
   } else {
     x = editorStaffCaretX(layout, hit.insertIndex);
     if (x == null || isNaN(x)) {
@@ -5057,12 +5386,13 @@ function editorStaffGhostAt(hit) {
     clef: clef,
     lineGap: gap,
     insertIndex: hit.insertIndex,
-    stackCol: stackCol
+    stackCol: stackCol,
+    noteCol: noteCol,
+    dur: editorStaffGhostDurSuffix(hit, stackCol, noteCol)
   };
 }
 
-function editorStaffGhostPlace(hit) {
-  var ghost;
+function editorStaffGhostPlace(hit, ghost) {
   var spelled;
   var keyName;
   var token;
@@ -5072,10 +5402,16 @@ function editorStaffGhostPlace(hit) {
   var nextValue;
   var line;
   var newSliceLen;
-  if (!hit || editorStaffPreviewHead(hit)) {
+  var stackAt;
+  if (!hit) {
     return false;
   }
-  ghost = editorStaffGhostAt(hit);
+  if (!ghost) {
+    if (editorStaffPreviewHead(hit)) {
+      return false;
+    }
+    ghost = editorStaffGhostAt(hit);
+  }
   if (!ghost) {
     return false;
   }
@@ -5085,8 +5421,8 @@ function editorStaffGhostPlace(hit) {
   if (!spelled) {
     return false;
   }
-  var stackAt = ghost.stackCol >= 0 ? editorStaffColumnStarts(hit.music)[ghost.stackCol] : -1;
-  if (ghost.stackCol >= 0 && typeof stackAt === "number") {
+  if (ghost.stackCol >= 0 && typeof editorStaffColumnStarts(hit.music)[ghost.stackCol] === "number") {
+    stackAt = editorStaffColumnStarts(hit.music)[ghost.stackCol];
     token = editorStaffGhostToken(spelled, editorStaffStackDurSuffix(hit.music, stackAt));
     built = editorStaffGhostStackMusic(hit.music, stackAt, token);
     if (!built) {
@@ -5096,8 +5432,20 @@ function editorStaffGhostPlace(hit) {
     }
     music = built.text;
     caretAt = built.caret;
+  } else if (ghost.noteCol >= 0 && typeof editorStaffColumnStarts(hit.music)[ghost.noteCol] === "number") {
+    built = editorStaffGhostMorphMusic(hit.music, editorStaffColumnStarts(hit.music)[ghost.noteCol], spelled);
+    if (!built) {
+      editorRefuse(t("edit.refuseSamePitch"));
+      editorPaintNotePad();
+      return true;
+    }
+    music = built.text;
+    caretAt = built.caret;
   } else {
-    token = editorStaffGhostToken(spelled);
+    token = editorStaffGhostToken(
+      spelled,
+      editorStaffGhostGapSuffix(hit.music, editorMusicCaretFromInsertIndex(hit.music, ghost.insertIndex))
+    );
     built = editorStaffGhostInsertMusic(hit.music, ghost.insertIndex, token);
     music = built.text;
     caretAt = built.caret;
@@ -5123,7 +5471,7 @@ function editorStaffGhostPlace(hit) {
 
 function editorStaffPitchHotHide() {
   var preview;
-  if (editorStaffDrag && editorStaffDrag.mode === "pitch") {
+  if (editorStaffDrag && (editorStaffDrag.mode === "pitch" || editorStaffDrag.mode === "place")) {
     return;
   }
   editorStaffPitchHot = null;
@@ -5155,32 +5503,19 @@ function editorStaffPreviewHover(event) {
   preview = document.getElementById("editPreview");
   hit = editorStaffPreviewHitContext(event);
   head = editorStaffPreviewHead(hit);
-  if (!head || !preview || !editorSymbolsIsOpen()) {
-    if (preview && hit && editorStaffFinePointer(event) && editorSymbolsIsOpen()) {
-      var nextGhost = editorStaffGhostAt(hit);
-      editorStaffPitchHot = null;
+  editorStaffGhost = null;
+  if (preview) {
+    preview.classList.remove("is-pitch-ghost");
+    editorPaintStaffGhost(preview);
+  }
+  if (!head || !preview) {
+    editorStaffPitchHot = null;
+    if (preview) {
       preview.classList.remove("is-pitch-hot");
       editorPaintStaffPitchHot(preview);
-      if (
-        editorStaffGhost &&
-        nextGhost &&
-        editorStaffGhost.step === nextGhost.step &&
-        editorStaffGhost.x === nextGhost.x &&
-        editorStaffGhost.stackCol === nextGhost.stackCol
-      ) {
-        return;
-      }
-      editorStaffGhost = nextGhost;
-      preview.classList.toggle("is-pitch-ghost", !!editorStaffGhost);
-      editorPaintStaffGhost(preview);
-      return;
     }
-    editorStaffPitchHotHide();
     return;
   }
-  editorStaffGhost = null;
-  preview.classList.remove("is-pitch-ghost");
-  editorPaintStaffGhost(preview);
   if (
     editorStaffPitchHot &&
     !editorStaffPitchHot.dragging &&
@@ -5196,6 +5531,54 @@ function editorStaffPreviewHover(event) {
 
 function editorStaffPreviewPointerLeave() {
   editorStaffPitchHotHide();
+}
+
+function editorStaffPlaceDragMove(drag, event) {
+  var hit;
+  var ghost;
+  var raw;
+  var step;
+  var preview;
+  ghost = editorStaffGhost || (drag && drag.placeSeed);
+  if (!ghost) {
+    return;
+  }
+  hit = editorStaffPreviewHitContext(event);
+  if (hit && hit.layout) {
+    raw = editorStaffStepFromY(hit.localY, ghost.clef, hit.layout.staffTop, ghost.lineGap || 12);
+    if (raw < 0) {
+      step = 0;
+    } else if (raw > 69) {
+      step = 69;
+    } else {
+      step = raw;
+    }
+    ghost.step = step;
+    ghost.y = typeof staffPitchY === "function"
+      ? staffPitchY(step, ghost.clef, hit.layout.staffTop, ghost.lineGap || 12)
+      : hit.localY;
+  }
+  editorStaffGhost = ghost;
+  preview = document.getElementById("editPreview");
+  if (preview) {
+    preview.classList.add("is-pitch-ghost");
+    editorPaintStaffGhost(preview);
+  }
+}
+
+function editorStaffPlaceDragFinish(drag) {
+  var hit;
+  if (!drag || !editorStaffGhost) {
+    return false;
+  }
+  hit = {
+    field: drag.field,
+    lineStart: drag.lineStart,
+    lineEnd: drag.lineEnd,
+    musicAt: drag.musicAt,
+    music: drag.music
+  };
+  return editorStaffGhostPlace(hit, editorStaffGhost);
 }
 
 function editorStaffPreviewPointerDown(event) {
@@ -5217,6 +5600,8 @@ function editorStaffPreviewPointerDown(event) {
     startColumn: hit.columnIndex,
     startX: event.clientX,
     startY: event.clientY,
+    startLocalY: hit.localY,
+    layout: hit.layout,
     lastX: event.clientX,
     lastY: event.clientY,
     dragging: false,
@@ -5228,7 +5613,10 @@ function editorStaffPreviewPointerDown(event) {
     lineStart: hit.lineStart,
     lineEnd: hit.lineEnd,
     musicAt: hit.musicAt,
-    music: hit.music
+    music: hit.music,
+    placeSeed: editorStaffFinePointer(event) && editorSymbolsIsOpen() && !editorStaffPreviewHead(hit)
+      ? editorStaffGhostAt(hit)
+      : null
   };
 }
 
@@ -5251,14 +5639,22 @@ function editorStaffPreviewPointerMove(event) {
     }
     editorStaffPreviewClearClipHold();
     drag.dragging = true;
+    drag.notesWereOpen = editorSymbolsIsOpen();
     editorStaffPreviewBeginEdit();
     preview = document.getElementById("editPreview");
     editorStaffPreviewCapture(preview, event.pointerId);
-    /* A clearly vertical move on a notehead retunes. Sideways still selects. */
+    /* A clearly vertical move on a notehead retunes. A vertical move elsewhere writes. */
     if (drag.pitchHead && dy * dy > dx * dx && editorStaffPitchDragArm(drag)) {
       drag.mode = "pitch";
       if (preview) {
         preview.classList.add("is-pitch-drag");
+      }
+    } else if (drag.placeSeed && drag.notesWereOpen && editorStaffFinePointer(event) && dy * dy > dx * dx) {
+      drag.mode = "place";
+      editorStaffGhost = drag.placeSeed;
+      if (preview) {
+        preview.classList.add("is-pitch-ghost");
+        editorPaintStaffGhost(preview);
       }
     } else {
       drag.mode = "select";
@@ -5266,7 +5662,14 @@ function editorStaffPreviewPointerMove(event) {
     }
   }
   if (drag.mode === "pitch") {
-    editorStaffPitchDragMove(drag, event.clientY);
+    editorStaffPitchDragMove(drag, event);
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    return;
+  }
+  if (drag.mode === "place") {
+    editorStaffPlaceDragMove(drag, event);
     if (event.cancelable) {
       event.preventDefault();
     }
@@ -5300,6 +5703,12 @@ function editorStaffPreviewPointerUp(event) {
   if (drag.mode === "pitch") {
     editorStaffDrag = null;
     editorStaffPitchHot = null;
+    editorStaffPitchDragFinish(drag);
+    preview = document.getElementById("editPreview");
+    if (!drag.pitch || drag.pitch.liveMusic === drag.pitch.originMusic) {
+      refreshEditor();
+      preview = document.getElementById("editPreview");
+    }
     if (preview) {
       preview.classList.remove("is-pitch-drag");
       preview.classList.remove("is-pitch-hot");
@@ -5315,29 +5724,26 @@ function editorStaffPreviewPointerUp(event) {
     }
     return;
   }
-  editorStaffDrag = null;
-  var notesWereOpen = editorSymbolsIsOpen();
-  editorStaffPreviewBeginEdit();
-  hit = editorStaffPreviewHitContext(event);
-  /* Opening Write notes pushes the staff down. That click only opens it. */
-  if (
-    notesWereOpen &&
-    !drag.dragging &&
-    !drag.pitchHead &&
-    editorStaffFinePointer(event) &&
-    hit &&
-    editorStaffGhostPlace(hit)
-  ) {
+  if (drag.mode === "place") {
+    editorStaffDrag = null;
+    editorStaffPlaceDragFinish(drag);
+    editorStaffGhost = null;
+    if (preview) {
+      preview.classList.remove("is-pitch-ghost");
+      editorPaintStaffGhost(preview);
+    }
     editorStaffGestureMarkSeen();
     editorBeginPadInput();
     editorPaintNotePad();
     editorSyncTokenHighlight();
-    editorStaffPreviewHover(event);
     if (event.cancelable) {
       event.preventDefault();
     }
     return;
   }
+  editorStaffDrag = null;
+  editorStaffPreviewBeginEdit();
+  hit = editorStaffPreviewHitContext(event);
   if (hit) {
     drag.music = hit.music;
     drag.musicAt = hit.musicAt;
@@ -5387,11 +5793,21 @@ function editorStaffPreviewPointerCancel(event) {
   }
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
+  if (drag.mode === "place") {
+    editorStaffGhost = null;
+  }
+  if (drag.repainting) {
+    return;
+  }
   if (drag.mode === "pitch") {
     editorStaffPitchDragRevert(drag);
   }
   editorStaffDrag = null;
   preview = document.getElementById("editPreview");
+  if (preview) {
+    preview.classList.remove("is-pitch-ghost");
+    editorPaintStaffGhost(preview);
+  }
   if (preview && event && typeof preview.releasePointerCapture === "function" && event.pointerId != null) {
     try {
       if (preview.hasPointerCapture && preview.hasPointerCapture(event.pointerId)) {
@@ -13034,6 +13450,51 @@ function editorTieKey(letter, acc, oct) {
   return String(letter || "").toUpperCase() + norm + String(oct);
 }
 
+/* A chord may hold C and C#. Refuse only a copy this edit newly creates. */
+function editorStackRewriteCollides(pitches, spelled) {
+  var before = {};
+  var after = {};
+  var i;
+  var pitch;
+  var spell;
+  var id;
+  var key;
+  var was;
+  for (i = 0; i < pitches.length; i++) {
+    pitch = pitches[i];
+    if (!pitch || !pitch.stack) {
+      continue;
+    }
+    id = String(pitch.stack);
+    if (!before[id]) {
+      before[id] = {};
+      after[id] = {};
+    }
+    key = editorTieKey(pitch.letter, pitch.acc, pitch.oct);
+    before[id][key] = (before[id][key] || 0) + 1;
+    spell = spelled && spelled[i];
+    if (spell) {
+      key = editorTieKey(spell.letter, spell.acc, spell.oct);
+    }
+    after[id][key] = (after[id][key] || 0) + 1;
+  }
+  for (id in after) {
+    if (!Object.prototype.hasOwnProperty.call(after, id)) {
+      continue;
+    }
+    for (key in after[id]) {
+      if (!Object.prototype.hasOwnProperty.call(after[id], key)) {
+        continue;
+      }
+      was = (before[id] && before[id][key]) || 0;
+      if (after[id][key] > 1 && after[id][key] > was) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /*
  * Rewrite the named pitch heads. A tie copies that spelling onto the other end
  * so the two attacks stay the same pitch. reps use the original music offsets.
@@ -13124,22 +13585,8 @@ function editorApplyPitchSpelling(music, seeds, opts) {
       pull(after, before);
     }
   }
-  seen = {};
-  for (i = 0; i < pitches.length; i++) {
-    if (!pitches[i].stack) {
-      continue;
-    }
-    written = spelled[i]
-      ? editorTieKey(spelled[i].letter, spelled[i].acc, spelled[i].oct)
-      : editorTieKey(pitches[i].letter, pitches[i].acc, pitches[i].oct);
-    stackKey = String(pitches[i].stack);
-    if (!seen[stackKey]) {
-      seen[stackKey] = {};
-    }
-    if (seen[stackKey][written]) {
-      return { ok: false, reason: "stack", text: music, changed: false, reps: [] };
-    }
-    seen[stackKey][written] = true;
+  if (editorStackRewriteCollides(pitches, spelled)) {
+    return { ok: false, reason: "stack", text: music, changed: false, reps: [] };
   }
   reps = [];
   for (i = 0; i < pitches.length; i++) {
@@ -15731,6 +16178,18 @@ function editorTransposeMusic(text, semitones, majorKey, range) {
   }
   seen = {};
   for (i = 0; i < pitches.length; i++) {
+    if (!pitches[i].stack) {
+      continue;
+    }
+    stackKey = String(pitches[i].stack);
+    abs = editorPitchAbs(pitches[i].letter, pitches[i].acc, pitches[i].oct);
+    if (!seen[stackKey]) {
+      seen[stackKey] = {};
+    }
+    seen[stackKey][abs] = (seen[stackKey][abs] || 0) + 1;
+  }
+  after = {};
+  for (i = 0; i < pitches.length; i++) {
     abs = editorPitchAbs(pitches[i].letter, pitches[i].acc, pitches[i].oct);
     if (include[i]) {
       pitches[i].spelled = editorSpellAbs(abs + semitones, flats);
@@ -15743,13 +16202,23 @@ function editorTransposeMusic(text, semitones, majorKey, range) {
       continue;
     }
     stackKey = String(pitches[i].stack);
-    if (!seen[stackKey]) {
-      seen[stackKey] = {};
+    if (!after[stackKey]) {
+      after[stackKey] = {};
     }
-    if (seen[stackKey][abs]) {
-      return { ok: false, reason: "stack", text: text, changed: false, selStart: 0, selEnd: 0 };
+    after[stackKey][abs] = (after[stackKey][abs] || 0) + 1;
+  }
+  for (stackKey in after) {
+    if (!Object.prototype.hasOwnProperty.call(after, stackKey)) {
+      continue;
     }
-    seen[stackKey][abs] = true;
+    for (abs in after[stackKey]) {
+      if (!Object.prototype.hasOwnProperty.call(after[stackKey], abs)) {
+        continue;
+      }
+      if (after[stackKey][abs] > 1 && after[stackKey][abs] > ((seen[stackKey] && seen[stackKey][abs]) || 0)) {
+        return { ok: false, reason: "stack", text: text, changed: false, selStart: 0, selEnd: 0 };
+      }
+    }
   }
   reps = [];
   anchors = [];

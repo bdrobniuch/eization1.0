@@ -1317,9 +1317,10 @@ function staffEngraving(w) {
   check("a selection stops when one note is at the top", wallDrag.text === "C4q B9q");
   check(
     "staff help mentions the mouse drag",
-    w.I18N.en["edit.staffHelpLead"].indexOf("drag a notehead up or down") >= 0 &&
-      w.I18N.en["edit.staffHelpLead"].indexOf("click to place a note") >= 0 &&
-      w.I18N.es["edit.staffHelpLead"].indexOf("arrastra una cabeza") >= 0
+    w.I18N.en["edit.staffHelpLead"].indexOf("drag up or down in a gap") >= 0 &&
+      w.I18N.en["edit.staffHelpLead"].indexOf("slide that note") >= 0 &&
+      w.I18N.es["edit.staffHelpLead"].indexOf("arrastra arriba o abajo") >= 0 &&
+      w.I18N.es["edit.staffHelpLead"].indexOf("en una cabeza") >= 0
   );
   check(
     "a pitch drag keeps the next example",
@@ -1337,6 +1338,41 @@ function staffEngraving(w) {
   check(
     "a ghost note will not repeat a chord tone",
     w.editorStaffGhostStackMusic("[C4q E4q]", 0, "E4q") === null
+  );
+  check(
+    "a sharp can sit beside its natural",
+    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "C#4q").text === "[C4q E4q C#4q]"
+  );
+  check(
+    "a sharp rewrites one note of a chord",
+    w.editorApplyPitchSpelling("[C4q E4q]", [{ start: 1, letter: "C", acc: "#", oct: 4 }]).text === "[C#4q E4q]"
+  );
+  check(
+    "an octave moves a chord",
+    w.editorApplyPitchSpelling("[C4q E4q]", [
+      { start: 1, letter: "C", acc: "", oct: 5 },
+      { start: 5, letter: "E", acc: "", oct: 5 }
+    ]).text === "[C5q E5q]"
+  );
+  var morphed = w.editorStaffGhostMorphMusic("C4e_1", 0, { letter: "G", acc: "", oct: 4 });
+  check("a note becomes a stack", !!(morphed && morphed.text === "[C4e_1 G4e]"));
+  check(
+    "the same pitch is not stacked on itself",
+    w.editorStaffGhostMorphMusic("G4e", 0, { letter: "G", acc: "", oct: 4 }) === null
+  );
+  w.editorNote.dur = "";
+  w.editorNote.dot = false;
+  check("a note inside a beam is an eighth", w.editorStaffGhostGapSuffix("{C4e D4e}", 6) === "e");
+  check(
+    "a gap between close stacks stays a gap",
+    w.editorStaffPitchColumnNear(
+      { half: 6, cols: [{ type: "stack", x: 0 }, { type: "stack", x: 28 }] },
+      14
+    ) === -1 &&
+      w.editorStaffPitchColumnNear(
+        { half: 6, cols: [{ type: "note", x: 0 }, { type: "note", x: 28 }] },
+        1
+      ) === 0
   );
   var tagged = w.renderMusicStaff("C4q", "current");
   check(
@@ -2883,6 +2919,7 @@ function chatCase(w) {
       symbolsPanel.querySelector("[data-dur='w']") &&
       symbolsPanel.querySelector("[data-dot]") &&
       !symbolsPanel.querySelector("[data-dur='e.']") &&
+      !symbolsPanel.querySelector("[data-pencil]") &&
       symbolsPanel.querySelector("[data-move-by='1']") &&
       symbolsPanel.querySelector("[data-move-by='-1']") &&
       symbolsPanel.querySelector("[data-move-menu]") &&
@@ -4060,6 +4097,182 @@ function chatCase(w) {
       }
     })();
     (function () {
+      var preview;
+      var svg;
+      var layout;
+      var ctm;
+      var pt;
+      var id;
+      function ready() {
+        w.editorOpenSymbols();
+        w.editorNote.dur = "";
+        w.editorNote.dot = false;
+        w.editorNote.dots = 0;
+        w.editorNote.acc = "";
+        w.editorStaffDrag = null;
+        w.refreshEditor();
+        preview = w.document.getElementById("editPreview");
+        svg = preview && preview.querySelector("svg.music-staff");
+        layout = preview && preview._staffCaretLayout;
+        ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (!svg || !layout || !ctm || typeof svg.createSVGPoint !== "function") {
+          return false;
+        }
+        pt = svg.createSVGPoint();
+        return true;
+      }
+      function fire(type, x, sy, buttons, kind) {
+        var screen;
+        pt.x = x;
+        pt.y = sy;
+        screen = pt.matrixTransform(ctm);
+        preview.dispatchEvent(
+          new w.PointerEvent(type, {
+            clientX: screen.x,
+            clientY: screen.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: id,
+            pointerType: kind || "mouse",
+            button: 0,
+            buttons: buttons
+          })
+        );
+      }
+      function spelledAt(x, sy) {
+        var clef = w.editorStaffClefNear(layout, x);
+        var step = w.editorStaffStepFromY(sy, clef, layout.staffTop, layout.lineGap || 12);
+        var keyName = w.editorStaffPitchKeyName(w.itemToLine(focusLine.value));
+        if (step < 0) {
+          step = 0;
+        } else if (step > 69) {
+          step = 69;
+        }
+        return w.editorSpellStaffStep(step, keyName);
+      }
+      id = 77;
+      placeCaret("C4q D4q");
+      if (!ready()) {
+        check("a click in a gap does not write a note", false);
+        check("a vertical drag writes a note in the gap", false);
+        check("a finger drag does not write a note", false);
+        check("a drag above a note adds a chord tone", false);
+        return;
+      }
+      var gapX = w.editorStaffCaretX(layout, 1);
+      var mid = (layout.staffTop + layout.staffBot) / 2;
+      fire("pointerdown", gapX, mid, 1, "mouse");
+      fire("pointerup", gapX, mid, 0, "mouse");
+      check("a click in a gap does not write a note", focusLine.value === "C4q D4q");
+      if (!ready()) {
+        check("a vertical drag writes a note in the gap", false);
+        check("a finger drag does not write a note", false);
+        check("a drag above a note adds a chord tone", false);
+        return;
+      }
+      gapX = w.editorStaffCaretX(layout, 1);
+      mid = (layout.staffTop + layout.staffBot) / 2;
+      var release = mid - (layout.lineGap || 12) * 3;
+      var spelled = spelledAt(gapX, release);
+      var token = spelled ? spelled.letter + (spelled.acc || "") + String(spelled.oct) : "";
+      fire("pointerdown", gapX, mid, 1, "mouse");
+      fire("pointermove", gapX, release, 1, "mouse");
+      fire("pointerup", gapX, release, 0, "mouse");
+      check("a vertical drag writes a note in the gap", !!token && focusLine.value === "C4q " + token + " D4q");
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+      check("undo removes the dragged note", focusLine.value === "C4q D4q");
+      if (!ready()) {
+        check("a finger drag does not write a note", false);
+        check("a drag above a note adds a chord tone", false);
+        return;
+      }
+      gapX = w.editorStaffCaretX(layout, 1);
+      mid = (layout.staffTop + layout.staffBot) / 2;
+      fire("pointerdown", gapX, mid, 1, "touch");
+      fire("pointermove", gapX, mid - (layout.lineGap || 12) * 3, 1, "touch");
+      fire("pointerup", gapX, mid - (layout.lineGap || 12) * 3, 0, "touch");
+      check("a finger drag does not write a note", focusLine.value === "C4q D4q");
+      placeCaret("C4q");
+      if (!ready()) {
+        check("a drag above a note adds a chord tone", false);
+        return;
+      }
+      var head = layout.heads && layout.heads[0];
+      var colX = head ? head.x : layout.cols[0].x;
+      var above = head ? head.y - head.ry - (layout.lineGap || 12) : layout.staffTop - (layout.lineGap || 12);
+      var higher = above - (layout.lineGap || 12) * 2;
+      fire("pointerdown", colX, above, 1, "mouse");
+      fire("pointermove", colX, higher, 1, "mouse");
+      fire("pointerup", colX, higher, 0, "mouse");
+      check(
+        "a drag above a note adds a chord tone",
+        /^\[C4q [A-G][#b]?[0-9]q\]$/.test(focusLine.value)
+      );
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+      placeCaret("C4q");
+      if (!ready()) {
+        check("a dragged note stays put until release", false);
+        check("a dragged note slides while held", false);
+        check("a dragged note lands on release", false);
+        return;
+      }
+      head = layout.heads && layout.heads[0];
+      if (!head) {
+        check("a dragged note stays put until release", false);
+        check("a dragged note slides while held", false);
+        check("a dragged note lands on release", false);
+        return;
+      }
+      var landY = head.y - (layout.lineGap || 12) * 2;
+      fire("pointerdown", head.x, head.y, 1, "mouse");
+      fire("pointermove", head.x, landY, 1, "mouse");
+      check("a dragged note is redrawn while held", focusLine.value === "G4q");
+      svg = preview.querySelector("svg.music-staff");
+      check(
+        "a dragged note keeps its stem",
+        (function () {
+          var headNode;
+          var found;
+          var headY;
+          var lines;
+          var i;
+          var line;
+          var x1;
+          var x2;
+          var y1;
+          var y2;
+          if (!svg) {
+            return false;
+          }
+          headNode = svg.querySelector("[data-pitch-col].is-pitch-drag");
+          found = headNode && /translate\(\s*[-0-9.eE+]+\s*,\s*([-0-9.eE+]+)\s*\)/.exec(headNode.getAttribute("transform") || "");
+          if (!found) {
+            return false;
+          }
+          headY = parseFloat(found[1]);
+          lines = svg.querySelectorAll("line");
+          for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            x1 = parseFloat(line.getAttribute("x1"));
+            x2 = parseFloat(line.getAttribute("x2"));
+            if (Math.abs(x1 - x2) > 0.8) {
+              continue;
+            }
+            y1 = parseFloat(line.getAttribute("y1"));
+            y2 = parseFloat(line.getAttribute("y2"));
+            if (Math.abs(y1 - headY) < 2 || Math.abs(y2 - headY) < 2) {
+              return true;
+            }
+          }
+          return false;
+        })()
+      );
+      fire("pointerup", head.x, landY, 0, "mouse");
+      check("a dragged note lands on release", focusLine.value === "G4q");
+      poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    })();
+    (function () {
       var beforeBars = w.editorReadBars();
       w.editorNudgeBars(1);
       check("bars nudge increases the count", w.editorReadBars() === beforeBars + 1);
@@ -4942,10 +5155,6 @@ function chatCase(w) {
         y = (layout.staffTop + layout.staffBot) / 2;
         fire("pointerdown", w.editorStaffCaretX(layout, layout.cols.length), 1);
         fire("pointerup", w.editorStaffCaretX(layout, layout.cols.length), 0);
-        if (focusLine.value === "C4 D4 E4") {
-          return false;
-        }
-        poke(w.document.querySelector("#editNoteHistory [data-undo]"));
         if (focusLine.value !== "C4 D4 E4") {
           return false;
         }
