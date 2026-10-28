@@ -1360,6 +1360,47 @@ function staffEngraving(w) {
     "the same pitch is not stacked on itself",
     w.editorStaffGhostMorphMusic("G4e", 0, { letter: "G", acc: "", oct: 4 }) === null
   );
+  (function () {
+    var braced = "{A5e}";
+    var events = w.staffInputEvents(braced);
+    var ev = events && events[0];
+    var kept = "C4 {C4e D4e} | {A5e}";
+    var keptEvents = w.staffInputEvents(kept);
+    var last = keptEvents && keptEvents[keptEvents.length - 1];
+    var chord = last && w.editorStaffGhostMorphMusic(kept, last.contentStart, { letter: "G", acc: "", oct: 5 });
+    var tuplet = "(3 {D4e E4e D4e})";
+    var tupletEvents = w.staffInputEvents(tuplet);
+    var glued = tupletEvents && tupletEvents[tupletEvents.length - 1];
+    var beside = w.editorStaffGhostInsertMusic("C4 {A5e}", 2, "D4e");
+    check(
+      "a one-note beam records the braces outside the note",
+      !!(ev && braced.slice(ev.contentStart, ev.contentEnd) === "A5e" && braced.slice(ev.open, ev.close) === "{A5e}")
+    );
+    check(
+      "a glued tuplet closer stays outside the note",
+      !!(
+        tupletEvents &&
+        tupletEvents.length === 3 &&
+        glued &&
+        tuplet.slice(glued.contentStart, glued.contentEnd) === "D4e" &&
+        tuplet.charAt(glued.contentEnd) === "}" &&
+        glued.close > glued.contentEnd
+      )
+    );
+    check(
+      "dragging a braced head keeps the braces and the neighbors",
+      !!(
+        chord &&
+        chord.text.indexOf("C4 {C4e D4e}") === 0 &&
+        chord.text.indexOf("{[A5e G5e]}") >= 0 &&
+        !!w.parseMusicNotation(chord.text)
+      )
+    );
+    check(
+      "a gap drag does not leave a closer on the note",
+      !!(beside && !/(^|\s)A5e\}/.test(beside.text) && beside.text.indexOf("{A5e}") >= 0)
+    );
+  })();
   w.editorNote.dur = "";
   w.editorNote.dot = false;
   check("a note inside a beam is an eighth", w.editorStaffGhostGapSuffix("{C4e D4e}", 6) === "e");
@@ -3657,6 +3698,52 @@ function chatCase(w) {
     w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e"), true);
     w.editorStaffSweepAfterEdit();
     check("leaving a one-note beam drops the braces", focusLine.value === "C4e D4e");
+    (function () {
+      var source = "F5' C5e Ab4e G4e F4e (3 {D4e E4e D4e}) | rq. A4e B4e C5e D5 | {A5e}";
+      function insertAt(marker, letter) {
+        var at;
+        placeCaret(source);
+        w.editorNote.dur = "e";
+        w.editorNote.dot = false;
+        w.editorNote.dots = 0;
+        w.editorNote.acc = "";
+        w.editorNote.oct = null;
+        if (marker) {
+          at = focusLine.value.indexOf(marker) + marker.length;
+        } else {
+          at = focusLine.value.length;
+        }
+        w.editorPlaceCaret(focusLine, at, at, true);
+        w.editorWriteLetter(letter);
+        return focusLine.value;
+      }
+      var afterD5 = insertAt("D5", "A");
+      var afterTuplet = insertAt("D4e})", "B");
+      var afterBeam = insertAt("", "C");
+      var followed = w.editorStaffGhostInsertMusic(afterBeam, w.editorStaffColumnStarts(afterBeam).length, "E5e");
+      check(
+        "button inserts do not glue the beam closer",
+        !/(^|\s)A5e\}/.test(afterD5) &&
+          !/(^|\s)A5e\}/.test(afterTuplet) &&
+          !/(^|\s)A5e\}/.test(afterBeam) &&
+          !!w.parseMusicNotation(afterD5) &&
+          !!w.parseMusicNotation(afterTuplet) &&
+          !!w.parseMusicNotation(afterBeam)
+      );
+      check(
+        "a button then a gap keeps a drawable line",
+        !!(followed && !/(^|\s)A5e\}/.test(followed.text) && !!w.parseMusicNotation(followed.text))
+      );
+      placeCaret("C4 | {A5e}");
+      w.refreshEditor();
+      w.editorStaffPreviewApplyCaret(focusLine, 0, 0, "C4 | {A5e}", 0, { reenter: true, undo: false });
+      check(
+        "a caret move that unwraps repaints the columns",
+        focusLine.value === "C4 | A5e" &&
+          w.document.getElementById("editPreview")._staffCaretLayout &&
+          w.document.getElementById("editPreview")._staffCaretLayout.music === "C4 | A5e"
+      );
+    })();
     check(
       "beam joins notes with the beam beside them",
       (function () {
@@ -6163,6 +6250,8 @@ function chatCase(w) {
         pendingPreview.classList.contains("is-staff") &&
         pendingPreview.classList.contains("is-staff-pending") &&
         pendingPreview.querySelector("svg.music-staff") &&
+        !pendingPreview._staffCaretLayout &&
+        !w.editorStaffPreviewHitContext({ clientX: 0, clientY: 0 }) &&
         !pendingPreview.querySelector(".edit-staff-pending-cue") &&
         faultChip &&
         !faultChip.hidden &&

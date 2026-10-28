@@ -1961,6 +1961,7 @@ function refreshEditor() {
     if (enteringPending) {
       editorStaffPendingUndoHinted = false;
     }
+    preview._staffCaretLayout = null;
     editorUpdateStaffCaretMark();
   } else {
     editorStaffPendingLine = null;
@@ -2278,6 +2279,9 @@ function editorPaintStaffPreview(preview, music, caption) {
   meterOpts = editorPreviewMeterOpts();
   svg = renderMusicStaff(music || "", "current", meterOpts);
   if (svg) {
+    if (svg._staffCaretLayout) {
+      svg._staffCaretLayout.music = String(music || "");
+    }
     preview._staffCaretLayout = svg._staffCaretLayout || null;
     box = (svg.getAttribute("viewBox") || "").split(/\s+/);
     w = parseFloat(box[2]);
@@ -2411,6 +2415,10 @@ function editorStaffTupletOpenerTok(tok) {
  * notes/rests/stacks/similes/bars; beams expand; tuplets flatten.
  */
 function editorStaffColumnStarts(music) {
+  var liveStarts = editorStaffLiveColumnStarts(music);
+  if (liveStarts) {
+    return liveStarts;
+  }
   var ranges = editorMusicTokenRanges(music);
   var starts = [];
   var i = 0;
@@ -2768,7 +2776,113 @@ function editorStaffColumnIndexFromX(layout, x) {
 }
 
 /* End of the drawn column's token (stack through ]), no trailing space. */
+/* Drawn attacks for a line that parses. Null keeps the text scanner for a pending line. */
+function editorStaffLiveEvents(music) {
+  if (typeof staffInputEvents !== "function") {
+    return null;
+  }
+  return staffInputEvents(String(music || ""));
+}
+
+function editorStaffLiveColumnStarts(music) {
+  var events = editorStaffLiveEvents(music);
+  var starts = [];
+  var i;
+  if (!events || !events.length) {
+    return null;
+  }
+  for (i = 0; i < events.length; i++) {
+    if (typeof events[i].contentStart !== "number") {
+      return null;
+    }
+    starts.push(events[i].contentStart);
+  }
+  return starts;
+}
+
+function editorStaffLiveContentEnd(music, colStart) {
+  var events = editorStaffLiveEvents(music);
+  var i;
+  if (!events) {
+    return null;
+  }
+  for (i = 0; i < events.length; i++) {
+    if (events[i].contentStart === colStart) {
+      return events[i].contentEnd;
+    }
+  }
+  return null;
+}
+
+/* The attack whose body or closers contain rel. The opener before the body is not the note. */
+function editorStaffAttackAt(music, rel) {
+  var events = editorStaffLiveEvents(music);
+  var i;
+  var ev;
+  var tail = null;
+  if (!events) {
+    return null;
+  }
+  for (i = 0; i < events.length; i++) {
+    ev = events[i];
+    if (rel >= ev.contentStart && rel <= ev.contentEnd) {
+      return ev;
+    }
+    if (rel > ev.contentEnd && rel <= ev.close && (!tail || ev.contentEnd >= tail.contentEnd)) {
+      tail = ev;
+    }
+  }
+  return tail;
+}
+
+/* One-attack shells the caret has left. The note text is the body, not a respelling. */
+function editorStaffOneAttackCuts(line, caretRel) {
+  var events = editorStaffLiveEvents(line);
+  var groups = {};
+  var order = [];
+  var cuts = [];
+  var i;
+  var ev;
+  var key;
+  var g;
+  if (!events) {
+    return null;
+  }
+  for (i = 0; i < events.length; i++) {
+    ev = events[i];
+    if (!ev || ev.open === ev.contentStart && ev.close === ev.contentEnd) {
+      continue;
+    }
+    key = String(ev.open) + ":" + String(ev.close);
+    if (!groups[key]) {
+      groups[key] = { open: ev.open, close: ev.close, attacks: [] };
+      order.push(key);
+    }
+    groups[key].attacks.push(ev);
+  }
+  for (i = 0; i < order.length; i++) {
+    g = groups[order[i]];
+    if (g.attacks.length !== 1) {
+      continue;
+    }
+    if (caretRel >= g.open && caretRel < g.close) {
+      continue;
+    }
+    ev = g.attacks[0];
+    cuts.push({
+      start: g.open,
+      end: g.close,
+      rep: line.slice(ev.contentStart, ev.contentEnd)
+    });
+  }
+  return cuts;
+}
+
 function editorMusicColumnContentEnd(music, colStart) {
+  var liveEnd = editorStaffLiveContentEnd(music, colStart);
+  if (typeof liveEnd === "number") {
+    return liveEnd;
+  }
   var ranges = editorMusicTokenRanges(music);
   var i;
   var t;
@@ -2915,12 +3029,21 @@ function editorStaffPreviewHitContext(event) {
   if (!event || !preview || !editorIsOpen() || !editorStaffOn()) {
     return null;
   }
-  if (!preview.classList.contains("is-staff")) {
+  if (!preview.classList.contains("is-staff") || preview.classList.contains("is-staff-pending")) {
     return null;
   }
   svg = preview.querySelector("svg.music-staff");
   layout = preview._staffCaretLayout || (svg && svg._staffCaretLayout) || null;
   if (!svg || !layout) {
+    return null;
+  }
+  span = editorLineSpan();
+  if (!span || !span.field) {
+    return null;
+  }
+  line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
+  mapped = editorMusicCaretInLine(line, span.caret - span.lineStart);
+  if (layout.music != null && mapped.music !== layout.music) {
     return null;
   }
   if (typeof svg.createSVGPoint !== "function" || typeof svg.getScreenCTM !== "function") {
@@ -2934,12 +3057,6 @@ function editorStaffPreviewHitContext(event) {
   pt.x = event.clientX;
   pt.y = event.clientY;
   local = pt.matrixTransform(ctm.inverse());
-  span = editorLineSpan();
-  if (!span || !span.field) {
-    return null;
-  }
-  line = itemToLine(span.value.slice(span.lineStart, span.lineEnd));
-  mapped = editorMusicCaretInLine(line, span.caret - span.lineStart);
   musicAt = String(line || "").indexOf(mapped.music);
   if (musicAt < 0) {
     musicAt = 0;
@@ -2974,13 +3091,19 @@ function editorStaffPreviewBeginEdit() {
 
 /* Collapsed pad caret at a drawn insert gap (tap). A gap that holds an empty shell re-enters it. */
 function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIndex, opts) {
+  var before;
   var a;
   if (!field) {
     return;
   }
+  before = String(field.value || "");
   a = lineStart + musicAt + editorMusicCaretFromInsertIndex(String(music || ""), insertIndex);
   a = editorStaffSettleLeftovers(field, lineStart, musicAt, String(music || ""), a, opts || { reenter: true });
   editorPlaceCaret(field, a, a, true);
+  /* Unwrapping a one-note shell changes the line. Repaint so the next click uses the new columns. */
+  if (String(field.value || "") !== before) {
+    refreshEditor();
+  }
 }
 
 /* Select every drawn column from colA through colB (inclusive). */
@@ -3152,6 +3275,7 @@ function editorStaffSettleLeftovers(field, lineStart, musicAt, music, fieldCaret
   var cuts;
   var cut;
   var rep;
+  var onlyEmpty;
   var nextLine;
   var nextRel;
   var pos;
@@ -3233,26 +3357,33 @@ function editorStaffSettleLeftovers(field, lineStart, musicAt, music, fieldCaret
   guard = 0;
   while (guard < 8) {
     guard += 1;
-    groups = editorFindBalancedGroups(nextLine);
-    cuts = [];
-    for (i = 0; i < groups.length; i++) {
-      g = groups[i];
-      if (!editorStaffShellIsDisposable(nextLine, g)) {
-        continue;
+    cuts = editorStaffOneAttackCuts(nextLine, nextRel);
+    if (!cuts || !cuts.length) {
+      groups = editorFindBalancedGroups(nextLine);
+      onlyEmpty = !!cuts;
+      cuts = [];
+      for (i = 0; i < groups.length; i++) {
+        g = groups[i];
+        if (!editorStaffShellIsDisposable(nextLine, g)) {
+          continue;
+        }
+        if (editorStaffCaretInsideGroup(nextRel, g)) {
+          continue;
+        }
+        if (onlyEmpty && g.kind !== "stack" && editorStaffGroupAttackCount(nextLine, g) >= 1) {
+          continue;
+        }
+        if (g.kind === "stack" || editorStaffGroupAttackCount(nextLine, g) < 1) {
+          rep = "";
+        } else {
+          rep = nextLine.slice(g.innerStart, g.innerEnd).replace(/^\s+|\s+$/g, "");
+        }
+        cut = { start: g.open, end: g.closeEnd, rep: rep };
+        if (!rep && cut.start > 0 && /\s/.test(nextLine.charAt(cut.start - 1))) {
+          cut.start -= 1;
+        }
+        cuts.push(cut);
       }
-      if (editorStaffCaretInsideGroup(nextRel, g)) {
-        continue;
-      }
-      if (g.kind === "stack" || editorStaffGroupAttackCount(nextLine, g) < 1) {
-        rep = "";
-      } else {
-        rep = nextLine.slice(g.innerStart, g.innerEnd).replace(/^\s+|\s+$/g, "");
-      }
-      cut = { start: g.open, end: g.closeEnd, rep: rep };
-      if (!rep && cut.start > 0 && /\s/.test(nextLine.charAt(cut.start - 1))) {
-        cut.start -= 1;
-      }
-      cuts.push(cut);
     }
     if (!cuts.length) {
       break;
@@ -5473,6 +5604,7 @@ function editorStaffGhostPlace(hit, ghost) {
   caretAt = hit.lineStart + (hit.musicAt || 0) + caretAt;
   editorPlaceCaret(hit.field, caretAt, caretAt, true);
   editorStaffGhost = null;
+  editorStaffSweepAfterEdit();
   refreshEditor();
   return true;
 }
@@ -6216,6 +6348,10 @@ function editorPadSymbolGaps(text, caretBack) {
 function editorInsertSymbol(text, caretBack) {
   var padded = editorPadSymbolGaps(text, caretBack);
   insertEditorText(padded.text, padded.caretBack);
+  if (editorStaffOn()) {
+    editorStaffSweepAfterEdit();
+    refreshEditor();
+  }
 }
 
 function editorDurCode(dur) {
@@ -6585,6 +6721,57 @@ function editorWordBoundsAt(line, rel) {
  * Pitch or rhythm under the caret (field coords). Prefers the token at/after
  * a column start so Acc/Dur match Erase and the insertion mark.
  */
+function editorStaffContentHit(field, line, lineStart, rel, caret) {
+  var mapped;
+  var musicAt;
+  var ev;
+  var token;
+  var pitchM;
+  var rhythmM;
+  var hit;
+  mapped = editorMusicCaretInLine(itemToLine(line), rel);
+  if (!mapped.music) {
+    return null;
+  }
+  ev = editorStaffAttackAt(mapped.music, mapped.caret);
+  if (!ev || ev.kind === "barline" || ev.kind === "simile") {
+    return null;
+  }
+  musicAt = String(line || "").indexOf(mapped.music);
+  if (musicAt < 0) {
+    musicAt = 0;
+  }
+  token = mapped.music.slice(ev.contentStart, ev.contentEnd);
+  pitchM = /^([A-G](?:##|bb|x|X|#|b|n)?\d(?:[whqesn]\.{0,2}|\.)?)((?:[\^_']|[>\-])[^\s]*)?$/.exec(token);
+  if (pitchM) {
+    hit = editorParsePitchToken(pitchM[1]);
+    if (hit) {
+      hit.token = token;
+      hit.affix = pitchM[2] || "";
+      hit.field = field;
+      hit.start = lineStart + musicAt + ev.contentStart;
+      hit.end = lineStart + musicAt + ev.contentEnd;
+      hit.caret = caret;
+      hit.kind = "pitch";
+      return hit;
+    }
+  }
+  rhythmM = /^(\/[whqes]?\.?|r[whqes]?\.?)((?:[\^_']|[>\-])[^\s]*)?$/i.exec(token);
+  if (rhythmM) {
+    hit = editorParseRhythmToken(rhythmM[1]);
+    if (hit) {
+      hit.token = token;
+      hit.affix = rhythmM[2] || "";
+      hit.field = field;
+      hit.start = lineStart + musicAt + ev.contentStart;
+      hit.end = lineStart + musicAt + ev.contentEnd;
+      hit.caret = caret;
+      return hit;
+    }
+  }
+  return null;
+}
+
 function editorMusicHitAtCaret() {
   var field = editorActiveField();
   var value;
@@ -6618,6 +6805,10 @@ function editorMusicHitAtCaret() {
   }
   line = value.slice(lineStart, lineEnd);
   rel = caret - lineStart;
+  hit = editorStaffContentHit(field, line, lineStart, rel, caret);
+  if (hit) {
+    return hit;
+  }
   bounds = editorWordBoundsAt(line, rel);
   if (bounds) {
     spans = editorMusicEventSpans(line.slice(bounds.start, bounds.end));

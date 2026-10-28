@@ -1254,7 +1254,8 @@ function staffTakeBeamStackParts(parts, start, partRanges) {
       pitches: pitches,
       label: aff.label,
       above: aff.above,
-      duration: pitches[0].duration || "q"
+      duration: pitches[0].duration || "q",
+      span: staffJoinPartSpan(partRanges, start, i)
     }
   };
 }
@@ -1327,7 +1328,8 @@ function staffParseBeamInner(inner, clef, partRanges) {
       above: p.above || "",
       duration: p.duration || "q",
       head: p.head || "",
-      articulations: p.articulations || []
+      articulations: p.articulations || [],
+      span: staffRangeSpan(partRanges && partRanges[i])
     });
     p.label = "";
     p.above = "";
@@ -1661,6 +1663,86 @@ function staffBracePartRanges(tokens, ranges, from, to, openCh, closeCh, parts) 
   return locatedRanges;
 }
 
+/* Character span of one attack. Closers stay in close, not in the note body. */
+function staffRangeSpan(range) {
+  if (!range || typeof range.start !== "number" || !(range.end > range.start)) {
+    return null;
+  }
+  return {
+    open: range.start,
+    contentStart: range.start,
+    contentEnd: range.end,
+    close: range.end
+  };
+}
+
+/* A stack inside a beam may cover several whitespace parts. */
+function staffJoinPartSpan(partRanges, from, to) {
+  var a = partRanges && partRanges[from];
+  var b = partRanges && partRanges[to];
+  if (!a || !b || typeof a.start !== "number" || typeof b.end !== "number" || !(b.end > a.start)) {
+    return null;
+  }
+  return {
+    open: a.start,
+    contentStart: a.start,
+    contentEnd: b.end,
+    close: b.end
+  };
+}
+
+function staffSpanHasShell(span) {
+  return !!(span && (span.open < span.contentStart || span.close > span.contentEnd));
+}
+
+function staffApplyShell(leaves, shell) {
+  var i;
+  var span;
+  if (!shell || typeof shell.start !== "number" || !(shell.end > shell.start)) {
+    return;
+  }
+  for (i = 0; i < leaves.length; i++) {
+    span = leaves[i] && leaves[i].span;
+    if (!span || staffSpanHasShell(span)) {
+      continue;
+    }
+    span.open = shell.start;
+    span.close = shell.end;
+  }
+}
+
+function staffCollectLeaves(ev, out) {
+  var i;
+  if (!ev) {
+    return;
+  }
+  if (ev.type === "beam") {
+    for (i = 0; i < (ev.notes || []).length; i++) {
+      staffCollectLeaves(ev.notes[i], out);
+    }
+    return;
+  }
+  if (ev.type === "tuplet") {
+    for (i = 0; i < (ev.events || []).length; i++) {
+      staffCollectLeaves(ev.events[i], out);
+    }
+    return;
+  }
+  out.push(ev);
+}
+
+function staffStampTupletShell(events, ranges, openIndex, closeIndex) {
+  var leaves = [];
+  var i;
+  if (!ranges || !ranges[openIndex] || !ranges[closeIndex]) {
+    return;
+  }
+  for (i = 0; i < events.length; i++) {
+    staffCollectLeaves(events[i], leaves);
+  }
+  staffApplyShell(leaves, { start: ranges[openIndex].start, end: ranges[closeIndex].end });
+}
+
 /*
  * One note, slash, rest, {beam} or [stack] starting at tokens[i].
  * Returns { event, next } or { error, tok }.
@@ -1670,6 +1752,7 @@ function staffParseEventAt(tokens, i, clef, ranges) {
   var tok = tokens[i];
   var rest = staffParseRestToken(tok);
   if (rest) {
+    rest.span = staffRangeSpan(staffSpan(ranges, from));
     return { event: rest, next: i + 1 };
   }
   if (tok.charAt(0) === "{") {
@@ -1715,6 +1798,7 @@ function staffParseEventAt(tokens, i, clef, ranges) {
       return staffFailSpan("bad beam pitches (need e/s notes)", beamInner, groupSpan);
     }
     var beamEv = { type: "beam", notes: beamParsed.notes };
+    staffApplyShell(beamParsed.notes, groupSpan);
     if (beamParsed.tieToNext) {
       beamEv.tieToNext = true;
       if (beamParsed.tieSpan) {
@@ -1762,7 +1846,8 @@ function staffParseEventAt(tokens, i, clef, ranges) {
         pitches: pitches,
         label: stackAff.label,
         above: stackAff.above,
-        duration: pitches.length ? pitches[0].duration || "q" : "q"
+        duration: pitches.length ? pitches[0].duration || "q" : "q",
+        span: staffRangeSpan(stackSpan)
       },
       next: i + 1
     };
@@ -1778,7 +1863,8 @@ function staffParseEventAt(tokens, i, clef, ranges) {
     above: pitch.above || "",
     duration: pitch.duration || "q",
     head: pitch.head || "",
-    articulations: pitch.articulations || []
+    articulations: pitch.articulations || [],
+    span: staffRangeSpan(staffSpan(ranges, from))
   };
   pitch.label = "";
   pitch.above = "";
@@ -1857,6 +1943,7 @@ function staffParseTupletAt(tokens, i, clef, ranges) {
     return staffForwardError(seq);
   }
   var events = seq.events;
+  staffStampTupletShell(events, ranges, i, j);
   var count = 0;
   var k;
   for (k = 0; k < events.length; k++) {
@@ -2046,7 +2133,7 @@ function staffParseSequence(tokens, clef, opts, ranges) {
       if (!opts.allowBarline) {
         return staffFailSpan("simile inside tuplet", tok, staffSpan(ranges, i));
       }
-      var simile = { type: "simile" };
+      var simile = { type: "simile", span: staffRangeSpan(staffSpan(ranges, i)) };
       staffAttachMarks(simile, marks);
       sawMusic = true;
       events.push(simile);
@@ -2074,7 +2161,7 @@ function staffParseSequence(tokens, clef, opts, ranges) {
       if (!opts.allowBarline) {
         return staffFailSpan("barline inside tuplet", tok, staffSpan(ranges, i));
       }
-      events.push({ type: "barline", atClef: clef });
+      events.push({ type: "barline", atClef: clef, span: staffRangeSpan(staffSpan(ranges, i)) });
       i++;
       continue;
     }
@@ -2276,6 +2363,55 @@ function parseMusicNotation(source) {
   };
   staffAstCache.set(cacheKey, ast);
   return ast;
+}
+
+/* Drawn attacks in column order. Null when the line does not draw. Offsets are into the trimmed music. */
+function staffCollectInputEvents(events, out, missing) {
+  var i;
+  var ev;
+  for (i = 0; i < events.length; i++) {
+    ev = events[i];
+    if (!ev) {
+      continue;
+    }
+    if (ev.type === "beam") {
+      staffCollectInputEvents(ev.notes || [], out, missing);
+      continue;
+    }
+    if (ev.type === "tuplet") {
+      staffCollectInputEvents(ev.events || [], out, missing);
+      continue;
+    }
+    if (ev.type === "stack" && (!ev.pitches || !ev.pitches.length)) {
+      continue;
+    }
+    if (!ev.span) {
+      missing.n += 1;
+      continue;
+    }
+    out.push({
+      kind: ev.type,
+      open: ev.span.open,
+      contentStart: ev.span.contentStart,
+      contentEnd: ev.span.contentEnd,
+      close: ev.span.close
+    });
+  }
+}
+
+function staffInputEvents(music) {
+  var ast = parseMusicNotation(music);
+  var missing = { n: 0 };
+  var list;
+  if (!ast) {
+    return null;
+  }
+  list = [];
+  staffCollectInputEvents(ast.events, list, missing);
+  if (missing.n) {
+    return null;
+  }
+  return list;
 }
 
 /*
