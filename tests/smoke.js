@@ -2541,8 +2541,28 @@ function drumCollisionChecks(w) {
   check("an open hat ties to a closed hat", !!w.parseDrumNotation("hhoq~ hhq"));
   check("a kick does not tie to a snare", !w.parseDrumNotation("bdq~ sdq"));
   check("feet sides must match", !w.parseDrumNotation("hhe hhe feet bdq bdq"));
+  drumWriteChecks(w);
   check("a drum exercise stays out of the menu", w.exercises.drumKit && w.exercises.drumKit.inMenu === false && w.menuOrder.indexOf("drumKit") < 0);
   drumPracticeChecks(w);
+}
+
+function drumWriteChecks(w) {
+  var line = "";
+  var i;
+  var joined;
+  var back = "hhe hhe hhe hhe hhe hhe hhe hhe feet bdq rq bdq rq";
+  var stacked = "[hh sd]e hhe hhe hhe hhe hhe hhe hhe feet bdq rq bdq rq";
+  for (i = 0; i < 8; i++) {
+    line = w.drumWriteHit(line, i * 0.5, "hh", "e", "place");
+  }
+  line = w.drumWriteHit(line, 0, "bd", "q", "place");
+  line = w.drumWriteHit(line, 2, "bd", "q", "place");
+  check("a drum beat writes the backbeat", line === back && !!w.parseDrumNotation(line));
+  joined = w.drumWriteHit(back, 0, "sd", "e", "join");
+  check("a drum beat joins the first hat", joined === stacked && !!w.parseDrumNotation(joined));
+  check("removing the snare restores the hats", w.drumWriteHit(joined, 0, "sd", "e", "remove") === back);
+  check("a chart mark stays a caret edit", w.drumWriteHit("^Intro hhe", 0, "sd", "e", "place") === null);
+  check("a flam stays a caret edit", w.drumWriteHit("flam hhe", 0, "sd", "e", "place") === null);
 }
 
 function drumPracticeChecks(w) {
@@ -5167,10 +5187,12 @@ function chatCase(w) {
         if (!arm()) {
           check("a pencil hover shows the drum on that line", false);
           check("a pencil hover lights a drum hit", false);
-          check("a mouse hover does not show a drum", false);
+          check("a mouse hover shows the drum on that line", false);
+          check("a mouse does not see Hands and Feet", false);
           check("a pencil touch writes the drum on that line", false);
           check("a finger tap writes the lit drum", false);
-          check("a pencil touch on a drum only moves the caret", false);
+          check("a finger tap shows Hands and Feet", false);
+          check("a click on a drum removes it", false);
           check("a pencil slide off the drums drops the hit", false);
           return;
         }
@@ -5192,10 +5214,14 @@ function chatCase(w) {
           check("a pencil hover lights a drum hit", false);
         }
         screenFire("pointermove", gapX, snareY, 0, "mouse");
+        w.editorStaffPointerKind = "mouse";
+        w.editorNotePadStamp = "";
+        w.editorPaintNotePad();
         check(
-          "a mouse hover does not show a drum",
-          !w.editorStaffGhost && !preview.querySelector(".staff-pitch-ghost")
+          "a mouse hover shows the drum on that line",
+          !!preview.querySelector(".staff-pitch-ghost") && focusLine.value === "bdq" && !w.editorStaffDrag
         );
+        check("a mouse does not see Hands and Feet", !w.document.querySelector("#editNoteStep [data-drum-voice]"));
         screenFire("pointerdown", gapX, snareY, 1, "pen");
         var showed = !!preview.querySelector(".staff-pitch-ghost");
         screenFire("pointerup", gapX, snareY, 0, "pen");
@@ -5208,7 +5234,8 @@ function chatCase(w) {
         w.editorDrumPiece = "hh";
         if (!arm()) {
           check("a finger tap writes the lit drum", false);
-          check("a pencil touch on a drum only moves the caret", false);
+          check("a finger tap shows Hands and Feet", false);
+          check("a click on a drum removes it", false);
           check("a pencil slide off the drums drops the hit", false);
           return;
         }
@@ -5220,22 +5247,24 @@ function chatCase(w) {
           "a finger tap writes the lit drum",
           focusLine.value.indexOf("hh") >= 0 && focusLine.value.indexOf("cr") < 0
         );
+        check("a finger tap shows Hands and Feet", !!w.document.querySelector("#editNoteStep [data-drum-voice='hands']") && !!w.document.querySelector("#editNoteStep [data-drum-voice='feet']"));
         poke(w.document.querySelector("#editNoteHistory [data-undo]"));
         placeCaret("bdq");
         if (!arm()) {
-          check("a pencil touch on a drum only moves the caret", false);
+          check("a click on a drum removes it", false);
           check("a pencil slide off the drums drops the hit", false);
           return;
         }
         var drumHead = layout.heads && layout.heads[0];
         if (!drumHead) {
-          check("a pencil touch on a drum only moves the caret", false);
+          check("a click on a drum removes it", false);
           check("a pencil slide off the drums drops the hit", false);
           return;
         }
         screenFire("pointerdown", drumHead.x, drumHead.y, 1, "pen");
         screenFire("pointerup", drumHead.x, drumHead.y, 0, "pen");
-        check("a pencil touch on a drum only moves the caret", focusLine.value === "bdq");
+        check("a click on a drum removes it", focusLine.value === "");
+        placeCaret("bdq");
         if (!arm()) {
           check("a pencil slide off the drums drops the hit", false);
           return;

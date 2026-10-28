@@ -51,6 +51,9 @@ var EDITOR_SYMBOLS = [
 
 var editorDrumPiece = "bd";
 var editorDrumOpenHat = false;
+/* Finger caret. Hands is the rhythm that stays when the switch is left alone. */
+var editorDrumHand = "hands";
+var editorDrumStep = null;
 var editorStaffPenDown = false;
 /* Last pointer kind on the preview. A pen hold must not open Copy and Paste. */
 var editorStaffPointerKind = "";
@@ -105,7 +108,7 @@ var editorPadRefuseHint = "";
 var editorStaffDrag = null;
 /* Notehead under a mouse or pen: col + staff step. dragging means a pitch drag is in hand. */
 var editorStaffPitchHot = null;
-/* Gray note about to be placed. A pencil shows it on contact. A mouse shows it during a vertical drag. */
+/* Gray note about to be placed. A pencil shows it on contact. On a drum staff a mouse shows it too. */
 var editorStaffGhost = null;
 var EDITOR_STAFF_DRAG_SLOP = 6;
 /* Finger this close to the preview's left or right edge scrolls the staff while selecting. */
@@ -6022,8 +6025,8 @@ function editorStaffPreviewHover(event) {
   preview = document.getElementById("editPreview");
   hit = editorStaffPreviewHitContext(event);
   head = editorStaffPreviewHead(hit);
-  /* A pencil over a gap previews the note a touch would write. A mouse click does not write. */
-  penAim = event.pointerType === "pen" && editorSymbolsIsOpen() && !head;
+  /* A fine pointer over a drum gap previews that line. A pencil does the same on a pitched staff. */
+  penAim = editorSymbolsIsOpen() && !head && (editorDrumOn() || event.pointerType === "pen");
   if (penAim) {
     ghost = editorDrumOn() ? editorDrumGhostAt(hit) : editorStaffGhostAt(hit);
     if (ghost) {
@@ -6239,8 +6242,10 @@ function editorStaffPreviewPointerDown(event) {
     placeSeed = editorStaffGhostAt(hit);
   }
   penTarget = null;
-  if (event.pointerType === "pen" && editorSymbolsIsOpen() && !head) {
-    penTarget = editorDrumOn() ? editorDrumGhostAt(hit) : placeSeed;
+  if (editorDrumOn() && editorStaffFinePointer(event) && editorSymbolsIsOpen()) {
+    penTarget = editorDrumGhostAt(hit);
+  } else if (event.pointerType === "pen" && editorSymbolsIsOpen() && !head) {
+    penTarget = placeSeed;
   }
   editorStaffDrag = {
     pointerId: event.pointerId,
@@ -6257,6 +6262,9 @@ function editorStaffPreviewPointerDown(event) {
     pitchHead: head,
     penWrite: !!penTarget,
     placeOff: false,
+    drumLock: "",
+    drumWritten: {},
+    drumUndo: { done: false },
     drumTouch: event.pointerType === "touch",
     notesWereOpen: editorSymbolsIsOpen(),
     layoutLineGap: hit.layout && hit.layout.lineGap ? hit.layout.lineGap : 12,
@@ -6308,8 +6316,12 @@ function editorStaffPreviewPointerMove(event) {
     editorStaffPreviewBeginEdit();
     preview = document.getElementById("editPreview");
     editorStaffPreviewCapture(preview, event.pointerId);
-    /* A clearly vertical move on a notehead retunes. A vertical move elsewhere writes. */
-    if (editorDrumOn() && editorStaffFinePointer(event) && dy * dy > dx * dx && drag.notesWereOpen) {
+    /* A drum drag stays on the line it started. A vertical move elsewhere writes. A notehead retunes. */
+    if (drag.penWrite && drag.mode === "drum") {
+      if (preview) {
+        preview.classList.add("is-pitch-drag");
+      }
+    } else if (editorDrumOn() && editorStaffFinePointer(event) && dy * dy > dx * dx && drag.notesWereOpen) {
       drag.mode = "drum";
       if (preview) {
         preview.classList.add("is-pitch-drag");
@@ -6349,7 +6361,11 @@ function editorStaffPreviewPointerMove(event) {
     return;
   }
   if (drag.mode === "drum" && drag.penWrite) {
-    editorDrumGhostFollow(drag, event);
+    if (drag.dragging) {
+      editorDrumPaintAlong(drag, event);
+    } else {
+      editorDrumGhostFollow(drag, event);
+    }
     if (event.cancelable) {
       event.preventDefault();
     }
@@ -6388,9 +6404,18 @@ function editorStaffPreviewPointerUp(event) {
   }
   if (drag.mode === "drum") {
     editorStaffDrag = null;
-    if (!(drag.penWrite && drag.placeOff)) {
+    if (drag.dragging && drag.penWrite) {
+      editorStaffGestureMarkSeen();
+    } else if (!(drag.penWrite && drag.placeOff)) {
       editorStaffPreviewBeginEdit();
-      editorDrumFinishGesture(drag, event);
+      if (!editorDrumCommitPointer(event)) {
+        if (drag.pitchHead) {
+          editorStaffPreviewApplyCaret(drag.field, drag.lineStart, drag.musicAt, drag.music, drag.startInsert, { reenter: true });
+          editorStaffGestureMarkSeen();
+        } else {
+          editorDrumFinishGesture(drag, event);
+        }
+      }
     } else {
       editorStaffGestureMarkSeen();
     }
@@ -6398,6 +6423,9 @@ function editorStaffPreviewPointerUp(event) {
     if (preview) {
       preview.classList.remove("is-pitch-drag");
     }
+    editorBeginPadInput();
+    editorPaintNotePad();
+    editorSyncTokenHighlight();
     if (event.cancelable) {
       event.preventDefault();
     }
@@ -6454,7 +6482,9 @@ function editorStaffPreviewPointerUp(event) {
   }
   if (!drag.dragging) {
     if (editorDrumOn() && drag.drumTouch && drag.notesWereOpen) {
-      editorDrumPlaceAt(hit || drag);
+      if (!editorDrumFingerWrite(hit || drag)) {
+        editorDrumPlaceAt(hit || drag);
+      }
       editorStaffGestureMarkSeen();
       editorBeginPadInput();
       editorPaintNotePad();
@@ -7667,7 +7697,9 @@ function editorNotePadStampNow() {
     String(editorMoveSemis || 12),
     editorMoveMenuOpen ? "move" : "",
     typeof eizationLang === "string" ? eizationLang : "",
-    t("edit.noteHigher")
+    t("edit.noteHigher"),
+    editorStaffPointerKind || "",
+    editorDrumVoiceSwitchOn() ? editorDrumHand : ""
   ].join("~");
 }
 
@@ -15896,6 +15928,319 @@ function editorDrumToken(id) {
   return code + dur + dots;
 }
 
+function editorDrumVoiceSwitchOn() {
+  if (editorStaffPointerKind === "mouse" || editorStaffPointerKind === "pen") {
+    return false;
+  }
+  if (editorStaffPointerKind === "touch") {
+    return true;
+  }
+  return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+}
+
+function editorDrumArmedDur() {
+  var code = editorDurCode(editorNote.dur) || "q";
+  var dots = editorNote.dots === 2 ? ".." : editorNote.dot ? "." : "";
+  return code + dots;
+}
+
+function editorDrumLitId() {
+  var id = editorDrumPiece || "bd";
+  if (id === "hh" && editorDrumOpenHat) {
+    return "hho";
+  }
+  return id;
+}
+
+function editorDrumGridOnset(layout, localX, dur) {
+  var quarterW;
+  var start;
+  var q;
+  var x;
+  var steps;
+  quarterW = layout && layout.quarterW > 0 ? layout.quarterW : 58;
+  start = layout && typeof layout.notesStartX === "number" ? layout.notesStartX : 0;
+  q = typeof staffDurationQuarters === "function" ? staffDurationQuarters(dur || "q") : 1;
+  if (!(q > 0)) {
+    q = 1;
+  }
+  x = (typeof localX === "number" ? localX : start) - start;
+  if (x < 0) {
+    x = 0;
+  }
+  steps = Math.floor(x / quarterW / q + 1e-6);
+  if (steps < 0) {
+    steps = 0;
+  }
+  return typeof drumRoundOnset === "function" ? drumRoundOnset(steps * q) : steps * q;
+}
+
+function editorDrumOnsetAt(hit, dur) {
+  var col;
+  if (!hit || !hit.layout) {
+    return 0;
+  }
+  col = editorStaffPitchColumnNear(hit.layout, hit.localX);
+  if (col >= 0 && hit.layout.cols[col] && typeof hit.layout.cols[col].onset === "number") {
+    return drumRoundOnset(hit.layout.cols[col].onset);
+  }
+  return editorDrumGridOnset(hit.layout, hit.localX, dur);
+}
+
+function editorDrumIdsAt(music, onset) {
+  var ast;
+  var cols;
+  var i;
+  var n;
+  var hits;
+  var ids = [];
+  var meter;
+  if (!music || typeof parseDrumNotation !== "function" || typeof drumLayoutColumns !== "function") {
+    return ids;
+  }
+  ast = parseDrumNotation(music);
+  if (!ast) {
+    return ids;
+  }
+  meter = editorPreviewMeterOpts();
+  cols = drumLayoutColumns(ast, meter && meter.meter ? meter.meter : null);
+  for (i = 0; i < cols.length; i++) {
+    if (!cols[i] || cols[i].kind === "barline" || Math.abs(cols[i].onset - onset) > 0.02) {
+      continue;
+    }
+    hits = drumHitsOf(cols[i].hands).concat(drumHitsOf(cols[i].feet));
+    for (n = 0; n < hits.length; n++) {
+      if (hits[n] && hits[n].id && ids.indexOf(hits[n].id) < 0) {
+        ids.push(hits[n].id);
+      }
+    }
+  }
+  return ids;
+}
+
+function editorDrumOpAt(music, onset, id) {
+  var ids = editorDrumIdsAt(music, onset);
+  var bare = id === "hho" ? "hh" : id;
+  if (ids.indexOf(bare) >= 0) {
+    return "remove";
+  }
+  if (ids.length) {
+    return "join";
+  }
+  return "place";
+}
+
+function editorDrumCommitMusic(hit, nextMusic, undoState) {
+  var music;
+  var nextValue;
+  var sliceLen;
+  var line;
+  if (!hit || !hit.field || nextMusic == null) {
+    return false;
+  }
+  music = String(hit.music || "");
+  if (nextMusic === music) {
+    return true;
+  }
+  nextValue = editorStaffSpliceMusic(hit.field.value, hit.lineStart, hit.lineEnd, music, nextMusic);
+  if (nextValue == null) {
+    return false;
+  }
+  sliceLen = hit.lineEnd - hit.lineStart - music.length + String(nextMusic).length;
+  line = itemToLine(nextValue.slice(hit.lineStart, hit.lineStart + sliceLen));
+  if (nextMusic && !editorLineMusicOk(line)) {
+    return false;
+  }
+  if (undoState) {
+    if (!undoState.done) {
+      editorPushSymbolUndo();
+      undoState.done = true;
+    }
+  } else {
+    editorPushSymbolUndo();
+  }
+  hit.field.value = nextValue;
+  hit.music = nextMusic;
+  hit.lineEnd = hit.lineStart + sliceLen;
+  editorStaffSweepAfterEdit();
+  refreshEditor();
+  return true;
+}
+
+function editorDrumCommitPointer(event) {
+  var hit;
+  var seat;
+  var dur;
+  var id;
+  var onset;
+  var next;
+  if (typeof drumWriteHit !== "function" || typeof drumSeatFromY !== "function") {
+    return false;
+  }
+  hit = editorStaffPreviewHitContext(event);
+  if (!hit || !hit.layout) {
+    return false;
+  }
+  seat = drumSeatFromY(hit.localY, hit.layout.staffTop, hit.layout.lineGap || 12, false);
+  if (!seat) {
+    return false;
+  }
+  dur = editorDrumArmedDur();
+  id = editorDrumCodeForSeat(seat.id, "");
+  onset = editorDrumOnsetAt(hit, dur);
+  next = drumWriteHit(hit.music, onset, id, dur, editorDrumOpAt(hit.music, onset, seat.id));
+  if (next == null) {
+    return false;
+  }
+  if (!editorDrumCommitMusic(hit, next, null)) {
+    return false;
+  }
+  editorDrumPiece = seat.id;
+  if (seat.id !== "hh") {
+    editorDrumOpenHat = false;
+  }
+  editorDrumStep = null;
+  return true;
+}
+
+function editorDrumShowLockedGhost(drag, hit, onset) {
+  var ghost;
+  var id;
+  var spec;
+  var gap;
+  if (!drag || !hit || !hit.layout) {
+    return;
+  }
+  ghost = editorDrumGhostAt(hit);
+  id = drag.drumLock === "hho" ? "hh" : drag.drumLock;
+  spec = typeof DRUM_KIT !== "undefined" ? DRUM_KIT[id] : null;
+  if (!ghost || !spec) {
+    return;
+  }
+  gap = hit.layout.lineGap > 0 ? hit.layout.lineGap : 12;
+  ghost.drumId = id;
+  ghost.step = spec.step;
+  ghost.head = drag.drumLock === "hho" ? "circleX" : spec.head;
+  ghost.y = drumY(spec.step, hit.layout.staffTop, gap);
+  ghost.x = (hit.layout.notesStartX || 0) + onset * (hit.layout.quarterW || 58);
+  editorStaffPreviewShowGhost(ghost);
+}
+
+function editorDrumPaintCell(drag, hit, onset) {
+  var key;
+  var music;
+  var next;
+  if (!drag || !hit || typeof drumWriteHit !== "function") {
+    return;
+  }
+  key = String(typeof drumRoundOnset === "function" ? drumRoundOnset(onset) : onset);
+  if (drag.drumWritten[key]) {
+    return;
+  }
+  drag.drumWritten[key] = true;
+  music = String(hit.music || "");
+  next = drumWriteHit(music, onset, drag.drumLock, editorDrumArmedDur(), "place");
+  if (next == null || next === music) {
+    return;
+  }
+  if (editorDrumCommitMusic(hit, next, drag.drumUndo)) {
+    editorDrumStep = null;
+  }
+}
+
+function editorDrumPaintAlong(drag, event) {
+  var hit;
+  var seat;
+  var dur;
+  var onset;
+  var step;
+  var last;
+  var at;
+  if (!drag) {
+    return;
+  }
+  hit = editorStaffPreviewHitContext(event);
+  if (!hit || !editorStaffPlaceInBand(hit)) {
+    drag.placeOff = true;
+    editorStaffPreviewClearGhost();
+    return;
+  }
+  drag.placeOff = false;
+  if (!drag.drumLock) {
+    seat = typeof drumSeatFromY === "function" ? drumSeatFromY(hit.localY, hit.layout.staffTop, hit.layout.lineGap || 12, false) : null;
+    if (!seat) {
+      drag.placeOff = true;
+      editorStaffPreviewClearGhost();
+      return;
+    }
+    drag.drumLock = editorDrumCodeForSeat(seat.id, "");
+  }
+  dur = editorDrumArmedDur();
+  onset = editorDrumGridOnset(hit.layout, hit.localX, dur);
+  editorDrumShowLockedGhost(drag, hit, onset);
+  step = typeof staffDurationQuarters === "function" ? staffDurationQuarters(dur) : 1;
+  if (!(step > 0)) {
+    step = 1;
+  }
+  if (drag.drumLast == null) {
+    editorDrumPaintCell(drag, hit, onset);
+    drag.drumLast = onset;
+    editorDrumShowLockedGhost(drag, hit, onset);
+    return;
+  }
+  last = drag.drumLast;
+  if (Math.abs(onset - last) < 0.02) {
+    return;
+  }
+  if (onset > last) {
+    for (at = last + step; at < onset + 0.02; at += step) {
+      editorDrumPaintCell(drag, hit, drumRoundOnset(at));
+    }
+  } else {
+    for (at = last - step; at > onset - 0.02; at -= step) {
+      editorDrumPaintCell(drag, hit, drumRoundOnset(at));
+    }
+  }
+  drag.drumLast = onset;
+  editorDrumShowLockedGhost(drag, hit, onset);
+}
+
+function editorDrumFingerWrite(hit) {
+  var music;
+  var dur;
+  var id;
+  var voice;
+  var onset;
+  var next;
+  var q;
+  if (!hit || !hit.field || typeof drumWriteHit !== "function" || typeof drumVoiceEnd !== "function") {
+    return false;
+  }
+  music = String(hit.music || "");
+  dur = editorDrumArmedDur();
+  id = editorDrumLitId();
+  voice = editorDrumHand === "feet" ? "feet" : "hands";
+  if (!editorDrumStep || editorDrumStep.music !== music) {
+    editorDrumStep = {
+      music: music,
+      hands: drumVoiceEnd(music, "hands"),
+      feet: drumVoiceEnd(music, "feet")
+    };
+  }
+  onset = editorDrumStep[voice] || 0;
+  next = drumWriteHit(music, onset, id, dur, "place");
+  if (next == null) {
+    return false;
+  }
+  if (!editorDrumCommitMusic(hit, next, null)) {
+    return false;
+  }
+  q = typeof staffDurationQuarters === "function" ? staffDurationQuarters(dur) : 1;
+  editorDrumStep.music = next;
+  editorDrumStep[voice] = typeof drumRoundOnset === "function" ? drumRoundOnset(onset + q) : onset + q;
+  return true;
+}
+
 function editorPaintDrumKit(row) {
   var pieces = [
     ["bd", "Bass"],
@@ -15919,6 +16264,22 @@ function editorPaintDrumKit(row) {
   ];
   var i;
   row.classList.add("is-drum-kit");
+  if (editorDrumVoiceSwitchOn()) {
+    editorPadButton(
+      row,
+      { "data-drum-voice": "hands" },
+      t("edit.drumHands"),
+      t("edit.drumHands"),
+      editorDrumHand !== "feet"
+    );
+    editorPadButton(
+      row,
+      { "data-drum-voice": "feet" },
+      t("edit.drumFeet"),
+      t("edit.drumFeet"),
+      editorDrumHand === "feet"
+    );
+  }
   for (i = 0; i < pieces.length; i++) {
     editorPadButton(
       row,
@@ -18947,6 +19308,12 @@ function editorActivateSymbol(button, opts) {
       return;
     }
     editorWriteLetter(button.getAttribute("data-note"), opts);
+    return;
+  }
+  if (button.hasAttribute("data-drum-voice")) {
+    editorDrumHand = button.getAttribute("data-drum-voice") === "feet" ? "feet" : "hands";
+    editorNotePadStamp = "";
+    editorPaintNotePad();
     return;
   }
   if (button.hasAttribute("data-drum")) {

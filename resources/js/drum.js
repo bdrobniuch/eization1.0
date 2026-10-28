@@ -935,6 +935,706 @@ function parseDrumNotation(source) {
   return ast;
 }
 
+/* A plain line of hits, rests, stacks, and feet can be rewritten. Anything else stays put. */
+function drumWritePlainToken(token) {
+  var rest;
+  var hit;
+  if (!token || token === "|" || token === "feet") {
+    return true;
+  }
+  if (
+    token === "~" ||
+    token === "%" ||
+    token === "flam" ||
+    token === "drag" ||
+    token === "rim" ||
+    token === "xstick" ||
+    token.charAt(0) === "^" ||
+    token.charAt(0) === "(" ||
+    token.charAt(0) === "{" ||
+    token.charAt(0) === "@" ||
+    token.charAt(0) === ")" ||
+    token.indexOf("~") >= 0 ||
+    token.indexOf("^") >= 0 ||
+    token.indexOf("{") >= 0 ||
+    token.indexOf("}") >= 0
+  ) {
+    return false;
+  }
+  if (typeof staffIsDynamic === "function" && staffIsDynamic(token)) {
+    return false;
+  }
+  if (typeof staffIsHairpin === "function" && staffIsHairpin(token)) {
+    return false;
+  }
+  if (token.charAt(0) === "[") {
+    return true;
+  }
+  rest = typeof staffParseRestToken === "function" ? staffParseRestToken(token) : null;
+  if (rest) {
+    return !rest.label && !rest.above && !(rest.articulations && rest.articulations.length);
+  }
+  hit = drumParseHitToken(token);
+  if (!hit) {
+    return false;
+  }
+  return !hit.grace && !hit.rim && !hit.xstick && !hit.label && !hit.above && !(hit.articulations && hit.articulations.length);
+}
+
+function drumWriteNear(a, b) {
+  return Math.abs(a - b) <= 0.02;
+}
+
+function drumWriteSort(cells) {
+  return cells.slice().sort(function (a, b) {
+    if (!drumWriteNear(a.onset, b.onset)) {
+      return a.onset - b.onset;
+    }
+    if (a.kind === "bar" && b.kind !== "bar") {
+      return -1;
+    }
+    if (b.kind === "bar" && a.kind !== "bar") {
+      return 1;
+    }
+    return 0;
+  });
+}
+
+function drumWriteSideEnd(cells) {
+  var end = 0;
+  var i;
+  var cell;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (!cell || cell.kind === "bar") {
+      continue;
+    }
+    if (cell.onset + cell.q > end) {
+      end = cell.onset + cell.q;
+    }
+  }
+  return drumRoundOnset(end);
+}
+
+function drumWriteHasHit(cells) {
+  var i;
+  for (i = 0; i < cells.length; i++) {
+    if (cells[i] && (cells[i].kind === "hit" || cells[i].kind === "stack")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function drumWriteRestFit(onset, left, aligned) {
+  var ladder = [
+    ["w", 4],
+    ["h.", 3],
+    ["h", 2],
+    ["q.", 1.5],
+    ["q", 1],
+    ["e.", 0.75],
+    ["e", 0.5],
+    ["s.", 0.375],
+    ["s", 0.25]
+  ];
+  var i;
+  var dur;
+  var q;
+  var boundary;
+  for (i = 0; i < ladder.length; i++) {
+    dur = ladder[i][0];
+    q = ladder[i][1];
+    if (q > left + 0.02) {
+      continue;
+    }
+    if (aligned) {
+      boundary = q >= 1 ? q : q >= 0.5 ? 0.5 : 0.25;
+      if (Math.abs(onset / boundary - Math.round(onset / boundary)) > 0.02) {
+        continue;
+      }
+    }
+    return { dur: dur, q: q };
+  }
+  return null;
+}
+
+function drumWritePushRests(out, onset, gapQ, hintDur) {
+  var hintQ;
+  var left;
+  var at;
+  var n;
+  var k;
+  var piece;
+  var guard;
+  left = drumRoundOnset(gapQ);
+  at = drumRoundOnset(onset);
+  if (!(left > 0.02)) {
+    return;
+  }
+  hintQ = staffDurationQuarters(hintDur || "q");
+  if (hintQ > 0.02 && Math.abs(left / hintQ - Math.round(left / hintQ)) < 0.02) {
+    n = Math.round(left / hintQ);
+    for (k = 0; k < n; k++) {
+      out.push({ kind: "rest", onset: drumRoundOnset(at), dur: hintDur || "q", q: hintQ, hits: [] });
+      at += hintQ;
+    }
+    return;
+  }
+  guard = 0;
+  while (left > 0.02 && guard < 64) {
+    piece = drumWriteRestFit(at, left, true) || drumWriteRestFit(at, left, false);
+    if (!piece || piece.q > left + 0.02) {
+      break;
+    }
+    out.push({ kind: "rest", onset: drumRoundOnset(at), dur: piece.dur, q: piece.q, hits: [] });
+    at += piece.q;
+    left = drumRoundOnset(left - piece.q);
+    guard++;
+  }
+}
+
+function drumWriteReadStack(tokens, i) {
+  var buf = tokens[i];
+  var close;
+  var after;
+  var tail;
+  var aff;
+  var inner;
+  var parts;
+  var hits;
+  var n;
+  var parsed;
+  var dur;
+  while (buf.indexOf("]") < 0 && i + 1 < tokens.length) {
+    i++;
+    if (tokens[i].indexOf("[") >= 0 || tokens[i] === "~" || tokens[i].charAt(0) === "^" || tokens[i].charAt(0) === "{" || tokens[i].charAt(0) === "(") {
+      return null;
+    }
+    buf += " " + tokens[i];
+  }
+  close = buf.indexOf("]");
+  if (close < 0) {
+    return null;
+  }
+  after = buf.slice(close + 1);
+  if (after.indexOf("^") >= 0 || after.indexOf("_") >= 0 || after.indexOf("~") >= 0) {
+    return null;
+  }
+  tail = staffParseStackDuration(after);
+  if (!tail) {
+    return null;
+  }
+  aff = staffParseAffixes(tail.rest || "");
+  if (!aff || aff.label || aff.above || (aff.articulations && aff.articulations.length)) {
+    return null;
+  }
+  inner = buf.slice(1, close).trim();
+  parts = inner ? inner.split(/\s+/) : [];
+  if (!parts.length) {
+    return null;
+  }
+  hits = [];
+  for (n = 0; n < parts.length; n++) {
+    if (!drumWritePlainToken(parts[n])) {
+      return null;
+    }
+    parsed = drumParseHitToken(parts[n]);
+    if (!parsed || parsed.grace || parsed.rim || parsed.xstick || parsed.label || parsed.above || (parsed.articulations && parsed.articulations.length)) {
+      return null;
+    }
+    hits.push({ id: parsed.id, open: !!parsed.open, force: parsed.force || "" });
+  }
+  dur = tail.duration || "q";
+  if (staffDurationBase(dur) === "n") {
+    return null;
+  }
+  return {
+    cell: { kind: hits.length > 1 ? "stack" : "hit", onset: 0, dur: dur, q: staffDurationQuarters(dur), hits: hits },
+    next: i + 1
+  };
+}
+
+function drumWriteReadSide(tokens) {
+  var cells = [];
+  var onset = 0;
+  var i = 0;
+  var tok;
+  var stack;
+  var rest;
+  var hit;
+  var q;
+  tokens = tokens || [];
+  while (i < tokens.length) {
+    tok = tokens[i];
+    if (tok === "|") {
+      cells.push({ kind: "bar", onset: drumRoundOnset(onset) });
+      i++;
+      continue;
+    }
+    if (tok.charAt(0) === "[") {
+      stack = drumWriteReadStack(tokens, i);
+      if (!stack) {
+        return null;
+      }
+      stack.cell.onset = drumRoundOnset(onset);
+      cells.push(stack.cell);
+      onset += stack.cell.q;
+      i = stack.next;
+      continue;
+    }
+    if (!drumWritePlainToken(tok)) {
+      return null;
+    }
+    rest = staffParseRestToken(tok);
+    if (rest) {
+      q = staffDurationQuarters(rest.duration);
+      cells.push({ kind: "rest", onset: drumRoundOnset(onset), dur: rest.duration, q: q, hits: [] });
+      onset += q;
+      i++;
+      continue;
+    }
+    hit = drumParseHitToken(tok);
+    if (!hit) {
+      return null;
+    }
+    q = staffDurationQuarters(hit.duration);
+    cells.push({
+      kind: "hit",
+      onset: drumRoundOnset(onset),
+      dur: hit.duration,
+      q: q,
+      hits: [{ id: hit.id, open: !!hit.open, force: hit.force || "" }]
+    });
+    onset += q;
+    i++;
+  }
+  return cells;
+}
+
+function drumWriteRead(music) {
+  var tokens;
+  var ranges;
+  var split;
+  var hands;
+  var feet;
+  tokens = staffTokenize(music || "");
+  ranges = staffTokenRanges(music || "");
+  split = drumSplitFeet(tokens, ranges);
+  if (!split || split.error) {
+    return null;
+  }
+  hands = drumWriteReadSide(split.handsTokens);
+  if (!hands) {
+    return null;
+  }
+  feet = [];
+  if (split.feetTokens) {
+    feet = drumWriteReadSide(split.feetTokens);
+    if (!feet) {
+      return null;
+    }
+  }
+  return { hands: hands, feet: feet };
+}
+
+function drumWriteKit(id) {
+  var open = false;
+  var bare = String(id || "");
+  if (bare === "hho") {
+    bare = "hh";
+    open = true;
+  }
+  if (!DRUM_KIT[bare]) {
+    return null;
+  }
+  return { id: bare, open: open, voice: bare === "bd" || bare === "hf" ? "feet" : "hands" };
+}
+
+function drumWriteDur(dur) {
+  var m = /^([whqes])(\.{0,2})$/.exec(String(dur || "q"));
+  if (!m) {
+    return "";
+  }
+  return staffMakeDuration(m[1], m[2] || "") || "";
+}
+
+function drumWritePlace(cells, onset, q, dur, hit) {
+  var end = drumRoundOnset(onset + q);
+  var next = [];
+  var i;
+  var cell;
+  var cellEnd;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (cell.kind === "bar") {
+      if (cell.onset > onset + 0.02 && cell.onset < end - 0.02) {
+        return null;
+      }
+      next.push(cell);
+      continue;
+    }
+    cellEnd = drumRoundOnset(cell.onset + cell.q);
+    if (cellEnd <= onset + 0.02 || cell.onset >= end - 0.02) {
+      next.push(cell);
+      continue;
+    }
+    if (cell.onset < onset - 0.02) {
+      drumWritePushRests(next, cell.onset, drumRoundOnset(onset - cell.onset), dur);
+    }
+    if (cellEnd > end + 0.02) {
+      drumWritePushRests(next, end, drumRoundOnset(cellEnd - end), dur);
+    }
+  }
+  next.push({
+    kind: "hit",
+    onset: onset,
+    dur: dur,
+    q: q,
+    hits: [hit]
+  });
+  return drumWriteSort(next);
+}
+
+function drumWriteJoin(cells, onset, q, dur, hit) {
+  var i;
+  var n;
+  var cell;
+  var found;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (cell.kind !== "hit" && cell.kind !== "stack") {
+      continue;
+    }
+    if (!drumWriteNear(cell.onset, onset)) {
+      continue;
+    }
+    if (!drumWriteNear(cell.q, q)) {
+      return drumWritePlace(cells, onset, q, dur, hit);
+    }
+    found = false;
+    for (n = 0; n < cell.hits.length; n++) {
+      if (cell.hits[n].id === hit.id && !!cell.hits[n].open === !!hit.open) {
+        found = true;
+      }
+    }
+    if (!found) {
+      cell.hits.push(hit);
+    }
+    cell.kind = cell.hits.length > 1 ? "stack" : "hit";
+    return cells;
+  }
+  return drumWritePlace(cells, onset, q, dur, hit);
+}
+
+function drumWriteRemove(cells, onset, bare) {
+  var i;
+  var n;
+  var cell;
+  var nextHits;
+  var found;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (cell.kind !== "hit" && cell.kind !== "stack") {
+      continue;
+    }
+    if (!drumWriteNear(cell.onset, onset)) {
+      continue;
+    }
+    nextHits = [];
+    found = false;
+    for (n = 0; n < cell.hits.length; n++) {
+      if (cell.hits[n].id === bare) {
+        found = true;
+        continue;
+      }
+      nextHits.push(cell.hits[n]);
+    }
+    if (!found) {
+      continue;
+    }
+    if (!nextHits.length) {
+      cell.kind = "rest";
+      cell.hits = [];
+    } else {
+      cell.kind = nextHits.length > 1 ? "stack" : "hit";
+      cell.hits = nextHits;
+    }
+    return true;
+  }
+  return false;
+}
+
+function drumWriteAddBar(cells, onset) {
+  var i;
+  for (i = 0; i < cells.length; i++) {
+    if (cells[i].kind === "bar" && drumWriteNear(cells[i].onset, onset)) {
+      return;
+    }
+  }
+  cells.push({ kind: "bar", onset: onset });
+}
+
+function drumWriteBarOnsets(cells) {
+  var out = [];
+  var i;
+  for (i = 0; i < cells.length; i++) {
+    if (cells[i].kind === "bar") {
+      out.push(cells[i].onset);
+    }
+  }
+  return out;
+}
+
+function drumWriteFill(cells, hintDur) {
+  var timed = drumWriteSort(cells);
+  var out = [];
+  var cursor = 0;
+  var i;
+  var cell;
+  for (i = 0; i < timed.length; i++) {
+    cell = timed[i];
+    if (cell.kind === "bar") {
+      if (cell.onset > cursor + 0.02) {
+        drumWritePushRests(out, cursor, drumRoundOnset(cell.onset - cursor), hintDur);
+      }
+      cursor = cell.onset;
+      out.push(cell);
+      continue;
+    }
+    if (cell.onset > cursor + 0.02) {
+      drumWritePushRests(out, cursor, drumRoundOnset(cell.onset - cursor), hintDur);
+    }
+    out.push(cell);
+    cursor = drumRoundOnset(Math.max(cursor, cell.onset + cell.q));
+  }
+  return out;
+}
+
+function drumWriteRegionSum(cells, start, stop) {
+  var sum = 0;
+  var i;
+  var cell;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (!cell || cell.kind === "bar") {
+      continue;
+    }
+    if (cell.onset >= start - 0.02 && cell.onset < stop - 0.02) {
+      sum += cell.q;
+    }
+  }
+  return drumRoundOnset(sum);
+}
+
+function drumWriteAlign(hands, feet, hintDur) {
+  var bars = [];
+  var seen = {};
+  var lists;
+  var i;
+  var onset;
+  var key;
+  var maxEnd;
+  var regions = [];
+  var start;
+  var stop;
+  var handsSum;
+  var feetSum;
+  function take(list) {
+    var n;
+    var at;
+    for (n = 0; n < list.length; n++) {
+      at = list[n];
+      key = String(drumRoundOnset(at));
+      if (seen[key]) {
+        continue;
+      }
+      seen[key] = true;
+      bars.push(at);
+    }
+  }
+  take(drumWriteBarOnsets(hands));
+  take(drumWriteBarOnsets(feet));
+  bars.sort(function (a, b) {
+    return a - b;
+  });
+  for (i = 0; i < bars.length; i++) {
+    drumWriteAddBar(hands, bars[i]);
+    drumWriteAddBar(feet, bars[i]);
+  }
+  hands = drumWriteFill(hands, hintDur);
+  feet = drumWriteFill(feet, hintDur);
+  maxEnd = Math.max(drumWriteSideEnd(hands), drumWriteSideEnd(feet));
+  lists = [0].concat(bars);
+  for (i = 0; i < lists.length; i++) {
+    start = lists[i];
+    stop = i + 1 < lists.length ? lists[i + 1] : maxEnd;
+    if (stop < start + 0.02) {
+      continue;
+    }
+    regions.push([start, stop]);
+  }
+  for (i = 0; i < regions.length; i++) {
+    start = regions[i][0];
+    stop = regions[i][1];
+    handsSum = drumWriteRegionSum(hands, start, stop);
+    feetSum = drumWriteRegionSum(feet, start, stop);
+    if (handsSum + 0.02 < feetSum) {
+      drumWritePushRests(hands, drumRoundOnset(start + handsSum), drumRoundOnset(feetSum - handsSum), hintDur);
+    }
+    if (feetSum + 0.02 < handsSum) {
+      drumWritePushRests(feet, drumRoundOnset(start + feetSum), drumRoundOnset(handsSum - feetSum), hintDur);
+    }
+  }
+  return { hands: drumWriteSort(hands), feet: drumWriteSort(feet) };
+}
+
+function drumWriteSpell(cells) {
+  var parts = [];
+  var i;
+  var j;
+  var cell;
+  var hit;
+  var inner;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (cell.kind === "bar") {
+      parts.push("|");
+      continue;
+    }
+    if (cell.kind === "rest" || !cell.hits || !cell.hits.length) {
+      parts.push("r" + cell.dur);
+      continue;
+    }
+    if (cell.hits.length === 1) {
+      hit = cell.hits[0];
+      parts.push((hit.open ? "hho" : hit.id) + cell.dur + (hit.force || ""));
+      continue;
+    }
+    inner = [];
+    for (j = 0; j < cell.hits.length; j++) {
+      hit = cell.hits[j];
+      inner.push((hit.open ? "hho" : hit.id) + (hit.force || ""));
+    }
+    parts.push("[" + inner.join(" ") + "]" + cell.dur);
+  }
+  return parts.join(" ");
+}
+
+function drumWriteSerialize(model) {
+  var hands = drumWriteSpell(model.hands);
+  var feet = drumWriteSpell(model.feet);
+  if (!hands && !feet) {
+    return "";
+  }
+  if (!feet) {
+    return hands;
+  }
+  if (!hands) {
+    return feet;
+  }
+  return hands + " feet " + feet;
+}
+
+/* End of one voice, in quarter-lengths. An empty voice starts at 0. */
+function drumVoiceEnd(source, voice) {
+  var parts;
+  var model;
+  if (typeof source !== "string" || !source.trim()) {
+    return 0;
+  }
+  parts = typeof staffExampleParts === "function" ? staffExampleParts(source) : { music: source.trim() };
+  model = drumWriteRead(parts.music || "");
+  if (!model) {
+    return 0;
+  }
+  return drumWriteSideEnd(voice === "feet" ? model.feet : model.hands);
+}
+
+/*
+ * Rewrite one drum on a plain line. onset is quarter-lengths.
+ * dur is the armed length. op is place, remove, or join.
+ * A tuplet, tie, beam, simile, dynamic, hairpin, flam, drag, or ^ stays null.
+ */
+function drumWriteHit(source, onset, id, dur, op) {
+  var parts;
+  var music;
+  var model;
+  var spec;
+  var made;
+  var q;
+  var side;
+  var edited;
+  var text;
+  var caption;
+  if (typeof source !== "string" || typeof onset !== "number" || isNaN(onset) || onset < -0.02) {
+    return null;
+  }
+  if (op !== "place" && op !== "remove" && op !== "join") {
+    return null;
+  }
+  spec = drumWriteKit(id);
+  made = drumWriteDur(dur);
+  if (!spec || !made) {
+    return null;
+  }
+  parts = typeof staffExampleParts === "function" ? staffExampleParts(source) : { music: source.trim(), caption: "" };
+  music = parts.music || "";
+  caption = parts.caption || "";
+  if (!music) {
+    model = { hands: [], feet: [] };
+  } else {
+    model = drumWriteRead(music);
+    if (!model) {
+      return null;
+    }
+  }
+  onset = drumRoundOnset(onset);
+  q = staffDurationQuarters(made);
+  if (op === "remove") {
+    if (!drumWriteRemove(model.hands, onset, spec.id)) {
+      drumWriteRemove(model.feet, onset, spec.id);
+    }
+    if (!drumWriteHasHit(model.hands)) {
+      model.hands = [];
+    }
+    if (!drumWriteHasHit(model.feet)) {
+      model.feet = [];
+    }
+  } else {
+    side = spec.voice === "feet" ? model.feet : model.hands;
+    if (op === "join") {
+      edited = drumWriteJoin(side, onset, q, made, { id: spec.id, open: spec.open, force: "" });
+    } else {
+      edited = drumWritePlace(side, onset, q, made, { id: spec.id, open: spec.open, force: "" });
+    }
+    if (!edited) {
+      return null;
+    }
+    if (spec.voice === "feet") {
+      model.feet = edited;
+    } else {
+      model.hands = edited;
+    }
+    if (drumWriteHasHit(model.feet)) {
+      edited = drumWriteAlign(model.hands, model.feet, made);
+      model.hands = edited.hands;
+      model.feet = edited.feet;
+    } else {
+      model.hands = drumWriteFill(model.hands, made);
+      model.feet = [];
+    }
+  }
+  text = drumWriteSerialize(model);
+  if (text && !parseDrumNotation(text)) {
+    return null;
+  }
+  if (caption) {
+    return text ? text + " \u00B7 " + caption : caption;
+  }
+  return text;
+}
+
 function drumLooksNotationIsh(tokens) {
   var i;
   var t;
@@ -1387,10 +2087,11 @@ function renderDrumStaff(source, role, opts) {
     lineGap: lineGap,
     heads: heads,
     music: music,
+    quarterW: quarterW,
     cols: columns.filter(function (c) {
       return c.kind !== "barline";
     }).map(function (c) {
-      return { type: c.kind, x: c.x };
+      return { type: c.kind, x: c.x, onset: c.onset };
     })
   };
   return svg;
