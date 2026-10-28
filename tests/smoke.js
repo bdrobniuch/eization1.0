@@ -204,7 +204,7 @@ function exerciseMenu(w) {
   check("special menu buttons stay distinguished", special.length === 2);
   check("menu leaves Today to More exercises", !w.document.querySelector("#exerciseMenu [data-today]") && !w.document.getElementById("aboutToday"));
   check("menu leaves sending to More exercises", !w.document.getElementById("aboutGoContribute"));
-  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 182));
+  check("day list stays pinned", !!(w.moreDayOrder && w.moreDayOrder.length === 195 && w.moreDayOrder.indexOf("drumBackbeat") >= 0 && w.moreDayOrder.indexOf("drumChartMarks") === w.moreDayOrder.length - 1));
   var day = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var dayAgain = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 17)));
   var nextUtcDay = w.exerciseOfDay(new Date(Date.UTC(2026, 9, 18)));
@@ -2433,6 +2433,7 @@ function moreCatalog(w) {
   }
   var keys = Object.keys(uniq);
   check("more catalog has 171 share links", keys.length === 171);
+  check("more catalog lists the drum exercises", (html.match(/data-kind="drum"/g) || []).length === 13);
   check("more article offers share and embed", html.indexOf("data-share") >= 0 && html.indexOf("data-embed") >= 0);
   check("more page offers today and a correction", html.indexOf('href="./?today=1"') >= 0 && html.indexOf('href="./?contribute=1"') >= 0);
   check("more page offers search and surprise", html.indexOf('id="more-search"') >= 0 && html.indexOf("data-more-random") >= 0);
@@ -2466,6 +2467,7 @@ function moreCatalog(w) {
   var esHtml = esReq.responseText || "";
   var esHashes = esHtml.match(/#s2?=[A-Za-z0-9_-]+/g) || [];
   check("spanish more catalog has 171 share links", esHashes.length === 171);
+  check("spanish more catalog lists the drum exercises", (esHtml.match(/data-kind="drum"/g) || []).length === 13);
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
@@ -2540,6 +2542,57 @@ function drumCollisionChecks(w) {
   check("a kick does not tie to a snare", !w.parseDrumNotation("bdq~ sdq"));
   check("feet sides must match", !w.parseDrumNotation("hhe hhe feet bdq bdq"));
   check("a drum exercise stays out of the menu", w.exercises.drumKit && w.exercises.drumKit.inMenu === false && w.menuOrder.indexOf("drumKit") < 0);
+  drumPracticeChecks(w);
+}
+
+function drumPracticeChecks(w) {
+  var ids = ["drumBackbeat", "drumHatOpenings", "drumJazzRide", "drumJazzWaltz", "drumGhostNotes", "drumRudiments", "drumLinearFills", "drumSixEight", "drumTwelveEight", "drumFiveFour", "drumSevenEight", "drumCrossStick", "drumChartMarks"];
+  var di;
+  var ex;
+  var li;
+  var music;
+  var ast;
+  var sums;
+  var bars;
+  var barQ;
+  var i;
+  var simile;
+  var ok;
+  for (di = 0; di < ids.length; di++) {
+    ex = w.exercises[ids[di]];
+    check(
+      ids[di] + " stays out of the menu",
+      !!(ex && ex.inMenu === false && ex.notation === "drum" && ex.staff === true && ex.items.length >= 8 && ex.items.length <= 16 && w.menuOrder.indexOf(ids[di]) < 0 && w.moreDayOrder.indexOf(ids[di]) >= 0)
+    );
+    if (!ex) {
+      continue;
+    }
+    barQ = ex.meter.beats * (4 / ex.meter.unit);
+    for (li = 0; li < ex.items.length; li++) {
+      music = w.staffExampleParts(ex.items[li]).music;
+      ast = w.parseDrumNotation(music);
+      ok = !!ast;
+      if (ok) {
+        sums = w.drumBarSums(ast.hands);
+        bars = [[]];
+        for (i = 0; i < ast.hands.length; i++) {
+          if (ast.hands[i].type === "barline") {
+            bars.push([]);
+          } else {
+            bars[bars.length - 1].push(ast.hands[i]);
+          }
+        }
+        ok = sums.length === ex.bars && bars.length === ex.bars;
+        for (i = 0; ok && i < bars.length; i++) {
+          simile = bars[i].length === 1 && bars[i][0].type === "simile";
+          if (!simile && Math.abs(sums[i] - barQ) > 0.02) {
+            ok = false;
+          }
+        }
+      }
+      check(ids[di] + " example " + (li + 1) + " fills the bars", ok);
+    }
+  }
 }
 
 function notationGuide(w) {

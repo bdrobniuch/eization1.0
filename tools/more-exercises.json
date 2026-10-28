@@ -12463,5 +12463,311 @@
             "beats": 4,
             "unit": 4
         }
+    },
+    {
+        "id": "more0211",
+        "slug": "drum-backbeat",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumBackbeat",
+        "nameEn": "Backbeat",
+        "nameEs": "Contratiempo",
+        "descEn": "Two bars of eighth-note hats with the snare on 2 and 4. The kick moves: one and three, all four, one only, and the and of three.",
+        "descEs": "Dos compases de charles en corcheas con la caja en 2 y 4. El bombo cambia: uno y tres, los cuatro, solo el uno, y el y del tres.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#backbeat", "en": "Backbeat", "es": "Contratiempo" },
+            { "href": "./drums.html#igoe-groove-essentials", "en": "Groove Essentials", "es": "Groove Essentials" },
+            { "href": "./time.html#erskine-time", "en": "Time Awareness for All Musicians", "es": "Time Awareness for All Musicians" },
+            { "href": "./drums.html#latham-advanced-funk", "en": "Advanced Funk Studies", "es": "Advanced Funk Studies" }
+        ],
+        "lines": [
+            "hhe hhe [hh sd]e> hhe hhe hhe [hh sd]e> hhe | hhe hhe [hh sd]e> hhe hhe hhe [hh sd]e> hhe feet bdq rq bdq rq | bdq rq bdq rq · One and three"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0212",
+        "slug": "drum-hat-openings",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumHatOpenings",
+        "nameEn": "Hat openings",
+        "nameEs": "Aperturas de charles",
+        "descEn": "Closed and open hats on the offbeats, one choke from an open hat into a closed hat, and the foot hat on 2 and 4.",
+        "descEs": "Charles cerrado y abierto en las contrapartes, un ahogo de charles abierto a cerrado, y el charles con el pie en 2 y 4.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#hat-openings", "en": "Hat openings", "es": "Aperturas de charles" },
+            { "href": "./drums.html#chapin-advanced", "en": "Advanced Techniques for the Modern Drummer", "es": "Advanced Techniques for the Modern Drummer" },
+            { "href": "./drums.html#riley-art-of-bop", "en": "The Art of Bop Drumming", "es": "The Art of Bop Drumming" },
+            { "href": "./drums.html#igoe-groove-essentials", "en": "Groove Essentials", "es": "Groove Essentials" }
+        ],
+        "lines": [
+            "hhe hhoe hhe hhoe hhe hhoe hhe hhoe | hhe hhoe hhe hhoe hhe hhoe hhe hhoe · Offbeats"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0213",
+        "slug": "drum-jazz-ride",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumJazzRide",
+        "nameEn": "Jazz ride",
+        "nameEs": "Ride de jazz",
+        "descEn": "The ride pattern with the snare on 2 and 4 and the foot hat on 2 and 4. Two examples move that pattern to the bell.",
+        "descEs": "El patrón de ride con la caja en 2 y 4 y el charles con el pie en 2 y 4. Dos ejemplos pasan ese patrón a la campana.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#jazz-ride", "en": "Jazz ride", "es": "Ride de jazz" },
+            { "href": "./drums.html#riley-art-of-bop", "en": "The Art of Bop Drumming", "es": "The Art of Bop Drumming" },
+            { "href": "./drums.html#chapin-advanced", "en": "Advanced Techniques for the Modern Drummer", "es": "Advanced Techniques for the Modern Drummer" }
+        ],
+        "lines": [
+            "rdq [rd sd]e rde rdq [rd sd]e rde | rdq [rd sd]e rde rdq [rd sd]e rde feet rq hfq rq hfq | rq hfq rq hfq · Spang-a-lang"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0214",
+        "slug": "drum-jazz-waltz",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumJazzWaltz",
+        "nameEn": "Jazz waltz",
+        "nameEs": "Vals de jazz",
+        "descEn": "The ride idea in 3/4, snare on 2 or 3, foot hat on 2 and 3.",
+        "descEs": "La idea de ride en 3/4, caja en 2 o 3, charles con el pie en 2 y 3.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#jazz-waltz", "en": "Jazz waltz", "es": "Vals de jazz" },
+            { "href": "./drums.html#riley-art-of-bop", "en": "The Art of Bop Drumming", "es": "The Art of Bop Drumming" },
+            { "href": "./drums.html#riley-beyond-bop", "en": "Beyond Bop Drumming", "es": "Beyond Bop Drumming" }
+        ],
+        "lines": [
+            "rdq [rd sd]q rdq | rdq [rd sd]q rdq feet rq hfq hfq | rq hfq hfq · Snare on 2"
+        ],
+        "meter": { "beats": 3, "unit": 4 }
+    },
+    {
+        "id": "more0215",
+        "slug": "drum-ghost-notes",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumGhostNotes",
+        "nameEn": "Ghost notes",
+        "nameEs": "Notas fantasma",
+        "descEn": "Quiet snare notes between the backbeats, hats steady, kick sparse. Eighths, then sixteenths.",
+        "descEs": "Notas de caja en voz baja entre los contratiempos, charles constante, bombo escaso. Corcheas, luego semicorcheas.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#ghost-notes", "en": "Ghost notes", "es": "Notas fantasma" },
+            { "href": "./drums.html#garibaldi-future-sounds", "en": "Future Sounds", "es": "Future Sounds" },
+            { "href": "./drums.html#latham-advanced-funk", "en": "Advanced Funk Studies", "es": "Advanced Funk Studies" }
+        ],
+        "lines": [
+            "hhe pp [hh sd]e mf [hh sd]e pp [hh sd]e hhe pp [hh sd]e mf [hh sd]e pp [hh sd]e | hhe pp [hh sd]e mf [hh sd]e pp [hh sd]e hhe pp [hh sd]e mf [hh sd]e pp [hh sd]e feet bdq rq bdq rq | bdq rq bdq rq · Eighths, one and three"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0216",
+        "slug": "drum-rudiments",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumRudiments",
+        "nameEn": "Rudiments",
+        "nameEs": "Rudimentos",
+        "descEn": "Singles, doubles, paradiddles, flams, and drags on the snare, right and left. No feet.",
+        "descEs": "Sencillos, dobles, paradiddles, flams y drags en la caja, derecha e izquierda. Sin pies.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#rudiments", "en": "Rudiments", "es": "Rudimentos" },
+            { "href": "./drums.html#stone-stick-control", "en": "Stick Control", "es": "Stick Control" },
+            { "href": "./drums.html#morello-master-studies", "en": "Master Studies", "es": "Master Studies" },
+            { "href": "./drums.html#ramsay-dawson", "en": "The Drummer's Complete Vocabulary", "es": "The Drummer's Complete Vocabulary" }
+        ],
+        "lines": [
+            "{sde_R sde_L sde_R sde_L} {sde_R sde_L sde_R sde_L} | {sde_R sde_L sde_R sde_L} {sde_R sde_L sde_R sde_L} · Singles"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0217",
+        "slug": "drum-linear-fills",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumLinearFills",
+        "nameEn": "Linear fills",
+        "nameEs": "Rellenos lineales",
+        "descEn": "Sixteenth notes around the kit, one sound at a time, ending on a crash and a kick together.",
+        "descEs": "Semicorcheas por el set, un sonido a la vez, y al final crash y bombo juntos.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#linear-fills", "en": "Linear fills", "es": "Rellenos lineales" },
+            { "href": "./drums.html#chester-new-breed", "en": "The New Breed", "es": "The New Breed" },
+            { "href": "./drums.html#chaffee-patterns", "en": "Patterns", "es": "Patterns" },
+            { "href": "./drums.html#garibaldi-future-sounds", "en": "Future Sounds", "es": "Future Sounds" }
+        ],
+        "lines": [
+            "{sds hts mts fts} {sds hts mts fts} {sds hts mts fts} {sds hts mts fts} | {sds hts mts fts} {sds hts mts fts} {sds hts mts fts} {hts mts fts [cr bd]s} · Down the toms"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0218",
+        "slug": "drum-six-eight",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumSixEight",
+        "nameEn": "Six eight",
+        "nameEs": "Seis por ocho",
+        "descEn": "Hat eighths, the kick on the dotted quarter, snare on the fourth eighth.",
+        "descEs": "Charles en corcheas, el bombo en la negra con puntillo, caja en la cuarta corchea.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#six-eight", "en": "Six eight", "es": "Seis por ocho" },
+            { "href": "./drums.html#igoe-groove-essentials", "en": "Groove Essentials", "es": "Groove Essentials" },
+            { "href": "./drums.html#uribe-afro-cuban", "en": "The Essence of Afro-Cuban Percussion and Drum Set", "es": "The Essence of Afro-Cuban Percussion and Drum Set" },
+            { "href": "./drums.html#ramsay-dawson", "en": "The Drummer's Complete Vocabulary", "es": "The Drummer's Complete Vocabulary" }
+        ],
+        "lines": [
+            "{hhe hhe hhe} {[hh sd]e hhe hhe} | {hhe hhe hhe} {[hh sd]e hhe hhe} feet bdq. bdq. | bdq. bdq. · Dotted kick"
+        ],
+        "meter": { "beats": 6, "unit": 8 }
+    },
+    {
+        "id": "more0219",
+        "slug": "drum-twelve-eight",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumTwelveEight",
+        "nameEn": "Twelve eight",
+        "nameEs": "Doce por ocho",
+        "descEn": "That six-eight groove twice in the bar.",
+        "descEs": "Ese groove de seis por ocho, dos veces en el compás.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#twelve-eight", "en": "Twelve eight", "es": "Doce por ocho" },
+            { "href": "./drums.html#igoe-groove-essentials", "en": "Groove Essentials", "es": "Groove Essentials" },
+            { "href": "./drums.html#uribe-afro-cuban", "en": "The Essence of Afro-Cuban Percussion and Drum Set", "es": "The Essence of Afro-Cuban Percussion and Drum Set" }
+        ],
+        "lines": [
+            "{hhe hhe hhe} {[hh sd]e hhe hhe} {hhe hhe hhe} {[hh sd]e hhe hhe} | {hhe hhe hhe} {[hh sd]e hhe hhe} {hhe hhe hhe} {[hh sd]e hhe hhe} feet bdq. bdq. bdq. bdq. | bdq. bdq. bdq. bdq. · Four dotted kicks"
+        ],
+        "meter": { "beats": 12, "unit": 8 }
+    },
+    {
+        "id": "more0220",
+        "slug": "drum-five-four",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumFiveFour",
+        "nameEn": "Five four",
+        "nameEs": "Cinco por cuatro",
+        "descEn": "Short ostinatos in 5/4, grouped three plus two and two plus three.",
+        "descEs": "Ostinatos cortos en 5/4, agrupados tres más dos y dos más tres.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#five-four", "en": "Five four", "es": "Cinco por cuatro" },
+            { "href": "./time.html#hoenig-polyrhythms", "en": "Intro to Polyrhythms", "es": "Intro to Polyrhythms" },
+            { "href": "./drums.html#plainfield-advanced", "en": "Advanced Concepts", "es": "Advanced Concepts" },
+            { "href": "./drums.html#riley-beyond-bop", "en": "Beyond Bop Drumming", "es": "Beyond Bop Drumming" }
+        ],
+        "lines": [
+            "hhq hhq [hh sd]q hhq [hh sd]q | hhq hhq [hh sd]q hhq [hh sd]q feet bdq rq rq bdq rq | bdq rq rq bdq rq · Three plus two"
+        ],
+        "meter": { "beats": 5, "unit": 4 }
+    },
+    {
+        "id": "more0221",
+        "slug": "drum-seven-eight",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumSevenEight",
+        "nameEn": "Seven eight",
+        "nameEs": "Siete por ocho",
+        "descEn": "Short ostinatos in 7/8, grouped two two three, three two two, and two three two.",
+        "descEs": "Ostinatos cortos en 7/8, agrupados dos dos tres, tres dos dos, y dos tres dos.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#seven-eight", "en": "Seven eight", "es": "Siete por ocho" },
+            { "href": "./time.html#hoenig-polyrhythms", "en": "Intro to Polyrhythms", "es": "Intro to Polyrhythms" },
+            { "href": "./drums.html#chaffee-patterns", "en": "Patterns", "es": "Patterns" },
+            { "href": "./drums.html#plainfield-advanced", "en": "Advanced Concepts", "es": "Advanced Concepts" }
+        ],
+        "lines": [
+            "{hhe hhe} {hhe [hh sd]e} {hhe hhe hhe} | {hhe hhe} {hhe [hh sd]e} {hhe hhe hhe} feet bdq bdq bdq. | bdq bdq bdq. · Two two three"
+        ],
+        "meter": { "beats": 7, "unit": 8 }
+    },
+    {
+        "id": "more0222",
+        "slug": "drum-cross-stick",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumCrossStick",
+        "nameEn": "Cross-stick and rim",
+        "nameEs": "Cross-stick y aro",
+        "descEn": "Cross-stick comping with the hats running, then a rim shot on 2 and 4.",
+        "descEs": "Comping de cross-stick con el charles seguido, y luego un golpe de aro en 2 y 4.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#cross-stick", "en": "Cross-stick and rim", "es": "Cross-stick y aro" },
+            { "href": "./drums.html#riley-art-of-bop", "en": "The Art of Bop Drumming", "es": "The Art of Bop Drumming" },
+            { "href": "./drums.html#chapin-advanced", "en": "Advanced Techniques for the Modern Drummer", "es": "Advanced Techniques for the Modern Drummer" }
+        ],
+        "lines": [
+            "hhe hhe xstick [sd hh]e hhe hhe hhe xstick [sd hh]e hhe | hhe hhe xstick [sd hh]e hhe hhe hhe xstick [sd hh]e hhe feet rq hfq rq hfq | rq hfq rq hfq · On 2 and 4"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
+    },
+    {
+        "id": "more0223",
+        "slug": "drum-chart-marks",
+        "group": "rhythm",
+        "staff": true,
+        "notation": "drum",
+        "bars": 2,
+        "exercise": "drumChartMarks",
+        "nameEn": "Chart marks",
+        "nameEs": "Marcas de chart",
+        "descEn": "A repeating groove with a section name, a second bar that repeats, and one example at 96.",
+        "descEs": "Un groove que se repite con el nombre de la sección, un segundo compás que repite, y un ejemplo a 96.",
+        "books": [
+            { "href": "./notation.html#drums", "en": "How to write drums", "es": "Cómo escribir batería" },
+            { "href": "./drums.html#chart-marks", "en": "Chart marks", "es": "Marcas de chart" },
+            { "href": "./drums.html#riley-art-of-bop", "en": "The Art of Bop Drumming", "es": "The Art of Bop Drumming" },
+            { "href": "./drums.html#reed-syncopation", "en": "Progressive Steps to Syncopation", "es": "Progressive Steps to Syncopation" }
+        ],
+        "lines": [
+            "^Intro hhe hhe [hh sd]e> hhe hhe hhe [hh sd]e> hhe | % feet bdq rq bdq rq | % · Intro"
+        ],
+        "meter": { "beats": 4, "unit": 4 }
     }
 ]

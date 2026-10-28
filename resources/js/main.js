@@ -572,6 +572,7 @@ function catalogShareSnapshot(seedId) {
     name: row.name,
     bars: row.bars,
     staff: row.staff,
+    notation: row.notation === "drum" ? "drum" : "",
     lines: row.lines
   });
   if (!snap) {

@@ -181,7 +181,20 @@ var moreDayOrder = [
   "more0207",
   "diatonicBlockChords",
   "barryHarrisVoicings",
-  "quartalHarmony"
+  "quartalHarmony",
+  "drumBackbeat",
+  "drumHatOpenings",
+  "drumJazzRide",
+  "drumJazzWaltz",
+  "drumGhostNotes",
+  "drumRudiments",
+  "drumLinearFills",
+  "drumSixEight",
+  "drumTwelveEight",
+  "drumFiveFour",
+  "drumSevenEight",
+  "drumCrossStick",
+  "drumChartMarks"
 ];
 
 var moreExercisesCache = null;

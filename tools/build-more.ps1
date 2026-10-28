@@ -178,6 +178,19 @@ $struggleOf = @{
   'interval-families-staff' = 'intervals'
   'all-intervals' = 'intervals'
   'intervals-from-c' = 'intervals'
+  'drum-backbeat' = 'time'
+  'drum-hat-openings' = 'time'
+  'drum-jazz-ride' = 'time'
+  'drum-jazz-waltz' = 'time'
+  'drum-ghost-notes' = 'time'
+  'drum-rudiments' = 'time'
+  'drum-linear-fills' = 'time'
+  'drum-six-eight' = 'time'
+  'drum-twelve-eight' = 'time'
+  'drum-five-four' = 'time'
+  'drum-seven-eight' = 'time'
+  'drum-cross-stick' = 'time'
+  'drum-chart-marks' = 'time'
 }
 
 $siblingOf = @{
@@ -212,6 +225,12 @@ function Is-Staff($ex) {
   $names = @($ex.PSObject.Properties.Name)
   if ($names -contains 'staff') { return [bool]$ex.staff }
   return ([string]$ex.slug) -eq 'held-rhythm'
+}
+
+function Notation-Of($ex) {
+  $names = @($ex.PSObject.Properties.Name)
+  if ($names -contains 'notation' -and $ex.notation) { return [string]$ex.notation }
+  return ''
 }
 
 function Sample-Meter($ex) {
@@ -298,7 +317,8 @@ function Build-Page([string]$lang) {
     $sendLabel = "env${chI}a un ejercicio o una correcci${chO}n"
     $openLabel = 'Abrir en eization'
     $searchLabel = 'Buscar un ejercicio'
-    $searchPh = 'II-V, blues, gu' + [char]0x00ED + 'a, triplets' + [char]0x2026
+    $searchPh = 'II-V, blues, gu' + [char]0x00ED + 'a, contratiempo' + [char]0x2026
+    $drumLabel = 'Bater' + [char]0x00ED + 'a'
     $allLabel = 'Todos'
     $countOne = '1 ejercicio'
     $countMany = '%n ejercicios'
@@ -354,7 +374,8 @@ function Build-Page([string]$lang) {
     $sendLabel = 'Send an exercise or a correction'
     $openLabel = 'Open in eization'
     $searchLabel = 'Find an exercise'
-    $searchPh = 'II-V, blues, guide tones, triplets' + [char]0x2026
+    $searchPh = 'II-V, blues, guide tones, backbeat' + [char]0x2026
+    $drumLabel = 'Drums'
     $allLabel = 'All'
     $countOne = '1 exercise'
     $countMany = '%n exercises'
@@ -425,7 +446,7 @@ function Build-Page([string]$lang) {
     if (-not $ex) { continue }
     $name = if ($isEs) { $ex.nameEs } else { $ex.nameEn }
     $why = if ($isEs) { $startWhy[$slug].es } else { $startWhy[$slug].en }
-    $kind = if (Is-Staff $ex) { $staffLabel } else { $textLabel }
+    $kind = if ((Notation-Of $ex) -eq 'drum') { $drumLabel } elseif (Is-Staff $ex) { $staffLabel } else { $textLabel }
     [void]$discoverSb.AppendLine('                    <li><a href="#' + (Html-Escape $slug) + '"><span>' + (Html-Escape $name) + '</span> <span class="kind">' + (Html-Escape $kind) + '</span><span class="more-start-why">' + (Html-Escape $why) + '</span></a></li>')
   }
   [void]$discoverSb.AppendLine('                </ul>')
@@ -454,6 +475,7 @@ function Build-Page([string]$lang) {
   [void]$toolsSb.AppendLine('                <div class="more-kind" role="group" aria-label="' + (Html-Escape $kindAria) + '">')
   [void]$toolsSb.AppendLine('                    <button type="button" class="is-on" data-more-kind data-value="all" aria-pressed="true">' + (Html-Escape $allLabel) + '</button>')
   [void]$toolsSb.AppendLine('                    <button type="button" data-more-kind data-value="staff" aria-pressed="false">' + (Html-Escape $staffLabel) + '</button>')
+  [void]$toolsSb.AppendLine('                    <button type="button" data-more-kind data-value="drum" aria-pressed="false">' + (Html-Escape $drumLabel) + '</button>')
   [void]$toolsSb.AppendLine('                    <button type="button" data-more-kind data-value="text" aria-pressed="false">' + (Html-Escape $textLabel) + '</button>')
   [void]$toolsSb.AppendLine('                </div>')
   [void]$toolsSb.AppendLine('            </div>')
@@ -471,8 +493,18 @@ function Build-Page([string]$lang) {
     $d = if ($isEs) { $ex.descEs } else { $ex.descEn }
     $href = './' + $ex.hash
     $staff = Is-Staff $ex
-    $kind = if ($staff) { $staffLabel } else { $textLabel }
-    $kindKey = if ($staff) { 'staff' } else { 'text' }
+    $notation = Notation-Of $ex
+    if ($notation -eq 'drum') {
+      $kind = $drumLabel
+      $kindKey = 'drum'
+      $staff = $true
+    } elseif ($staff) {
+      $kind = $staffLabel
+      $kindKey = 'staff'
+    } else {
+      $kind = $textLabel
+      $kindKey = 'text'
+    }
     $groupKey = Group-Of $ex
     $tag = Struggle-Of $ex
     $owned = Owned-Id $ex
@@ -498,6 +530,7 @@ function Build-Page([string]$lang) {
         $meterAttr = ''
         $meter = Sample-Meter $ex
         if ($meter) { $meterAttr = ' data-meter="' + $meter + '"' }
+        if ($notation -eq 'drum') { $meterAttr += ' data-notation="drum"' }
         [void]$bodySb.AppendLine('            <figure class="notation-sample more-example"' + $meterAttr + '>')
         [void]$bodySb.AppendLine('                <pre>' + $sample + '</pre>')
         [void]$bodySb.AppendLine('                <div class="notation-staff"></div>')
@@ -607,6 +640,7 @@ function Build-Page([string]$lang) {
   [void]$sb.AppendLine('    </main>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff-glyphs.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'staff.js"></script>')
+  [void]$sb.AppendLine('    <script src="' + $jsDir + 'drum.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'notation-page.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'guide-share.js"></script>')
   [void]$sb.AppendLine('    <script src="' + $jsDir + 'more-browse.js"></script>')
