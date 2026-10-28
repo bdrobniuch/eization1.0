@@ -467,6 +467,7 @@ function setEditorKind(kind) {
   var staff = document.getElementById("editKindStaff");
   var drum = document.getElementById("editKindDrum");
   var write = document.getElementById("editWrite");
+  var previous = editorKindName();
   if (kind !== "text" && kind !== "staff" && kind !== "drum") {
     kind = "text";
   }
@@ -491,6 +492,15 @@ function setEditorKind(kind) {
   editorMidiSync();
   if (typeof editorFillStaffSamples === "function") {
     editorFillStaffSamples();
+  }
+  /* A kind change while Edit is open: text hides the pad. Staff and drums on a
+     tablet or larger screen show Write notes. A phone stays as the musician left it. */
+  if (previous !== kind && editorIsOpen()) {
+    if (kind === "text") {
+      editorCloseSymbols();
+    } else if (!editorPhoneChrome()) {
+      editorOpenSymbols();
+    }
   }
 }
 
@@ -1216,6 +1226,15 @@ var EDITOR_PHONE_MQ = "(max-width: 640px), (orientation: landscape) and (max-hei
 
 function editorPhoneChrome() {
   return window.matchMedia(EDITOR_PHONE_MQ).matches;
+}
+
+/* Staff and drums above the phone width start with Write notes open.
+   A phone, and a text exercise, keep the pad behind its button. */
+function editorPresentWriteNotes() {
+  if (!editorIsOpen() || editorPhoneChrome() || !editorStaffOn()) {
+    return;
+  }
+  editorOpenSymbols();
 }
 
 function setEditorAskHint(on) {
@@ -19093,6 +19112,7 @@ function editorOpenSheet(options) {
   }
   area.scrollTop = 0;
   area.setSelectionRange(0, 0);
+  editorPresentWriteNotes();
   if (editorIsFocusMode()) {
     editorSyncFocusFromArea({ caret: "end" });
   } else if (window.matchMedia("(pointer: fine)").matches) {
@@ -19223,6 +19243,7 @@ function editorOpenSharePreview(spec) {
   }
   area.scrollTop = 0;
   area.setSelectionRange(0, 0);
+  editorPresentWriteNotes();
   if (window.matchMedia("(pointer: fine)").matches) {
     if (editorIsFocusMode()) {
       var focusField = document.getElementById("editFocusLine");

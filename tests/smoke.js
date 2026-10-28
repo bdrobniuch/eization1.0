@@ -3330,6 +3330,7 @@ function chatCase(w) {
     w.SelectExercise();
     w.editorOpen();
     var phoneFocus = w.matchMedia("(max-width: 640px), (orientation: landscape) and (max-height: 520px)").matches;
+    check("a text exercise keeps write notes closed", symbolsPanel.hidden === true);
     var viewLabel = viewToggle.querySelector(".btn-label");
     var shownView = viewLabel ? viewLabel.textContent : viewToggle.textContent;
     var sheetBox = sheet.getBoundingClientRect();
@@ -3371,6 +3372,14 @@ function chatCase(w) {
     }
     w.document.getElementById("editFocusAdd").click();
     w.setEditorStaff(true);
+    if (phoneFocus) {
+      check("a phone keeps write notes closed until asked", symbolsPanel.hidden === true);
+    } else {
+      check(
+        "switching to staff on a wide screen opens write notes",
+        symbolsPanel.hidden === false && symbolsToggle.getAttribute("aria-expanded") === "true"
+      );
+    }
     if (symbolsPanel.hidden) {
       symbolsToggle.click();
     }
@@ -7371,6 +7380,38 @@ function chatCase(w) {
       w.editorCloseTransposeMenu();
       w.editorCloseMoveMenu();
     })();
+    w.editorCancel();
+    w.editorOpenNew();
+    if (phoneFocus) {
+      check(
+        "a phone opens a new staff exercise with write notes closed",
+        w.editorIsOpen() && w.editorStaffOn() && symbolsPanel.hidden === true
+      );
+    } else {
+      check(
+        "a wide screen opens a new staff exercise with write notes showing",
+        w.editorIsOpen() &&
+          w.editorStaffOn() &&
+          symbolsPanel.hidden === false &&
+          symbolsToggle.getAttribute("aria-expanded") === "true" &&
+          w.getComputedStyle(w.document.getElementById("editNotePad")).display !== "none"
+      );
+      symbolsToggle.click();
+      w.refreshEditor();
+      check("closing write notes stays closed", symbolsPanel.hidden === true);
+      w.setEditorKind("drum");
+      check(
+        "drums on a wide screen opens write notes",
+        symbolsPanel.hidden === false && symbolsPanel.classList.contains("is-drum")
+      );
+      symbolsToggle.click();
+      w.refreshEditor();
+      check("closing drums stays closed", symbolsPanel.hidden === true);
+      w.setEditorKind("text");
+      check("text keeps symbols closed", symbolsPanel.hidden === true);
+      w.setEditorKind("staff");
+      check("switching back to staff opens write notes", symbolsPanel.hidden === false && symbolsPanel.classList.contains("is-staff"));
+    }
     w.editorCancel();
   }
 }
