@@ -43,7 +43,7 @@ Scripts in `index.html` load in order. `registry.js` must come before the exerci
 | `resources/js/main.js` | Wiring, `init`, and a few Analytics events from practice clicks |
 | `resources/js/guide-share.js` | Share and Embed on More and the exercise pages |
 | `resources/css/style.css` | Practice screen layout |
-| `notation.html` | How to write an example as staff notation, including a Drums section. Each sample is the line, then the staff that line parses into. Try a line edits live and samples load into that box |
+| `notation.html` | How to write an example as staff notation, including a Drums section. Each sample is the line, then the staff that line parses into. Try a line edits live. Staff or Drums beside Meter chooses the parser. A sample loads into that box and sets the matching kind |
 | `practice.html` | How to practice one example at a time. Links to each stock exercise |
 | `terms.html`, `privacy.html` | Terms of Service and Privacy Policy. Linked from About the author (Support). Spanish twins under `es/` |
 | `for-teachers.html` | Hub for teacher articles. Menu links here. Pieces live under `for-teachers/` and `es/for-teachers/` |

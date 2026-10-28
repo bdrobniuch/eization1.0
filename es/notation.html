@@ -53,7 +53,7 @@
 
         <section class="notation-try" id="notationTry">
             <h2>Prueba una línea</h2>
-            <p>Escribe un ejemplo. El pentagrama se actualiza al escribir. El compás de aquí es solo para este recuadro; en un ejercicio sigue a Ajustes. Toca cualquier ejemplo de esta página para cargarlo aquí.</p>
+            <p>Escribe un ejemplo. El pentagrama se actualiza al escribir. El compás de aquí es solo para este recuadro; en un ejercicio sigue a Ajustes. Pentagrama o Batería elige cómo lee la línea este recuadro. Toca cualquier ejemplo de esta página para cargarlo aquí.</p>
             <div class="notation-try-tools">
                 <label class="notation-try-meter">
                     <span>Compás</span>
@@ -65,6 +65,10 @@
                         <option value="4/2">4/2</option>
                     </select>
                 </label>
+                <div id="notationTryKind" role="group" aria-label="Pentagrama o batería">
+                    <button type="button" id="notationTryKindStaff" aria-pressed="true">Pentagrama</button>
+                    <button type="button" id="notationTryKindDrum" aria-pressed="false">Batería</button>
+                </div>
             </div>
             <input id="notationTryInput" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" aria-label="Línea de ejemplo para probar" value="C4 E4 G4 C5">
             <p id="notationTryNote" class="notation-try-note" hidden role="status" aria-live="polite"></p>

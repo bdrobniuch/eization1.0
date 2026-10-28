@@ -993,6 +993,36 @@ body.article figure.figure.figure-phone img {
     font-size: 15px;
 }
 
+#notationTryKind {
+    display: inline-flex;
+    box-sizing: border-box;
+    height: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#notationTryKind button {
+    min-height: 0;
+    height: 100%;
+    padding: 0 14px;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+#notationTryKind button + button {
+    border-left: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+#notationTryKind button[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.92);
+    color: #0b3d2e;
+}
+
 #notationTryInput {
     display: block;
     box-sizing: border-box;

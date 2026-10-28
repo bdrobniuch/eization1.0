@@ -134,6 +134,23 @@ function notationTryMeterValue() {
   return meter ? meter.value : "4/4";
 }
 
+function notationTryKind() {
+  var drum = document.getElementById("notationTryKindDrum");
+  return drum && drum.getAttribute("aria-pressed") === "true" ? "drum" : "";
+}
+
+function setNotationTryKind(kind) {
+  var staff = document.getElementById("notationTryKindStaff");
+  var drum = document.getElementById("notationTryKindDrum");
+  var on = kind === "drum";
+  if (staff) {
+    staff.setAttribute("aria-pressed", on ? "false" : "true");
+  }
+  if (drum) {
+    drum.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+}
+
 function refreshNotationTry() {
   var input = document.getElementById("notationTryInput");
   var host = document.getElementById("notationTryStaff");
@@ -141,7 +158,7 @@ function refreshNotationTry() {
     return;
   }
   var line = String(input.value || "").replace(/^\s+|\s+$/g, "");
-  var status = notationAppendStaff(host, line, notationTryMeterValue());
+  var status = notationAppendStaff(host, line, notationTryMeterValue(), notationTryKind());
   if (!line) {
     notationClearTryNote();
     return;
@@ -155,7 +172,7 @@ function refreshNotationTry() {
   }
 }
 
-function notationLoadTryLine(source, meter) {
+function notationLoadTryLine(source, meter, notation) {
   var input = document.getElementById("notationTryInput");
   var meterEl = document.getElementById("notationTryMeter");
   var tryBox = document.getElementById("notationTry");
@@ -169,6 +186,7 @@ function notationLoadTryLine(source, meter) {
       meterEl.value = meter;
     }
   }
+  setNotationTryKind(notation === "drum" ? "drum" : "staff");
   refreshNotationTry();
   if (tryBox && typeof tryBox.scrollIntoView === "function") {
     tryBox.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -190,6 +208,20 @@ function wireNotationTry() {
   if (meter) {
     meter.addEventListener("change", refreshNotationTry);
   }
+  ["notationTryKindStaff", "notationTryKindDrum"].forEach(function (id) {
+    var button = document.getElementById(id);
+    if (!button) {
+      return;
+    }
+    button.addEventListener("click", function () {
+      var next = id === "notationTryKindDrum" ? "drum" : "staff";
+      if (next === (notationTryKind() === "drum" ? "drum" : "staff")) {
+        return;
+      }
+      setNotationTryKind(next);
+      refreshNotationTry();
+    });
+  });
   refreshNotationTry();
 
   var samples = document.querySelectorAll(".notation-sample");
@@ -213,7 +245,11 @@ function wireNotationTry() {
           ? "Cargar en Prueba una línea"
           : "Load into Try a line";
       function load() {
-        notationLoadTryLine(pre.textContent, el.getAttribute("data-meter") || "4/4");
+        notationLoadTryLine(
+          pre.textContent,
+          el.getAttribute("data-meter") || "4/4",
+          el.getAttribute("data-notation") === "drum" ? "drum" : "staff"
+        );
       }
       pre.addEventListener("click", load);
       pre.addEventListener("keydown", function (event) {
