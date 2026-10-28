@@ -17,24 +17,27 @@ function notationMeterSpecified(raw) {
   return raw != null && String(raw).replace(/^\s+|\s+$/g, "") !== "";
 }
 
-function notationAppendStaff(host, source, meter) {
+function notationAppendStaff(host, source, meter, notation) {
   host.textContent = "";
   host.classList.remove("is-text", "is-empty", "is-staff");
   var trimmed = String(source || "").replace(/^\s+|\s+$/g, "");
   var showMeter = notationMeterSpecified(meter);
+  var drum = notation === "drum";
   if (!trimmed) {
     host.classList.add("is-empty");
     return { ok: false, notationIsh: false, music: "", caption: "" };
   }
   /* Layout still needs a meter; only the time-signature glyph follows data-meter. */
   notationApplyMeter(showMeter ? meter : "4/4");
-  var status =
-    typeof staffNotationStatus === "function"
+  var status = drum && typeof drumNotationStatus === "function"
+    ? drumNotationStatus(trimmed)
+    : typeof staffNotationStatus === "function"
       ? staffNotationStatus(trimmed)
       : { ok: false, notationIsh: false, music: trimmed, caption: "" };
-  if (status.ok && typeof renderMusicStaff === "function") {
+  var draw = drum && typeof renderDrumStaff === "function" ? renderDrumStaff : renderMusicStaff;
+  if (status.ok && typeof draw === "function") {
     host.classList.add("is-staff");
-    var svg = renderMusicStaff(status.music || trimmed, "current", {
+    var svg = draw(status.music || trimmed, "current", {
       showMeter: showMeter
     });
     if (svg) {
@@ -74,7 +77,7 @@ function renderNotationSamples() {
     if (!source) {
       continue;
     }
-    notationAppendStaff(host, source, el.getAttribute("data-meter"));
+    notationAppendStaff(host, source, el.getAttribute("data-meter"), el.getAttribute("data-notation"));
   }
 }
 

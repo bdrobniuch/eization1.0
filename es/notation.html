@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cómo escribir en el pentagrama. eization.</title>
-    <meta name="description" content="Escribe un ejemplo de eization como notación musical. La línea en Editar es el pentagrama en pantalla: notas, acordes, slashes, silencios y barrados.">
+    <meta name="description" content="Escribe un ejemplo de eization como notación musical. La línea en Editar es el pentagrama en pantalla: notas, acordes, slashes, silencios, barrados y batería.">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0C8A50">
     <link rel="canonical" href="https://eization.com/es/notation.html">
@@ -217,8 +217,39 @@
             <div class="notation-staff"></div>
         </figure>
 
+        <h2 id="drums">Batería</h2>
+        <p>Batería es un tipo de ejercicio. La línea son códigos del set, no alturas. Un ejercicio de batería dibuja la clave de percusión y ninguna armadura. Ritmos sigue en slashes. <code>bd</code> es el bombo. <code>ft</code> es el tom de piso. <code>sd</code> es la caja. <code>mt</code> es el tom medio. <code>ht</code> es el tom agudo. <code>hh</code> es el charles. <code>hho</code> es el charles abierto. <code>rd</code> es el ride. <code>rb</code> es la campana. <code>cr</code> es el crash. <code>hf</code> es el charles con el pie. Las letras de duración son las que ya usas. Un acorde de corchetes son dos sonidos a la vez. <code>feet</code> empieza el ritmo del pie, y los dos lados llenan los mismos compases. <code>flam</code>, <code>drag</code>, <code>rim</code> y <code>xstick</code> van delante del golpe y no ocupan tiempo. Una nota con altura (<code>C4q</code>), <code>@key=</code>, <code>@treble</code>, <code>@bass</code> y <code>rs</code> se quedan en texto. <code>rs</code> sigue siendo un silencio de semicorchea. El rimshot es la palabra <code>rim</code>.</p>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>bdq sdq hhq rdq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>[hh sd]q [hh bd]q</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>hhe hhe hhe hhe hhe hhe hhe hhe feet bdq rq bdq rq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>hhoq hhq hhoq hhq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>flam sdq drag sdq rim sdq xstick sdq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>{sde_R sde_L sde_R sde_L sde_R sde_L sde_R sde_L}</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum" data-meter="6/8">
+            <pre>{hhe hhe hhe} {[hh sd]e hhe hhe} feet bdq. bdq.</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
         <h2>En un ejercicio</h2>
-        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Progresiones esenciales, Tocar/Silencio y Ritmos se escriben así. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, una barra de compás dentro de un grupo irregular, un grupo irregular anidado, una ligadura desde un silencio, una ligadura hacia otra altura, un matiz suelto, o un regulador sin nada después. Un grupo irregular de una sola nota dibuja esa nota normal. Una ligadura sin nada después deja un trazo corto.</p>
+        <p>Pega un ejemplo por línea. Escalas, Voicings rootless de mano izquierda, Progresiones esenciales, Tocar/Silencio y Ritmos se escriben así. Un ejercicio de batería lleva solo líneas del set, y Compases y el compás de Ajustes funcionan igual. Todas las líneas de un ejercicio duran los mismos compases, y Compases se pone en ese número. Una línea en 6/8 va en un ejercicio cuyo compás en Ajustes es 6/8. Una línea que parece música pero no se lee se queda en texto — un grupo irregular o una llave sin cerrar, una barra de compás dentro de un grupo irregular, un grupo irregular anidado, una ligadura desde un silencio, una ligadura hacia otra altura, un matiz suelto, o un regulador sin nada después. Un grupo irregular de una sola nota dibuja esa nota normal. Una ligadura sin nada después deja un trazo corto. <a href="#drums">Batería</a> usa los códigos de arriba.</p>
         <p><a class="open" href="./?exercise=scales">Abrir Escalas</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Abrir Voicings rootless de mano izquierda</a></p>
         <p><a class="open" href="./?exercise=limbs">Abrir Ritmos</a></p>
@@ -235,6 +266,7 @@
     </main>
     <script src="../resources/js/staff-glyphs.js"></script>
     <script src="../resources/js/staff.js"></script>
+    <script src="../resources/js/drum.js"></script>
     <script src="../resources/js/notation-page.js"></script>
     <script src="../resources/js/lang-link.js"></script>
 </body>

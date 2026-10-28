@@ -1970,9 +1970,24 @@ function sharePackExercise(snap) {
   } else if (snap.staff === false) {
     barsByte |= 128;
   }
+  if (snap.notation === "drum") {
+    barsByte |= 64;
+    barsByte &= ~128;
+  }
   raw.push(barsByte);
   sharePushU16(raw, snap.lines.length);
   function packOneLine(line) {
+    if (snap.notation === "drum") {
+      textBytes = shareUtf8Encode(line);
+      if (textBytes.length > 65535) {
+        return false;
+      }
+      raw.push(2);
+      sharePushU16(raw, textBytes.length);
+      sharePush(raw, textBytes);
+      stored.push(line);
+      return true;
+    }
     var lineCanon = snap.staff === false ? "" : staffShareCanonical(line);
     var lineStaff = lineCanon ? shareEncodeStaffLine(lineCanon) : null;
     if (lineStaff) {
@@ -2016,6 +2031,9 @@ function sharePackExercise(snap) {
   if (!unpacked || unpacked.id !== snap.shareId || unpacked.name !== snap.name || unpacked.bars !== snap.bars) {
     return null;
   }
+  if ((snap.notation === "drum") !== (unpacked.notation === "drum")) {
+    return null;
+  }
   if ((snap.staff === true || snap.staff === false) && unpacked.staff !== snap.staff) {
     return null;
   }
@@ -2048,6 +2066,8 @@ function shareUnpackExercise(bytes) {
   var sawStaff = false;
   var sawText = false;
   var staff;
+  var notation = "";
+  var sawDrum = false;
   idBytes = cur.take(8);
   if (!idBytes) {
     return null;
@@ -2078,6 +2098,18 @@ function shareUnpackExercise(bytes) {
         return null;
       }
       lines.push(line);
+    } else if (kind === 2) {
+      sawDrum = true;
+      sawStaff = true;
+      textBytes = cur.take(cur.u16());
+      if (!textBytes) {
+        return null;
+      }
+      text = shareUtf8Decode(textBytes);
+      if (text == null) {
+        return null;
+      }
+      lines.push(text);
     } else if (kind === 0) {
       sawText = true;
       textBytes = cur.take(cur.u16());
@@ -2096,14 +2128,17 @@ function shareUnpackExercise(bytes) {
   if (cur.i !== bytes.length || !lines.length) {
     return null;
   }
-  if ((barsByte & 64) && !(barsByte & 128)) {
+  if (sawDrum) {
+    staff = true;
+    notation = "drum";
+  } else if ((barsByte & 64) && !(barsByte & 128)) {
     staff = true;
   } else if (barsByte & 128) {
     staff = false;
   } else {
     staff = sawStaff && !sawText;
   }
-  return { id: id, name: name, bars: bars, staff: staff, lines: lines };
+  return { id: id, name: name, bars: bars, staff: staff, lines: lines, notation: notation };
 }
 
 function shareEncode(text) {
@@ -2166,6 +2201,9 @@ function shareJsonHash(snap) {
     staff: !!snap.staff,
     lines: snap.lines
   };
+  if (snap.notation === "drum") {
+    obj.notation = "drum";
+  }
   if (snap.clef === "bass") {
     obj.clef = "bass";
   }
@@ -2253,6 +2291,7 @@ function shareReadV2(payload) {
     name: snap.name,
     bars: snap.bars,
     staff: snap.staff,
+    notation: snap.notation,
     lines: snap.lines
   });
 }
@@ -2283,6 +2322,7 @@ function readShareHash(hash) {
     bars: json.bars,
     staff: json.staff,
     lines: json.lines,
+    notation: json.notation,
     clef: json.clef,
     key: json.key,
     meter: json.meter

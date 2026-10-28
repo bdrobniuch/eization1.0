@@ -549,6 +549,10 @@ function rewriteStackDurationInner(inner, tail) {
   return "[" + pitches.join(" ") + "]" + dur + tail.name;
 }
 
+function deskNotationValue(raw) {
+  return raw && raw.notation === "drum" ? "drum" : "";
+}
+
 function normalizeDeskExercise(raw) {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -568,6 +572,10 @@ function normalizeDeskExercise(raw) {
     staff: deskStaffValue(raw, lines),
     lines: lines
   };
+  if (deskNotationValue(raw)) {
+    record.notation = "drum";
+    record.staff = true;
+  }
   assignDeskDefaults(record, raw);
   if (typeof raw.seedId === "string" && raw.seedId) {
     record.seedId = raw.seedId;
@@ -676,6 +684,10 @@ function shareSnapshot(part) {
     staff: part.staff === true || part.staff === false ? part.staff : linesLookLikeStaff(lines),
     lines: lines
   };
+  if (part.notation === "drum") {
+    snap.notation = "drum";
+    snap.staff = true;
+  }
   assignDeskDefaults(snap, part);
   return snap;
 }
@@ -766,6 +778,10 @@ function catalogExerciseRecord(seedId) {
     staff: exerciseUsesStaff(ex),
     lines: lines
   };
+  if (ex.notation === "drum") {
+    record.notation = "drum";
+    record.staff = true;
+  }
   assignDeskDefaults(record, ex);
   return record;
 }
@@ -1250,6 +1266,7 @@ function deskExerciseItems(id) {
     bars: record.bars,
     name: record.name,
     staff: !!record.staff,
+    notation: record.notation === "drum" ? "drum" : "pitch",
     clef: record.clef || "",
     key: record.key || "",
     meter: record.meter || null
@@ -1277,6 +1294,10 @@ function updateDeskExercise(id, part) {
       staff: part.staff === true || part.staff === false ? part.staff : !!list[i].staff,
       lines: part.lines != null ? cleanDeskLines(part.lines) : list[i].lines.slice()
     };
+    if (part.notation === "drum" || (part.notation == null && list[i].notation === "drum")) {
+      next.notation = "drum";
+      next.staff = true;
+    }
     if (!next.lines.length) {
       return null;
     }

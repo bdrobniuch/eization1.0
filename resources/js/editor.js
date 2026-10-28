@@ -5,6 +5,7 @@ var editorDraft = {
   text: "",
   bars: 1,
   staff: false,
+  notation: "",
   clef: "",
   key: "",
   meter: null,
@@ -48,6 +49,9 @@ var EDITOR_SYMBOLS = [
   { char: "[ ]", key: "sym.stack", caretBack: 2 }
 ];
 
+var editorDrumPiece = "bd";
+var editorDrumOpenHat = false;
+var editorStaffPenDown = false;
 var editorNote = {
   acc: "",
   dur: "",
@@ -133,6 +137,12 @@ var editorHoldRepeatAction = null;
 var editorEraseLastAt = 0;
 /* One Analytics bag per Edit open; flushed in editorCloseQuiet. */
 var editorAnalytics = null;
+
+var EDITOR_DRUM_SAMPLES = [
+  "bdq sdq hhq rdq",
+  "[hh sd]q",
+  "hhe hhe hhe hhe hhe hhe hhe hhe feet bdq rq bdq rq"
+];
 
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
@@ -401,7 +411,7 @@ function editorIsDirty() {
   return (
     text !== editorDraft.text ||
     bars !== editorDraft.bars ||
-    editorStaffOn() !== !!editorDraft.staff ||
+    editorKindName() !== editorDraftKind() ||
     name !== draftName ||
     defaults.clef !== (editorDraft.clef || "") ||
     defaults.key !== (editorDraft.key || "") ||
@@ -419,32 +429,71 @@ function editorMeterEqual(a, b) {
   return a.beats === b.beats && a.unit === b.unit;
 }
 
-function editorStaffOn() {
+function editorPitchStaffOn() {
   var button = document.getElementById("editKindStaff");
   return !!(button && button.getAttribute("aria-pressed") === "true");
 }
 
-function setEditorStaff(on) {
+function editorDrumOn() {
+  var button = document.getElementById("editKindDrum");
+  return !!(button && button.getAttribute("aria-pressed") === "true");
+}
+
+function editorKindName() {
+  if (editorDrumOn()) {
+    return "drum";
+  }
+  if (editorPitchStaffOn()) {
+    return "staff";
+  }
+  return "text";
+}
+
+function editorDraftKind() {
+  if (editorDraft.notation === "drum") {
+    return "drum";
+  }
+  return editorDraft.staff ? "staff" : "text";
+}
+
+function editorStaffOn() {
+  return editorPitchStaffOn() || editorDrumOn();
+}
+
+function setEditorKind(kind) {
   var text = document.getElementById("editKindText");
   var staff = document.getElementById("editKindStaff");
+  var drum = document.getElementById("editKindDrum");
   var write = document.getElementById("editWrite");
-  var pressed = !!on;
+  if (kind !== "text" && kind !== "staff" && kind !== "drum") {
+    kind = "text";
+  }
   if (text) {
-    text.setAttribute("aria-pressed", pressed ? "false" : "true");
+    text.setAttribute("aria-pressed", kind === "text" ? "true" : "false");
   }
   if (staff) {
-    staff.setAttribute("aria-pressed", pressed ? "true" : "false");
+    staff.setAttribute("aria-pressed", kind === "staff" ? "true" : "false");
+  }
+  if (drum) {
+    drum.setAttribute("aria-pressed", kind === "drum" ? "true" : "false");
   }
   if (write) {
-    write.classList.toggle("is-text-kind", !pressed);
+    write.classList.toggle("is-text-kind", kind === "text");
   }
-  if (!pressed) {
+  if (kind === "text") {
     editorCloseStaffHelp({ focus: false });
   }
   editorPlaceExerciseExtras();
   editorSyncSymbolKind();
   editorSyncAddCombo();
   editorMidiSync();
+  if (typeof editorFillStaffSamples === "function") {
+    editorFillStaffSamples();
+  }
+}
+
+function setEditorStaff(on) {
+  setEditorKind(on ? "staff" : "text");
 }
 
 function editorReadDefaults() {
@@ -509,7 +558,7 @@ function editorPlaceExerciseExtras() {
   var keyHost = document.getElementById("editKeyHost");
   var setup = document.getElementById("editSetup");
   var noteDefaults = document.getElementById("editNoteDefaults");
-  var staff = editorStaffOn();
+  var staff = editorPitchStaffOn();
   if (!keyHost) {
     return;
   }
@@ -1929,11 +1978,8 @@ function refreshEditor() {
     return;
   }
   preview.classList.remove("is-empty");
-  var status =
-    typeof staffNotationStatus === "function"
-      ? staffNotationStatus(line)
-      : { ok: false, notationIsh: false, music: line, caption: "" };
-  if (editorStaffOn() && status.ok && typeof renderMusicStaff === "function") {
+  var status = editorLineStatus(line);
+  if (editorStaffOn() && status.ok && (typeof renderMusicStaff === "function" || typeof renderDrumStaff === "function")) {
     editorStaffPendingLine = null;
     editorStaffPendingUndoHinted = false;
     editorStaffErrorMark = null;
@@ -2200,11 +2246,21 @@ function editorStaffBreakStatus(line) {
   if (typeof staffNotationStatus !== "function") {
     return null;
   }
-  status = staffNotationStatus(line);
+  status = editorLineStatus(line);
   if (!status || status.ok || !status.notationIsh) {
     return null;
   }
   return status;
+}
+
+function editorLineStatus(line) {
+  if (editorDrumOn() && typeof drumNotationStatus === "function") {
+    return drumNotationStatus(line);
+  }
+  if (typeof staffNotationStatus === "function") {
+    return staffNotationStatus(line);
+  }
+  return { ok: false, notationIsh: false, music: line, caption: "" };
 }
 
 function editorShowStaffFault(message, canShow) {
@@ -2277,7 +2333,11 @@ function editorPaintStaffPreview(preview, music, caption) {
   preview._staffCaretLayout = null;
   /* Recommended meter shows that signature; Any hides the glyph (Setup still beams). */
   meterOpts = editorPreviewMeterOpts();
-  svg = renderMusicStaff(music || "", "current", meterOpts);
+  if (editorDrumOn() && typeof renderDrumStaff === "function") {
+    svg = renderDrumStaff(music || "", "current", meterOpts);
+  } else {
+    svg = renderMusicStaff(music || "", "current", meterOpts);
+  }
   if (svg) {
     if (svg._staffCaretLayout) {
       svg._staffCaretLayout.music = String(music || "");
@@ -2858,6 +2918,9 @@ function editorStaffColumnIndexFromX(layout, x) {
 /* End of the drawn column's token (stack through ]), no trailing space. */
 /* Drawn attacks for a line that parses. Null keeps the text scanner for a pending line. */
 function editorStaffLiveEvents(music) {
+  if (editorDrumOn() && typeof drumInputEvents === "function") {
+    return drumInputEvents(String(music || ""));
+  }
   if (typeof staffInputEvents !== "function") {
     return null;
   }
@@ -5929,6 +5992,12 @@ function editorStaffPreviewPointerDown(event) {
   if (event.target && event.target.closest && event.target.closest("#editPreviewScroll")) {
     return;
   }
+  if (editorDrumOn() && event.pointerType === "touch" && editorStaffPenDown) {
+    return;
+  }
+  if (event.pointerType === "pen") {
+    editorStaffPenDown = true;
+  }
   hit = editorStaffPreviewHitContext(event);
   if (!hit) {
     return;
@@ -5947,6 +6016,8 @@ function editorStaffPreviewPointerDown(event) {
     dragging: false,
     mode: "",
     pitchHead: editorStaffFinePointer(event) ? editorStaffPreviewHead(hit) : null,
+    drumTouch: event.pointerType === "touch",
+    notesWereOpen: editorSymbolsIsOpen(),
     layoutLineGap: hit.layout && hit.layout.lineGap ? hit.layout.lineGap : 12,
     pitch: null,
     field: hit.field,
@@ -5984,7 +6055,12 @@ function editorStaffPreviewPointerMove(event) {
     preview = document.getElementById("editPreview");
     editorStaffPreviewCapture(preview, event.pointerId);
     /* A clearly vertical move on a notehead retunes. A vertical move elsewhere writes. */
-    if (drag.pitchHead && dy * dy > dx * dx && editorStaffPitchDragArm(drag)) {
+    if (editorDrumOn() && editorStaffFinePointer(event) && dy * dy > dx * dx && drag.notesWereOpen) {
+      drag.mode = "drum";
+      if (preview) {
+        preview.classList.add("is-pitch-drag");
+      }
+    } else if (drag.pitchHead && dy * dy > dx * dx && editorStaffPitchDragArm(drag)) {
       drag.mode = "pitch";
       if (preview) {
         preview.classList.add("is-pitch-drag");
@@ -6040,6 +6116,20 @@ function editorStaffPreviewPointerUp(event) {
       }
     } catch (errRel) {}
   }
+  if (drag.mode === "drum") {
+    editorStaffDrag = null;
+    editorDrumFinishGesture(drag, event);
+    if (preview) {
+      preview.classList.remove("is-pitch-drag");
+    }
+    if (event.pointerType === "pen") {
+      editorStaffPenDown = false;
+    }
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    return;
+  }
   if (drag.mode === "pitch") {
     editorStaffDrag = null;
     editorStaffPitchHot = null;
@@ -6091,6 +6181,20 @@ function editorStaffPreviewPointerUp(event) {
     drag.field = hit.field;
   }
   if (!drag.dragging) {
+    if (editorDrumOn() && drag.drumTouch && drag.notesWereOpen) {
+      editorDrumPlaceAt(hit || drag);
+      editorStaffGestureMarkSeen();
+      editorBeginPadInput();
+      editorPaintNotePad();
+      editorSyncTokenHighlight();
+      if (event.pointerType === "pen") {
+        editorStaffPenDown = false;
+      }
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      return;
+    }
     editorStaffGhost = null;
     editorStaffPreviewApplyCaret(
       drag.field,
@@ -6613,6 +6717,7 @@ function editorSyncSymbolKind() {
   }
   staff = editorStaffOn();
   panel.classList.toggle("is-staff", staff);
+  panel.classList.toggle("is-drum", editorDrumOn());
   panel.classList.toggle("is-text", !staff);
   if (button) {
     mark = button.querySelector(".btn-mark");
@@ -7278,6 +7383,7 @@ function editorNotePadStampNow() {
   var defaults = editorReadDefaults();
   return [
     editorStaffOn() ? "staff" : "text",
+    editorDrumOn() ? editorDrumPiece + (editorDrumOpenHat ? "o" : "") : "",
     editorNote.acc || "",
     editorNote.oct === null || editorNote.oct === undefined ? "" : String(editorNote.oct),
     editorNote.dots === 2 ? ".." : editorNote.dot ? "." : "",
@@ -7917,7 +8023,7 @@ function editorLineMusicOk(line) {
   if (typeof staffNotationStatus !== "function") {
     return false;
   }
-  status = staffNotationStatus(line);
+  status = editorLineStatus(line);
   return !!(status && status.ok);
 }
 
@@ -13676,7 +13782,7 @@ function editorPaintNoteDefaults() {
   var host = document.getElementById("editNoteDefaults");
   var old;
   editorPlaceExerciseExtras();
-  if (!host || !editorStaffOn()) {
+  if (!host || !editorPitchStaffOn()) {
     return;
   }
   old = host.querySelector("[data-default-clef]");
@@ -14861,6 +14967,7 @@ function editorSymbolSnapshot() {
     name: nameField ? String(nameField.value || "") : "",
     bars: editorReadBars(),
     staff: editorStaffOn(),
+    notation: editorDrumOn() ? "drum" : "",
     clef: defaults.clef || "",
     key: defaults.key || "",
     meter: defaults.meter
@@ -14888,6 +14995,7 @@ function editorCloneSymbolSnap(snap) {
     name: typeof snap.name === "string" ? snap.name : "",
     bars: typeof snap.bars === "number" ? snap.bars : 1,
     staff: !!snap.staff,
+    notation: snap.notation === "drum" ? "drum" : "",
     clef: snap.clef || "",
     key: snap.key || "",
     meter: snap.meter ? { beats: snap.meter.beats, unit: snap.meter.unit } : null
@@ -15026,8 +15134,11 @@ function editorApplySymbolSnapshot(snap) {
   if (typeof snap.bars === "number") {
     editorWriteBars(snap.bars);
   }
-  if (typeof snap.staff === "boolean" && snap.staff !== editorStaffOn()) {
-    setEditorStaff(snap.staff);
+  if (typeof snap.staff === "boolean" || snap.notation === "drum" || snap.notation === "") {
+    var snapKind = snap.notation === "drum" ? "drum" : snap.staff ? "staff" : "text";
+    if (snapKind !== editorKindName()) {
+      setEditorKind(snapKind);
+    }
   }
   editorApplyDefaultsUi({
     clef: snap.clef || "",
@@ -15297,6 +15408,219 @@ function editorToggleDynMenu() {
   editorPaintNotePad();
 }
 
+function editorDrumToken(id) {
+  var code = id || editorDrumPiece || "bd";
+  var dur = editorDurCode(editorNote.dur) || "q";
+  var dots = editorNote.dots === 2 ? ".." : editorNote.dot ? "." : "";
+  if (code === "hh" && editorDrumOpenHat) {
+    code = "hho";
+  }
+  return code + dur + dots;
+}
+
+function editorPaintDrumKit(row) {
+  var pieces = [
+    ["bd", "Bass"],
+    ["ft", "Floor"],
+    ["sd", "Snare"],
+    ["mt", "Mid"],
+    ["ht", "Tom"],
+    ["hh", "Hat"],
+    ["rd", "Ride"],
+    ["cr", "Crash"]
+  ];
+  var more = [
+    ["hf", "Pedal"],
+    ["rb", "Bell"]
+  ];
+  var ornaments = [
+    ["flam", "Flam"],
+    ["drag", "Drag"],
+    ["rim", "Rim"],
+    ["xstick", "Cross"]
+  ];
+  var i;
+  row.classList.add("is-drum-kit");
+  for (i = 0; i < pieces.length; i++) {
+    editorPadButton(
+      row,
+      { "data-drum": pieces[i][0] },
+      pieces[i][1],
+      pieces[i][1],
+      editorDrumPiece === pieces[i][0]
+    );
+  }
+  for (i = 0; i < more.length; i++) {
+    editorPadButton(
+      row,
+      { "data-drum": more[i][0] },
+      more[i][1],
+      more[i][1],
+      editorDrumPiece === more[i][0]
+    );
+  }
+  for (i = 0; i < ornaments.length; i++) {
+    editorPadButton(
+      row,
+      { "data-drum-ornament": ornaments[i][0] },
+      ornaments[i][1],
+      ornaments[i][1],
+      false
+    );
+  }
+}
+
+function editorPaintDrumHat(row) {
+  editorPadButton(
+    row,
+    { "data-drum-open": "1" },
+    "Open",
+    "Open hat",
+    !!editorDrumOpenHat
+  );
+}
+
+function editorDrumCaretToken() {
+  var span = editorLineSpan();
+  var parts;
+  var music;
+  var at;
+  var rel;
+  var ranges;
+  var i;
+  if (!span || !span.field) {
+    return null;
+  }
+  parts = typeof staffExampleParts === "function" ? staffExampleParts(span.value.slice(span.lineStart, span.lineEnd)) : { music: "" };
+  music = parts.music || "";
+  at = span.value.slice(span.lineStart, span.lineEnd).indexOf(music);
+  if (at < 0) {
+    at = 0;
+  }
+  rel = span.caret - span.lineStart - at;
+  ranges = editorMusicTokenRanges(music);
+  for (i = ranges.length - 1; i >= 0; i--) {
+    if (rel >= ranges[i].start && rel <= ranges[i].end) {
+      return {
+        token: ranges[i].tok,
+        absStart: span.lineStart + at + ranges[i].start,
+        absEnd: span.lineStart + at + ranges[i].end,
+        field: span.field
+      };
+    }
+  }
+  return null;
+}
+
+function editorDrumReplaceToken(hit, next) {
+  var value;
+  if (!hit || !hit.field || !next || next === hit.token) {
+    return false;
+  }
+  editorPushSymbolUndo();
+  value = String(hit.field.value || "");
+  hit.field.value = value.slice(0, hit.absStart) + next + value.slice(hit.absEnd);
+  editorPlaceCaret(hit.field, hit.absStart + next.length, hit.absStart + next.length, true);
+  editorStaffSweepAfterEdit();
+  refreshEditor();
+  return true;
+}
+
+function editorDrumApplyDuration(dur, dot) {
+  var hit = editorDrumCaretToken();
+  var next;
+  if (!hit || typeof drumWithDuration !== "function") {
+    return false;
+  }
+  next = drumWithDuration(hit.token, dur || "q", dot);
+  if (!next) {
+    return false;
+  }
+  return editorDrumReplaceToken(hit, next);
+}
+
+function editorDrumInsertPiece(id) {
+  editorDrumPiece = id || editorDrumPiece;
+  if (!(editorDrumPiece === "hh")) {
+    editorDrumOpenHat = false;
+  }
+  editorPushSymbolUndo();
+  editorInsertSymbol(editorDrumToken(editorDrumPiece));
+}
+
+function editorDrumInsertOrnament(word) {
+  var hit = editorDrumCaretToken();
+  if (hit && hit.token === word) {
+    editorDrumReplaceToken(hit, "");
+    return;
+  }
+  editorPushSymbolUndo();
+  editorInsertSymbol(word + " ");
+}
+
+function editorDrumToggleOpen() {
+  var hit = editorDrumCaretToken();
+  var next;
+  editorDrumOpenHat = !editorDrumOpenHat;
+  if (hit && typeof drumIdOrder === "function" && (drumIdOrder(hit.token) === "hh" || drumIdOrder(hit.token) === "hho")) {
+    next = (editorDrumOpenHat ? "hho" : "hh") + hit.token.slice(drumIdOrder(hit.token).length);
+    editorDrumReplaceToken(hit, next);
+    return;
+  }
+  editorPaintNotePad();
+}
+
+function editorDrumCodeForSeat(id, previous) {
+  var code = id || "bd";
+  var prev = previous ? drumIdOrder(previous) : "";
+  if (code === "hh" && (editorDrumOpenHat || prev === "hho")) {
+    return "hho";
+  }
+  return code;
+}
+
+function editorDrumFinishGesture(drag, event) {
+  var hit = editorStaffPreviewHitContext(event);
+  var seat;
+  var token;
+  var next;
+  var absStart;
+  var absEnd;
+  var value;
+  editorStaffGestureMarkSeen();
+  editorBeginPadInput();
+  if (!hit || !hit.layout || typeof drumSeatFromY !== "function") {
+    editorPaintNotePad();
+    return;
+  }
+  seat = drumSeatFromY(hit.localY, hit.layout.staffTop, hit.layout.lineGap || 12, false);
+  if (!seat) {
+    editorStaffPreviewApplyCaret(hit.field, hit.lineStart, hit.musicAt, hit.music, hit.insertIndex, { reenter: true });
+    editorPaintNotePad();
+    return;
+  }
+  if (drag.pitchHead && typeof drag.pitchHead.start === "number") {
+    absStart = hit.lineStart + hit.musicAt + drag.pitchHead.start;
+    absEnd = hit.lineStart + hit.musicAt + drag.pitchHead.end;
+    value = String(hit.field.value || "");
+    token = value.slice(absStart, absEnd);
+    next = editorDrumCodeForSeat(seat.id, token) + token.slice(drumIdOrder(token).length || 0);
+    editorDrumReplaceToken({ field: hit.field, token: token, absStart: absStart, absEnd: absEnd }, next);
+    editorDrumPiece = seat.id;
+    return;
+  }
+  editorStaffPreviewApplyCaret(hit.field, hit.lineStart, hit.musicAt, hit.music, hit.insertIndex, { reenter: true });
+  editorDrumInsertPiece(seat.id);
+}
+
+function editorDrumPlaceAt(hit) {
+  if (!hit || !hit.field) {
+    return;
+  }
+  editorStaffPreviewApplyCaret(hit.field, hit.lineStart, hit.musicAt, hit.music, hit.insertIndex, { reenter: true });
+  editorDrumInsertPiece(editorDrumPiece);
+}
+
 function editorPaintNotePad() {
   var stepHost = document.getElementById("editNoteStep");
   var chipsHost = document.getElementById("editNoteChips");
@@ -15315,9 +15639,15 @@ function editorPaintNotePad() {
   chipsHost.innerHTML = "";
   durHost.innerHTML = "";
   eventsHost.innerHTML = "";
+  stepHost.classList.toggle("is-drum-kit", editorDrumOn());
   editorPaintNoteDefaults();
-  editorPaintLetters(stepHost);
-  editorPaintModifiers(chipsHost);
+  if (editorDrumOn()) {
+    editorPaintDrumKit(stepHost);
+    editorPaintDrumHat(chipsHost);
+  } else {
+    editorPaintLetters(stepHost);
+    editorPaintModifiers(chipsHost);
+  }
   editorPaintDurations(durHost);
   editorPaintNoteEvents(eventsHost);
   editorNotePadStamp = stamp;
@@ -16158,6 +16488,10 @@ function editorSetDuration(dur) {
   var next = editorDurCode(dur);
   var hit;
   editorNote.dur = next;
+  if (editorDrumOn() && editorDrumApplyDuration(next, editorNote.dot)) {
+    editorStaffSweepAfterEdit();
+    return;
+  }
   if (editorApplySelectionDuration(next)) {
     editorStaffSweepAfterEdit();
     return;
@@ -17966,7 +18300,23 @@ function editorActivateSymbol(button, opts) {
   }
   if (button.hasAttribute("data-note")) {
     editorCloseTupletMenu();
+    if (editorDrumOn()) {
+      return;
+    }
     editorWriteLetter(button.getAttribute("data-note"), opts);
+    return;
+  }
+  if (button.hasAttribute("data-drum")) {
+    editorCloseTupletMenu();
+    editorDrumInsertPiece(button.getAttribute("data-drum"));
+    return;
+  }
+  if (button.hasAttribute("data-drum-open")) {
+    editorDrumToggleOpen();
+    return;
+  }
+  if (button.hasAttribute("data-drum-ornament")) {
+    editorDrumInsertOrnament(button.getAttribute("data-drum-ornament"));
     return;
   }
   if (button.hasAttribute("data-acc")) {
@@ -18291,6 +18641,7 @@ function editorOpenSheet(options) {
     editorDraft.name = t("edit.defaultName");
     editorDraft.bars = 1;
     editorDraft.staff = true;
+    editorDraft.notation = "";
     editorDraft.clef = "";
     editorDraft.key = "";
     editorDraft.meter = null;
@@ -18299,6 +18650,7 @@ function editorOpenSheet(options) {
     editorDraft.name = desk ? exerciseDisplayName(desk) : editorDraft.label;
     editorDraft.bars = typeof exerciseBars === "number" && exerciseBars > 0 ? exerciseBars : 1;
     editorDraft.staff = !!(desk && desk.staff);
+    editorDraft.notation = desk && desk.notation === "drum" ? "drum" : "";
     editorDraft.clef = desk && desk.clef === "bass" ? "bass" : "";
     editorDraft.key = desk && desk.key ? desk.key : "";
     editorDraft.meter = desk && desk.meter ? { beats: desk.meter.beats, unit: desk.meter.unit } : null;
@@ -18324,7 +18676,7 @@ function editorOpenSheet(options) {
   var area = document.getElementById("allEdit");
   area.value = editorDraft.text;
   editorWriteBars(editorDraft.bars);
-  setEditorStaff(editorDraft.staff);
+  setEditorKind(editorDraft.notation === "drum" ? "drum" : editorDraft.staff ? "staff" : "text");
   editorApplyDefaultsUi(editorDraft);
   editorSyncStaffDefaults();
   var nameField = document.getElementById("editName");
@@ -18433,6 +18785,7 @@ function editorOpenSharePreview(spec) {
     editorDraft.name = t("edit.defaultName");
     editorDraft.bars = 1;
     editorDraft.staff = spec.staff === true;
+    editorDraft.notation = spec.notation === "drum" ? "drum" : "";
     editorDraft.clef = spec.clef === "bass" ? "bass" : "";
     editorDraft.key = spec.key || "";
     editorDraft.meter = spec.meter || null;
@@ -18441,7 +18794,8 @@ function editorOpenSharePreview(spec) {
     editorDraft.id = target.id;
     editorDraft.name = typeof exerciseDisplayName === "function" ? exerciseDisplayName(target) : target.name;
     editorDraft.bars = target.bars;
-    editorDraft.staff = spec.staff === true;
+    editorDraft.staff = spec.staff === true || target.notation === "drum";
+    editorDraft.notation = target.notation === "drum" || spec.notation === "drum" ? "drum" : "";
     editorDraft.clef = target.clef === "bass" ? "bass" : spec.clef === "bass" ? "bass" : "";
     editorDraft.key = target.key || spec.key || "";
     editorDraft.meter = target.meter || spec.meter || null;
@@ -18454,7 +18808,7 @@ function editorOpenSharePreview(spec) {
   var area = document.getElementById("allEdit");
   area.value = editorPlainLines(spec.lines);
   editorWriteBars(spec.bars || 1);
-  setEditorStaff(editorDraft.staff);
+  setEditorKind(editorDraft.notation === "drum" ? "drum" : editorDraft.staff ? "staff" : "text");
   editorApplyDefaultsUi(editorDraft);
   editorSyncStaffDefaults();
   var nameField = document.getElementById("editName");
@@ -18557,7 +18911,8 @@ function exerciseDownloadName(name) {
 }
 
 function editorFileText(lines, bars, name, staff, defaults) {
-  var out = "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n# staff " + (staff ? "1" : "0") + "\n";
+  var drum = editorDrumOn();
+  var out = "# eization " + EDITOR_FILE_VERSION + "\n# bars " + clampEditorBars(bars) + "\n# staff " + (staff || drum ? "1" : "0") + "\n";
   var clean = String(name || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
   var clef;
   var key;
@@ -18578,6 +18933,9 @@ function editorFileText(lines, bars, name, staff, defaults) {
   if (meter && meter.beats && meter.unit) {
     out += "# meter " + meter.beats + "/" + meter.unit + "\n";
   }
+  if (drum) {
+    out += "# notation drum\n";
+  }
   return out + lines.join("\n") + "\n";
 }
 
@@ -18591,6 +18949,7 @@ function readEditorFile(text) {
   var clef = "";
   var key = "";
   var meter = null;
+  var notation = "";
   var body = [];
   var started = false;
   var i;
@@ -18633,6 +18992,14 @@ function readEditorFile(text) {
         name = nameMatch[1].slice(0, 60);
         continue;
       }
+      var notationMatch = line.match(/^\s*#\s*notation\s+(drum|pitch)\s*$/i);
+      if (notationMatch) {
+        notation = notationMatch[1].toLowerCase() === "drum" ? "drum" : "";
+        if (notation === "drum") {
+          staff = true;
+        }
+        continue;
+      }
       var header = line.match(/^\s*#\s*eization(?:\s+(\d+))?\s*$/i);
       if (header) {
         version = header[1] ? parseInt(header[1], 10) : 1;
@@ -18653,6 +19020,7 @@ function readEditorFile(text) {
     key: key,
     meter: meter,
     name: name,
+    notation: notation,
     version: version
   };
 }
@@ -18720,8 +19088,14 @@ function editorOpenFile(file) {
     if (parsed.bars) {
       editorWriteBars(parsed.bars);
     }
-    if (parsed.staff === true || parsed.staff === false) {
-      setEditorStaff(parsed.staff);
+    if (parsed.notation === "drum") {
+      editorDraft.notation = "drum";
+      editorDraft.staff = true;
+      setEditorKind("drum");
+    } else if (parsed.staff === true || parsed.staff === false) {
+      editorDraft.notation = "";
+      editorDraft.staff = parsed.staff;
+      setEditorKind(parsed.staff ? "staff" : "text");
     }
     editorApplyDefaultsUi({
       clef: parsed.clef || "",
@@ -18971,7 +19345,7 @@ function applyEditorToReel(lines, bars, staff, defaults) {
   if (typeof applyPracticeStaffDefaults === "function") {
     applyPracticeStaffDefaults(record);
   }
-  newExercise(items, bars, on);
+  newExercise(items, bars, on, editorDrumOn() ? "drum" : "pitch");
   if (typeof maybeOfferRecommendedMeter === "function") {
     maybeOfferRecommendedMeter(record);
   }
@@ -19006,7 +19380,7 @@ function editorBrokenStaffReport() {
       continue;
     }
     exampleNo += 1;
-    status = staffNotationStatus(line);
+    status = editorLineStatus(line);
     if (!status || !status.ok) {
       total += 1;
       if (firstRaw < 0) {
@@ -19112,6 +19486,7 @@ function editorUpdate() {
         name: name,
         bars: bars,
         staff: editorStaffOn(),
+        notation: editorDrumOn() ? "drum" : "",
         lines: lines,
         clef: defaults.clef,
         key: defaults.key,
@@ -19182,6 +19557,7 @@ function editorSaveAsNew() {
     name: name,
     bars: bars,
     staff: editorStaffOn(),
+    notation: editorDrumOn() ? "drum" : "",
     lines: lines,
     clef: defaults.clef,
     key: defaults.key,
@@ -19338,20 +19714,52 @@ function editorPaintStaffSamples() {
   }
 }
 
-function buildEditorStaffSamples() {
+function editorFillStaffSamples() {
   var host = document.getElementById("editStaffSamples");
+  var samples = editorDrumOn() ? EDITOR_DRUM_SAMPLES : EDITOR_STAFF_SAMPLES;
+  var title = document.getElementById("editStaffPanelTitle");
+  var lead = document.querySelector("#editStaffPanelBody > p");
+  var list = document.querySelector("#editStaffPanelBody > ul");
+  var link = document.querySelector("#editStaffPanelBody a.open");
   var i;
-  if (!host || host.childNodes.length) {
+  var button;
+  var base;
+  if (title && typeof t === "function") {
+    title.textContent = editorDrumOn() ? t("edit.drumHelpTitle") : t("edit.staffHelpTitle");
+  }
+  if (lead && typeof t === "function") {
+    lead.textContent = editorDrumOn() ? t("edit.drumHelpLead") : t("edit.staffHelpLead");
+  }
+  if (list) {
+    list.hidden = !!editorDrumOn();
+  }
+  if (link) {
+    base = String(link.getAttribute("href") || "./notation.html").split("#")[0];
+    link.setAttribute("href", editorDrumOn() ? base + "#drums" : base);
+  }
+  if (!host) {
     return;
   }
-  for (i = 0; i < EDITOR_STAFF_SAMPLES.length; i++) {
-    var button = document.createElement("button");
+  host.innerHTML = "";
+  for (i = 0; i < samples.length; i++) {
+    button = document.createElement("button");
     button.type = "button";
-    button.textContent = EDITOR_STAFF_SAMPLES[i];
-    button.setAttribute("data-sample", EDITOR_STAFF_SAMPLES[i]);
+    button.textContent = samples[i];
+    button.setAttribute("data-sample", samples[i]);
     host.appendChild(button);
   }
-  editorPaintStaffSamples();
+  if (typeof editorPaintStaffSamples === "function") {
+    editorPaintStaffSamples();
+  }
+}
+
+function buildEditorStaffSamples() {
+  var host = document.getElementById("editStaffSamples");
+  if (!host || host.getAttribute("data-bound") === "1") {
+    editorFillStaffSamples();
+    return;
+  }
+  host.setAttribute("data-bound", "1");
   host.addEventListener("click", function (event) {
     var button = event.target.closest("button");
     if (!button || !host.contains(button)) {
@@ -19359,6 +19767,7 @@ function buildEditorStaffSamples() {
     }
     editorPutSample(button.getAttribute("data-sample") || "");
   });
+  editorFillStaffSamples();
 }
 
 function buildEditorSymbols() {
@@ -19589,6 +19998,7 @@ function editorPracticeUrl() {
         name: editorNameValue(),
         bars: bars,
         staff: editorStaffOn(),
+        notation: editorDrumOn() ? "drum" : "",
         lines: lines,
         clef: shareDefaults.clef,
         key: shareDefaults.key,
@@ -20034,6 +20444,27 @@ function initEditor() {
       editorEraseStep();
       return;
     }
+    if (
+      editorDrumOn() &&
+      editorSymbolsIsOpen() &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      DRUM_HOTKEYS &&
+      DRUM_HOTKEYS[key]
+    ) {
+      active = document.activeElement;
+      if (
+        active &&
+        (active.id === "editFocusLine" || active.id === "allEdit") &&
+        active.getAttribute("inputmode") !== "none"
+      ) {
+        return;
+      }
+      event.preventDefault();
+      editorDrumInsertPiece(DRUM_HOTKEYS[key]);
+      return;
+    }
     /* Pad mode: Left/Right step by drawn column (same grain as Erase). */
     if (
       editorStaffOn() &&
@@ -20269,22 +20700,21 @@ function initEditor() {
       editorNudgeBars(1);
     });
   }
-  ["editKindText", "editKindStaff"].forEach(function (id) {
+  ["editKindText", "editKindStaff", "editKindDrum"].forEach(function (id) {
     var button = document.getElementById(id);
     if (!button) {
       return;
     }
     button.addEventListener("click", function () {
-      var wantStaff = id === "editKindStaff";
-      var wasStaff = editorStaffOn();
-      if (wantStaff === wasStaff) {
+      var want = id === "editKindDrum" ? "drum" : id === "editKindStaff" ? "staff" : "text";
+      if (want === editorKindName()) {
         return;
       }
       editorPushSymbolUndo();
-      setEditorStaff(wantStaff);
+      setEditorKind(want);
       if (typeof track === "function") {
         track("edit_kind", {
-          kind: wantStaff ? "staff" : "text",
+          kind: want,
           mode: editorIsCreateMode() ? "create" : "edit"
         });
       }

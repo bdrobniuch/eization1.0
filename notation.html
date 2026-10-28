@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>How to write on the staff. eization.</title>
-    <meta name="description" content="Write an eization example as music notation. The line in Edit is the staff on screen: pitches, chords, slashes, rests, and beams.">
+    <meta name="description" content="Write an eization example as music notation. The line in Edit is the staff on screen: pitches, chords, slashes, rests, beams, and drum kit.">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0C8A50">
     <link rel="canonical" href="https://eization.com/notation.html">
@@ -217,8 +217,39 @@
             <div class="notation-staff"></div>
         </figure>
 
+        <h2 id="drums">Drums</h2>
+        <p>Drums is an exercise kind. The line is kit codes, not pitches. A drum exercise draws the percussion clef and no key signature. Rhythms stays slashes. <code>bd</code> is the bass drum. <code>ft</code> is the floor tom. <code>sd</code> is the snare. <code>mt</code> is the mid tom. <code>ht</code> is the high tom. <code>hh</code> is the hi-hat. <code>hho</code> is the open hi-hat. <code>rd</code> is the ride. <code>rb</code> is the ride bell. <code>cr</code> is the crash. <code>hf</code> is the hi-hat with the foot. Duration letters are the ones you already use. A stack is two sounds at once. <code>feet</code> starts the foot rhythm, and both sides fill the same bars. <code>flam</code>, <code>drag</code>, <code>rim</code>, and <code>xstick</code> sit in front of the hit and take no time. A pitch (<code>C4q</code>), <code>@key=</code>, <code>@treble</code>, <code>@bass</code>, and <code>rs</code> stay text. <code>rs</code> is still a sixteenth rest. Rim is the word <code>rim</code>.</p>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>bdq sdq hhq rdq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>[hh sd]q [hh bd]q</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>hhe hhe hhe hhe hhe hhe hhe hhe feet bdq rq bdq rq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>hhoq hhq hhoq hhq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>flam sdq drag sdq rim sdq xstick sdq</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum">
+            <pre>{sde_R sde_L sde_R sde_L sde_R sde_L sde_R sde_L}</pre>
+            <div class="notation-staff"></div>
+        </figure>
+        <figure class="notation-sample" data-notation="drum" data-meter="6/8">
+            <pre>{hhe hhe hhe} {[hh sd]e hhe hhe} feet bdq. bdq.</pre>
+            <div class="notation-staff"></div>
+        </figure>
+
         <h2>In an exercise</h2>
-        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Essential Progressions, Play/Rest, and Rhythms are written this way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a barline inside a tuplet, a nested tuplet, a tie from a rest, a tie onto a different pitch, a dangling dynamic, or a hairpin with nothing after it. A tuplet of one note draws that note plain. A tie with nothing after it hangs a stub.</p>
+        <p>Paste one example per line. Scales, Left Hand Rootless Voicings, Essential Progressions, Play/Rest, and Rhythms are written this way. A Drums exercise holds only kit lines, and Bars and Setup meter work the same way. Keep every line in one exercise the same number of bars, and set Bars to that number. A 6/8 line belongs in an exercise whose Setup meter is 6/8. A line that looks like music but does not parse stays text — an unclosed tuplet or brace, a barline inside a tuplet, a nested tuplet, a tie from a rest, a tie onto a different pitch, a dangling dynamic, or a hairpin with nothing after it. A tuplet of one note draws that note plain. A tie with nothing after it hangs a stub. <a href="#drums">Drums</a> uses the kit codes above.</p>
         <p><a class="open" href="./?exercise=scales">Open Scales</a></p>
         <p><a class="open" href="./?exercise=leftHandRootless">Open Left Hand Rootless Voicings</a></p>
         <p><a class="open" href="./?exercise=limbs">Open Rhythms</a></p>
@@ -235,6 +266,7 @@
     </main>
     <script src="./resources/js/staff-glyphs.js"></script>
     <script src="./resources/js/staff.js"></script>
+    <script src="./resources/js/drum.js"></script>
     <script src="./resources/js/notation-page.js"></script>
     <script src="./resources/js/lang-link.js"></script>
 </body>

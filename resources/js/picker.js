@@ -4,6 +4,7 @@ var countexercise = 0;
 var countnotes = 0;
 var exerciseBars = 1;
 var exerciseStaff = false;
+var exerciseNotation = "pitch";
 var exerciseFontPx = 48;
 var lookAhead = true;
 var nextCycle = null;
@@ -170,9 +171,11 @@ function fillExampleFace(el, source, role) {
       staffRole = "reel";
     }
     var svg =
-      typeof renderMusicStaff === "function"
-        ? renderMusicStaff(music, staffRole)
-        : null;
+      exerciseNotation === "drum" && typeof renderDrumStaff === "function"
+        ? renderDrumStaff(music, staffRole)
+        : typeof renderMusicStaff === "function"
+          ? renderMusicStaff(music, staffRole)
+          : null;
     if (svg || parts.caption) {
       el.classList.add("is-staff");
       if (svg) {
@@ -987,7 +990,7 @@ function chooseExerciseFont() {
   renderPreview();
 }
 
-function newExercise(items, bars, staff) {
+function newExercise(items, bars, staff, notation) {
   chromaticScale = items || [];
   countexercise = 0;
   countnotes = 0;
@@ -1001,6 +1004,9 @@ function newExercise(items, bars, staff) {
   }
   if (staff === true || staff === false) {
     exerciseStaff = staff;
+  }
+  if (notation === "drum" || notation === "pitch") {
+    exerciseNotation = notation;
   }
   if (typeof editorCloseQuiet === "function") {
     editorCloseQuiet();

@@ -67,6 +67,12 @@
     if (struggle && (card.getAttribute("data-tags") || "").indexOf(struggle) < 0) {
       return false;
     }
+    if (
+      card.getAttribute("data-kind") === "drum" &&
+      (struggle === "keys" || struggle === "intervals" || struggle === "changes")
+    ) {
+      return false;
+    }
     if (query) {
       hay = card.getAttribute("data-search") || "";
       if (hay.indexOf(query) < 0) {

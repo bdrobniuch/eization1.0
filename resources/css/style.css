@@ -2101,6 +2101,15 @@ body.is-editing #counter {
   opacity: 0.9;
 }
 
+#editNoteStep.is-drum-kit {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+
+#editSymbols.is-drum [data-event="slash"] {
+  display: none;
+}
+
 #editKind {
   display: flex;
   box-sizing: border-box;
@@ -2112,6 +2121,7 @@ body.is-editing #counter {
 }
 
 #editKind button {
+  flex: 1 1 0;
   height: 100%;
   min-height: 0;
   padding: 0 12px;

@@ -2469,36 +2469,100 @@ function moreCatalog(w) {
   check("spanish more uses the same hashes", esHashes.length === keys.length && esHashes.indexOf(keys[0]) >= 0);
 }
 
-function notationSampleCount(path) {
-  var req = new XMLHttpRequest();
-  req.open("GET", path, false);
-  req.send(null);
-  var chunks = (req.responseText || "").match(/<pre>[\s\S]*?<\/pre>/g) || [];
-  return { text: req.responseText || "", chunks: chunks };
+function notationGuideFigures(html) {
+  var re = /<figure\b([^>]*)>[\s\S]*?<pre>([\s\S]*?)<\/pre>/gi;
+  var out = [];
+  var m;
+  while ((m = re.exec(html || ""))) {
+    out.push({
+      drum: /data-notation\s*=\s*["']drum["']/.test(m[1]),
+      text: m[2].replace(/^\s+|\s+$/g, "")
+    });
+  }
+  return out;
 }
 
-function notationSamplesParse(w, chunks) {
+function notationFiguresParse(w, figures) {
   var i;
   var parsed = 0;
-  for (i = 0; i < chunks.length; i++) {
-    var text = chunks[i].replace(/<\/?pre>/g, "").replace(/^\s+|\s+$/g, "");
-    var parts = w.staffExampleParts(text);
-    if (parts.music && w.parseMusicNotation(parts.music)) {
+  var parts;
+  for (i = 0; i < figures.length; i++) {
+    parts = w.staffExampleParts(figures[i].text);
+    if (!parts.music) {
+      continue;
+    }
+    if (figures[i].drum) {
+      if (w.parseDrumNotation(parts.music)) {
+        parsed++;
+      }
+    } else if (w.parseMusicNotation(parts.music)) {
       parsed++;
     }
   }
   return parsed;
 }
 
+function notationSampleCount(path) {
+  var req = new XMLHttpRequest();
+  req.open("GET", path, false);
+  req.send(null);
+  var text = req.responseText || "";
+  var chunks = text.match(/<pre>[\s\S]*?<\/pre>/g) || [];
+  return { text: text, chunks: chunks, figures: notationGuideFigures(text) };
+}
+
+function notationSamplesParse(w, chunks) {
+  var figures = [];
+  var i;
+  var text;
+  for (i = 0; i < chunks.length; i++) {
+    text = chunks[i].replace(/<\/?pre>/g, "").replace(/^\s+|\s+$/g, "");
+    figures.push({ drum: false, text: text });
+  }
+  return notationFiguresParse(w, figures);
+}
+
+function drumCollisionChecks(w) {
+  var rest;
+  check("a kit token is not a pitch", !w.parseMusicNotation("bdq"));
+  check("feet is not a pitch", !w.parseMusicNotation("feet hhq"));
+  check("a sixteenth rest is still a rest", !!(w.parseMusicNotation("rs") && w.parseMusicNotation("rs").events[0].type === "rest"));
+  check("a double sharp is still a pitch", !!w.parseMusicNotation("Cx4"));
+  check("a drum line parses", !!w.parseDrumNotation("bdq sdq hhq rdq"));
+  check("a pitch is not a kit piece", !w.parseDrumNotation("C4q"));
+  check("drums have no key", !w.parseDrumNotation("@key=C bdq"));
+  check("drums use the percussion clef", !w.parseDrumNotation("@treble bdq"));
+  rest = w.parseDrumNotation("rs");
+  check("rs is a rest on a drum staff", !!(rest && rest.hands && rest.hands[0].type === "rest"));
+  check("ride is not a rest", !!(w.parseDrumNotation("rdq") && w.parseDrumNotation("rdq").hands[0].id === "rd"));
+  check("floor tom is not forte", !!(w.parseDrumNotation("ftq") && w.parseDrumNotation("ftq").hands[0].id === "ft"));
+  check("an open hat ties to a closed hat", !!w.parseDrumNotation("hhoq~ hhq"));
+  check("a kick does not tie to a snare", !w.parseDrumNotation("bdq~ sdq"));
+  check("feet sides must match", !w.parseDrumNotation("hhe hhe feet bdq bdq"));
+  check("a drum exercise stays out of the menu", w.exercises.drumKit && w.exercises.drumKit.inMenu === false && w.menuOrder.indexOf("drumKit") < 0);
+}
+
 function notationGuide(w) {
   var page = notationSampleCount("../notation.html");
-  var parsed = notationSamplesParse(w, page.chunks);
-  check("notation guide samples parse", page.chunks.length >= 8 && parsed === page.chunks.length);
+  var figures = page.figures;
+  var parsed = notationFiguresParse(w, figures);
+  check("notation guide samples parse", figures.length >= 8 && parsed === figures.length);
   var esPage = notationSampleCount("../es/notation.html");
+  var esFigures = esPage.figures;
+  var i;
+  var sameLines = figures.length === esFigures.length;
+  if (sameLines) {
+    for (i = 0; i < figures.length; i++) {
+      if (figures[i].text !== esFigures[i].text || figures[i].drum !== esFigures[i].drum) {
+        sameLines = false;
+      }
+    }
+  }
   check(
     "spanish notation guide matches",
-    esPage.chunks.length === page.chunks.length && notationSamplesParse(w, esPage.chunks) === esPage.chunks.length
+    sameLines && notationFiguresParse(w, esFigures) === esFigures.length
   );
+  drumCollisionChecks(w);
   var scales = notationSampleCount("../for-teachers/scales-on-the-staff.html");
   var grooves = notationSampleCount("../for-teachers/voicings-and-grooves.html");
   var tiesArticle = notationSampleCount("../for-teachers/ties-on-the-staff.html");

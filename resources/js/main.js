@@ -235,7 +235,7 @@ function SelectExercise() {
   if (typeof applyPracticeStaffDefaults === "function") {
     applyPracticeStaffDefaults(loaded);
   }
-  newExercise(loaded.items, loaded.bars, !!loaded.staff);
+  newExercise(loaded.items, loaded.bars, !!loaded.staff, loaded.notation === "drum" ? "drum" : "pitch");
   maybeOfferRecommendedMeter(loaded);
   if (typeof rememberSetup === "function") {
     rememberSetup();
@@ -890,7 +890,7 @@ function paintShareOffer() {
   if (typeof applyPracticeStaffDefaults === "function") {
     applyPracticeStaffDefaults(shareOffer);
   }
-  newExercise(items, bars, !!shareOffer.staff);
+  newExercise(items, bars, !!shareOffer.staff, shareOffer.notation === "drum" ? "drum" : "pitch");
   maybeOfferRecommendedMeter(shareOffer);
   if (typeof layoutFrame === "function") {
     layoutFrame();

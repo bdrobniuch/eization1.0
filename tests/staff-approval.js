@@ -74,7 +74,35 @@ var approvalCases = [
   { group: "Lines", title: "Double dot, then a half", meter: [4, 4], source: "C4q.. D4s E4q. F4e | G4h A4h" },
   { group: "Lines", title: "Repeat the voicing", meter: [4, 4], source: "^G7 [G4 B4 D5 F5] [F4 A4 C5 Eb5] | %" },
   { group: "Lines", title: "Rhythm after the bar", meter: [4, 4], source: "| /s /s /s /s | /e /e /e /e" },
-  { group: "Lines", title: "A name over a triplet", meter: [4, 4], source: "^C_Major (3 C4e_1 D4e_2 E4e_3) {F4e_4 G4e_5}" }
+  { group: "Lines", title: "A name over a triplet", meter: [4, 4], source: "^C_Major (3 C4e_1 D4e_2 E4e_3) {F4e_4 G4e_5}" },
+
+  { group: "Drums", notation: "drum", title: "Every head", meter: [4, 4], source: "hhoq rbq hfq rdq" },
+  { group: "Drums", notation: "drum", title: "Marks down the kit", meter: [4, 4], source: "bdq> ftq' sdq- mtq^ | htq> hhq' rdq- crq^" },
+  { group: "Drums", notation: "drum", title: "Backbeat under hats", meter: [4, 4], source: "hhe [hh sd]e hhe [hh sd]e hhe [hh sd]e hhe [hh sd]e feet bdq rq bdq rq" },
+  { group: "Drums", notation: "drum", title: "Crash on one", meter: [4, 4], source: "crq hhe hhe hhe hhe hhe hhe feet bdq rq rq rq" },
+  { group: "Drums", notation: "drum", title: "A stack across the kit", meter: [4, 4], source: "[cr rb sd bd]q hhq [ht mt]q sdq" },
+  { group: "Drums", notation: "drum", title: "Ride and the foot", meter: [4, 4], source: "rdq [rd sd]e rde rdq [rd sd]e rde feet hfq hfq hfq hfq" },
+  { group: "Drums", notation: "drum", title: "Open, then choke", meter: [4, 4], source: "hhoq~ hhq hhe hhe hhe hhe" },
+  { group: "Drums", notation: "drum", title: "Kick tied over the bar", meter: [4, 4], source: "hhe hhe hhe hhe hhe hhe hhe hhe | hhe hhe hhe hhe hhe hhe hhe hhe feet rq rq rq bdq~ | bdq rq rq rq" },
+  { group: "Drums", notation: "drum", title: "Flam, drag, rim, cross-stick", meter: [4, 4], source: "{flam sde sde drag sde sde} {sde sde rim sde xstick sde}" },
+  { group: "Drums", notation: "drum", title: "Ghost the left", meter: [4, 4], source: "{mf sde pp sde mf sde pp sde} {mf sde> pp sde mf sde> pp sde} feet bdq rq bdq rq" },
+  { group: "Drums", notation: "drum", title: "A hairpin on the snare", meter: [4, 4], source: "p {sde sde sde sde} cresc {sde sde sde sde} f" },
+  { group: "Drums", notation: "drum", title: "Triplets over the kick", meter: [4, 4], source: "(3 hhe hhe hhe) (3 hhe [hh sd]e hhe) (3 hhe hhe hhe) (3 hhe [hh sd]e hhe) feet bdq rq bdq rq" },
+  { group: "Drums", notation: "drum", title: "A septuplet fill", meter: [4, 4], source: "(7 sds sds sds sds sds sds sds) sdq sdq sdq" },
+  { group: "Drums", notation: "drum", title: "Sixteenth hats, two kicks", meter: [4, 4], source: "{hhs hhs [hh sd]s hhs} {hhs pp [hh sd]s hhs hhs} {hhs hhs [hh sd]s hhs} {hhs hhs hhs [hh sd]s>} feet bds rs rs rs rs rs bds rs rs rs rs rs rs rs rs rs" },
+  { group: "Drums", notation: "drum", title: "Open hat inside a beam", meter: [4, 4], source: "{hhe hhoe hhe [hh sd]e} {hhe hhe hhe [hh sd]e>} feet {bde bde} bdq {bde bde} rq" },
+  { group: "Drums", notation: "drum", title: "Feet move, hands rest", meter: [4, 4], source: "hhq rq hhq rq feet {bde bde} {bde bde} {bde bde} {bde bde}" },
+  { group: "Drums", notation: "drum", title: "Double dot on the kick", meter: [4, 4], source: "bdq.. sds hhq hhq" },
+  { group: "Drums", notation: "drum", title: "A linear fill", meter: [4, 4], source: "{sds fts hts sds} {mts sds fts sds} {hts mts sds fts} {[cr bd]s sds sds sds}" },
+  { group: "Drums", notation: "drum", title: "Repeat the groove", meter: [4, 4], source: "[hh bd]e [hh sd]e [hh bd]e [hh sd]e [hh bd]e [hh sd]e [hh bd]e [hh sd]e | %" },
+  { group: "Drums", notation: "drum", title: "A name and sticking", meter: [4, 4], source: "^Rock {hhe_R hhe_L [hh sd]e> hhe} {hhe hhe [hh sd]e> hhe} feet bdq rq bdq rq · Backbeat" },
+  { group: "Drums", notation: "drum", title: "Two chords, one beat", meter: [4, 4], source: "^Bd hhe [hh sd]e hhe [hh sd]e hhe [hh sd]e hhe [hh sd]e | ^Am hhe [hh sd]e hhe [hh sd]e hhe [hh sd]e hhe [hh sd]e feet bdq rq bdq rq | bdq bdq rq rq" },
+  { group: "Drums", notation: "drum", title: "Jazz waltz", meter: [3, 4], source: "rdq [rd sd]q rdq feet hfq hfq hfq" },
+  { group: "Drums", notation: "drum", title: "Six eight", meter: [6, 8], source: "{hhe hhe hhe} {[hh sd]e hhe hhe} feet bdq. bdq." },
+  { group: "Drums", notation: "drum", title: "Twelve eight", meter: [12, 8], source: "{hhe hhe hhe} {hhe [hh sd]e hhe} {hhe hhe hhe} {hhe [hh sd]e hhe} feet bdq. rq. bdq. rq." },
+  { group: "Drums", notation: "drum", title: "Five four", meter: [5, 4], source: "rdq rdq [rd sd]q rdq [rd sd]q feet bdq rq bdq rq hfq" },
+  { group: "Drums", notation: "drum", title: "Seven eight", meter: [7, 8], source: "{hhe hhe} {hhe hhe hhe} {hhe hhe} feet {bde bde} bdq. {bde bde}" },
+  { group: "Drums", notation: "drum", title: "A short bar stays open", meter: [4, 4], source: "sdq sdq" }
 ];
 
 function approvalSetMeter(meter) {
@@ -101,25 +129,32 @@ function approvalSig(svg) {
   return (clone.getAttribute("viewBox") || "") + "\n" + (clone.getAttribute("class") || "") + "\n" + clone.innerHTML;
 }
 
-function approvalPaintPractice(source) {
+function approvalPaintPractice(source, notation) {
   var host = document.createElement("div");
   exerciseStaff = true;
+  exerciseNotation = notation === "drum" ? "drum" : "pitch";
   fillExampleFace(host, source, "current");
   return host;
 }
 
 /* Width and height match editorPaintStaffPreview. The meter is the one on the example. */
-function approvalPaintEdit(source, meter) {
+function approvalPaintEdit(source, meter, notation) {
   var host = document.createElement("div");
-  var status = staffNotationStatus(source);
-  var svg = renderMusicStaff(status.ok ? status.music : "", "current", {
-    meter: { beats: meter[0], unit: meter[1] }
-  });
+  var drum = notation === "drum";
+  var status = drum && typeof drumNotationStatus === "function" ? drumNotationStatus(source) : staffNotationStatus(source);
+  var svg = null;
   var box;
   var w;
   var h;
   var wrap;
   var cap;
+  if (status.ok) {
+    if (drum && typeof renderDrumStaff === "function") {
+      svg = renderDrumStaff(status.music, "current", { meter: { beats: meter[0], unit: meter[1] } });
+    } else if (!drum) {
+      svg = renderMusicStaff(status.music, "current", { meter: { beats: meter[0], unit: meter[1] } });
+    }
+  }
   if (svg) {
     box = (svg.getAttribute("viewBox") || "").split(/\s+/);
     w = parseFloat(box[2]);
@@ -142,9 +177,9 @@ function approvalPaintEdit(source, meter) {
   return host;
 }
 
-function approvalPaintMore(source, meter) {
+function approvalPaintMore(source, meter, notation) {
   var host = document.createElement("div");
-  notationAppendStaff(host, source, meter[0] + "/" + meter[1]);
+  notationAppendStaff(host, source, meter[0] + "/" + meter[1], notation === "drum" ? "drum" : "");
   return host;
 }
 
@@ -211,9 +246,9 @@ function approvalRun() {
     }
     approvalSetMeter(item.meter);
     try {
-      practice = approvalPaintPractice(item.source);
-      edit = approvalPaintEdit(item.source, item.meter);
-      more = approvalPaintMore(item.source, item.meter);
+      practice = approvalPaintPractice(item.source, item.notation);
+      edit = approvalPaintEdit(item.source, item.meter, item.notation);
+      more = approvalPaintMore(item.source, item.meter, item.notation);
       sigs = [
         approvalSig(practice.querySelector("svg.music-staff")),
         approvalSig(edit.querySelector("svg.music-staff")),
