@@ -2631,6 +2631,34 @@ function notationGuide(w) {
       tiesArticleEs.chunks.length === tiesArticle.chunks.length &&
       notationSamplesParse(w, tiesArticleEs.chunks) === tiesArticleEs.chunks.length
   );
+  var drumPages = [
+    "one-groove.html",
+    "hands-and-feet.html",
+    "the-beat-they-play.html",
+    "rudiments-on-the-staff.html",
+    "the-drummers-line.html",
+    "five-and-seven.html",
+    "pad-on-the-stand.html",
+    "stays-text.html"
+  ];
+  var drumOk = drumPages.length === 8;
+  var di;
+  var enArt;
+  var esArt;
+  var fi;
+  for (di = 0; drumOk && di < drumPages.length; di++) {
+    enArt = notationSampleCount("../for-teachers/" + drumPages[di]);
+    esArt = notationSampleCount("../es/for-teachers/" + drumPages[di]);
+    drumOk = enArt.figures.length >= 2 && enArt.figures.length === esArt.figures.length;
+    drumOk = drumOk && notationFiguresParse(w, enArt.figures) === enArt.figures.length;
+    drumOk = drumOk && notationFiguresParse(w, esArt.figures) === esArt.figures.length;
+    for (fi = 0; drumOk && fi < enArt.figures.length; fi++) {
+      if (enArt.figures[fi].text !== esArt.figures[fi].text || enArt.figures[fi].drum !== esArt.figures[fi].drum) {
+        drumOk = false;
+      }
+    }
+  }
+  check("teacher drum examples parse", drumOk);
 }
 
 function helloStaffTour(w) {
