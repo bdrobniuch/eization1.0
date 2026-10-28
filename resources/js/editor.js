@@ -3310,6 +3310,7 @@ function editorStaffExpandCopySpan(line, start, end) {
   var first;
   var last;
   var lastEnd;
+  var pitches;
   line = String(line || "");
   groups = editorFindBalancedGroups(line);
   starts = editorStaffColumnStarts(line);
@@ -3346,6 +3347,24 @@ function editorStaffExpandCopySpan(line, start, end) {
         if (end < g.closeEnd) {
           end = g.closeEnd;
           grew = true;
+        }
+      }
+      /* The pitches sit after [. A selection of those heads still copies the length and the name. */
+      if (g.kind === "stack") {
+        pitches = editorStackPitchSpans(line, g);
+        if (
+          pitches.length &&
+          start <= pitches[0].start &&
+          end >= pitches[pitches.length - 1].end
+        ) {
+          if (start > g.open) {
+            start = g.open;
+            grew = true;
+          }
+          if (end < g.closeEnd) {
+            end = g.closeEnd;
+            grew = true;
+          }
         }
       }
     }
@@ -8636,6 +8655,47 @@ function editorStaffGroupEraseTarget(line, rel) {
   return { start: start, end: end, token: last.token, kind: "token" };
 }
 
+/* Index just past a ~ glued to index, skipping spaces. Otherwise index. */
+function editorTieReach(line, index) {
+  var i = index;
+  var cap = line.indexOf('"');
+  if (cap < 0) {
+    cap = line.length;
+  }
+  while (i < cap && /\s/.test(line.charAt(i))) {
+    i += 1;
+  }
+  if (i < cap && line.charAt(i) === "~") {
+    return i + 1;
+  }
+  return index;
+}
+
+/* Stack whose closer (and length) sits immediately before a tie at rel. */
+function editorStackBeforeTie(line, rel) {
+  var groups = editorFindBalancedGroups(line);
+  var i;
+  var g;
+  var at;
+  if (!line || line.charAt(rel) !== "~") {
+    return null;
+  }
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== "stack") {
+      continue;
+    }
+    at = g.closeEnd;
+    while (at < rel && /\s/.test(line.charAt(at))) {
+      at += 1;
+    }
+    if (at === rel) {
+      return g;
+    }
+  }
+  return null;
+}
+
 /* Token or selection Erase would remove on a staff line (field coordinates). */
 function editorStaffEraseTarget() {
   var field = editorActiveField();
@@ -8650,6 +8710,7 @@ function editorStaffEraseTarget() {
   var current;
   var start;
   var end;
+  var glued;
   if (!field) {
     return null;
   }
@@ -8676,10 +8737,11 @@ function editorStaffEraseTarget() {
   rel = caret - lineStart;
   groupTarget = editorStaffGroupEraseTarget(line, rel);
   if (groupTarget) {
+    groupTarget.end = editorTieReach(line, groupTarget.end);
     return {
       start: lineStart + groupTarget.start,
       end: lineStart + groupTarget.end,
-      token: groupTarget.token,
+      token: line.slice(groupTarget.start, groupTarget.end),
       kind: groupTarget.kind
     };
   }
@@ -8708,13 +8770,21 @@ function editorStaffEraseTarget() {
   if (current) {
     start = current.start;
     end = current.end;
+    /* ] splits a chord from a glued ~, so the word is only the tie. Take the chord with it. */
+    if (String(current.token || "").replace(/\s/g, "") === "~") {
+      glued = editorStackBeforeTie(line, start - lineStart);
+      if (glued) {
+        start = lineStart + glued.open;
+        end = lineStart + editorTieReach(line, glued.closeEnd);
+      }
+    }
     if (start > lineStart && /\s/.test(value.charAt(start - 1))) {
       start -= 1;
     }
     return {
       start: start,
       end: end,
-      token: current.token,
+      token: value.slice(start, end),
       kind: "token"
     };
   }
@@ -10249,8 +10319,9 @@ function editorCopySelection(value, lineStart, selStart, selEnd) {
   }
   editorMarkSelectedNodes(nodes, a, b);
   pulled = editorPullSelection(nodes);
+  /* Nothing in the tree: let the column span grow a chord out to its length and name. */
   if (!pulled.selected.length) {
-    return "";
+    return null;
   }
   built = editorSerializeNodes(editorCopyStripLeftovers(pulled.selected));
   return String(built.text || "").replace(/^\s+|\s+$/g, "");
@@ -13855,6 +13926,28 @@ function editorEraseSelectionStructural(line, relStart, relEnd) {
   };
 }
 
+/* A chord erase can leave ~ with nothing before it. Drop that tie and keep the rest. */
+function editorDropBareTie(line, fault) {
+  var parts = editorSplitStaffCaption(line);
+  var start;
+  var end;
+  if (!fault || fault.start < 0 || fault.end <= fault.start) {
+    return line;
+  }
+  start = fault.start;
+  end = fault.end;
+  if (parts.music.charAt(start) !== "~") {
+    return line;
+  }
+  if (start > 0 && /\s/.test(parts.music.charAt(start - 1))) {
+    start -= 1;
+  }
+  if (end < parts.music.length && parts.music.charAt(end) === " ") {
+    end += 1;
+  }
+  return parts.music.slice(0, start) + parts.music.slice(end) + (parts.caption || "");
+}
+
 /* opts.skipUndo: hold-repeat steps share one undo pushed by the first tap. */
 function editorEraseStep(opts) {
   var field;
@@ -13944,6 +14037,10 @@ function editorEraseStep(opts) {
     edited = editorHealStaffLineAfterErase(linePart.slice(0, relStart) + linePart.slice(relEnd));
     wasOk = editorLineMusicOk(linePart);
     fault = editorStaffBreakStatus(edited);
+    if (wasOk && fault && fault.error === "tie needs a note before it") {
+      edited = editorHealStaffLineAfterErase(editorDropBareTie(edited, fault));
+      fault = editorStaffBreakStatus(edited);
+    }
     if (wasOk && fault) {
       editorRefuse(editorStaffBreakWarning(fault.error));
       editorPaintNotePad();
@@ -14462,7 +14559,7 @@ function editorDynamicHosts() {
       if (piece.end <= a || piece.start >= b) {
         continue;
       }
-      at = editorDynamicHostStart(line, piece.start + 1);
+      at = editorDynamicHostAt(line, piece.start + 1);
       if (!seen[at]) {
         seen[at] = true;
         hosts.push(at);
@@ -14471,7 +14568,7 @@ function editorDynamicHosts() {
     return { line: line, hosts: hosts };
   }
   rel = span.caret - span.lineStart;
-  at = editorDynamicHostStart(line, rel);
+  at = editorDynamicHostAt(line, rel);
   if (at !== rel) {
     hosts.push(at);
     return { line: line, hosts: hosts };
@@ -14481,6 +14578,23 @@ function editorDynamicHosts() {
     hosts.push(hit.start - span.lineStart);
   }
   return { line: line, hosts: hosts };
+}
+
+/*
+ * A beam takes the word in front of {. A chord takes it in front of [, even
+ * when the caret sits on a pitch inside the brackets or on the length after ].
+ */
+function editorDynamicHostAt(line, rel) {
+  var at = editorDynamicHostStart(line, rel);
+  var stack;
+  if (at !== rel) {
+    return at;
+  }
+  stack = editorInnermostGroupAt(line, rel, "stack");
+  if (stack) {
+    return stack.open;
+  }
+  return rel;
 }
 
 function editorHostHasWord(line, host, word) {

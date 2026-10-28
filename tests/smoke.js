@@ -162,7 +162,7 @@ function exerciseMenu(w) {
       check("hidden stays out of the menu: " + id, !seen[id]);
     }
   }
-  check("hidden exercises still registered", hidden === 29);
+  check("hidden exercises still registered", hidden === 43);
   var voicingCatalogOk = function (seedId, n) {
     var ex = w.exercises[seedId];
     var vi;
@@ -3385,6 +3385,11 @@ function chatCase(w) {
       focusLine.focus();
       focusLine.setSelectionRange(text.length, text.length);
     }
+    function park(at) {
+      focusLine.focus();
+      focusLine.setSelectionRange(at, at);
+      w.editorPadCaret = { start: at, end: at };
+    }
     /* Notes open: field selection may paint the token; pad caret is the insert point. */
     function insertCaret() {
       if (w.editorPadCaret && w.document.activeElement !== focusLine) {
@@ -3485,6 +3490,94 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-dyn-menu]"));
     poke(symbolsPanel.querySelector("[data-dyn='p']"));
     check("a dynamic in a beam sits in front of the brace", focusLine.value === "p {C4e D4e}");
+    placeCaret("[F3 B2]e");
+    park(3);
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='mf']"));
+    check(
+      "a dynamic on a chord sits in front of the bracket",
+      focusLine.value === "mf [F3 B2]e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]e");
+    park(7);
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='cresc']"));
+    check(
+      "a hairpin on a chord length sits in front of the bracket",
+      focusLine.value === "cresc [F3 B2]e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("{[F3 B2]e [C4 E4]e}");
+    park(4);
+    poke(symbolsPanel.querySelector("[data-dyn-menu]"));
+    poke(symbolsPanel.querySelector("[data-dyn='p']"));
+    check(
+      "a dynamic inside a beamed chord sits in front of the brace",
+      focusLine.value === "p {[F3 B2]e [C4 E4]e}"
+    );
+    placeCaret("[F3 B2]e");
+    park(3);
+    pokeArt("accent");
+    check(
+      "a mark on a chord keeps the length",
+      focusLine.value === "[F3> B2]e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]e");
+    park(7);
+    poke(symbolsPanel.querySelector("[data-dur='e']"));
+    park("[F3 B2]e".length - 1);
+    poke(symbolsPanel.querySelector("[data-dot]"));
+    check(
+      "a dot on a chord length stays after the bracket",
+      focusLine.value === "[F3 B2]e." && !!w.parseMusicNotation(focusLine.value)
+    );
+    park(focusLine.value.length - 1);
+    poke(symbolsPanel.querySelector("[data-dot]"));
+    placeCaret("[F3 B2]e");
+    park(7);
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "a chord name follows the length",
+      focusLine.value === "[F3 B2]e^" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]e");
+    park(7);
+    poke(symbolsPanel.querySelector("[data-event='rest']"));
+    check(
+      "a rest after a chord length stays outside the bracket",
+      focusLine.value === "[F3 B2]e re" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]e");
+    park(7);
+    poke(symbolsPanel.querySelector("[data-event='bar']"));
+    check(
+      "a bar after a chord length stays outside the bracket",
+      focusLine.value === "[F3 B2]e | " && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]e [F3 B2]");
+    park(7);
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie joins chords of different lengths",
+      focusLine.value === "[F3 B2]e~ [F3 B2]" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2] (3 {[F3 B2]e [F3 B2]e})");
+    park(3);
+    poke(symbolsPanel.querySelector("[data-event='tie']"));
+    check(
+      "a tie joins a chord into a triplet",
+      focusLine.value === "[F3 B2]~ (3 {[F3 B2]e [F3 B2]e})" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]e^G7");
+    focusLine.focus();
+    focusLine.setSelectionRange(1, 7);
+    check(
+      "copy of a chord keeps the length and the name",
+      w.editorStaffSelectionText(focusLine) === "[F3 B2]e^G7"
+    );
+    placeCaret("");
+    park(0);
+    poke(symbolsPanel.querySelector("[data-dur='']"));
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-note='C']"));
     check(
@@ -6374,6 +6467,37 @@ function chatCase(w) {
     check(
       "erase removes a stacked chord and keeps the triplet",
       focusLine.value === "(3 {C4e})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]~ (3 {[F3 B2]e [F3 B2]e})");
+    park(focusLine.value.indexOf("~") + 1);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase removes a chord that starts a tie",
+      focusLine.value.replace(/^\s+/, "") === "(3 {[F3 B2]e [F3 B2]e})" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[F3 B2]~ (3 {[F3 B2]e [F3 B2]e})");
+    park(focusLine.value.indexOf("~"));
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase on the tie mark removes the chord and the tie",
+      focusLine.value.replace(/^\s+/, "") === "(3 {[F3 B2]e [F3 B2]e})" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("F3 B2~ (3 {[F3 B2]e [F3 B2]e})");
+    park(focusLine.value.indexOf("~") + 1);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase still lifts the tie off a plain note",
+      focusLine.value === "F3 B2 (3 {[F3 B2]e [F3 B2]e})" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    park(focusLine.value.indexOf("B2") + 2);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase still removes that plain note on the next tap",
+      focusLine.value === "F3 (3 {[F3 B2]e [F3 B2]e})" &&
+        !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("(3 {[C4e E4e]})");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
