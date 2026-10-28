@@ -3744,9 +3744,10 @@ function chatCase(w) {
     w.editorPadCaret = { start: 2, end: 2 };
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check(
-      "erase will not strand a tie",
-      focusLine.value === "C4~ C4" &&
-        w.document.getElementById("editError").textContent === w.t("edit.refuseTieBefore")
+      "erase drops a tie whose first note is gone",
+      focusLine.value === "C4" &&
+        w.document.getElementById("editError").textContent === "" &&
+        !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("");
     poke(symbolsPanel.querySelector("[data-event='chord']"));
@@ -6498,6 +6499,57 @@ function chatCase(w) {
       "erase still removes that plain note on the next tap",
       focusLine.value === "F3 (3 {[F3 B2]e [F3 B2]e})" &&
         !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("pp [E3 A2]");
+    park(focusLine.value.length);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase removes a chord and the dynamic that hung only on it",
+      focusLine.value === ""
+    );
+    placeCaret("[E3 A2]~ mf [A2 E3 C2]h~ f [E3 C2 C3]e dim [E3 C2 C3]e");
+    park(focusLine.value.length);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase removes the last chord and the hairpin that started on it",
+      focusLine.value === "[E3 A2]~ mf [A2 E3 C2]h~ f [E3 C2 C3]e" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    (function () {
+      var samples = [
+        "[E3 A2]~ mf [A2 E3 C2]h~ f [E3 C2 C3]e dim [E3 C2 C3]e",
+        "pp [E3 A2]~ mf"
+      ];
+      var s;
+      var guard;
+      var before;
+      var err;
+      var ok;
+      for (s = 0; s < samples.length; s++) {
+        placeCaret(samples[s]);
+        ok = true;
+        for (guard = 0; guard < 24 && focusLine.value; guard++) {
+          before = focusLine.value;
+          park(before.length);
+          poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+          err = w.document.getElementById("editError").textContent;
+          if (err || focusLine.value === before || (focusLine.value && !w.parseMusicNotation(focusLine.value))) {
+            ok = false;
+            break;
+          }
+        }
+        if (focusLine.value) {
+          ok = false;
+        }
+        check("backspace from the end clears " + samples[s], ok);
+      }
+    })();
+    placeCaret("mf C4q D4q");
+    park("mf C4q".length);
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erase keeps a dynamic when another note still follows",
+      focusLine.value === "mf D4q" && !!w.parseMusicNotation(focusLine.value)
     );
     placeCaret("(3 {[C4e E4e]})");
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));

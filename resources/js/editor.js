@@ -8201,8 +8201,35 @@ function editorLongestEventPrefix(text) {
   if (best) {
     return best;
   }
+  /* mf, pp, cresc, dim are one word. A letter at a time leaves a token that will not draw. */
+  best = editorHangWordPrefix(s);
+  if (best) {
+    return best;
+  }
   key = /^(?:\^[^\s|~{}[\]]+|_[^\s|~{}[\]]+)/.exec(s);
   return key ? key[0] : null;
+}
+
+function editorHangWordPrefix(text) {
+  var lists;
+  var list;
+  var i;
+  var word;
+  var best;
+  lists = [EDITOR_HAIRPINS, EDITOR_DYNAMICS];
+  best = "";
+  for (list = 0; list < lists.length; list++) {
+    if (!lists[list]) {
+      continue;
+    }
+    for (i = 0; i < lists[list].length; i++) {
+      word = lists[list][i];
+      if (text.indexOf(word) === 0 && word.length > best.length) {
+        best = word;
+      }
+    }
+  }
+  return best;
 }
 
 /* Split a glued run into events: C4q~ → C4q, ~ ; B4e_6 → B4e_6. */
@@ -13926,26 +13953,63 @@ function editorEraseSelectionStructural(line, relStart, relEnd) {
   };
 }
 
-/* A chord erase can leave ~ with nothing before it. Drop that tie and keep the rest. */
-function editorDropBareTie(line, fault) {
+/* A mark the parser names once its note is gone. The word itself can be dropped. */
+function editorEraseOrphanReason(fault) {
+  var reason = editorStaffFaultReason(fault && fault.error);
+  return (
+    reason === "tie needs a note before it" ||
+    reason === "tie needs a note after it" ||
+    reason === "dangling dynamic" ||
+    reason === "hairpin needs a note"
+  );
+}
+
+/* Remove the fault's word. Keep one space when notes still stand on both sides. */
+function editorDropFaultWord(line, fault) {
   var parts = editorSplitStaffCaption(line);
+  var music;
   var start;
   var end;
+  var spaceBefore;
+  var spaceAfter;
   if (!fault || fault.start < 0 || fault.end <= fault.start) {
     return line;
   }
+  music = parts.music;
   start = fault.start;
   end = fault.end;
-  if (parts.music.charAt(start) !== "~") {
+  if (end > music.length) {
     return line;
   }
-  if (start > 0 && /\s/.test(parts.music.charAt(start - 1))) {
+  spaceBefore = start > 0 && /\s/.test(music.charAt(start - 1));
+  spaceAfter = end < music.length && /\s/.test(music.charAt(end));
+  if (spaceBefore && spaceAfter) {
+    end += 1;
+  } else if (spaceBefore) {
     start -= 1;
-  }
-  if (end < parts.music.length && parts.music.charAt(end) === " ") {
+  } else if (spaceAfter) {
     end += 1;
   }
-  return parts.music.slice(0, start) + parts.music.slice(end) + (parts.caption || "");
+  return music.slice(0, start) + music.slice(end) + (parts.caption || "");
+}
+
+/* Peel ties, dynamics, and hairpins that lost the note just erased. */
+function editorHealStrandedMarks(line) {
+  var fault;
+  var next;
+  var guard;
+  for (guard = 0; guard < 8; guard++) {
+    fault = editorStaffBreakStatus(line);
+    if (!editorEraseOrphanReason(fault)) {
+      return line;
+    }
+    next = editorHealStaffLineAfterErase(editorDropFaultWord(line, fault));
+    if (next === line) {
+      return line;
+    }
+    line = next;
+  }
+  return line;
 }
 
 /* opts.skipUndo: hold-repeat steps share one undo pushed by the first tap. */
@@ -14037,8 +14101,8 @@ function editorEraseStep(opts) {
     edited = editorHealStaffLineAfterErase(linePart.slice(0, relStart) + linePart.slice(relEnd));
     wasOk = editorLineMusicOk(linePart);
     fault = editorStaffBreakStatus(edited);
-    if (wasOk && fault && fault.error === "tie needs a note before it") {
-      edited = editorHealStaffLineAfterErase(editorDropBareTie(edited, fault));
+    if (wasOk && editorEraseOrphanReason(fault)) {
+      edited = editorHealStrandedMarks(edited);
       fault = editorStaffBreakStatus(edited);
     }
     if (wasOk && fault) {
