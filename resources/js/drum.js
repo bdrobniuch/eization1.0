@@ -1574,6 +1574,10 @@ function drumDrawHitGroup(svg, col, atom, hits, stemUp, staffTop, lineGap, heads
       drumDrawGrace(svg, left - lineGap * 1.15, ny, hit, lineGap);
     }
     staffPlaceGlyph(svg, name, left, ny, lineGap, "staff-notehead");
+    if (svg._staffLastGlyph && svg._staffLastGlyph.setAttribute) {
+      svg._staffLastGlyph.setAttribute("data-pitch-col", String(heads.length));
+      svg._staffLastGlyph.setAttribute("data-pitch-step", String(hit.step));
+    }
     if (hit.open) {
       drumText(svg, col.x + shift, ny - lineGap * 1.15, "o", 11);
     }

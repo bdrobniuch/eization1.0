@@ -4602,6 +4602,11 @@ function chatCase(w) {
       placeCaret("C4q D4q");
       if (!ready()) {
         check("hover does not show a note to place", false);
+        check("a pencil hover shows the note in the gap", false);
+        check("a pencil hover on a note lights that note", false);
+        check("a pencil hover off the staff hides the note", false);
+        check("a pencil hover with Write notes closed hides the note", false);
+        check("a mouse hover still does not show a note", false);
         check("a click in a gap does not write a note", false);
         check("a vertical drag writes a note in the gap", false);
         check("a finger drag does not write a note", false);
@@ -4615,9 +4620,146 @@ function chatCase(w) {
         "hover does not show a note to place",
         !w.editorStaffGhost && !preview.querySelector(".staff-pitch-ghost")
       );
+      fire("pointermove", gapX, mid, 0, "pen");
+      check(
+        "a pencil hover shows the note in the gap",
+        !!preview.querySelector(".staff-pitch-ghost") && focusLine.value === "C4q D4q" && !w.editorStaffDrag
+      );
+      var hoverHead = layout.heads && layout.heads[0];
+      if (hoverHead) {
+        fire("pointermove", hoverHead.x, hoverHead.y, 0, "pen");
+        check(
+          "a pencil hover on a note lights that note",
+          !preview.querySelector(".staff-pitch-ghost") && !!preview.querySelector("[data-pitch-col].is-pitch-hot")
+        );
+      } else {
+        check("a pencil hover on a note lights that note", false);
+      }
+      fire("pointermove", gapX, layout.staffTop - (layout.lineGap || 12) * 12, 0, "pen");
+      check(
+        "a pencil hover off the staff hides the note",
+        !w.editorStaffGhost && !preview.querySelector(".staff-pitch-ghost")
+      );
+      w.editorCloseSymbols();
+      fire("pointermove", gapX, mid, 0, "pen");
+      check(
+        "a pencil hover with Write notes closed hides the note",
+        !preview.querySelector(".staff-pitch-ghost") && focusLine.value === "C4q D4q"
+      );
+      w.editorOpenSymbols();
+      fire("pointermove", gapX, mid, 0, "mouse");
+      check(
+        "a mouse hover still does not show a note",
+        !w.editorStaffGhost && !preview.querySelector(".staff-pitch-ghost")
+      );
       fire("pointerdown", gapX, mid, 1, "mouse");
       fire("pointerup", gapX, mid, 0, "mouse");
       check("a click in a gap does not write a note", focusLine.value === "C4q D4q");
+      if (!ready()) {
+        check("a pencil touch shows the note before it lands", false);
+        check("a pencil touch writes the note in the gap", false);
+        check("a pencil touch on a note only moves the caret", false);
+        check("a pencil hold does not open Copy and Paste", false);
+        check("a sideways pencil drag does not write a note", false);
+        check("a pencil slide off the staff drops the note", false);
+        check("a pencil touch with Write notes closed does not write", false);
+      } else {
+        gapX = w.editorStaffCaretX(layout, 1);
+        mid = (layout.staffTop + layout.staffBot) / 2;
+        spelled = spelledAt(gapX, mid);
+        token = spelled ? spelled.letter + (spelled.acc || "") + String(spelled.oct) : "";
+        fire("pointerdown", gapX, mid, 1, "pen");
+        check(
+          "a pencil touch shows the note before it lands",
+          !!preview.querySelector(".staff-pitch-ghost") && focusLine.value === "C4q D4q" && !w.editorStaffClipHold
+        );
+        fire("pointerup", gapX, mid, 0, "pen");
+        check("a pencil touch writes the note in the gap", !!token && focusLine.value === "C4q " + token + " D4q");
+        poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+        placeCaret("C4q");
+        if (!ready()) {
+          check("a pencil touch on a note only moves the caret", false);
+          check("a pencil hold does not open Copy and Paste", false);
+          check("a sideways pencil drag does not write a note", false);
+          check("a pencil slide off the staff drops the note", false);
+          check("a pencil touch with Write notes closed does not write", false);
+        } else {
+          head = layout.heads && layout.heads[0];
+          if (head) {
+            w.editorStaffCopy = "E4";
+            fire("pointerdown", head.x, head.y, 1, "pen");
+            preview.dispatchEvent(
+              new w.MouseEvent("contextmenu", {
+                clientX: 8,
+                clientY: 8,
+                bubbles: true,
+                cancelable: true,
+                view: w,
+                button: 2
+              })
+            );
+            check(
+              "a pencil hold does not open Copy and Paste",
+              !w.document.getElementById("editClipMenu") && !w.editorStaffClipHold
+            );
+            fire("pointerup", head.x, head.y, 0, "pen");
+            check("a pencil touch on a note only moves the caret", focusLine.value === "C4q");
+            w.editorStaffCopy = "";
+            w.editorStaffCloseClipMenu();
+          } else {
+            check("a pencil hold does not open Copy and Paste", false);
+            check("a pencil touch on a note only moves the caret", false);
+          }
+          placeCaret("C4q D4q");
+          if (!ready()) {
+            check("a sideways pencil drag does not write a note", false);
+            check("a pencil slide off the staff drops the note", false);
+            check("a pencil touch with Write notes closed does not write", false);
+          } else {
+            gapX = w.editorStaffCaretX(layout, 1);
+            mid = (layout.staffTop + layout.staffBot) / 2;
+            fire("pointerdown", gapX, mid, 1, "pen");
+            fire("pointermove", gapX + (layout.lineGap || 12) * 4, mid, 1, "pen");
+            fire("pointerup", gapX + (layout.lineGap || 12) * 4, mid, 0, "pen");
+            check(
+              "a sideways pencil drag does not write a note",
+              focusLine.value === "C4q D4q" && !w.editorStaffGhost
+            );
+            if (!ready()) {
+              check("a pencil slide off the staff drops the note", false);
+              check("a pencil touch with Write notes closed does not write", false);
+            } else {
+              gapX = w.editorStaffCaretX(layout, 1);
+              mid = (layout.staffTop + layout.staffBot) / 2;
+              var offY = layout.staffTop - (layout.lineGap || 12) * 12;
+              fire("pointerdown", gapX, mid, 1, "pen");
+              fire("pointermove", gapX, offY, 1, "pen");
+              fire("pointerup", gapX, offY, 0, "pen");
+              check(
+                "a pencil slide off the staff drops the note",
+                focusLine.value === "C4q D4q" && !w.editorStaffGhost
+              );
+              w.editorCloseSymbols();
+              if (!ready()) {
+                w.editorOpenSymbols();
+                check("a pencil touch with Write notes closed does not write", false);
+              } else {
+                w.editorCloseSymbols();
+                gapX = w.editorStaffCaretX(layout, 1);
+                mid = (layout.staffTop + layout.staffBot) / 2;
+                fire("pointerdown", gapX, mid, 1, "pen");
+                var closedGhost = !!preview.querySelector(".staff-pitch-ghost");
+                fire("pointerup", gapX, mid, 0, "pen");
+                check(
+                  "a pencil touch with Write notes closed does not write",
+                  !closedGhost && focusLine.value === "C4q D4q"
+                );
+                w.editorOpenSymbols();
+              }
+            }
+          }
+        }
+      }
       if (!ready()) {
         check("a vertical drag writes a note in the gap", false);
         check("a finger drag does not write a note", false);
@@ -4724,6 +4866,150 @@ function chatCase(w) {
       fire("pointerup", head.x, landY, 0, "mouse");
       check("a dragged note lands on release", focusLine.value === "G4q");
       poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+    })();
+    (function () {
+      var kindBefore = w.editorKindName();
+      var pieceBefore = w.editorDrumPiece;
+      var preview;
+      var svg;
+      var layout;
+      var ctm;
+      var pt;
+      var id = 91;
+      function screenFire(type, x, sy, buttons, kind) {
+        var screen;
+        pt.x = x;
+        pt.y = sy;
+        screen = pt.matrixTransform(ctm);
+        preview.dispatchEvent(
+          new w.PointerEvent(type, {
+            clientX: screen.x,
+            clientY: screen.y,
+            bubbles: true,
+            cancelable: true,
+            view: w,
+            pointerId: id,
+            pointerType: kind || "mouse",
+            button: 0,
+            buttons: buttons
+          })
+        );
+      }
+      function arm() {
+        w.setEditorKind("drum");
+        w.editorOpenSymbols();
+        w.editorNote.dur = "";
+        w.editorNote.dot = false;
+        w.editorNote.dots = 0;
+        w.editorStaffDrag = null;
+        w.editorStaffGhost = null;
+        w.editorStaffPenDown = false;
+        w.refreshEditor();
+        preview = w.document.getElementById("editPreview");
+        svg = preview && preview.querySelector("svg.music-staff");
+        layout = preview && preview._staffCaretLayout;
+        ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+        if (!svg || !layout || !ctm || typeof svg.createSVGPoint !== "function" || typeof w.drumY !== "function") {
+          return false;
+        }
+        pt = svg.createSVGPoint();
+        return true;
+      }
+      try {
+        placeCaret("bdq");
+        w.editorDrumPiece = "hh";
+        if (!arm()) {
+          check("a pencil hover shows the drum on that line", false);
+          check("a pencil hover lights a drum hit", false);
+          check("a mouse hover does not show a drum", false);
+          check("a pencil touch writes the drum on that line", false);
+          check("a finger tap writes the lit drum", false);
+          check("a pencil touch on a drum only moves the caret", false);
+          check("a pencil slide off the drums drops the hit", false);
+          return;
+        }
+        var gapX = w.editorStaffCaretX(layout, layout.cols.length);
+        var snareY = w.drumY(5, layout.staffTop, layout.lineGap || 12);
+        screenFire("pointermove", gapX, snareY, 0, "pen");
+        check(
+          "a pencil hover shows the drum on that line",
+          !!preview.querySelector(".staff-pitch-ghost") && focusLine.value === "bdq" && !w.editorStaffDrag
+        );
+        var hoverHit = layout.heads && layout.heads[0];
+        if (hoverHit) {
+          screenFire("pointermove", hoverHit.x, hoverHit.y, 0, "pen");
+          check(
+            "a pencil hover lights a drum hit",
+            !preview.querySelector(".staff-pitch-ghost") && !!preview.querySelector("[data-pitch-col].is-pitch-hot")
+          );
+        } else {
+          check("a pencil hover lights a drum hit", false);
+        }
+        screenFire("pointermove", gapX, snareY, 0, "mouse");
+        check(
+          "a mouse hover does not show a drum",
+          !w.editorStaffGhost && !preview.querySelector(".staff-pitch-ghost")
+        );
+        screenFire("pointerdown", gapX, snareY, 1, "pen");
+        var showed = !!preview.querySelector(".staff-pitch-ghost");
+        screenFire("pointerup", gapX, snareY, 0, "pen");
+        check(
+          "a pencil touch writes the drum on that line",
+          showed && focusLine.value.indexOf("sd") >= 0 && focusLine.value.indexOf("hh") < 0
+        );
+        poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+        placeCaret("bdq");
+        w.editorDrumPiece = "hh";
+        if (!arm()) {
+          check("a finger tap writes the lit drum", false);
+          check("a pencil touch on a drum only moves the caret", false);
+          check("a pencil slide off the drums drops the hit", false);
+          return;
+        }
+        gapX = w.editorStaffCaretX(layout, layout.cols.length);
+        var crashY = w.drumY(10, layout.staffTop, layout.lineGap || 12);
+        screenFire("pointerdown", gapX, crashY, 1, "touch");
+        screenFire("pointerup", gapX, crashY, 0, "touch");
+        check(
+          "a finger tap writes the lit drum",
+          focusLine.value.indexOf("hh") >= 0 && focusLine.value.indexOf("cr") < 0
+        );
+        poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+        placeCaret("bdq");
+        if (!arm()) {
+          check("a pencil touch on a drum only moves the caret", false);
+          check("a pencil slide off the drums drops the hit", false);
+          return;
+        }
+        var drumHead = layout.heads && layout.heads[0];
+        if (!drumHead) {
+          check("a pencil touch on a drum only moves the caret", false);
+          check("a pencil slide off the drums drops the hit", false);
+          return;
+        }
+        screenFire("pointerdown", drumHead.x, drumHead.y, 1, "pen");
+        screenFire("pointerup", drumHead.x, drumHead.y, 0, "pen");
+        check("a pencil touch on a drum only moves the caret", focusLine.value === "bdq");
+        if (!arm()) {
+          check("a pencil slide off the drums drops the hit", false);
+          return;
+        }
+        gapX = w.editorStaffCaretX(layout, layout.cols.length);
+        snareY = w.drumY(5, layout.staffTop, layout.lineGap || 12);
+        screenFire("pointerdown", gapX, snareY, 1, "pen");
+        screenFire("pointermove", gapX, layout.staffTop - (layout.lineGap || 12) * 4, 1, "pen");
+        screenFire("pointerup", gapX, layout.staffTop - (layout.lineGap || 12) * 4, 0, "pen");
+        check("a pencil slide off the drums drops the hit", focusLine.value === "bdq" && !w.editorStaffGhost);
+      } finally {
+        w.editorDrumPiece = pieceBefore;
+        w.setEditorKind(kindBefore);
+        w.editorStaffDrag = null;
+        w.editorStaffGhost = null;
+        w.editorStaffPenDown = false;
+        w.editorOpenSymbols();
+        placeCaret("C4q D4q");
+        w.refreshEditor();
+      }
     })();
     (function () {
       var beforeBars = w.editorReadBars();
@@ -5588,7 +5874,7 @@ function chatCase(w) {
           pt.y = y;
           return pt.matrixTransform(ctm);
         }
-        function fire(type, x, buttons) {
+        function fire(type, x, buttons, kind) {
           var screen = screenAt(x);
           preview.dispatchEvent(
             new w.PointerEvent(type, {
@@ -5598,7 +5884,7 @@ function chatCase(w) {
               cancelable: true,
               view: w,
               pointerId: id,
-              pointerType: "mouse",
+              pointerType: kind || "mouse",
               button: 0,
               buttons: buttons
             })
@@ -5634,7 +5920,7 @@ function chatCase(w) {
         if (focusLine.value !== "C4 D4 E4" || w.editorStaffCopy !== "") {
           return false;
         }
-        fire("pointerdown", layout.cols[1].x, 1);
+        fire("pointerdown", layout.cols[1].x, 1, "touch");
         if (!w.editorStaffClipHold) {
           return false;
         }
