@@ -120,9 +120,9 @@
         </figure>
 
         <h2>A chord</h2>
-        <p>Brackets stack a chord. The same duration on every pitch is the clear way to write it. If the durations differ, the stem follows the lowest note. <code>^</code> after the closing bracket is the chord name above the stack. <code>_</code> is text under it. A chord can carry both. The name can use ∆. <code>^bVII</code> and <code>_bVII</code> both print as ♭VII. <code>_bbVII</code> prints as 𝄫VII. Inside a chord word above the staff, <code>_</code> is a space: <code>^Any_dom_7</code>. A second keeps the note on the stem side in place and sets the next note to the right.</p>
+        <p>Brackets stack a chord. The length is written once after the closing bracket, so <code>[E3 G3 B3 D4]h</code> is a half and a missing length is a quarter. A length still written on a pitch is read, and the lowest note wins when they differ; every notehead uses that one length. <code>^</code> after the length is the chord name above the stack. <code>_</code> is text under it. A chord can carry both. The name can use ∆. <code>^bVII</code> and <code>_bVII</code> both print as ♭VII. <code>_bbVII</code> prints as 𝄫VII. Inside a chord word above the staff, <code>_</code> is a space: <code>^Any_dom_7</code>. A second keeps the note on the stem side in place and sets the next note to the right.</p>
         <figure class="notation-sample">
-            <pre>@bass @key=C [E3h G3h B3h D4h]^C∆7_3</pre>
+            <pre>@bass @key=C [E3 G3 B3 D4]h^C∆7_3</pre>
             <div class="notation-staff"></div>
         </figure>
         <figure class="notation-sample">

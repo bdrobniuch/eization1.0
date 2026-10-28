@@ -137,7 +137,7 @@ var editorAnalytics = null;
 var EDITOR_STAFF_SAMPLES = [
   "C4 E4 G4",
   "@key=Eb Eb4 F4 G4 Ab4 Bb4",
-  "[E3h G3h B3h D4h]^C\u22067_3",
+  "[E3 G3 B3 D4]h^C\u22067_3",
   "/q /e rq",
   "C4q~ | C4q",
   "(3 C4e D4e E4e)",
@@ -2625,6 +2625,95 @@ function editorStaffCaretStops(music) {
   return stops;
 }
 
+function editorStaffStackByOpen(music, open) {
+  var groups = editorFindBalancedGroups(music);
+  var i;
+  for (i = 0; i < groups.length; i++) {
+    if (groups[i].kind === "stack" && groups[i].open === open) {
+      return groups[i];
+    }
+  }
+  return null;
+}
+
+function editorStaffStackHolding(music, caret) {
+  var groups = editorFindBalancedGroups(music);
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind === "stack" && caret > g.open && caret < g.closeEnd) {
+      return g;
+    }
+  }
+  return null;
+}
+
+/* Land on the pitch already under the caret, or the first pitch in the chord. */
+function editorStaffLandOnStack(music, stack, prefer) {
+  var spans = editorStackPitchSpans(music, stack);
+  var i;
+  if (!spans.length) {
+    return stack.open;
+  }
+  if (typeof prefer === "number") {
+    for (i = 0; i < spans.length; i++) {
+      if (prefer > spans[i].start && prefer <= spans[i].end) {
+        return spans[i].end;
+      }
+    }
+  }
+  return spans[0].end;
+}
+
+function editorStaffColumnStop(music, index) {
+  var stack = editorStaffStackByOpen(music, index);
+  if (!stack) {
+    return index;
+  }
+  return editorStaffLandOnStack(music, stack, null);
+}
+
+/*
+ * Pad arrows step columns. A chord is one column: landing puts the caret on a
+ * pitch inside [], and leaving parks after the length and the name.
+ */
+function editorStaffChordStep(music, stops, at, caret, step) {
+  var inside = editorStaffStackHolding(music, caret);
+  var next;
+  var i;
+  var prev;
+  if (inside) {
+    if (step > 0) {
+      return inside.closeEnd;
+    }
+    prev = -1;
+    for (i = 0; i < stops.length; i++) {
+      if (stops[i] < inside.open) {
+        prev = stops[i];
+      }
+    }
+    if (prev < 0) {
+      return null;
+    }
+    return editorStaffColumnStop(music, prev);
+  }
+  if (step < 0) {
+    if (caret > stops[at]) {
+      next = stops[at];
+    } else if (at > 0) {
+      next = stops[at - 1];
+    } else {
+      return null;
+    }
+  } else if (at < stops.length - 1) {
+    next = stops[at + 1];
+  } else {
+    return null;
+  }
+  return editorStaffColumnStop(music, next);
+}
+
 /*
  * Move the caret by one drawn column. Used when Notes is open (pad inputmode)
  * so hardware arrows match Erase's token grain — not every character.
@@ -2668,17 +2757,8 @@ function editorStaffMoveCaret(dir) {
       at = i;
     }
   }
-  if (step < 0) {
-    if (mapped.caret > stops[at]) {
-      next = stops[at];
-    } else if (at > 0) {
-      next = stops[at - 1];
-    } else {
-      return false;
-    }
-  } else if (at < stops.length - 1) {
-    next = stops[at + 1];
-  } else {
+  next = editorStaffChordStep(mapped.music, stops, at, mapped.caret, step);
+  if (next == null) {
     return false;
   }
   musicAt = String(line || "").indexOf(mapped.music);
@@ -3097,7 +3177,11 @@ function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIn
     return;
   }
   before = String(field.value || "");
-  a = lineStart + musicAt + editorMusicCaretFromInsertIndex(String(music || ""), insertIndex);
+  if (opts && typeof opts.musicCaret === "number") {
+    a = lineStart + musicAt + opts.musicCaret;
+  } else {
+    a = lineStart + musicAt + editorMusicCaretFromInsertIndex(String(music || ""), insertIndex);
+  }
   a = editorStaffSettleLeftovers(field, lineStart, musicAt, String(music || ""), a, opts || { reenter: true });
   editorPlaceCaret(field, a, a, true);
   /* Unwrapping a one-note shell changes the line. Repaint so the next click uses the new columns. */
@@ -3241,6 +3325,62 @@ function editorStaffShellIsDisposable(line, g) {
     return false;
   }
   return true;
+}
+
+/* A click on a chord lands on the nearest pitch inside the brackets. A gap stays a gap. */
+function editorStaffStackClickCaret(hit) {
+  var col;
+  var heads;
+  var i;
+  var best;
+  var bestD;
+  var d;
+  var pitch;
+  var starts;
+  var groups;
+  var g;
+  var spans;
+  if (!hit || !hit.layout || typeof hit.localX !== "number") {
+    return null;
+  }
+  col = editorStaffPitchColumnNear(hit.layout, hit.localX);
+  if (col < 0 || !hit.layout.cols[col] || hit.layout.cols[col].type !== "stack") {
+    return null;
+  }
+  heads = hit.layout.heads || [];
+  best = null;
+  bestD = Infinity;
+  for (i = 0; i < heads.length; i++) {
+    if (heads[i].col !== col) {
+      continue;
+    }
+    d = Math.abs((heads[i].y || 0) - (hit.localY || 0));
+    if (d < bestD) {
+      bestD = d;
+      best = heads[i];
+    }
+  }
+  if (best) {
+    pitch = editorStaffColumnPitch(hit.music, best);
+    if (pitch) {
+      return pitch.end;
+    }
+  }
+  starts = editorStaffColumnStarts(hit.music);
+  if (typeof starts[col] !== "number") {
+    return null;
+  }
+  groups = editorFindBalancedGroups(hit.music);
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind === "stack" && g.open === starts[col]) {
+      spans = editorStackPitchSpans(hit.music, g);
+      if (spans.length) {
+        return spans[0].end;
+      }
+    }
+  }
+  return null;
 }
 
 function editorStaffHitColumnStart(hit) {
@@ -4916,6 +5056,27 @@ function editorStaffPitchDragMove(drag, event) {
   editorStaffPitchDragApply(drag, result);
 }
 
+/* Keep a pitch drag on the example it started on after a spelling changes length. */
+function editorStaffClampCaretToLine(drag, end) {
+  var value;
+  var lineEnd;
+  if (!drag) {
+    return end;
+  }
+  if (end < drag.lineStart) {
+    end = drag.lineStart;
+  }
+  value = drag.field ? String(drag.field.value || "") : "";
+  lineEnd = value.indexOf("\n", drag.lineStart);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  if (end > lineEnd) {
+    end = lineEnd;
+  }
+  return end;
+}
+
 /* Draw the whole staff at this pitch, stems and beams included. */
 function editorStaffPitchDragApply(drag, result) {
   var plan;
@@ -4942,13 +5103,14 @@ function editorStaffPitchDragApply(drag, result) {
     if (plan.keepSelection && plan.originCaret) {
       editorPlaceCaret(
         drag.field,
-        editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.start, reps),
-        editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.end, reps),
+        editorStaffClampCaretToLine(drag, editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.start, reps)),
+        editorStaffClampCaretToLine(drag, editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.end, reps)),
         true
       );
     } else if (result.text !== plan.originMusic) {
       end = drag.lineStart + drag.musicAt + editorMapTransposeIndex(plan.primaryEnd, reps);
       end = editorGluedTailEnd(String(drag.field.value || ""), end);
+      end = editorStaffClampCaretToLine(drag, end);
       editorPlaceCaret(drag.field, end, end, true);
     }
   }
@@ -5031,13 +5193,14 @@ function editorStaffPitchDragFinish(drag) {
   if (plan.keepSelection && plan.originCaret) {
     editorPlaceCaret(
       drag.field,
-      editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.start, reps),
-      editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.end, reps),
+      editorStaffClampCaretToLine(drag, editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.start, reps)),
+      editorStaffClampCaretToLine(drag, editorStaffPitchMapIndex(drag.lineStart, drag.musicAt, plan.originCaret.end, reps)),
       true
     );
   } else {
     end = drag.lineStart + drag.musicAt + editorMapTransposeIndex(plan.primaryEnd, reps);
     end = editorGluedTailEnd(String(drag.field.value || ""), end);
+    end = editorStaffClampCaretToLine(drag, end);
     editorPlaceCaret(drag.field, end, end, true);
   }
   refreshEditor();
@@ -5154,6 +5317,34 @@ function editorStaffGhostInsertMusic(music, insertIndex, token) {
   return { text: music.slice(0, at) + text + music.slice(at), caret: caret };
 }
 
+/* The step's letter, or the next free octave when that pitch is already in the chord. */
+function editorStaffGhostFreeOctave(music, colStart, spelled) {
+  var close;
+  var scanned;
+  var occupied;
+  var i;
+  var pitch;
+  var free;
+  if (!spelled) {
+    return null;
+  }
+  close = String(music || "").indexOf("]", colStart);
+  occupied = {};
+  scanned = editorScanTranspose(music);
+  for (i = 0; i < scanned.pitches.length; i++) {
+    pitch = scanned.pitches[i];
+    if (pitch.start <= colStart || (close >= 0 && pitch.start >= close)) {
+      continue;
+    }
+    occupied[pitch.letter + (pitch.acc || "") + String(pitch.oct)] = true;
+  }
+  free = editorNextFreeStackOctave(spelled.letter, spelled.acc || "", spelled.oct, occupied);
+  if (free === null) {
+    return null;
+  }
+  return { letter: spelled.letter, acc: spelled.acc || "", oct: free };
+}
+
 /* Add a pitch inside [ ]. Null when that letter and octave are already there. */
 function editorStaffGhostStackMusic(music, colStart, token) {
   var close;
@@ -5174,6 +5365,7 @@ function editorStaffGhostStackMusic(music, colStart, token) {
   }
   letter = head[1].toUpperCase();
   oct = parseInt(head[3], 10);
+  token = editorStripPitchDuration(token);
   scanned = editorScanTranspose(music);
   for (i = 0; i < scanned.pitches.length; i++) {
     pitch = scanned.pitches[i];
@@ -5194,18 +5386,16 @@ function editorStaffGhostStackMusic(music, colStart, token) {
 
 function editorStaffStackDurSuffix(music, colStart) {
   var close;
-  var scanned;
-  var i;
-  var pitch;
+  var rhythm;
   close = String(music || "").indexOf("]", colStart);
-  scanned = editorScanTranspose(music);
-  for (i = 0; i < scanned.pitches.length; i++) {
-    pitch = scanned.pitches[i];
-    if (pitch.start > colStart && (close < 0 || pitch.start < close)) {
-      return (pitch.dur || "") + (pitch.dots || "");
-    }
+  if (close < 0) {
+    return editorPitchSuffix();
   }
-  return editorPitchSuffix();
+  rhythm = editorStackRhythmFromText(String(music || "").slice(colStart, close + 1 + editorStackDurationSuffixLen(String(music || "").slice(close + 1))));
+  if (!rhythm.pitches.length) {
+    return editorPitchSuffix();
+  }
+  return rhythm.raw || "";
 }
 
 /* Park the head in front of the flag and ledger lines, and remember where it belongs. */
@@ -5341,6 +5531,9 @@ function editorPaintStaffGhost(preview) {
     }
   }
   staffPlaceGlyph(svg, name, left, ghost.y, ghost.lineGap || 12, "staff-pitch-ghost is-ready");
+  if (svg._staffLastGlyph && svg._staffLastGlyph.setAttribute) {
+    svg._staffLastGlyph.setAttribute("pointer-events", "none");
+  }
 }
 
 function editorStaffPitchColumnNear(layout, x) {
@@ -5436,8 +5629,9 @@ function editorStaffGhostMorphMusic(music, colStart, spelled) {
     return null;
   }
   suffix = (head[4] || "") + (head[5] || "");
-  neu = spelled.letter + (spelled.acc || "") + String(spelled.oct) + suffix;
-  wrapped = "[" + body + " " + neu + "]" + closers;
+  neu = spelled.letter + (spelled.acc || "") + String(spelled.oct);
+  body = letter + (head[2] || "") + String(oct) + (head[6] || "") + body.slice(head[0].length);
+  wrapped = "[" + body + " " + neu + "]" + suffix + closers;
   return {
     text: music.slice(0, colStart) + wrapped + music.slice(end),
     caret: colStart + wrapped.length - closers.length
@@ -5562,7 +5756,13 @@ function editorStaffGhostPlace(hit, ghost) {
   }
   if (ghost.stackCol >= 0 && typeof editorStaffColumnStarts(hit.music)[ghost.stackCol] === "number") {
     stackAt = editorStaffColumnStarts(hit.music)[ghost.stackCol];
-    token = editorStaffGhostToken(spelled, editorStaffStackDurSuffix(hit.music, stackAt));
+    spelled = editorStaffGhostFreeOctave(hit.music, stackAt, spelled);
+    if (!spelled) {
+      editorRefuse(t("edit.refuseStackFull"));
+      editorPaintNotePad();
+      return true;
+    }
+    token = editorStaffGhostToken(spelled, "");
     built = editorStaffGhostStackMusic(hit.music, stackAt, token);
     if (!built) {
       editorRefuse(t("edit.refuseSamePitch"));
@@ -5891,6 +6091,7 @@ function editorStaffPreviewPointerUp(event) {
     drag.field = hit.field;
   }
   if (!drag.dragging) {
+    editorStaffGhost = null;
     editorStaffPreviewApplyCaret(
       drag.field,
       drag.lineStart,
@@ -5899,7 +6100,8 @@ function editorStaffPreviewPointerUp(event) {
       hit ? hit.insertIndex : drag.startInsert,
       {
         reenter: true,
-        columnStart: editorStaffHitColumnStart(hit)
+        columnStart: editorStaffHitColumnStart(hit),
+        musicCaret: editorStaffStackClickCaret(hit)
       }
     );
   } else {
@@ -7749,21 +7951,36 @@ function editorEraseSkipsToken(tok) {
   return /^\d{1,2}(:\d{1,2})?$/.test(tok);
 }
 
+/* Letters and dots glued on ] before ^ or _. 0 when the tail is a name or nothing. */
+function editorStackDurationSuffixLen(tail) {
+  var m = /^([whqesn]?)(\.{0,2})/.exec(tail || "");
+  if (!m || (!m[1] && !m[2])) {
+    return 0;
+  }
+  if (typeof staffMakeDuration === "function" && !staffMakeDuration(m[1] || "q", m[2] || "")) {
+    return 0;
+  }
+  return m[0].length;
+}
+
 function editorStackAffixEnd(line, afterBracket) {
   var best = afterBracket;
   var k;
   var slice;
+  var from;
   if (typeof staffParseAffixes !== "function") {
-    return afterBracket;
+    return afterBracket + editorStackDurationSuffixLen(String(line || "").slice(afterBracket));
   }
-  for (k = afterBracket + 1; k <= line.length; k++) {
-    slice = line.slice(afterBracket, k);
+  from = afterBracket + editorStackDurationSuffixLen(String(line || "").slice(afterBracket));
+  best = from;
+  for (k = from + 1; k <= line.length; k++) {
+    slice = line.slice(from, k);
     if (/\s/.test(slice)) {
       break;
     }
     if (staffParseAffixes(slice)) {
       best = k;
-    } else if (best > afterBracket) {
+    } else if (best > from) {
       break;
     }
   }
@@ -7994,10 +8211,10 @@ function editorOutermostCollapsibleGroup(line, groups, inner, onlySpan) {
 }
 
 /*
- * On a drawn staff, Erase after } ] ) peels the last inner event for {} and
- * (N…). A stack goes in one tap — pitches, brackets, and the name — because
- * the staff draws it as one attack. The last note (or an empty shell) clears
- * nested empty parents in one tap — so (3 {}) and (3 {F#4s}) do not leave a bare (3).
+ * On a drawn staff, Erase after } ) peels the last inner event for {} and
+ * (N…). Erase on one pitch inside [] removes that pitch. Erase on ] or the
+ * length and name after it removes the chord. The last note (or an empty shell)
+ * clears nested empty parents in one tap — so (3 {}) and (3 {F#4s}) do not leave a bare (3).
  */
 function editorStaffGroupEraseTarget(line, rel) {
   var groups;
@@ -8057,9 +8274,31 @@ function editorStaffGroupEraseTarget(line, rel) {
     }
     return null;
   }
-  /* A chord is one column. Backspace removes it, not the last pitch that was typed. */
-  if (g.kind === "stack" && (onCloser || inside || rel === g.closeEnd)) {
+  /*
+   * On one pitch, Erase removes that pitch. On ] or the length and name after it,
+   * Erase removes the whole chord.
+   */
+  if (g.kind === "stack" && (onCloser || rel === g.closeEnd || rel >= g.closeStart)) {
     return editorStaffGroupShellTarget(line, g);
+  }
+  if (g.kind === "stack" && inside) {
+    var stackSpans = editorStackPitchSpans(line, g);
+    var stackI;
+    var stackSpan;
+    for (stackI = 0; stackI < stackSpans.length; stackI++) {
+      stackSpan = stackSpans[stackI];
+      if (rel > stackSpan.start && rel <= stackSpan.end) {
+        start = stackSpan.start;
+        end = stackSpan.end;
+        if (start > g.innerStart && /\s/.test(line.charAt(start - 1))) {
+          start -= 1;
+        } else if (end < g.innerEnd && /\s/.test(line.charAt(end))) {
+          end += 1;
+        }
+        return { start: start, end: end, token: stackSpan.token, kind: "token" };
+      }
+    }
+    return null;
   }
   /* Peel last inner even while the line is pending — recovery for stuck shells. */
   if (!onCloser) {
@@ -8286,7 +8525,7 @@ function editorRemoveEmptyStaffShells(line) {
   do {
     prev = line;
     line = line.replace(/\{\s*\}/g, "");
-    line = line.replace(/\[\s*\](?:[\^_][^\s]*)?/g, "");
+    line = line.replace(/\[\s*\](?:[whqesn]?\.{0,2})?(?:[\^_][^\s]*)?/g, "");
     line = line.replace(/\(\d{1,2}(?::\d{1,2})?\s*\)/g, "");
     line = line.replace(/[ \t]{2,}/g, " ");
     line = line.replace(/^\s+|\s+$/g, "");
@@ -8295,8 +8534,48 @@ function editorRemoveEmptyStaffShells(line) {
   return line;
 }
 
+/* One pitch left in a chord becomes a note that keeps the chord's length and name. */
+function editorCollapseLoneStack(line) {
+  var groups;
+  var cuts;
+  var i;
+  var g;
+  var parts;
+  var pitch;
+  var tail;
+  var len;
+  var note;
+  line = String(line || "");
+  groups = editorFindBalancedGroups(line);
+  cuts = [];
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if (g.kind !== "stack") {
+      continue;
+    }
+    parts = line.slice(g.innerStart, g.innerEnd).trim().split(/\s+/).filter(Boolean);
+    if (parts.length !== 1 || !/^[A-Ga-g]/.test(parts[0])) {
+      continue;
+    }
+    pitch = parts[0];
+    tail = line.slice(g.closeStart + 1, g.closeEnd);
+    len = editorStackDurationSuffixLen(tail);
+    if (len) {
+      note = editorStripPitchDuration(pitch) + tail.slice(0, len) + tail.slice(len);
+    } else {
+      note = pitch + tail;
+    }
+    cuts.push({ start: g.open, end: g.closeEnd, note: note });
+  }
+  for (i = cuts.length - 1; i >= 0; i--) {
+    line = line.slice(0, cuts[i].start) + cuts[i].note + line.slice(cuts[i].end);
+  }
+  return line;
+}
+
 function editorHealStaffLineAfterErase(line) {
   line = editorRemoveUnbalancedGroupMarks(line);
+  line = editorCollapseLoneStack(line);
   line = editorRemoveEmptyStaffShells(line);
   return editorStripTrailingOrphans(line);
 }
@@ -8440,29 +8719,77 @@ function editorMakeTokenPiece(tok, start, end) {
   return piece;
 }
 
-function editorMakeStackPiece(text, start, end) {
+function editorPitchStepValue(letter, oct) {
+  var name = String(letter || "C").toUpperCase();
+  var n = parseInt(oct, 10);
+  if (isNaN(n)) {
+    n = 0;
+  }
+  if (
+    typeof STAFF_LETTER_STEPS !== "undefined" &&
+    Object.prototype.hasOwnProperty.call(STAFF_LETTER_STEPS, name)
+  ) {
+    return STAFF_LETTER_STEPS[name] + n * 7;
+  }
+  return n * 7;
+}
+
+/* One column length: the suffix after ], or the lowest pitch when the letters still sit inside. */
+function editorStackRhythmFromText(text) {
   var close = String(text || "").indexOf("]");
-  var inner = close >= 0 ? text.slice(1, close) : text.slice(1);
+  var inner = close >= 0 ? text.slice(1, close) : String(text || "").slice(1);
+  var tail = close >= 0 ? text.slice(close + 1) : "";
+  var len = editorStackDurationSuffixLen(tail);
   var parts = inner.trim() ? inner.trim().split(/\s+/) : [];
   var pitches = [];
   var i;
   var p;
-  var dur;
-  var dot;
-  var mixed = false;
+  var lowest;
+  var raw;
+  var base;
+  var dots;
   for (i = 0; i < parts.length; i++) {
     p = editorMakeTokenPiece(parts[i], 0, parts[i].length);
     if (p.kind === "pitch") {
       pitches.push(p);
     }
   }
-  dur = pitches.length ? pitches[0].dur : "";
-  dot = pitches.length ? pitches[0].dot : false;
-  for (i = 1; i < pitches.length; i++) {
-    if (pitches[i].dur !== dur || pitches[i].dot !== dot) {
-      mixed = true;
+  if (len) {
+    raw = tail.slice(0, len);
+  } else if (pitches.length) {
+    lowest = pitches[0];
+    for (i = 1; i < pitches.length; i++) {
+      if (editorPitchStepValue(pitches[i].letter, pitches[i].oct) < editorPitchStepValue(lowest.letter, lowest.oct)) {
+        lowest = pitches[i];
+      }
     }
+    raw = (lowest.durRaw || "").replace(/^q(?=\.|$)/, "");
+    if (!raw || raw === "q") {
+      raw = "";
+    }
+  } else {
+    raw = "";
   }
+  base = String(raw || "").replace(/\./g, "");
+  dots = String(raw || "").split(".").length - 1;
+  if (dots > 2) {
+    dots = 2;
+  }
+  if (!base) {
+    base = dots ? "q" : "";
+  }
+  return {
+    pitches: pitches,
+    dur: editorNormDur(base),
+    dot: dots > 0,
+    dots: dots,
+    raw: raw
+  };
+}
+
+function editorMakeStackPiece(text, start, end) {
+  var close = String(text || "").indexOf("]");
+  var rhythm = editorStackRhythmFromText(text);
   return {
     type: "piece",
     kind: "stack",
@@ -8471,9 +8798,10 @@ function editorMakeStackPiece(text, start, end) {
     end: end,
     selected: false,
     pasted: false,
-    dur: mixed ? null : dur,
-    dot: !mixed && dot,
-    pitches: pitches,
+    dur: rhythm.dur,
+    dot: rhythm.dot,
+    dots: rhythm.dots,
+    pitches: rhythm.pitches,
     affix: close >= 0 ? text.slice(close) : "]",
     beamId: 0,
     tupletId: 0,
@@ -8791,7 +9119,6 @@ function editorPullSelection(nodes, opts) {
 }
 
 function editorNodeStaysInBeam(node) {
-  var i;
   if (!node || node.type === "beam" || node.type === "tuplet") {
     return false;
   }
@@ -8808,12 +9135,7 @@ function editorNodeStaysInBeam(node) {
     if (!node.pitches || !node.pitches.length) {
       return false;
     }
-    for (i = 0; i < node.pitches.length; i++) {
-      if (!editorDurationIsShort(node.pitches[i].dur)) {
-        return false;
-      }
-    }
-    return true;
+    return editorDurationIsShort(node.dur);
   }
   return false;
 }
@@ -9229,8 +9551,6 @@ function editorStackWithLetter(node, letter, oct) {
   var i;
   var p;
   var free;
-  var dur;
-  var dot;
   var neu;
   var close;
   var inner;
@@ -9243,9 +9563,7 @@ function editorStackWithLetter(node, letter, oct) {
   if (free === null) {
     return null;
   }
-  dur = node.dur == null ? (node.pitches[0] ? node.pitches[0].dur : "") : node.dur;
-  dot = node.pitches[0] ? node.pitches[0].dot : false;
-  neu = editorPitchText(letter, "", free, dur, dot, "");
+  neu = editorPitchText(letter, "", free, "", false, "");
   close = node.text.indexOf("]");
   inner = (close >= 0 ? node.text.slice(1, close) : node.text.slice(1)).replace(/\s+$/g, "");
   tail = close >= 0 ? node.text.slice(close) : "]";
@@ -9370,9 +9688,7 @@ function editorApplySelectionDot(dotOn) {
       } else if (ev.kind === "slash") {
         ev.replaceWith = editorSlashText(ev.dur, dotOn);
       } else if (ev.kind === "stack") {
-        ev.replaceWith = editorMapStackText(ev, function (p) {
-          return editorPitchText(p.letter, p.acc, p.oct, p.dur, dotOn, p.affix);
-        });
+        ev.replaceWith = editorStackOutsideText(ev.text, ev.dur, dotOn);
       }
     }
     return true;
@@ -9962,13 +10278,94 @@ function editorTraitsFromHit(hit) {
     onEvent: true,
     dur: dur,
     dot: !!dot,
-    dots: piece.dots || (dot ? 1 : 0),
+    dots: stack && shared ? shared.dots || (dot ? 1 : 0) : piece.dots || (dot ? 1 : 0),
     accLit: piece.kind === "pitch" ? piece.acc || "" : "",
     oct: piece.kind === "pitch" ? piece.oct : null,
     octBlank: false,
     beam: editorCaretInsideStructure("beam"),
     tuplet: editorCaretInsideStructure("tuplet"),
     stack: !!stack || editorCaretInsideStructure("stack")
+  };
+}
+
+function editorRhythmParts(raw) {
+  var base;
+  var dots;
+  raw = String(raw || "");
+  if (raw === ".") {
+    raw = "q.";
+  } else if (raw === "..") {
+    raw = "q..";
+  }
+  base = raw.replace(/\./g, "");
+  dots = raw.split(".").length - 1;
+  if (dots > 2) {
+    dots = 2;
+  }
+  if (!base) {
+    base = dots ? "q" : "";
+  }
+  return { dur: editorNormDur(base), dot: dots > 0, dots: dots };
+}
+
+/* Hover and the place-ghost pick one of the three chord intents, and the pad follows. */
+function editorStaffPointerTraits() {
+  var ghost = editorStaffGhost;
+  var hot = editorStaffPitchHot;
+  var span;
+  var line;
+  var spelled;
+  var parts;
+  var mapped;
+  var music;
+  var starts;
+  var pitch;
+  var rhythm;
+  span = editorLineSpan();
+  line = span ? itemToLine(span.value.slice(span.lineStart, span.lineEnd)) : "";
+  if (ghost) {
+    spelled = typeof ghost.step === "number" ? editorStaffGhostSpelling(ghost.step, editorStaffPitchKeyName(line)) : null;
+    parts = editorRhythmParts(ghost.stackCol >= 0 ? ghost.dur : editorPitchSuffix());
+    return {
+      selection: false,
+      onEvent: true,
+      dur: parts.dur,
+      dot: parts.dot,
+      dots: parts.dots,
+      accLit: spelled ? spelled.acc || "" : editorNote.acc || "",
+      oct: spelled ? spelled.oct : null,
+      octBlank: false,
+      beam: false,
+      tuplet: false,
+      stack: ghost.stackCol >= 0
+    };
+  }
+  if (!hot || hot.dragging || typeof hot.col !== "number" || !span) {
+    return null;
+  }
+  mapped = editorMusicCaretInLine(line, span.caret - span.lineStart);
+  music = mapped.music || "";
+  starts = editorStaffColumnStarts(music);
+  if (typeof starts[hot.col] !== "number" || music.charAt(starts[hot.col]) !== "[") {
+    return null;
+  }
+  pitch = editorStaffColumnPitch(music, hot);
+  rhythm = editorStackRhythmFromText(music.slice(starts[hot.col]));
+  if (!rhythm.pitches.length) {
+    return null;
+  }
+  return {
+    selection: false,
+    onEvent: true,
+    dur: rhythm.dur,
+    dot: rhythm.dot,
+    dots: rhythm.dots,
+    accLit: pitch ? pitch.acc || "" : "",
+    oct: pitch ? pitch.oct : null,
+    octBlank: false,
+    beam: false,
+    tuplet: false,
+    stack: true
   };
 }
 
@@ -10041,6 +10438,12 @@ function editorStaffPadTraits() {
       };
     }
     return editorTraitsFromEvents(events);
+  }
+  if (editorStaffDrag && editorStaffDrag.mode === "place") {
+    hit = editorStaffPointerTraits();
+    if (hit) {
+      return hit;
+    }
   }
   hit = editorMusicHitAtCaret();
   if (!hit) {
@@ -10273,9 +10676,7 @@ function editorApplySelectionDuration(dur) {
       } else if (ev.kind === "slash") {
         ev.replaceWith = editorSlashText(dur, ev.dot) + (ev.affix || "");
       } else if (ev.kind === "stack") {
-        ev.replaceWith = editorMapStackText(ev, function (p) {
-          return editorPitchText(p.letter, p.acc, p.oct, dur, p.dot, p.affix);
-        });
+        ev.replaceWith = editorStackOutsideText(ev.text, dur, ev.dot);
       }
     }
     return true;
@@ -10817,25 +11218,15 @@ function editorDissolveEmptyForAction(action) {
 }
 
 function editorStackAllShort(line, stack) {
-  var spans;
-  var i;
-  var m;
-  var dur;
+  var rhythm;
   if (!stack) {
     return false;
   }
-  spans = editorStackPitchSpans(line, stack);
-  if (!spans.length) {
+  rhythm = editorStackRhythmFromText(String(line || "").slice(stack.open, stack.closeEnd));
+  if (!rhythm.pitches.length) {
     return true;
   }
-  for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:##|bb|x|X|#|b|n)?\d((?:[whqesn]\.{0,2}|\.)?)/.exec(spans[i].token);
-    dur = String((m && m[1]) || "q").replace(".", "");
-    if (dur !== "e" && dur !== "s") {
-      return false;
-    }
-  }
-  return true;
+  return editorDurationIsShort(rhythm.dur);
 }
 
 /* Wrap an existing group with open/close; caret stays just before the old closer. */
@@ -11144,6 +11535,31 @@ function editorEnterStructureGroup(g) {
   return true;
 }
 
+/* Drop the brackets. The chord's length goes on each pitch. The name stays on the last. */
+function editorUnwrapStackBody(body, affix) {
+  var len = editorStackDurationSuffixLen(affix);
+  var suffix = String(affix || "").slice(0, len);
+  var name = String(affix || "").slice(len);
+  var parts;
+  var i;
+  var last;
+  if (!len) {
+    return body + name;
+  }
+  parts = String(body || "").split(/(\s+)/);
+  last = -1;
+  for (i = 0; i < parts.length; i++) {
+    if (parts[i] && !/^\s+$/.test(parts[i])) {
+      parts[i] = editorStripPitchDuration(parts[i]) + suffix;
+      last = i;
+    }
+  }
+  if (last >= 0) {
+    parts[last] += name;
+  }
+  return parts.join("");
+}
+
 /*
  * Drop open/close of a group; keep the inner text (and a stack ]^… / ]_… label
  * glued after the last pitch). Selection covers the unwrapped span.
@@ -11167,6 +11583,10 @@ function editorUnwrapStructureGroup(g) {
   affix = "";
   if (g.kind === "stack" && g.closeEnd > g.closeStart + 1) {
     affix = line.slice(g.closeStart + 1, g.closeEnd);
+  }
+  if (g.kind === "stack") {
+    body = editorUnwrapStackBody(body, affix);
+    affix = "";
   }
   edited = line.slice(0, g.open) + body + affix + line.slice(g.closeEnd);
   editorPushSymbolUndo();
@@ -11209,7 +11629,7 @@ function editorRangeNestsStructure(line, start, end, kind) {
 function editorBeamPieces(line, beam) {
   var inner = line.slice(beam.innerStart, beam.innerEnd);
   var pieces = [];
-  var re = /\[(?:[^\]]*)\](?:[\^_][^\s\[\{]*)?|~|\S+/g;
+  var re = /\[(?:[^\]]*)\](?:[whqesn]?\.{0,2})?(?:[\^_][^\s\[\{]*)?|~|\S+/g;
   var m;
   while ((m = re.exec(inner))) {
     if (m[0] === "~") {
@@ -14977,7 +15397,7 @@ function editorWriteLetter(letter, opts) {
         editorPaintNotePad();
         return;
       }
-      token = String(letter || "C") + acc + String(free) + suffix;
+      token = String(letter || "C") + acc + String(free);
     }
   }
   if (!(opts && opts.skipUndo)) {
@@ -15234,9 +15654,9 @@ function editorMidiStackText(list) {
   var parts = [];
   var i;
   for (i = 0; i < list.length; i++) {
-    parts.push(editorMidiToken(list[i]));
+    parts.push(list[i].letter + (list[i].acc || "") + String(list[i].oct));
   }
-  return "[" + parts.join(" ") + "]";
+  return "[" + parts.join(" ") + "]" + editorPitchSuffix();
 }
 
 function editorMidiHasSelection() {
@@ -15529,17 +15949,12 @@ function editorNextFreeStackOctave(letter, acc, startOct, occupied) {
   return null;
 }
 
-/* Shared duration across every pitch in the stack at the caret, or null if mixed. */
+/* The chord's one length. A suffix wins; otherwise the lowest pitch does. */
 function editorStackSharedDuration() {
   var span = editorLineSpan();
   var line;
   var stack;
-  var spans;
-  var i;
-  var m;
-  var dur;
-  var dot;
-  var code;
+  var rhythm;
   if (!span) {
     return null;
   }
@@ -15548,32 +15963,86 @@ function editorStackSharedDuration() {
   if (!stack) {
     return null;
   }
-  spans = editorStackPitchSpans(line, stack);
-  if (!spans.length) {
+  rhythm = editorStackRhythmFromText(line.slice(stack.open, stack.closeEnd));
+  if (!rhythm.pitches.length) {
     return null;
   }
-  for (i = 0; i < spans.length; i++) {
-    m = /^[A-G](?:##|bb|x|X|#|b|n)?\d((?:[whqesn]\.{0,2})|\.)?/.exec(spans[i].token);
-    if (!m) {
-      return null;
-    }
-    code = String(m[1] || "").replace(".", "");
-    if (code === "q") {
-      code = "";
-    }
-    if (i === 0) {
-      dur = code;
-      dot = /\.$/.test(m[1] || "");
-    } else if (dur !== code || dot !== /\.$/.test(m[1] || "")) {
-      return null;
+  return { dur: rhythm.dur, dot: rhythm.dot, dots: rhythm.dots };
+}
+
+function editorStripPitchDuration(tok) {
+  var m = /^([A-Ga-g])(##|bb|x|X|#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
+  if (!m) {
+    return tok;
+  }
+  return m[1] + (m[2] || "") + m[3] + (m[5] || "");
+}
+
+/* Pitches with no length of their own, and one suffix after ]. The name stays. */
+function editorStackOutsideText(text, dur, dot) {
+  var close = String(text || "").indexOf("]");
+  var inner;
+  var tail;
+  var len;
+  var parts;
+  var i;
+  var suffix;
+  if (close < 0) {
+    return text;
+  }
+  inner = text.slice(1, close);
+  tail = text.slice(close + 1);
+  len = editorStackDurationSuffixLen(tail);
+  parts = inner.split(/(\s+)/);
+  for (i = 0; i < parts.length; i++) {
+    if (parts[i] && !/^\s+$/.test(parts[i])) {
+      parts[i] = editorStripPitchDuration(parts[i]);
     }
   }
-  return { dur: dur, dot: dot };
+  suffix = editorDurSuffix(dur, dot);
+  return "[" + parts.join("") + "]" + suffix + tail.slice(len);
+}
+
+/* Where the caret sits in the rewritten shell: the same pitch, or on the new suffix. */
+function editorStackCaretInShell(oldLine, stack, caretRel, shell) {
+  var spans = editorStackPitchSpans(oldLine, stack);
+  var which = -1;
+  var i;
+  var close;
+  var inner;
+  var re;
+  var m;
+  var count;
+  for (i = 0; i < spans.length; i++) {
+    if (caretRel > spans[i].start && caretRel <= spans[i].end) {
+      which = i;
+    }
+  }
+  close = shell.indexOf("]");
+  if (close < 0) {
+    return shell.length;
+  }
+  if (which < 0) {
+    return close + 1 + editorStackDurationSuffixLen(shell.slice(close + 1));
+  }
+  inner = shell.slice(1, close);
+  re = /\S+/g;
+  count = -1;
+  while ((m = re.exec(inner))) {
+    if (!/^[A-Ga-g]/.test(m[0])) {
+      continue;
+    }
+    count += 1;
+    if (count === which) {
+      return 1 + m.index + m[0].length;
+    }
+  }
+  return close + 1;
 }
 
 /*
- * Rewrite every pitch in the stack to the same duration. A long duration under a
- * beam peels the whole [stack] out of the braces.
+ * Write the chord's one length after ]. A long duration under a beam peels
+ * the whole stack out of the braces. The pitch under the caret stays current.
  */
 function editorApplyStackDuration(dur, dot) {
   var span = editorLineSpan();
@@ -15581,11 +16050,6 @@ function editorApplyStackDuration(dur, dot) {
   var stack;
   var spans;
   var i;
-  var parts;
-  var cursor;
-  var inner;
-  var affix;
-  var nextInner;
   var nextShell;
   var beam;
   var pieces;
@@ -15598,6 +16062,8 @@ function editorApplyStackDuration(dur, dot) {
   var caret;
   var short;
   var rel;
+  var shellAt;
+  var pitchAt;
   if (!span) {
     return false;
   }
@@ -15610,19 +16076,10 @@ function editorApplyStackDuration(dur, dot) {
   if (!spans.length) {
     return false;
   }
-  parts = [];
-  cursor = stack.innerStart;
-  for (i = 0; i < spans.length; i++) {
-    parts.push(line.slice(cursor, spans[i].start));
-    parts.push(editorRewritePitchDurationToken(spans[i].token, dur, dot));
-    cursor = spans[i].end;
-  }
-  parts.push(line.slice(cursor, stack.innerEnd));
-  nextInner = parts.join("");
-  affix = line.slice(stack.closeStart + 1, stack.closeEnd);
-  nextShell = "[" + nextInner + "]" + affix;
+  nextShell = editorStackOutsideText(line.slice(stack.open, stack.closeEnd), dur, dot);
   short = editorDurationIsShort(dur);
   rel = span.caret - span.lineStart;
+  pitchAt = editorStackCaretInShell(line, stack, rel, nextShell);
   beam = editorInnermostGroupAt(line, rel, "beam");
   if (!short && beam && stack.open >= beam.innerStart && stack.closeEnd <= beam.closeStart) {
     pieces = editorBeamPieces(line, beam);
@@ -15645,13 +16102,14 @@ function editorApplyStackDuration(dur, dot) {
       replacement = [editorFormatBeamShell(before), nextShell, editorFormatBeamShell(after)]
         .filter(Boolean)
         .join(" ");
+      shellAt = replacement.indexOf(nextShell);
       editorPushSymbolUndo();
       value = String(span.field.value || "");
       span.field.value =
         value.slice(0, span.lineStart + beam.open) +
         replacement +
         value.slice(span.lineStart + beam.closeEnd);
-      caret = span.lineStart + beam.open + replacement.indexOf(nextShell) + nextShell.length;
+      caret = span.lineStart + beam.open + (shellAt < 0 ? replacement.length : shellAt + pitchAt);
       silent = !!(editorPadCaret && editorSymbolsIsOpen());
       editorPlaceCaret(span.field, caret, caret, silent);
       clearEditorNotice();
@@ -15666,10 +16124,7 @@ function editorApplyStackDuration(dur, dot) {
     value.slice(0, span.lineStart + stack.open) +
     nextShell +
     value.slice(span.lineStart + stack.closeEnd);
-  caret = span.lineStart + stack.open + nextShell.length;
-  if (affix) {
-    caret -= affix.length;
-  }
+  caret = span.lineStart + stack.open + pitchAt;
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
   editorPlaceCaret(span.field, caret, caret, silent);
   clearEditorNotice();
@@ -15828,12 +16283,17 @@ function editorCaretHasBarMark() {
   return before.charAt(before.length - 1) === "|";
 }
 
-/* Index just after ] (stack closeEnd may already include ]^… / ]_…). */
-function editorStackCloserEnd(stack) {
+/* Index just after ] and the duration suffix, where ^ and _ begin. */
+function editorStackCloserEnd(stack, line) {
+  var at;
   if (!stack) {
     return 0;
   }
-  return stack.closeStart + 1;
+  at = stack.closeStart + 1;
+  if (line) {
+    at += editorStackDurationSuffixLen(String(line).slice(at));
+  }
+  return at;
 }
 
 /* Stack-level ]^… label range (field offsets), or null. */
@@ -15846,7 +16306,7 @@ function editorStackChordMarkRange(span, stack) {
     return null;
   }
   line = span.value.slice(span.lineStart, span.lineEnd);
-  closer = editorStackCloserEnd(stack);
+  closer = editorStackCloserEnd(stack, line);
   after = line.slice(closer);
   m = /^\^[^\s]*/.exec(after);
   if (!m) {
@@ -15942,13 +16402,13 @@ function editorCaretChordMarkRange() {
       return tok;
     }
   }
-  /* Caret parked after a stack closer with ]^Name. */
-  at = trimmed.lastIndexOf("]^");
-  if (at >= 0 && at === trimmed.length - 2) {
-    return { start: at + 1, end: trimmed.length };
+  /* Caret parked after a stack closer with ]^Name or ]e^Name. */
+  at = trimmed.search(/\](?:[whqesn]?\.{0,2})?\^$/);
+  if (at >= 0) {
+    return { start: trimmed.lastIndexOf("^"), end: trimmed.length };
   }
   aff = /\^[^\s\]]+$/.exec(trimmed);
-  if (aff && trimmed.charAt(trimmed.length - aff[0].length - 1) === "]") {
+  if (aff && /\](?:[whqesn]?\.{0,2})?$/.test(trimmed.slice(0, trimmed.length - aff[0].length))) {
     return { start: trimmed.length - aff[0].length, end: trimmed.length };
   }
   return null;
@@ -16095,7 +16555,7 @@ function editorToggleOrInsertChord() {
       editorInnermostGroupAt(line, rel, "stack") ||
       editorGroupJustAfter(line, rel, "stack");
     if (stack) {
-      insertAt = span.lineStart + editorStackCloserEnd(stack);
+      insertAt = span.lineStart + editorStackCloserEnd(stack, line);
       value = String(span.field.value || "");
       span.field.value = value.slice(0, insertAt) + "^" + value.slice(insertAt);
       caret = insertAt + 1;
@@ -18974,9 +19434,9 @@ function editorLinesUseStaff(lines) {
 
 function chatStaffSpelling(lang) {
   if (lang === "es") {
-    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s n y un puntillo o dos (C4q..). C4 es una negra. C4n es una negra sin plica, un tiempo. C#4, Db4, Cn4. n. y n.. no valen. El signo se imprime si la nota difiere de la armadura o de una nota anterior del compás; ! lo fuerza. @treble o @bass y @key=Eb van primero. Después de una barra, @treble o @bass cambia la clave; la clave nueva es más pequeña y la armadura se imprime otra vez. Un cambio de clave que no va después de una barra no se lee. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^t=100 pone el metrónomo a 100 solo en ese ejemplo. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
+    return "Estas líneas van en el pentagrama. Una nota es una palabra: letra, alteración, octava, luego w h q e s n y un puntillo o dos (C4q..). C4 es una negra. C4n es una negra sin plica, un tiempo. C#4, Db4, Cn4. n. y n.. no valen. El signo se imprime si la nota difiere de la armadura o de una nota anterior del compás; ! lo fuerza. @treble o @bass y @key=Eb van primero. Después de una barra, @treble o @bass cambia la clave; la clave nueva es más pequeña y la armadura se imprime otra vez. Un cambio de clave que no va después de una barra no se lee. ^Name va sobre la nota o el slash siguiente y puede cambiar: ^G / ^D /. ^t=100 pone el metrónomo a 100 solo en ese ejemplo. ^texto pegado va encima de esa nota, slash, silencio o acorde. _texto va debajo. Los dos pueden ir juntos: [E3 G3 B3 D4]h^C∆7_3, /w^P, rw^R. _1 es el grado bajo la nota. ^bVII y _bVII se ven como ♭VII. _bbVII se ve como 𝄫VII. Un ^ solo es marcato. {C4e D4e} barrado. / es tocar cualquier cosa, sin plica. /q es un slash de ritmo, rq silencio, | barra, % simile, ~ ligadura de la misma altura. (3 C4e D4e E4e) grupo irregular. pp mf f, cresc, dim, y ' > - ^ : C4e'>. \" · \" es el texto. El mismo número de compases en cada línea. Responde con esta escritura.";
   }
-  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s n and one or two dots (C4q..). C4 is a quarter. C4n is a quarter notehead with no stem, one beat. C#4, Db4, Cn4. n. and n.. are rejected. A sign prints when the note differs from the key or from an earlier note in the bar; ! forces it. @treble or @bass and @key=Eb come first. After a bar, @treble or @bass changes the clef; the new clef is smaller and the key signature prints again. A clef change that is not after a bar is rejected. ^Name sits on the next note or slash and can change: ^G / ^D /. ^t=100 sets the metronome to 100 for that example only. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3h G3h B3h D4h]^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
+  return "These lines are written on a staff. One note is one word: letter, accidental, octave, then w h q e s n and one or two dots (C4q..). C4 is a quarter. C4n is a quarter notehead with no stem, one beat. C#4, Db4, Cn4. n. and n.. are rejected. A sign prints when the note differs from the key or from an earlier note in the bar; ! forces it. @treble or @bass and @key=Eb come first. After a bar, @treble or @bass changes the clef; the new clef is smaller and the key signature prints again. A clef change that is not after a bar is rejected. ^Name sits on the next note or slash and can change: ^G / ^D /. ^t=100 sets the metronome to 100 for that example only. ^text glued on a note, slash, rest, or chord sits above it. _text sits under it. Both can be on one symbol: [E3 G3 B3 D4]h^C∆7_3, /w^P, rw^R. _1 is the degree under the note. ^bVII and _bVII both print as ♭VII. _bbVII prints as 𝄫VII. A bare ^ is marcato. {C4e D4e} beams. / is play anything, no stem. /q is a rhythm slash, rq a rest, | a bar, % a simile, ~ a tie of the same pitch. (3 C4e D4e E4e) is a tuplet. pp mf f, cresc, dim, and ' > - ^ : C4e'>. \" · \" is the caption. The same number of bars on every line. Answer in this spelling.";
 }
 
 function chatPromptRules(lang, staff) {

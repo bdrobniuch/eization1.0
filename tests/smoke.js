@@ -623,6 +623,51 @@ function staffNotation(w) {
     "a chord name and under-text round-trip",
     !!(chordBack && chordBack.events[0].above === "C7(b9)" && chordBack.events[0].label === "3")
   );
+  var suffixChord = w.parseMusicNotation("[C5 E4 G5]e^C\u22067_3");
+  check(
+    "a duration suffix after ] is the chord",
+    !!(
+      suffixChord &&
+      suffixChord.events[0].type === "stack" &&
+      suffixChord.events[0].duration === "e" &&
+      suffixChord.events[0].above === "C\u22067" &&
+      suffixChord.events[0].label === "3" &&
+      suffixChord.events[0].pitches.length === 3 &&
+      suffixChord.events[0].pitches.every(function (p) { return p.duration === "e"; })
+    )
+  );
+  var dottedSuffix = w.parseMusicNotation("[C5 E4 G5]e.");
+  var bareDot = w.parseMusicNotation("[C5 E4 G5].");
+  var explicitQuarter = w.parseMusicNotation("[C5 E4 G5]q");
+  check(
+    "a dotted suffix and ]q are one length",
+    !!(
+      dottedSuffix && dottedSuffix.events[0].duration === "e." &&
+      bareDot && bareDot.events[0].duration === "q." &&
+      explicitQuarter && explicitQuarter.events[0].duration === "q"
+    )
+  );
+  var mixedStack = w.parseMusicNotation("[C5e E4w E5h]");
+  var mixedSvg = w.renderMusicStaff("[C5e E4w E5h]", "current");
+  check(
+    "a mixed stack uses the lowest note",
+    !!(
+      mixedStack &&
+      mixedStack.events[0].duration === "w" &&
+      mixedStack.events[0].pitches.every(function (p) { return p.duration === "w"; }) &&
+      mixedSvg &&
+      mixedSvg.querySelectorAll('[data-glyph="noteheadWhole"]').length === 3 &&
+      !mixedSvg.querySelector('[data-glyph="noteheadHalf"]') &&
+      !mixedSvg.querySelector('[data-glyph="noteheadBlack"]')
+    )
+  );
+  check("n. after ] is rejected", !w.parseMusicNotation("[C5 E4]n.") && !w.parseMusicNotation("[C5 E4]n.."));
+  check(
+    "a saved chord rewrites to one length after ]",
+    w.rewriteStackDurationLine("[E3h G3h B3h D4h]^C\u22067_3") === "[E3 G3 B3 D4]h^C\u22067_3" &&
+      w.rewriteStackDurationLine("[C5e E4w E5h]") === "[C5 E4 E5]w" &&
+      w.rewriteStackDurationLine("C4") === "C4"
+  );
   check(
     "captioned slash is music notation",
     w.isMusicNotation("rq /q rq /q \u00B7 Backbeat")
@@ -1333,7 +1378,7 @@ function staffEngraving(w) {
   );
   check(
     "a ghost note can join a chord",
-    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "G4q").text === "[C4q E4q G4q]"
+    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "G4q").text === "[C4q E4q G4]"
   );
   check(
     "a ghost note will not repeat a chord tone",
@@ -1341,7 +1386,7 @@ function staffEngraving(w) {
   );
   check(
     "a sharp can sit beside its natural",
-    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "C#4q").text === "[C4q E4q C#4q]"
+    w.editorStaffGhostStackMusic("[C4q E4q]", 0, "C#4q").text === "[C4q E4q C#4]"
   );
   check(
     "a sharp rewrites one note of a chord",
@@ -1355,7 +1400,84 @@ function staffEngraving(w) {
     ]).text === "[C5q E5q]"
   );
   var morphed = w.editorStaffGhostMorphMusic("C4e_1", 0, { letter: "G", acc: "", oct: 4 });
-  check("a note becomes a stack", !!(morphed && morphed.text === "[C4e_1 G4e]"));
+  check("a note becomes a stack", !!(morphed && morphed.text === "[C4_1 G4]e"));
+  (function () {
+    var music = "C4 [E4 G4 B4]e^Cmaj7 D4";
+    var svg = w.renderMusicStaff(music, "current");
+    var layout = svg && svg._staffCaretLayout;
+    var col = -1;
+    var i;
+    var caret;
+    var gap;
+    var added;
+    var beside;
+    var line;
+    var next;
+    var at;
+    var spells;
+    var result;
+    var drag;
+    var end;
+    var ok;
+    if (layout) {
+      for (i = 0; i < layout.cols.length; i++) {
+        if (layout.cols[i].type === "stack") {
+          col = i;
+        }
+      }
+    }
+    caret = col < 0 ? null : w.editorStaffStackClickCaret({
+      music: music,
+      layout: layout,
+      localX: layout.cols[col].x,
+      localY: (layout.heads && layout.heads[0] && layout.heads[0].y) || 0
+    });
+    gap = w.editorMusicCaretFromInsertIndex(music, col + 1);
+    check(
+      "a click on the column lands inside the brackets",
+      typeof caret === "number" && caret > music.indexOf("[") && caret < music.indexOf("]")
+    );
+    check(
+      "a click in the next gap lands after the suffix and the name",
+      gap > music.indexOf("e^Cmaj7") && gap <= music.indexOf("D4")
+    );
+    added = w.editorStaffGhostStackMusic("[C4 E4]e^Name", 0, "G5q");
+    beside = w.editorStaffGhostInsertMusic("[E4 G4]e", 1, "A4q");
+    check("a ghost in the column adds a pitch", !!(added && added.text === "[C4 E4 G5]e^Name"));
+    check(
+      "a ghost in the gap inserts a separate note",
+      !!(beside && beside.text.indexOf("[E4 G4]e") === 0 && beside.text.indexOf("A4q") > "[E4 G4]e".length)
+    );
+    line = "{G4e G4e~} (3 {G4e A4e C5e}) [G5 D5 G4]";
+    next = "E4q";
+    at = line.lastIndexOf("G4");
+    spells = [
+      { letter: "A", acc: "b", oct: 4 },
+      { letter: "G", acc: "#", oct: 4 },
+      { letter: "A", acc: "", oct: 4 }
+    ];
+    ok = true;
+    for (i = 0; i < spells.length; i++) {
+      result = w.editorApplyPitchSpelling(line, [{
+        start: at,
+        letter: spells[i].letter,
+        acc: spells[i].acc,
+        oct: spells[i].oct
+      }]);
+      if (!result || !result.ok || result.text.indexOf("\n") >= 0) {
+        ok = false;
+        break;
+      }
+      drag = { lineStart: 0, field: { value: result.text + "\n" + next } };
+      end = w.editorMapTransposeIndex(at + 2, result.reps || []);
+      end = w.editorGluedTailEnd(drag.field.value, end);
+      end = w.editorStaffClampCaretToLine(drag, end);
+      if (end > result.text.length) {
+        ok = false;
+      }
+    }
+    check("a pitch drag stays on the example it started on", ok);
+  })();
   check(
     "the same pitch is not stacked on itself",
     w.editorStaffGhostMorphMusic("G4e", 0, { letter: "G", acc: "", oct: 4 }) === null
@@ -1392,7 +1514,7 @@ function staffEngraving(w) {
       !!(
         chord &&
         chord.text.indexOf("C4 {C4e D4e}") === 0 &&
-        chord.text.indexOf("{[A5e G5e]}") >= 0 &&
+        chord.text.indexOf("{[A5 G5]e}") >= 0 &&
         !!w.parseMusicNotation(chord.text)
       )
     );
@@ -1637,7 +1759,7 @@ function staffTuplets(w) {
   var oldBack = oldStack && w.parseMusicNotation(oldStack);
   check(
     "an old stack name reprints above",
-    !!(oldBack && oldBack.events[0].above === "Dm9" && !oldBack.events[0].label && oldStack.indexOf("]^Dm9") >= 0)
+    !!(oldBack && oldBack.events[0].above === "Dm9" && !oldBack.events[0].label && oldStack.indexOf("]h^Dm9") >= 0)
   );
   check("nested tuplet is rejected", !w.parseMusicNotation("(3 C4e (3 D4e E4e) F4e)"));
   check("unclosed tuplet is rejected", !w.parseMusicNotation("(3 C4e D4e E4e"));
@@ -1699,12 +1821,43 @@ function staffTuplets(w) {
   check("bracket clears up-stems", staffBracketClearsStems(w, "(3 C4q D4q G4q)", true));
   check("bracket clears down-stems", staffBracketClearsStems(w, "(3 C5q D5q A5q)", false));
 
+  function thickBeamCount(svg) {
+    var lines = svg ? svg.querySelectorAll("line") : [];
+    var n = 0;
+    var i;
+    var sw;
+    for (i = 0; i < lines.length; i++) {
+      sw = parseFloat(lines[i].getAttribute("stroke-width"));
+      if (sw >= 4 && Math.abs(parseFloat(lines[i].getAttribute("x1")) - parseFloat(lines[i].getAttribute("x2"))) > 1) {
+        n += 1;
+      }
+    }
+    return n;
+  }
   var eighthStack = w.renderMusicStaff("[C4e E4e G4e]", "current");
   var quarterStack = w.renderMusicStaff("[C4q E4q G4q]", "current");
   check(
     "a short stack gets a flag",
     !!(eighthStack && quarterStack) &&
       eighthStack.querySelectorAll("g[transform]").length === quarterStack.querySelectorAll("g[transform]").length + 1
+  );
+  var chordEighths = w.renderMusicStaff("G4e [A4 C4]e D4e [B4 E4 G3]e", "current");
+  var chordSixteenths = w.renderMusicStaff("C4s [E4 G4]s D4s F4s", "current");
+  var quarterBreak = w.renderMusicStaff("C4e D4e [E4 G4] F4e G4e", "current");
+  check(
+    "eighth chords beam with the notes in the beat",
+    thickBeamCount(chordEighths) === 2 &&
+      !chordEighths.querySelector('[data-glyph^="flag"]')
+  );
+  check(
+    "sixteenth chords beam with the notes in the beat",
+    thickBeamCount(chordSixteenths) >= 2 &&
+      !chordSixteenths.querySelector('[data-glyph^="flag"]')
+  );
+  check(
+    "a quarter chord breaks the beam",
+    thickBeamCount(quarterBreak) === 2 &&
+      !quarterBreak.querySelector('[data-glyph^="flag"]')
   );
 
   var items = w.exercises.tuplets ? w.exercises.tuplets.items : [];
@@ -4090,15 +4243,48 @@ function chatCase(w) {
     poke(symbolsPanel.querySelector("[data-dur='h']"));
     check(
       "a duration rewrites every pitch in a stack",
-      focusLine.value === "[C4h E4h G4h]"
+      focusLine.value === "[C4 E4 G4]h" && w.editorPadCaret && w.editorPadCaret.start === 3
     );
+    placeCaret("[C4 E4 G4]e^Name");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    w.editorPaintNotePad();
+    check(
+      "duration stays on the chord inside the brackets",
+      symbolsPanel.querySelector("[data-dur='e']").getAttribute("aria-pressed") === "true"
+    );
+    focusLine.setSelectionRange(6, 6);
+    w.editorPadCaret = { start: 6, end: 6 };
+    w.editorPaintNotePad();
+    check(
+      "duration stays on the chord on the next pitch",
+      symbolsPanel.querySelector("[data-dur='e']").getAttribute("aria-pressed") === "true"
+    );
+    focusLine.setSelectionRange(focusLine.value.length, focusLine.value.length);
+    w.editorPadCaret = { start: focusLine.value.length, end: focusLine.value.length };
+    w.editorNote.dur = "w";
+    w.editorNote.dot = false;
+    w.editorPaintNotePad();
+    check(
+      "duration shows the pad once the caret is past the chord",
+      symbolsPanel.querySelector("[data-dur='w']").getAttribute("aria-pressed") === "true"
+    );
+    placeCaret("[C4 E4 G4]e^Name");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("erase of one pitch leaves the others", focusLine.value === "[E4 G4]e^Name");
+    focusLine.setSelectionRange(3, 3);
+    w.editorPadCaret = { start: 3, end: 3 };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check("the last extra pitch keeps the chord's length", focusLine.value === "G4e^Name");
     placeCaret("{C4e [E4e G4e] D4e}");
     focusLine.setSelectionRange(8, 8);
     w.editorPadCaret = { start: 8, end: 8 };
     poke(symbolsPanel.querySelector("[data-dur='h']"));
     check(
       "a long stack duration peels out of a beam",
-      focusLine.value === "C4e [E4h G4h] D4e" || focusLine.value === "{C4e} [E4h G4h] {D4e}"
+      focusLine.value === "C4e [E4 G4]h D4e" || focusLine.value === "{C4e} [E4 G4]h {D4e}"
     );
     placeCaret("[C4]");
     poke(symbolsPanel.querySelector("[data-dur='']"));
@@ -4298,6 +4484,7 @@ function chatCase(w) {
       id = 77;
       placeCaret("C4q D4q");
       if (!ready()) {
+        check("hover does not show a note to place", false);
         check("a click in a gap does not write a note", false);
         check("a vertical drag writes a note in the gap", false);
         check("a finger drag does not write a note", false);
@@ -4306,6 +4493,11 @@ function chatCase(w) {
       }
       var gapX = w.editorStaffCaretX(layout, 1);
       var mid = (layout.staffTop + layout.staffBot) / 2;
+      fire("pointermove", gapX, mid, 0, "mouse");
+      check(
+        "hover does not show a note to place",
+        !w.editorStaffGhost && !preview.querySelector(".staff-pitch-ghost")
+      );
       fire("pointerdown", gapX, mid, 1, "mouse");
       fire("pointerup", gapX, mid, 0, "mouse");
       check("a click in a gap does not write a note", focusLine.value === "C4q D4q");
@@ -4351,7 +4543,7 @@ function chatCase(w) {
       fire("pointerup", colX, higher, 0, "mouse");
       check(
         "a drag above a note adds a chord tone",
-        /^\[C4q [A-G][#b]?[0-9]q\]$/.test(focusLine.value)
+        /^\[C4 [A-G][#b]?[0-9]\]q$/.test(focusLine.value)
       );
       poke(w.document.querySelector("#editNoteHistory [data-undo]"));
       placeCaret("C4q");
@@ -6105,7 +6297,7 @@ function chatCase(w) {
       poke(symbolsPanel.querySelector("[data-note='D']"));
       check(
         "a letter adds a pitch to the chord",
-        focusLine.value === "[C4e E4e G4e D4e]" && selectedText() === "[C4e E4e G4e D4e]" && draws()
+        focusLine.value === "[C4e E4e G4e D4]" && selectedText() === "[C4e E4e G4e D4]" && draws()
       );
       selectSpan("[C4e E4e G4e]", "[C4e E4e G4e]");
       poke(symbolsPanel.querySelector("[data-dur='']"));
@@ -6126,7 +6318,7 @@ function chatCase(w) {
       poke(symbolsPanel.querySelector("[data-note='A']"));
       check(
         "a letter adds a pitch inside the beamed chord",
-        focusLine.value === "{[C4e E4e A4e] D4e F4e}" && draws()
+        focusLine.value === "{[C4e E4e A4] D4e F4e}" && draws()
       );
       selectSpan("{[C4e E4e] D4e F4e}", "[C4e E4e]");
       check("the chord copies without the beam", w.editorStaffSelectionText(focusLine) === "[C4e E4e]");
@@ -6877,6 +7069,30 @@ function storageMigration(w) {
   check(
     "schema 4 does not wipe again",
     !!(custom && w.getDeskExercise(custom.id) && w.getDeskExercise(custom.id).lines[0] === "E4")
+  );
+  localStorage.setItem("eization-hello", "1");
+  localStorage.setItem("eization-desk", JSON.stringify({
+    schema: 4,
+    bpm: 90,
+    beats: 4,
+    exercises: [
+      { id: "ex:customchord", name: "Mine", bars: 1, staff: true, lines: ["[E3h G3h B3h D4h]^C\u22067_3", "C4"] }
+    ]
+  }));
+  w.ensureDeskExercises();
+  var keptChord = w.getDeskExercise("ex:customchord");
+  var keptStored = JSON.parse(localStorage.getItem("eization-desk"));
+  check(
+    "schema 5 rewrites a saved chord in place",
+    !!(
+      keptChord &&
+      keptChord.lines[0] === "[E3 G3 B3 D4]h^C\u22067_3" &&
+      keptChord.lines[1] === "C4" &&
+      keptStored.schema === 5 &&
+      keptStored.bpm === 90 &&
+      localStorage.getItem("eization-hello") === "1" &&
+      keptStored.exercises.length > 1
+    )
   );
   w.restoreDefaults();
   restored = JSON.parse(localStorage.getItem("eization-desk"));

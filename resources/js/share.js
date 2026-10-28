@@ -1192,18 +1192,47 @@ function sharePrintBeam(ev) {
   return "{" + inner.join(" ") + "}" + (ev.tieToNext ? "~" : "");
 }
 
+/* A stack pitch prints without its own length. The chord's length sits after ]. */
+function sharePrintStackPitch(p) {
+  var arts = shareArtString(p.articulations || []);
+  var s;
+  if (!p || arts == null) {
+    return null;
+  }
+  s = p.letter + (p.accidental || "") + String(p.octave);
+  if (p.force) {
+    s += "!";
+  }
+  s += arts;
+  if (p.label) {
+    s += "_" + p.label;
+  }
+  if (p.above) {
+    s += "^" + p.above;
+  }
+  return s;
+}
+
+function shareStackDurationSuffix(dur) {
+  if (!dur || dur === "q") {
+    return "";
+  }
+  return dur;
+}
+
 function sharePrintStack(ev) {
   var inner = [];
   var i;
   var tok;
+  var tail;
   for (i = 0; i < ev.pitches.length; i++) {
-    tok = sharePrintPitch(ev.pitches[i], [], ev.pitches[i].label, false, ev.pitches[i].above);
+    tok = sharePrintStackPitch(ev.pitches[i]);
     if (!tok) {
       return null;
     }
     inner.push(tok);
   }
-  var tail = "";
+  tail = shareStackDurationSuffix(ev.duration || (ev.pitches[0] && ev.pitches[0].duration) || "q");
   if (ev.above) {
     tail += "^" + ev.above;
   }

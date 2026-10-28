@@ -590,6 +590,56 @@ function staffParseAffixes(tail) {
   };
 }
 
+/*
+ * A length glued on ] before ^ and _. A missing letter is a quarter.
+ * "." and ".." are a dotted quarter. n. and n.. do not parse.
+ * Returns null when the suffix is illegal.
+ */
+function staffParseStackDuration(after) {
+  var m = /^([whqesn]?)(\.{0,2})/.exec(after || "");
+  var made;
+  if (!m || (!m[1] && !m[2])) {
+    return { duration: "", rest: after || "", written: "" };
+  }
+  made = staffMakeDuration(m[1] || "q", m[2] || "");
+  if (!made) {
+    return null;
+  }
+  return { duration: made, rest: after.slice(m[0].length), written: m[0] };
+}
+
+/* Suffix wins. With none, the lowest pitch (already sorted) wins. Every head uses that length. */
+function staffResolveStackDuration(pitches, suffixDur) {
+  var dur = suffixDur || (pitches[0] && pitches[0].duration) || "q";
+  var i;
+  for (i = 0; i < pitches.length; i++) {
+    pitches[i].duration = dur;
+  }
+  return dur;
+}
+
+/* Duration first, then the name. A bare ^ still soft-draws while the name is typed. */
+function staffParseStackTail(after) {
+  var taken;
+  var aff;
+  if (after === "^") {
+    return { duration: "", affix: { label: "", above: "", articulations: [] }, error: "" };
+  }
+  taken = staffParseStackDuration(after);
+  if (!taken) {
+    return { error: "bad stack duration" };
+  }
+  if (taken.rest === "^") {
+    aff = { label: "", above: "", articulations: [] };
+  } else {
+    aff = staffParseAffixes(taken.rest);
+    if (!aff || aff.articulations.length) {
+      return { error: "stack label must use _ or ^" };
+    }
+  }
+  return { duration: taken.duration, affix: aff, error: "" };
+}
+
 function staffParsePitchToken(token) {
   var m =
     /^([A-Ga-g])(##|bb|\uD834\uDD2A|\uD834\uDD2B|x|X|#|b|n|\u266F|\u266D|\u266E)?(\d)([whqesn]?)(\.{0,2})(!?)(.*)$/.exec(
@@ -1228,14 +1278,13 @@ function staffTakeBeamStackParts(parts, start, partRanges) {
     return staffFailSpan("unclosed stack", parts[start], staffSpan(partRanges, start, i), true);
   }
   after = buf.slice(close + 1);
-  /* Soft-draw a bare ]^ while the name is still being typed. */
-  if (after === "^") {
-    aff = { label: "", above: "", articulations: [] };
-  } else {
-    aff = staffParseAffixes(after);
-    if (!aff || aff.articulations.length) {
-      return staffFailSpan("stack label must use _ or ^", after || buf, staffSpan(partRanges, start, i));
-    }
+  aff = staffParseStackTail(after);
+  if (!aff || aff.error) {
+    return staffFailSpan(
+      (aff && aff.error) || "stack label must use _ or ^",
+      after || buf,
+      staffSpan(partRanges, start, i)
+    );
   }
   pitches = staffParseStackInner(buf.slice(1, close));
   if (!pitches) {
@@ -1244,7 +1293,8 @@ function staffTakeBeamStackParts(parts, start, partRanges) {
   if (!pitches.length) {
     return staffFailSpan("bad stack pitches", buf.slice(1, close), staffSpan(partRanges, start, i));
   }
-  if (!staffIsShortDuration(pitches[0].duration || "q")) {
+  after = staffResolveStackDuration(pitches, aff.duration);
+  if (!staffIsShortDuration(after)) {
     return staffFailSpan("bad beam pitches (need e/s notes)", buf, staffSpan(partRanges, start, i));
   }
   return {
@@ -1252,9 +1302,9 @@ function staffTakeBeamStackParts(parts, start, partRanges) {
     note: {
       type: "stack",
       pitches: pitches,
-      label: aff.label,
-      above: aff.above,
-      duration: pitches[0].duration || "q",
+      label: aff.affix.label,
+      above: aff.affix.above,
+      duration: after,
       span: staffJoinPartSpan(partRanges, start, i)
     }
   };
@@ -1825,28 +1875,26 @@ function staffParseEventAt(tokens, i, clef, ranges) {
       return staffFailSpan("unclosed stack", tok, stackSpan, true);
     }
     var after = buf.slice(close + 1);
-    var stackAff;
-    /* Soft-draw a bare ]^ while the name is still being typed. */
-    if (after === "^") {
-      stackAff = { label: "", above: "", articulations: [] };
-    } else {
-      stackAff = staffParseAffixes(after);
-      if (!stackAff || stackAff.articulations.length) {
-        return staffFailSpan("stack label must use _ or ^", after || tok, stackSpan);
-      }
+    var stackAff = staffParseStackTail(after);
+    var inner;
+    var pitches;
+    var stackDur;
+    if (!stackAff || stackAff.error) {
+      return staffFailSpan((stackAff && stackAff.error) || "stack label must use _ or ^", after || tok, stackSpan);
     }
-    var inner = buf.slice(1, close);
-    var pitches = staffParseStackInner(inner);
+    inner = buf.slice(1, close);
+    pitches = staffParseStackInner(inner);
     if (!pitches) {
       return staffFailSpan("bad stack pitches", inner, stackSpan);
     }
+    stackDur = staffResolveStackDuration(pitches, stackAff.duration);
     return {
       event: {
         type: "stack",
         pitches: pitches,
-        label: stackAff.label,
-        above: stackAff.above,
-        duration: pitches.length ? pitches[0].duration || "q" : "q",
+        label: stackAff.affix.label,
+        above: stackAff.affix.above,
+        duration: stackDur,
         span: staffRangeSpan(stackSpan)
       },
       next: i + 1
@@ -3143,45 +3191,48 @@ function renderMusicStaff(source, role, opts) {
         articulations: ev.articulations || []
       };
       tupRunId = 0;
-    } else if (ev.type === "note") {
-      var bidNote = 0;
+    } else if (ev.type === "note" || ev.type === "stack") {
+      if (ev.type === "stack" && (!ev.pitches || !ev.pitches.length)) {
+        tupRunId = 0;
+        return;
+      }
+      var bidAttack = 0;
       if (tup && staffIsShortDuration(ev.duration || "q")) {
         if (tup.braced) {
-          bidNote = nextBeamId++;
+          bidAttack = nextBeamId++;
         } else {
           if (!tupRunId) {
             tupRunId = nextBeamId++;
           }
-          bidNote = tupRunId;
+          bidAttack = tupRunId;
         }
       } else {
         tupRunId = 0;
       }
-      col = {
-        type: "note",
-        pitch: ev.pitch,
-        label: ev.label || "",
-        above: ev.above || "",
-        duration: ev.duration || "q",
-        head: ev.head || ev.pitch.head || "",
-        beamId: bidNote,
-        explicit: !!bidNote
-      };
-    } else if (ev.type === "stack") {
-      if (!ev.pitches.length) {
-        tupRunId = 0;
-        return;
+      if (ev.type === "stack") {
+        stackCount++;
+        col = {
+          type: "stack",
+          pitches: ev.pitches,
+          label: ev.label || "",
+          above: ev.above || "",
+          duration: ev.duration || "q",
+          beamId: bidAttack,
+          explicit: !!bidAttack,
+          articulations: staffStackArticulations(ev.pitches)
+        };
+      } else {
+        col = {
+          type: "note",
+          pitch: ev.pitch,
+          label: ev.label || "",
+          above: ev.above || "",
+          duration: ev.duration || "q",
+          head: ev.head || ev.pitch.head || "",
+          beamId: bidAttack,
+          explicit: !!bidAttack
+        };
       }
-      stackCount++;
-      tupRunId = 0;
-      col = {
-        type: "stack",
-        pitches: ev.pitches,
-        label: ev.label || "",
-        above: ev.above || "",
-        duration: ev.duration || "q",
-        articulations: staffStackArticulations(ev.pitches)
-      };
     } else if (ev.type === "beam") {
       if (!ev.notes || !ev.notes.length) {
         return;
@@ -3873,27 +3924,22 @@ function renderMusicStaff(source, role, opts) {
       typeof col.quarters === "number"
         ? col.quarters
         : staffDurationQuarters(col.duration || "q") * (col.scale || 1);
-    if (col.type === "stack") {
-      if (col.beamId) {
-        flushAutoRun();
-        posQ += colDur;
-        continue;
-      }
-      flushAutoRun();
-      posQ += colDur;
-      continue;
-    }
     if (col.type === "rest" || col.type === "simile") {
       flushAutoRun();
       posQ += colDur;
       continue;
     }
-    if (col.type === "note" && col.beamId) {
+    /* A chord already inside {…} or a tuplet beam stays there. */
+    if ((col.type === "note" || col.type === "stack") && col.beamId) {
       flushAutoRun();
       posQ += colDur;
       continue;
     }
-    if (col.type === "note" && staffIsShortDuration(col.duration || "q")) {
+    /* Eighth and sixteenth chords join the same beat group as plain notes. */
+    if (
+      (col.type === "note" || col.type === "stack") &&
+      staffIsShortDuration(col.duration || "q")
+    ) {
       var beat = Math.floor(posQ / beatQ + 1e-9);
       if (run.length && beat !== runBeat) {
         flushAutoRun();
@@ -4995,7 +5041,7 @@ function renderMusicStaff(source, role, opts) {
       var stackDots = [];
       var stackLedger = [];
       for (p = 0; p < ev.pitches.length; p++) {
-        var pitchDur = ev.pitches[p].duration || stackDur;
+        var pitchDur = stackDur;
         var drawnP = drawNotehead(
           cx + offsets[p],
           ev.pitches[p].step,

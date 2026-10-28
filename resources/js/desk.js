@@ -2,8 +2,9 @@ var DESK_KEY = "eization-desk";
 /* schema 1 (2026-10-15): stock rows record seedRev and touched.
    schema 2 (2026-10-15): one launch drops saved exercises, re-seeds the stock list, and clears the intro.
    schema 3 (2026-10-17): ]_ after a stack becomes ]^, so a saved chord name stays above the staff.
-   schema 4 (2026-10-23): one launch drops saved exercises again (promo clean slate), re-seeds, clears intro. */
-var DESK_SCHEMA = 4;
+   schema 4 (2026-10-23): one launch drops saved exercises again (promo clean slate), re-seeds, clears intro.
+   schema 5 (2026-10-28): a chord's length is written once after ]. Saved rows, including custom lines, are rewritten in place. */
+var DESK_SCHEMA = 5;
 var DESK_EXERCISE_CAP = 40;
 var BACKUP_ASK_KEY = "eization-backup";
 var BACKUP_MADE_COUNT = 3;
@@ -421,6 +422,131 @@ function deskDisplayItem(line, staff) {
 
 function rewriteStackChordLine(line) {
   return String(line || "").replace(/\]_/g, "]^");
+}
+
+var STACK_DURATION_STEPS = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+
+/* One length after ]. Agreeing pitches keep it. A mixed stack takes the lowest note. */
+function rewriteStackDurationLine(line) {
+  var src = String(line || "");
+  var out = "";
+  var i = 0;
+  var open;
+  var close;
+  var inner;
+  var tail;
+  var built;
+  while (i < src.length) {
+    open = src.indexOf("[", i);
+    if (open < 0) {
+      out += src.slice(i);
+      break;
+    }
+    out += src.slice(i, open);
+    close = src.indexOf("]", open + 1);
+    if (close < 0 || src.indexOf("[", open + 1) >= 0 && src.indexOf("[", open + 1) < close) {
+      out += src.charAt(open);
+      i = open + 1;
+      continue;
+    }
+    inner = src.slice(open + 1, close);
+    tail = rewriteStackDurationTail(src.slice(close + 1));
+    built = rewriteStackDurationInner(inner, tail);
+    if (!built) {
+      out += src.slice(open, close + 1 + tail.len);
+      i = close + 1 + tail.len;
+      continue;
+    }
+    out += built;
+    i = close + 1 + tail.len;
+  }
+  return out;
+}
+
+function rewriteStackDurationTail(rest) {
+  var i = 0;
+  var dur = "";
+  var name = "";
+  var opens = 0;
+  var ch;
+  var m = /^([whqesn]?)(\.{0,2})/.exec(rest || "");
+  if (m && (m[1] || m[2]) && !(m[1] === "n" && m[2])) {
+    dur = m[0];
+    i = m[0].length;
+  }
+  while (i < rest.length) {
+    ch = rest.charAt(i);
+    if (/\s/.test(ch) || ch === "}" || ch === "|" || ch === "~" || ch === "\"") {
+      break;
+    }
+    if (ch === "(") {
+      opens += 1;
+    } else if (ch === ")") {
+      if (!opens) {
+        break;
+      }
+      opens -= 1;
+    }
+    name += ch;
+    i += 1;
+  }
+  return { dur: dur, name: name, len: i };
+}
+
+function rewriteStackDurationInner(inner, tail) {
+  var parts = String(inner || "").trim() ? String(inner || "").trim().split(/\s+/) : [];
+  var parsed = [];
+  var i;
+  var m;
+  var lowest;
+  var lowestStep;
+  var step;
+  var dur;
+  var base;
+  var dots;
+  var pitches;
+  if (!parts.length) {
+    return null;
+  }
+  for (i = 0; i < parts.length; i++) {
+    m = /^([A-Ga-g])(##|bb|x|X|#|b|n)?(\d)([whqesn]?)(\.{0,2})(!?)(.*)$/.exec(parts[i]);
+    if (!m) {
+      return null;
+    }
+    parsed.push(m);
+  }
+  if (tail.dur) {
+    dur = tail.dur;
+    if (dur === ".") {
+      dur = "q.";
+    } else if (dur === "..") {
+      dur = "q..";
+    }
+  } else {
+    lowest = parsed[0];
+    lowestStep = Infinity;
+    for (i = 0; i < parsed.length; i++) {
+      step = (STACK_DURATION_STEPS[parsed[i][1].toUpperCase()] || 0) + parseInt(parsed[i][3], 10) * 7;
+      if (step < lowestStep) {
+        lowestStep = step;
+        lowest = parsed[i];
+      }
+    }
+    base = lowest[4] || "q";
+    dots = lowest[5] || "";
+    if (base === "n" && dots) {
+      return null;
+    }
+    dur = base + dots;
+  }
+  if (dur === "q") {
+    dur = "";
+  }
+  pitches = [];
+  for (i = 0; i < parsed.length; i++) {
+    pitches.push(parsed[i][1] + (parsed[i][2] || "") + parsed[i][3] + (parsed[i][6] || "") + (parsed[i][7] || ""));
+  }
+  return "[" + pitches.join(" ") + "]" + dur + tail.name;
 }
 
 function normalizeDeskExercise(raw) {
@@ -906,6 +1032,24 @@ function ensureDeskExercises() {
   var mirroredId = "";
   if (!ahead) {
     mirroredId = mirrorUntouchedSeeds(list, data.exercise || "");
+    if (schema < 5) {
+      var durationI;
+      var durationJ;
+      for (durationI = 0; durationI < list.length; durationI++) {
+        var durationLines = [];
+        var durationChanged = false;
+        for (durationJ = 0; durationJ < list[durationI].lines.length; durationJ++) {
+          var durationLine = rewriteStackDurationLine(list[durationI].lines[durationJ]);
+          if (durationLine !== list[durationI].lines[durationJ]) {
+            durationChanged = true;
+          }
+          durationLines.push(durationLine);
+        }
+        if (durationChanged) {
+          list[durationI].lines = durationLines;
+        }
+      }
+    }
     data.schema = DESK_SCHEMA;
   }
   if (writeDesk(data)) {

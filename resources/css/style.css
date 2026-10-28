@@ -3292,6 +3292,7 @@ body.is-editing #counter {
 
 #editPreview.is-staff .staff-pitch-ghost {
   fill: rgba(17, 17, 17, 0.22);
+  pointer-events: none;
 }
 
 #editPreview.is-staff .staff-pitch-ghost.is-ready {
