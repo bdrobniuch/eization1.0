@@ -15792,7 +15792,7 @@ function editorPaintNoteEvents(row) {
     { "data-event": "chord" },
     editorMusicIcon("chord"),
     t("edit.noteChord"),
-    !!editorCaretChordMarkRange()
+    editorChordButtonLit()
   );
   editorPadButton(
     row,
@@ -17297,9 +17297,162 @@ function editorToggleOrInsertBar() {
   editorInsertOutsideStructures("| ", 0, ["beam", "stack", "tuplet"]);
 }
 
+/* First pitch, slash, or stacked chord the selection covers. */
+function editorFirstSelectedAttack(line, a, b) {
+  var nodes;
+  var pieces;
+  var i;
+  var piece;
+  var best;
+  var swap;
+  if (a > b) {
+    swap = a;
+    a = b;
+    b = swap;
+  }
+  nodes = editorParseStaffNodes(line);
+  if (!nodes) {
+    return null;
+  }
+  pieces = editorCollectPieces(nodes);
+  best = null;
+  for (i = 0; i < pieces.length; i++) {
+    piece = pieces[i];
+    if (piece.kind !== "pitch" && piece.kind !== "slash" && piece.kind !== "stack") {
+      continue;
+    }
+    if (piece.end <= a || piece.start >= b) {
+      continue;
+    }
+    if (!best || piece.start < best.start) {
+      best = piece;
+    }
+  }
+  return best;
+}
+
+/* ^Name on that attack. A bare marcato hat is not a chord name. Line offsets. */
+function editorAttackChordMark(attack) {
+  var close;
+  var after;
+  var durLen;
+  var rest;
+  var m;
+  var at;
+  var model;
+  var tok;
+  var hat;
+  if (!attack) {
+    return null;
+  }
+  if (attack.kind === "stack") {
+    close = String(attack.text || "").indexOf("]");
+    if (close < 0) {
+      return null;
+    }
+    after = attack.text.slice(close + 1);
+    durLen = editorStackDurationSuffixLen(after);
+    rest = after.slice(durLen);
+    m = /^\^[^\s]*/.exec(rest);
+    if (!m) {
+      return null;
+    }
+    at = attack.start + close + 1 + durLen;
+    return { start: at, end: at + m[0].length };
+  }
+  model = editorAffixModel(attack.affix || "");
+  tok = attack.text || "";
+  if (!(model && model.above)) {
+    return null;
+  }
+  hat = tok.lastIndexOf("^" + model.above);
+  if (hat < 0) {
+    return null;
+  }
+  return { start: attack.start + hat, end: attack.start + hat + 1 + model.above.length };
+}
+
+function editorAttackChordInsertAt(attack) {
+  var close;
+  var after;
+  if (!attack) {
+    return -1;
+  }
+  if (attack.kind === "stack") {
+    close = String(attack.text || "").indexOf("]");
+    if (close < 0) {
+      return attack.end;
+    }
+    after = attack.text.slice(close + 1);
+    return attack.start + close + 1 + editorStackDurationSuffixLen(after);
+  }
+  return attack.end;
+}
+
+function editorChordButtonLit() {
+  var span = editorLineSpan();
+  var sel;
+  var line;
+  var attack;
+  if (!span || !editorStaffOn()) {
+    return false;
+  }
+  sel = editorReadSelection(span.field);
+  if (sel.start === sel.end) {
+    return !!editorCaretChordMarkRange();
+  }
+  line = span.value.slice(span.lineStart, span.lineEnd);
+  attack = editorFirstSelectedAttack(line, sel.start - span.lineStart, sel.end - span.lineStart);
+  return !!editorAttackChordMark(attack);
+}
+
+/* Name the first selected attack. Leave the other notes in place. */
+function editorToggleChordSelection(span) {
+  var sel = editorReadSelection(span.field);
+  var line = span.value.slice(span.lineStart, span.lineEnd);
+  var attack;
+  var mark;
+  var at;
+  var edited;
+  var value;
+  var silent;
+  var caret;
+  attack = editorFirstSelectedAttack(line, sel.start - span.lineStart, sel.end - span.lineStart);
+  if (!attack) {
+    editorRefuse(t("edit.refuseNeedsNote"));
+    editorPaintNotePad();
+    return;
+  }
+  mark = editorAttackChordMark(attack);
+  if (mark) {
+    editorRemoveRangeBeforeCaret(span.lineStart + mark.start, span.lineStart + mark.end);
+    return;
+  }
+  at = editorAttackChordInsertAt(attack);
+  edited = line.slice(0, at) + "^" + line.slice(at);
+  if (!editorLineMusicOk(edited)) {
+    editorRefuse(t("edit.refuseDraw"));
+    editorPaintNotePad();
+    return;
+  }
+  editorPushSymbolUndo();
+  value = String(span.field.value || "");
+  span.field.value = value.slice(0, span.lineStart) + edited + value.slice(span.lineEnd);
+  caret = span.lineStart + at + 1;
+  silent = !!(editorPadCaret && editorSymbolsIsOpen());
+  editorPlaceCaret(span.field, caret, caret, silent);
+  clearEditorNotice();
+  refreshEditor();
+  editorAllowLabelTyping();
+  editorNotePadStamp = "";
+  editorPaintNotePad();
+}
+
 function editorToggleOrInsertChord() {
   var mark = editorCaretChordMarkRange();
   var hit;
+  var spanSel;
+  var selChord;
   var value;
   var silent;
   var caret;
@@ -17309,6 +17462,14 @@ function editorToggleOrInsertChord() {
   var stack;
   var insertAt;
   editorEndLabelTyping();
+  spanSel = editorLineSpan();
+  if (spanSel) {
+    selChord = editorReadSelection(spanSel.field);
+    if (selChord.start !== selChord.end) {
+      editorToggleChordSelection(spanSel);
+      return;
+    }
+  }
   if (mark) {
     editorRemoveRangeBeforeCaret(mark.start, mark.end);
     return;

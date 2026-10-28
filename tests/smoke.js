@@ -4423,6 +4423,57 @@ function chatCase(w) {
       "chord toggle from inside a stack removes the label",
       focusLine.value === "[C4 E4 G4]"
     );
+    placeCaret("(3 {C4e D4e E4e})");
+    focusLine.focus();
+    focusLine.setSelectionRange(focusLine.value.indexOf("D4e"), focusLine.value.indexOf("E4e") + 3);
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("D4e"),
+      end: focusLine.value.indexOf("E4e") + 3
+    };
+    w.editorPaintNotePad();
+    check(
+      "chord name stays dark until the first selected note has one",
+      symbolsPanel.querySelector("[data-event='chord']").getAttribute("aria-pressed") !== "true"
+    );
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord name sticks to the first selected note inside a triplet",
+      focusLine.value === "(3 {C4e D4e^ E4e})" &&
+        !!w.parseMusicNotation(focusLine.value) &&
+        symbolsPanel.querySelector("[data-event='chord']").getAttribute("aria-pressed") === "true"
+    );
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord name toggles off that note",
+      focusLine.value === "(3 {C4e D4e E4e})" &&
+        symbolsPanel.querySelector("[data-event='chord']").getAttribute("aria-pressed") !== "true"
+    );
+    placeCaret("(3 {C4e D4e E4e^})");
+    focusLine.focus();
+    focusLine.setSelectionRange(focusLine.value.indexOf("C4e"), focusLine.value.indexOf("D4e") + 3);
+    w.editorPadCaret = {
+      start: focusLine.value.indexOf("C4e"),
+      end: focusLine.value.indexOf("D4e") + 3
+    };
+    w.editorPaintNotePad();
+    check(
+      "a later chord name does not light the button",
+      symbolsPanel.querySelector("[data-event='chord']").getAttribute("aria-pressed") !== "true"
+    );
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord name is added to the first note and the later name stays",
+      focusLine.value === "(3 {C4e^ D4e E4e^})" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("[C4 E4 G4]e D4q");
+    focusLine.focus();
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='chord']"));
+    check(
+      "chord name on a selected stack follows its length",
+      focusLine.value === "[C4 E4 G4]e^ D4q" && !!w.parseMusicNotation(focusLine.value)
+    );
     placeCaret("{C4e D4e}");
     focusLine.setSelectionRange(4, 4);
     w.editorPadCaret = { start: 4, end: 4 };
