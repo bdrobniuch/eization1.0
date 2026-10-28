@@ -4427,7 +4427,7 @@ function chatCase(w) {
     focusLine.setSelectionRange(4, 4);
     w.editorPadCaret = { start: 4, end: 4 };
     poke(symbolsPanel.querySelector("[data-event='stack']"));
-    check("stack wraps a beamed note", focusLine.value === "{[C4e] D4e}");
+    check("stack wraps a beamed note", focusLine.value === "{[C4]e D4e}");
     (function () {
       function stackSpan(text, from, to) {
         var a;
@@ -4446,7 +4446,7 @@ function chatCase(w) {
       check(
         "stack wraps the last note of a beamed triplet",
         stackSpan("(3 {C4e D4e E4e})", "E4e})", "E4e})") &&
-          focusLine.value === "(3 {C4e D4e [E4e]})" &&
+          focusLine.value === "(3 {C4e D4e [E4]e})" &&
           !!w.parseMusicNotation(focusLine.value)
       );
       poke(symbolsPanel.querySelector("[data-event='stack']"));
@@ -4457,25 +4457,25 @@ function chatCase(w) {
       check(
         "stack wraps a run that ends on the last triplet note",
         stackSpan("(3 {C4e D4e E4e})", "D4e", "E4e})") &&
-          focusLine.value === "(3 {C4e [D4e E4e]})" &&
+          focusLine.value === "(3 {C4e [D4 E4]e})" &&
           !!w.parseMusicNotation(focusLine.value)
       );
       check(
         "stack wraps the last note of a beam",
         stackSpan("{C4e D4e E4e}", "E4e}", "E4e}") &&
-          focusLine.value === "{C4e D4e [E4e]}" &&
+          focusLine.value === "{C4e D4e [E4]e}" &&
           !!w.parseMusicNotation(focusLine.value)
       );
       check(
         "stack keeps a figure on the chord",
         stackSpan("{C4e D4e E4e_6}", "E4e_6}", "E4e_6}") &&
-          focusLine.value === "{C4e D4e [E4e]_6}" &&
+          focusLine.value === "{C4e D4e [E4]e_6}" &&
           !!w.parseMusicNotation(focusLine.value)
       );
       check(
         "stack keeps a tie after the chord",
         stackSpan("{C4e D4e E4e~}", "E4e~}", "E4e~}") &&
-          focusLine.value === "{C4e D4e [E4e]~}" &&
+          focusLine.value === "{C4e D4e [E4]e~}" &&
           !!w.parseMusicNotation(focusLine.value)
       );
       check(
@@ -4485,6 +4485,51 @@ function chatCase(w) {
           w.document.getElementById("editError").textContent === w.t("edit.refuseWrap")
       );
     })();
+    placeCaret("C4e");
+    focusLine.focus();
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "a selected eighth becomes a chord with the length outside",
+      focusLine.value === "[C4]e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("C4e D4q E4h");
+    focusLine.focus();
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "a mixed selection takes the first note's length",
+      focusLine.value === "[C4 D4 E4]e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("G3 G3e A3s B3s E#3e");
+    focusLine.focus();
+    focusLine.setSelectionRange(0, focusLine.value.length);
+    w.editorPadCaret = { start: 0, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "a stacked chord keeps one of each pitch",
+      focusLine.value === "[G3 A3 B3 E#3]" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("G4e D4e B4e");
+    focusLine.focus();
+    focusLine.setSelectionRange("G4e ".length, focusLine.value.length);
+    w.editorPadCaret = { start: "G4e ".length, end: focusLine.value.length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "stacking part of a line leaves the other notes outside",
+      focusLine.value === "G4e [D4 B4]e" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 G4e A4e F4e)");
+    focusLine.focus();
+    focusLine.setSelectionRange("(3 G4e ".length, "(3 G4e A4e F4e".length);
+    w.editorPadCaret = { start: "(3 G4e ".length, end: "(3 G4e A4e F4e".length };
+    poke(symbolsPanel.querySelector("[data-event='stack']"));
+    check(
+      "stacking inside a triplet keeps the length outside",
+      focusLine.value === "(3 G4e [A4 F4]e)" && !!w.parseMusicNotation(focusLine.value)
+    );
     placeCaret("[C4 E4 G4]");
     focusLine.setSelectionRange(3, 3);
     w.editorPadCaret = { start: 3, end: 3 };

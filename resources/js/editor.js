@@ -13109,34 +13109,49 @@ function editorRewriteShortToken(hit) {
 function editorStructureWrapHit(kind, hit) {
   var pair = editorStructureOpenClose(kind);
   var body;
+  var token;
+  var piece;
   var value;
   var silent;
   var caret;
   var span;
   var line;
   var rel;
+  var closeAt;
   if (!pair || !hit || !hit.field) {
     return false;
   }
   span = editorLineSpan();
   line = span ? span.value.slice(span.lineStart, span.lineEnd) : "";
   rel = span ? hit.start - span.lineStart : 0;
-  if (kind === "beam" || (kind === "stack" && editorRelInsideStructure(line, rel, "beam"))) {
-    body = editorRewriteShortToken(hit);
+  if (kind === "stack") {
+    token = hit.token || "";
+    if (editorRelInsideStructure(line, rel, "beam")) {
+      token = editorRewriteShortToken(hit);
+    }
+    piece = editorMakeTokenPiece(token, 0, token.length);
+    body = piece.kind === "pitch" ? editorStackChordText([piece]) : pair.open + editorStripPitchDuration(token) + pair.close;
+  } else if (kind === "beam") {
+    body = pair.open + editorRewriteShortToken(hit) + pair.close;
   } else {
-    body = hit.token;
+    body = pair.open + hit.token + pair.close;
   }
   value = String(hit.field.value || "");
   if (span) {
     line = value.slice(span.lineStart, span.lineEnd);
     rel = hit.start - span.lineStart;
-    if (!editorSplicedLineOk(line, rel, rel + (hit.end - hit.start), pair.open + body + pair.close)) {
+    if (!editorSplicedLineOk(line, rel, rel + (hit.end - hit.start), body)) {
       return false;
     }
   }
   editorPushSymbolUndo();
-  hit.field.value = value.slice(0, hit.start) + pair.open + body + pair.close + value.slice(hit.end);
-  caret = hit.start + pair.open.length + body.length;
+  hit.field.value = value.slice(0, hit.start) + body + value.slice(hit.end);
+  if (kind === "stack") {
+    closeAt = body.lastIndexOf("]");
+    caret = hit.start + (closeAt < 0 ? body.length : closeAt);
+  } else {
+    caret = hit.start + body.length - pair.close.length;
+  }
   silent = !!(editorPadCaret && editorSymbolsIsOpen());
   editorPlaceCaret(hit.field, caret, caret, silent);
   clearEditorNotice();
@@ -13199,7 +13214,47 @@ function editorStackSelectionHost(nodes, need) {
   return host;
 }
 
-/* Articulations stay on each pitch. A shared _ or ^ moves onto the chord. */
+function editorStackPitchKey(pitch) {
+  if (!pitch) {
+    return "";
+  }
+  if (pitch.letter) {
+    return String(pitch.letter).toUpperCase() + (pitch.acc || "") + String(pitch.oct);
+  }
+  return editorPitchKeyFromToken(pitch.text || "");
+}
+
+/* One head per written pitch. The first note in the selection wins. */
+function editorStackUniquePitches(pitches) {
+  var out = [];
+  var seen = {};
+  var i;
+  var key;
+  for (i = 0; i < pitches.length; i++) {
+    key = editorStackPitchKey(pitches[i]);
+    if (key && seen[key]) {
+      continue;
+    }
+    if (key) {
+      seen[key] = true;
+    }
+    out.push(pitches[i]);
+  }
+  return out;
+}
+
+/* Pitches carry no length. The first note's length is written once after ]. */
+function editorStackInnerPitch(pitch, affix) {
+  if (!pitch) {
+    return "";
+  }
+  if (pitch.letter) {
+    return editorPitchTextKept(pitch.letter, pitch.acc, pitch.oct, "", affix || "");
+  }
+  return editorStripPitchDuration(pitch.text || "");
+}
+
+/* Articulations stay on each pitch. A shared _ or ^ moves onto the chord, after the length. */
 function editorStackChordText(pitches) {
   var inners = [];
   var tails = [];
@@ -13208,10 +13263,12 @@ function editorStackChordText(pitches) {
   var local;
   var tail;
   var shared;
+  var suffix;
+  pitches = editorStackUniquePitches(pitches);
   for (i = 0; i < pitches.length; i++) {
     model = editorAffixModel(pitches[i].affix || "");
     if (!model) {
-      inners.push(pitches[i].text);
+      inners.push(editorStackInnerPitch(pitches[i], pitches[i].affix || ""));
       tails.push(null);
       continue;
     }
@@ -13223,7 +13280,7 @@ function editorStackChordText(pitches) {
     if (model.label) {
       tail += "_" + model.label;
     }
-    inners.push(editorPitchTextKept(pitches[i].letter, pitches[i].acc, pitches[i].oct, pitches[i].durRaw, local));
+    inners.push(editorStackInnerPitch(pitches[i], local));
     tails.push(tail);
   }
   shared = tails[0];
@@ -13235,19 +13292,15 @@ function editorStackChordText(pitches) {
   if (shared === null) {
     inners = [];
     for (i = 0; i < pitches.length; i++) {
-      inners.push(
-        editorPitchTextKept(
-          pitches[i].letter,
-          pitches[i].acc,
-          pitches[i].oct,
-          pitches[i].durRaw,
-          pitches[i].affix || ""
-        )
-      );
+      inners.push(editorStackInnerPitch(pitches[i], pitches[i].affix || ""));
     }
     shared = "";
   }
-  return "[" + inners.join(" ") + "]" + (shared || "");
+  suffix = "";
+  if (pitches.length) {
+    suffix = editorDurSuffix(pitches[0].dur, pitches[0].dot);
+  }
+  return "[" + inners.join(" ") + "]" + suffix + (shared || "");
 }
 
 /*
