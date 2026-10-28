@@ -5212,8 +5212,6 @@ function renderMusicStaff(source, role, opts) {
     var slashTie;
     var x1;
     var x2;
-    var barX = null;
-    var barAt;
     if (tie.hang) {
       if (!fromBox) {
         continue;
@@ -5231,7 +5229,7 @@ function renderMusicStaff(source, role, opts) {
         x1 = fromBox.left + (fromBox.right - fromBox.left) * 0.62;
         x2 = colX[tie.to] + lineGap * 0.55;
       } else {
-        x1 = fromBox.right + lineGap * 0.16;
+        x1 = fromBox.right + lineGap * 0.2;
         x2 = colX[tie.to] + lineGap * 0.45;
       }
     } else {
@@ -5246,8 +5244,8 @@ function renderMusicStaff(source, role, opts) {
         x1 = fromBox.left + (fromBox.right - fromBox.left) * 0.62;
         x2 = toBox.left + (toBox.right - toBox.left) * 0.28;
       } else {
-        x1 = fromBox.right + lineGap * 0.16;
-        x2 = toBox.left - lineGap * 0.12;
+        x1 = fromBox.right + lineGap * 0.2;
+        x2 = toBox.left - lineGap * 0.2;
       }
     }
     /*
@@ -5274,53 +5272,59 @@ function renderMusicStaff(source, role, opts) {
         x2 = x1Floor + lineGap * 0.45;
       }
     }
-    var lineNudge = lineGap * 0.28;
-    var y1 = slashTie
-      ? above
-        ? fromBox.y - lineGap * 1.35
-        : fromBox.y + lineGap * 1.35
-      : fromBox.onLine
-        ? above
-          ? fromBox.y - lineNudge
-          : fromBox.y + lineNudge
-        : fromBox.y;
-    var y2 = slashTie
-      ? above
-        ? toBox.y - lineGap * 1.35
-        : toBox.y + lineGap * 1.35
-      : toBox.onLine
-        ? above
-          ? toBox.y - lineNudge
-          : toBox.y + lineNudge
-        : toBox.y;
-    var spanTie = x2 - x1;
+    /*
+     * Tapered tie: outer cubic at 28% and 72% of the span, inner cubic
+     * closer to the notes by the belly thickness. Height grows with the
+     * span and stops at 26. A slash tie starts further out so it clears
+     * the diagonal. On a staff line the tip steps off the line.
+     */
+    var open = above ? -1 : 1;
+    var y1 = fromBox.y;
+    var y2 = toBox.y;
+    if (slashTie) {
+      y1 += open * lineGap * 1.35;
+      y2 += open * lineGap * 1.35;
+    } else {
+      y1 += open * lineGap * 0.5;
+      y2 += open * lineGap * 0.5;
+    }
+    var dx = x2 - x1;
+    if (dx <= 2) {
+      continue;
+    }
     var toward = staffTieNeighborSteps(
       tieGroups[tie.from + ":" + tie.to],
       tie.step,
       above
     );
+    var arcHeight = Math.min(Math.max(dx * 0.15, 8), 26);
+    var maxThickness = Math.min(Math.max(dx * 0.04, 2.6), 3.2);
     /*
-     * Outer ties can bow. Notes a second or a third apart share a small gap,
-     * so those curves stay shallow and do not meet.
+     * A short span stays low. A tie across a bar, such as whole note to
+     * whole note, bows a little more and still levels off.
      */
-    var arch =
-      toward <= 1
-        ? lineGap * 0.1
-        : toward <= 2
-          ? lineGap * 0.14
-          : Math.max(lineGap * 0.42, Math.min(lineGap * 0.7, spanTie * 0.28));
-    for (barAt = tie.from + 1; barAt < tie.to; barAt++) {
-      if (columns[barAt] && columns[barAt].type === "barline") {
-        barX = colX[barAt];
-      }
+    if (dx < 22) {
+      arcHeight = Math.max(5, dx * 0.38);
+      maxThickness = 2.6;
+    } else {
+      arcHeight = Math.min(Math.max(dx * 0.24, 8), 14);
     }
-    if (barX !== null) {
-      arch = Math.max(arch, lineGap);
+    if (toward <= 1) {
+      arcHeight = Math.min(arcHeight, 6);
+      maxThickness = Math.min(maxThickness, 2.4);
+    } else if (toward <= 2) {
+      arcHeight = Math.min(arcHeight, 7);
+      maxThickness = Math.min(maxThickness, 2.8);
     }
-    var controlX = barX !== null ? barX : (x1 + x2) / 2;
-    var midY = above ? (y1 + y2) / 2 - arch : (y1 + y2) / 2 + arch;
-    var tieTop = Math.min(y1, y2, midY);
-    var tieBot = Math.max(y1, y2, midY);
+    var innerHeight = Math.max(arcHeight - maxThickness, 1.5);
+    var c1x = x1 + dx * 0.28;
+    var c2x = x1 + dx * 0.72;
+    var o1 = y1 + open * arcHeight;
+    var o2 = y2 + open * arcHeight * 1.05;
+    var i1 = y1 + open * innerHeight;
+    var i2 = y2 + open * innerHeight;
+    var tieTop = Math.min(y1, y2, o1, o2);
+    var tieBot = Math.max(y1, y2, o1, o2);
     if (tieTop < inkTop) {
       inkTop = tieTop;
     }
@@ -5335,18 +5339,32 @@ function renderMusicStaff(source, role, opts) {
           x1.toFixed(2) +
           " " +
           y1.toFixed(2) +
-          " Q" +
-          controlX.toFixed(2) +
+          " C" +
+          c1x.toFixed(2) +
           " " +
-          midY.toFixed(2) +
+          o1.toFixed(2) +
+          " " +
+          c2x.toFixed(2) +
+          " " +
+          o2.toFixed(2) +
           " " +
           x2.toFixed(2) +
           " " +
-          y2.toFixed(2),
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "1.35",
-        "stroke-linecap": "round"
+          y2.toFixed(2) +
+          " C" +
+          c2x.toFixed(2) +
+          " " +
+          i2.toFixed(2) +
+          " " +
+          c1x.toFixed(2) +
+          " " +
+          i1.toFixed(2) +
+          " " +
+          x1.toFixed(2) +
+          " " +
+          y1.toFixed(2) +
+          " Z",
+        fill: "currentColor"
       })
     );
   }
