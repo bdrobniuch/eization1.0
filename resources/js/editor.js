@@ -3009,6 +3009,7 @@ function editorStaffOneAttackCuts(line, caretRel) {
   var ev;
   var key;
   var g;
+  var shell;
   if (!events) {
     return null;
   }
@@ -3030,6 +3031,12 @@ function editorStaffOneAttackCuts(line, caretRel) {
       continue;
     }
     if (caretRel >= g.open && caretRel < g.close) {
+      continue;
+    }
+    /* Notes inside a nested beam keep that beam's span, so the outer triplet
+       can look like it holds only the rest. Count the real attacks first. */
+    shell = editorStaffShellAtSpan(line, g.open, g.close);
+    if (shell && !editorStaffShellIsDisposable(line, shell)) {
       continue;
     }
     ev = g.attacks[0];
@@ -3392,6 +3399,19 @@ function editorStaffExpandCopySpan(line, start, end) {
 }
 
 /* Empty shells, and a beam or triplet that holds one plain note. A chord stays. */
+function editorStaffShellAtSpan(line, open, close) {
+  var groups = editorFindBalancedGroups(line);
+  var i;
+  var g;
+  for (i = 0; i < groups.length; i++) {
+    g = groups[i];
+    if ((g.kind === "beam" || g.kind === "tuplet") && g.open === open && g.closeEnd === close) {
+      return g;
+    }
+  }
+  return null;
+}
+
 function editorStaffGroupAttackCount(line, g) {
   var nodes;
   if (!g) {

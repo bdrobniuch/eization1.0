@@ -4099,6 +4099,25 @@ function chatCase(w) {
     w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e"), true);
     w.editorStaffSweepAfterEdit();
     check("leaving a one-note beam drops the braces", focusLine.value === "C4e D4e");
+    placeCaret("F3e (3 {D3e [F3 D3]e} re) (3 G3 [G3 F3 G4 B3 B4]e A3s) B3s Fb3e");
+    w.editorPlaceCaret(focusLine, 0, 0, true);
+    w.editorStaffSweepAfterEdit();
+    check(
+      "a click outside keeps a triplet that holds a beam and a rest",
+      focusLine.value === "F3e (3 {D3e [F3 D3]e} re) (3 G3 [G3 F3 G4 B3 B4]e A3s) B3s Fb3e" &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("(3 {C4e D4e} E4e)");
+    w.editorPlaceCaret(focusLine, 0, 0, true);
+    w.editorStaffSweepAfterEdit();
+    check(
+      "a click outside keeps a triplet whose beam is only part of it",
+      focusLine.value === "(3 {C4e D4e} E4e)" && !!w.parseMusicNotation(focusLine.value)
+    );
+    placeCaret("{[C4 E4]e} D4e");
+    w.editorPlaceCaret(focusLine, focusLine.value.indexOf("D4e"), focusLine.value.indexOf("D4e"), true);
+    w.editorStaffSweepAfterEdit();
+    check("leaving a beamed chord keeps the braces", focusLine.value === "{[C4 E4]e} D4e");
     (function () {
       var source = "F5' C5e Ab4e G4e F4e (3 {D4e E4e D4e}) | rq. A4e B4e C5e D5 | {A5e}";
       function insertAt(marker, letter) {
