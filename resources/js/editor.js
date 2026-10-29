@@ -3269,6 +3269,43 @@ function editorStaffPreviewBeginEdit() {
 }
 
 /* Collapsed pad caret at a drawn insert gap (tap). A gap that holds an empty shell re-enters it. */
+/* Keep a caret inside one example. The all-examples box is one textarea. */
+function editorExampleEnd(field, lineStart) {
+  var value;
+  var lineEnd;
+  value = String(field && field.value || "");
+  if (typeof lineStart !== "number" || lineStart < 0) {
+    lineStart = 0;
+  }
+  if (lineStart > value.length) {
+    return value.length;
+  }
+  lineEnd = value.indexOf("\n", lineStart);
+  if (lineEnd < 0) {
+    lineEnd = value.length;
+  }
+  return lineEnd;
+}
+
+function editorCaretOnExample(field, lineStart, lineEnd, caret) {
+  if (typeof caret !== "number" || isNaN(caret)) {
+    caret = lineStart;
+  }
+  if (typeof lineStart !== "number" || lineStart < 0) {
+    lineStart = 0;
+  }
+  if (typeof lineEnd !== "number" || lineEnd < lineStart) {
+    lineEnd = editorExampleEnd(field, lineStart);
+  }
+  if (caret < lineStart) {
+    return lineStart;
+  }
+  if (caret > lineEnd) {
+    return lineEnd;
+  }
+  return caret;
+}
+
 function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIndex, opts) {
   var before;
   var a;
@@ -3282,6 +3319,7 @@ function editorStaffPreviewApplyCaret(field, lineStart, musicAt, music, insertIn
     a = lineStart + musicAt + editorMusicCaretFromInsertIndex(String(music || ""), insertIndex);
   }
   a = editorStaffSettleLeftovers(field, lineStart, musicAt, String(music || ""), a, opts || { reenter: true });
+  a = editorCaretOnExample(field, lineStart, editorExampleEnd(field, lineStart), a);
   editorPlaceCaret(field, a, a, true);
   /* Unwrapping a one-note shell changes the line. Repaint so the next click uses the new columns. */
   if (String(field.value || "") !== before) {
@@ -3324,8 +3362,11 @@ function editorStaffPreviewApplyColumnRange(field, lineStart, musicAt, music, co
   if (to < from) {
     to = from;
   }
-  a = lineStart + musicAt + from;
-  b = lineStart + musicAt + to;
+  a = editorCaretOnExample(field, lineStart, editorExampleEnd(field, lineStart), lineStart + musicAt + from);
+  b = editorCaretOnExample(field, lineStart, editorExampleEnd(field, lineStart), lineStart + musicAt + to);
+  if (b < a) {
+    b = a;
+  }
   editorPlaceCaret(field, a, b, true);
 }
 
@@ -16613,6 +16654,7 @@ function editorDrumCommitMusic(hit, nextMusic, undoState) {
   var nextValue;
   var sliceLen;
   var line;
+  var keep;
   if (!hit || !hit.field || nextMusic == null) {
     return false;
   }
@@ -16637,9 +16679,12 @@ function editorDrumCommitMusic(hit, nextMusic, undoState) {
   } else {
     editorPushSymbolUndo();
   }
+  keep = editorReadSelection(hit.field).start;
   hit.field.value = nextValue;
   hit.music = nextMusic;
   hit.lineEnd = hit.lineStart + sliceLen;
+  keep = editorCaretOnExample(hit.field, hit.lineStart, hit.lineEnd, keep);
+  editorPlaceCaret(hit.field, keep, keep, true);
   editorStaffSweepAfterEdit();
   refreshEditor();
   return true;

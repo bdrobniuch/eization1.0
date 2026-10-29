@@ -5665,6 +5665,52 @@ function chatCase(w) {
           "a kit button on a beamed drum only lights",
           focusLine.value === "{hhe hhe} feet bdq" && w.editorDrumPiece === "sd"
         );
+        (function () {
+          var area = w.document.getElementById("allEdit");
+          var sheet = w.document.getElementById("textdiv");
+          var wasFocus = !!(sheet && sheet.classList.contains("is-edit-focus"));
+          var longLine = "hhe hhe hhe hhe feet bdq rq bdq rq";
+          var saved = area ? area.value : "";
+          var undoBefore = w.editorSymbolUndo.length;
+          var hit;
+          var nl;
+          if (!area) {
+            check("a drum write stays on that example", false);
+            return;
+          }
+          if (wasFocus) {
+            w.editorSetViewMode("list");
+          }
+          area.value = longLine + "\nbdq";
+          area.focus();
+          area.setSelectionRange(longLine.length, longLine.length);
+          w.editorPadCaret = { start: longLine.length, end: longLine.length };
+          hit = {
+            field: area,
+            lineStart: 0,
+            lineEnd: longLine.length,
+            musicAt: 0,
+            music: longLine
+          };
+          w.editorDrumCommitMusic(hit, "hhq", null);
+          nl = area.value.indexOf("\n");
+          check(
+            "a drum write stays on that example",
+            w.currentEditorLine() === "hhq" &&
+              area.selectionStart <= nl &&
+              w.editorPadCaret &&
+              w.editorPadCaret.start <= nl
+          );
+          if (w.editorSymbolUndo.length > undoBefore) {
+            w.editorSymbolUndo.length = undoBefore;
+          }
+          area.value = saved;
+          if (wasFocus) {
+            w.editorSetViewMode("focus");
+          } else {
+            w.refreshEditor();
+          }
+        })();
       } finally {
         w.editorDrumPiece = pieceBefore;
         w.setEditorKind(kindBefore);
