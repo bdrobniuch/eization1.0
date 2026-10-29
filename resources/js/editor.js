@@ -9653,7 +9653,8 @@ function editorCollapseLoneStack(line) {
     tail = line.slice(g.closeStart + 1, g.closeEnd);
     len = editorStackDurationSuffixLen(tail);
     if (len) {
-      note = editorStripPitchDuration(pitch) + tail.slice(0, len) + tail.slice(len);
+      /* Duration sits before a label glued on the pitch: F#4_3 + e → F#4e_3. */
+      note = editorPitchBare(pitch) + tail.slice(0, len) + editorPitchAffix(pitch) + tail.slice(len);
     } else {
       note = pitch + tail;
     }
@@ -17818,6 +17819,22 @@ function editorStackSharedDuration() {
     return null;
   }
   return { dur: rhythm.dur, dot: rhythm.dot, dots: rhythm.dots };
+}
+
+function editorPitchBare(tok) {
+  var m = /^([A-Ga-g])(##|bb|x|X|#|b|n)?(\d)/.exec(tok || "");
+  if (!m) {
+    return tok || "";
+  }
+  return m[1] + (m[2] || "") + m[3];
+}
+
+function editorPitchAffix(tok) {
+  var m = /^([A-Ga-g])(##|bb|x|X|#|b|n)?(\d)((?:[whqesn]\.{0,2})|\.)?(.*)$/.exec(tok || "");
+  if (!m) {
+    return "";
+  }
+  return m[5] || "";
 }
 
 function editorStripPitchDuration(tok) {

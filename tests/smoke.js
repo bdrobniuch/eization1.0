@@ -5023,6 +5023,17 @@ function chatCase(w) {
     w.editorPadCaret = { start: 3, end: 3 };
     poke(w.document.querySelector("#editNoteHistory [data-erase]"));
     check("the last extra pitch keeps the chord's length", focusLine.value === "G4e^Name");
+    placeCaret("(3 { [F#4_3 E5]e})");
+    focusLine.setSelectionRange(13, 13);
+    w.editorPadCaret = { start: 13, end: 13 };
+    poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+    check(
+      "erasing the upper pitch of a labeled chord keeps the lower note",
+      focusLine.value.indexOf("F#4e_3") >= 0 &&
+        focusLine.value.indexOf("E5") < 0 &&
+        focusLine.value.indexOf("[") < 0 &&
+        !!w.parseMusicNotation(focusLine.value)
+    );
     placeCaret("{C4e [E4e G4e] D4e}");
     focusLine.setSelectionRange(8, 8);
     w.editorPadCaret = { start: 8, end: 8 };
