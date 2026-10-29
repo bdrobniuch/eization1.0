@@ -2097,21 +2097,23 @@ function renderDrumStaff(source, role, opts) {
   return svg;
 }
 
+/* Two thick bars from the second line to the fourth. A full-staff pair reads as a double bar. */
 function drumDrawClef(svg, x, staffTop, lineGap) {
-  var h = lineGap * 4;
-  var w = Math.max(2.4, lineGap * 0.22);
-  var gap = lineGap * 0.42;
+  var h = lineGap * 2;
+  var y = staffTop + lineGap;
+  var w = Math.max(3.2, lineGap * 0.36);
+  var gap = lineGap * 0.22;
   svg.appendChild(staffSvgEl("rect", {
     x: String(x),
-    y: String(staffTop),
+    y: String(y),
     width: String(w),
     height: String(h),
     fill: "currentColor",
     class: "staff-clef"
   }));
   svg.appendChild(staffSvgEl("rect", {
-    x: String(x + gap),
-    y: String(staffTop),
+    x: String(x + w + gap),
+    y: String(y),
     width: String(w),
     height: String(h),
     fill: "currentColor",

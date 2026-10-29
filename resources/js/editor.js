@@ -14275,12 +14275,15 @@ function editorPaintNoteDefaults() {
   var host = document.getElementById("editNoteDefaults");
   var old;
   editorPlaceExerciseExtras();
-  if (!host || !editorPitchStaffOn()) {
+  if (!host) {
     return;
   }
   old = host.querySelector("[data-default-clef]");
   if (old && old.parentNode) {
     old.parentNode.removeChild(old);
+  }
+  if (!editorPitchStaffOn()) {
+    return;
   }
   editorPaintDefaultClefToggle(host);
 }

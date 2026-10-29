@@ -2534,6 +2534,18 @@ function drumCollisionChecks(w) {
   check("a pitch is not a kit piece", !w.parseDrumNotation("C4q"));
   check("drums have no key", !w.parseDrumNotation("@key=C bdq"));
   check("drums use the percussion clef", !w.parseDrumNotation("@treble bdq"));
+  (function () {
+    var svg = w.renderDrumStaff("bdq", "current");
+    var bars = svg ? svg.querySelectorAll(".staff-clef") : [];
+    var top = bars[0] ? parseFloat(bars[0].getAttribute("y")) : 0;
+    var height = bars[0] ? parseFloat(bars[0].getAttribute("height")) : 0;
+    var staffTop = svg && svg._staffCaretLayout ? svg._staffCaretLayout.staffTop : 0;
+    var gap = svg && svg._staffCaretLayout ? svg._staffCaretLayout.lineGap : 0;
+    check(
+      "the drum clef sits between the second and fourth lines",
+      bars.length === 2 && gap > 0 && Math.abs(top - (staffTop + gap)) < 0.5 && Math.abs(height - gap * 2) < 0.5
+    );
+  })();
   rest = w.parseDrumNotation("rs");
   check("rs is a rest on a drum staff", !!(rest && rest.hands && rest.hands[0].type === "rest"));
   check("ride is not a rest", !!(w.parseDrumNotation("rdq") && w.parseDrumNotation("rdq").hands[0].id === "rd"));
@@ -5185,6 +5197,7 @@ function chatCase(w) {
         placeCaret("bdq");
         w.editorDrumPiece = "hh";
         if (!arm()) {
+          check("drums do not keep the treble clef button", false);
           check("a pencil hover shows the drum on that line", false);
           check("a pencil hover lights a drum hit", false);
           check("a mouse hover shows the drum on that line", false);
@@ -5196,6 +5209,7 @@ function chatCase(w) {
           check("a pencil slide off the drums drops the hit", false);
           return;
         }
+        check("drums do not keep the treble clef button", !w.document.querySelector("[data-default-clef]"));
         var gapX = w.editorStaffCaretX(layout, layout.cols.length);
         var snareY = w.drumY(5, layout.staffTop, layout.lineGap || 12);
         screenFire("pointermove", gapX, snareY, 0, "pen");
