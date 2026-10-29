@@ -206,7 +206,10 @@ function penStaffHold(w) {
   check("a finger press does not arm the pencil", !w.editorPenHold);
   fire("pointerup", head.x, head.y, 0, "touch");
   fire("pointerdown", head.x, head.y, 1, "pen");
-  check("a pencil press on a note arms the ring", !!(w.editorPenHold && w.editorPenHold.phase === "wait"));
+  check(
+    "a pencil press turns the note darker blue",
+    !!(w.editorPenHold && w.editorPenHold.phase === "down" && preview.querySelector("[data-pitch-col].is-pitch-drag"))
+  );
   fire("pointermove", head.x + svgDx(40), head.y, 1, "pen");
   fire("pointerup", head.x + svgDx(40), head.y, 0, "pen");
   check(
@@ -216,65 +219,123 @@ function penStaffHold(w) {
       !w.editorPenHold
   );
   if (!ready("C4q")) {
-    check("a sideways drag after the ring lengthens the note", false);
+    check("an upward pencil drag still retunes", false);
     w.setEditorKind(kindBefore);
     return;
   }
   head = layout.heads && layout.heads[0];
   fire("pointerdown", head.x, head.y, 1, "pen");
-  w.editorPenHoldReach("ring");
   check(
-    "the pencil ring is dark until the warning",
-    !!preview.querySelector(".staff-pen-ring") &&
-      !preview.querySelector(".staff-pen-ring.is-warn") &&
-      w.document.getElementById("editPenHold") &&
+    "the pencil hint says to hold still",
+    w.document.getElementById("editPenHold") &&
       w.document.getElementById("editPenHold").textContent === w.t("edit.penHold")
   );
   fire("pointermove", head.x, head.y - (layout.lineGap || 12) * 2, 1, "pen");
   fire("pointerup", head.x, head.y - (layout.lineGap || 12) * 2, 0, "pen");
-  check("after the ring an upward drag still retunes", focusLine.value === "G4q");
+  check("an upward pencil drag still retunes", focusLine.value === "G4q");
   poke(w.document.querySelector("#editNoteHistory [data-undo]"));
   if (!ready("C4q")) {
-    check("a sideways drag after the ring lengthens the note", false);
-    w.setEditorKind(kindBefore);
-    return;
-  }
-  head = layout.heads && layout.heads[0];
-  fire("pointerdown", head.x, head.y, 1, "pen");
-  w.editorPenHoldReach("ring");
-  fire("pointermove", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 1, "pen");
-  check(
-    "the length changes on the note before it is written",
-    focusLine.value === "C4q" && !!preview.querySelector(".staff-pen-dur")
-  );
-  fire("pointerup", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 0, "pen");
-  check("a sideways drag after the ring lengthens the note", focusLine.value === "C4h");
-  check("the pencil hint leaves after the length changes", !w.document.getElementById("editPenHold") && localStorage.getItem("eization-pen-hold") === "1");
-  poke(w.document.querySelector("#editNoteHistory [data-undo]"));
-  check("undo restores the length in one step", focusLine.value === "C4q");
-  if (!ready("{C4e D4e}")) {
-    check("a long value stays in the beam", false);
-    w.setEditorKind(kindBefore);
-    return;
-  }
-  head = layout.heads && layout.heads[0];
-  fire("pointerdown", head.x, head.y, 1, "pen");
-  w.editorPenHoldReach("ring");
-  fire("pointermove", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 1, "pen");
-  fire("pointerup", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 0, "pen");
-  check("a long value stays in the beam", focusLine.value === "{C4e D4e}" && notice() === w.t("edit.faultBeamPitches"));
-  if (!ready("C4q")) {
-    check("moving after the warning keeps the note", false);
+    check("a long pencil hold removes the note", false);
     w.setEditorKind(kindBefore);
     return;
   }
   head = layout.heads && layout.heads[0];
   fire("pointerdown", head.x, head.y, 1, "pen");
   w.editorPenHoldReach("warn");
-  check("the warning ring is red", !!preview.querySelector(".staff-pen-ring.is-warn"));
-  fire("pointermove", head.x + svgDx(40), head.y, 1, "pen");
-  fire("pointerup", head.x + svgDx(40), head.y, 0, "pen");
-  check("moving after the warning keeps the note", focusLine.value === "C4q");
+  check("a long pencil hold turns the note red", !!preview.querySelector("[data-pitch-col].is-pen-warn"));
+  w.editorPenHoldReach("delete");
+  fire("pointerup", head.x, head.y, 0, "pen");
+  check("a long pencil hold removes the note", focusLine.value === "");
+  check("the pencil hint leaves after the note is removed", !w.document.getElementById("editPenHold") && localStorage.getItem("eization-pen-hold") === "1");
+  poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+  check("undo restores the removed note", focusLine.value === "C4q");
+  if (!ready("{C4e D4e}")) {
+    check("a pencil hold peels one note and keeps the beam", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", head.x, head.y, 0, "pen");
+  check(
+    "a pencil hold peels one note and keeps the beam",
+    focusLine.value.indexOf("D4e") >= 0 &&
+      focusLine.value.indexOf("C4e") < 0 &&
+      focusLine.value.indexOf("{") >= 0 &&
+      !!w.parseMusicNotation(focusLine.value)
+  );
+  if (!ready("(3 C4e D4e E4e)")) {
+    check("a pencil hold peels one note and keeps the tuplet", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", head.x, head.y, 0, "pen");
+  check(
+    "a pencil hold peels one note and keeps the tuplet",
+    focusLine.value.indexOf("(3") === 0 &&
+      focusLine.value.indexOf("C4e") < 0 &&
+      focusLine.value.indexOf("D4e") >= 0 &&
+      focusLine.value.indexOf("E4e") >= 0 &&
+      !!w.parseMusicNotation(focusLine.value)
+  );
+  if (!ready("[C4 E4 G4]q")) {
+    check("a pencil hold removes one pitch of a chord", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[layout.heads.length - 1];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", head.x, head.y, 0, "pen");
+  check(
+    "a pencil hold removes the top pitch of a chord",
+    focusLine.value.indexOf("C4") >= 0 &&
+      focusLine.value.indexOf("E4") >= 0 &&
+      focusLine.value.indexOf("G4") < 0 &&
+      focusLine.value.indexOf("[") >= 0 &&
+      !!w.parseMusicNotation(focusLine.value)
+  );
+  if (!ready("[C4 E4 G4]q")) {
+    check("a pencil hold removes the middle pitch of a chord", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[1];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", head.x, head.y, 0, "pen");
+  check(
+    "a pencil hold removes the middle pitch of a chord",
+    focusLine.value.indexOf("C4") >= 0 &&
+      focusLine.value.indexOf("G4") >= 0 &&
+      focusLine.value.indexOf("E4") < 0 &&
+      focusLine.value.indexOf("[") >= 0 &&
+      !!w.parseMusicNotation(focusLine.value)
+  );
+  if (!ready("[C4 E4]q")) {
+    check("the last extra pitch stops being a chord", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", head.x, head.y, 0, "pen");
+  check(
+    "the last extra pitch stops being a chord",
+    focusLine.value.indexOf("E4") >= 0 &&
+      focusLine.value.indexOf("[") < 0 &&
+      !!w.parseMusicNotation(focusLine.value)
+  );
   if (!ready("^G C4q")) {
     check("a pencil tap selects the chord name", false);
     w.setEditorKind(kindBefore);
@@ -311,16 +372,17 @@ function penStaffHold(w) {
   fire("pointerup", dyn.x, dyn.y, 0, "pen");
   check("a long pencil hold removes the dynamic", focusLine.value === "C4q");
   if (!ready("rq")) {
-    check("a sideways drag after the ring lengthens a rest", false);
+    check("a long pencil hold removes a rest", false);
     w.setEditorKind(kindBefore);
     return;
   }
   var rest = inkKind("rest");
   fire("pointerdown", rest.x, rest.y, 1, "pen");
-  w.editorPenHoldReach("ring");
-  fire("pointermove", rest.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), rest.y, 1, "pen");
-  fire("pointerup", rest.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), rest.y, 0, "pen");
-  check("a sideways drag after the ring lengthens a rest", focusLine.value === "rh");
+  check("a pencil press turns a rest darker blue", !!preview.querySelector("[data-pen-index].is-pitch-drag"));
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", rest.x, rest.y, 0, "pen");
+  check("a long pencil hold removes a rest", focusLine.value === "");
   w.editorCloseSymbols();
   if (!ready("C4q")) {
     w.editorOpenSymbols();

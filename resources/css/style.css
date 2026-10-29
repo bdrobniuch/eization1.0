@@ -3238,23 +3238,6 @@ body.is-editing #counter {
   opacity: 0.55;
 }
 
-/* Pencil ring. Dark until the remove warning. The hot-note blue stays a hover. */
-#editPreview.is-staff .staff-pen-ring {
-  fill: none;
-  stroke: #222;
-  stroke-width: 1.35;
-  pointer-events: none;
-}
-
-#editPreview.is-staff .staff-pen-ring.is-warn {
-  stroke: #b42318;
-}
-
-#editPreview.is-staff .staff-pen-dur {
-  fill: #111;
-  pointer-events: none;
-}
-
 /* One line under the staff until a tap or a drag. Quiet, not the yellow fault note. */
 #editPreview.is-staff .edit-staff-gesture {
   position: sticky;
@@ -3309,6 +3292,19 @@ body.is-editing #counter {
 }
 
 #editPreview.is-staff [data-pitch-col].is-pitch-drag {
+  fill: #2f6eb4;
+}
+
+#editPreview.is-staff [data-pitch-col].is-pen-warn,
+#editPreview.is-staff [data-pen-index].is-pen-warn {
+  fill: #b42318;
+}
+
+#editPreview.is-staff [data-pen-index].is-pitch-hot {
+  fill: #5b8fc7;
+}
+
+#editPreview.is-staff [data-pen-index].is-pitch-drag {
   fill: #2f6eb4;
 }
 

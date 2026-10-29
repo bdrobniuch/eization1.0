@@ -4390,6 +4390,7 @@ function renderMusicStaff(source, role, opts) {
       gx: x - (rx > 0 ? rx : 6),
       gy: y
     };
+    ink.index = penInks.length;
     if (extra) {
       if (typeof extra.col1 === "number") {
         ink.col1 = extra.col1;
@@ -4406,6 +4407,9 @@ function renderMusicStaff(source, role, opts) {
         ink.x1 = extra.x1;
         ink.y1 = extra.y1;
         ink.pad = extra.pad > 0 ? extra.pad : lineGap * 0.45;
+      }
+      if (extra.node && extra.node.setAttribute) {
+        extra.node.setAttribute("data-pen-index", String(ink.index));
       }
     }
     penInks.push(ink);
@@ -5006,7 +5010,8 @@ function renderMusicStaff(source, role, opts) {
       staffPlaceGlyph(svg, restName, cx - restAdv / 2, restY, lineGap);
       staffPenBox("rest", e, cx, restY, Math.max(restAdv / 2, lineGap * 0.55), lineGap, {
         gx: cx - restAdv / 2,
-        gy: restY
+        gy: restY,
+        node: svg._staffLastGlyph
       });
       var restDots = staffDurationDotCount(ev.duration || "q");
       if (restDots) {
@@ -5056,7 +5061,7 @@ function renderMusicStaff(source, role, opts) {
           drawn.ny,
           drawn.headRx > 0 ? drawn.headRx : noteHeadRx,
           noteHeadRy,
-          { gx: drawn.left, gy: drawn.ny }
+          { gx: drawn.left, gy: drawn.ny, node: drawn.glyph || svg._staffLastGlyph }
         );
       }
       var ny = drawn.ny;
@@ -5661,7 +5666,8 @@ function renderMusicStaff(source, role, opts) {
     svg.appendChild(sym);
     staffPenBox(tempo ? "tempo" : "chord", col, x + width / 2, y - chordSize * 0.35, width / 2 + 4, chordSize * 0.65, {
       gx: x,
-      gy: y
+      gy: y,
+      node: sym
     });
   }
 
@@ -5680,7 +5686,8 @@ function renderMusicStaff(source, role, opts) {
     svg.appendChild(dyn);
     staffPenBox("dynamic", col, x + width / 2, dynY - chordSize * 0.35, width / 2 + 4, chordSize * 0.65, {
       gx: x,
-      gy: dynY
+      gy: dynY,
+      node: dyn
     });
   }
 

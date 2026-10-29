@@ -4425,18 +4425,16 @@ function editorSyncStaffGesture() {
 
 /*
  * Pencil on a pitched staff, with Write notes open.
- * A still nib draws a ring. Sideways after the ring changes length and lands
- * on release. A longer still hold removes a note, rest, slash, chord name,
- * or dynamic. Mouse, finger, and drums stay on their own path.
+ * Hover turns the ink light blue. Press turns it darker blue. A longer still
+ * hold turns it red, then removes it the way Erase does. Mouse and finger
+ * only get the hover. Drums stay on their own path.
  */
 var EDITOR_PEN_HOLD_KEY = "eization-pen-hold";
-var EDITOR_PEN_ARM_MS = 500;
 var EDITOR_PEN_WARN_MS = 900;
 var EDITOR_PEN_DELETE_MS = 1400;
-var EDITOR_PEN_DUR_PX = 24;
-var EDITOR_PEN_LADDER = ["s", "e", "q", "h", "w"];
 var editorPenHold = null;
 var editorPenHoldHintOn = false;
+var editorPenPainted = null;
 
 function editorPenHoldSeen() {
   try {
@@ -4509,20 +4507,99 @@ function editorPenHoldClearTimers() {
   editorPenHold.timers = [];
 }
 
-function editorPenHoldClearVisual() {
+function editorPenNoteNode(target) {
   var preview = document.getElementById("editPreview");
   var svg = preview && preview.querySelector("svg.music-staff");
-  if (!svg) {
-    return;
+  var head;
+  if (!svg || !target || !target.head) {
+    return null;
   }
-  editorClearStaffCue(svg, ".staff-pen-ring");
-  editorClearStaffCue(svg, ".staff-pen-dur");
+  head = target.head;
+  return svg.querySelector(
+    '[data-pitch-col="' + head.col + '"][data-pitch-step="' + head.step + '"]'
+  );
+}
+
+function editorPenMarkNode(target) {
+  var preview = document.getElementById("editPreview");
+  var svg = preview && preview.querySelector("svg.music-staff");
+  if (!svg || !target || typeof target.index !== "number") {
+    return null;
+  }
+  return svg.querySelector('[data-pen-index="' + target.index + '"]');
+}
+
+function editorPenClearInk() {
+  var preview = document.getElementById("editPreview");
+  var svg = preview && preview.querySelector("svg.music-staff");
+  var list;
+  var i;
+  if (editorPenPainted) {
+    editorPenPainted.classList.remove("is-pitch-hot");
+    editorPenPainted.classList.remove("is-pitch-drag");
+    editorPenPainted.classList.remove("is-pen-warn");
+    editorPenPainted = null;
+  }
+  if (svg) {
+    list = svg.querySelectorAll(".is-pen-warn");
+    for (i = 0; i < list.length; i++) {
+      list[i].classList.remove("is-pen-warn");
+    }
+  }
+  if (editorStaffPitchHot && editorStaffPitchHot.pen) {
+    if (preview) {
+      preview.classList.remove("is-pitch-drag");
+    }
+    editorStaffPitchHotHide();
+  }
 }
 
 function editorPenHoldClear() {
   editorPenHoldClearTimers();
-  editorPenHoldClearVisual();
+  editorPenClearInk();
   editorPenHold = null;
+}
+
+/* hot, down, or warn. Notes reuse the pitch colors. Other ink is tagged. */
+function editorPenShow(target, mode) {
+  var preview = document.getElementById("editPreview");
+  var node;
+  editorPenClearInk();
+  if (!preview || !target) {
+    return;
+  }
+  if (target.kind === "note" && target.head) {
+    editorStaffPitchHot = {
+      col: target.head.col,
+      step: target.head.step,
+      dragging: mode !== "hot",
+      pen: true
+    };
+    preview.classList.add(mode === "hot" ? "is-pitch-hot" : "is-pitch-drag");
+    editorPaintStaffPitchHot(preview);
+    if (mode === "warn") {
+      node = editorPenNoteNode(target);
+      if (node) {
+        node.classList.add("is-pen-warn");
+      }
+    }
+    return;
+  }
+  node = editorPenMarkNode(target);
+  if (!node) {
+    return;
+  }
+  node.classList.remove("is-pitch-hot");
+  node.classList.remove("is-pitch-drag");
+  node.classList.remove("is-pen-warn");
+  if (mode === "hot") {
+    node.classList.add("is-pitch-hot");
+  } else if (mode === "warn") {
+    node.classList.add("is-pen-warn");
+  } else {
+    node.classList.add("is-pitch-drag");
+  }
+  editorPenPainted = node;
 }
 
 function editorPenDistToSeg(x, y, ink) {
@@ -4590,12 +4667,8 @@ function editorPenTargetAt(hit) {
   return null;
 }
 
-function editorPenDurKind(kind) {
-  return kind === "note" || kind === "rest" || kind === "slash";
-}
-
 function editorPenDeleteKind(kind) {
-  return editorPenDurKind(kind) || kind === "chord" || kind === "dynamic";
+  return kind === "note" || kind === "rest" || kind === "slash" || kind === "chord" || kind === "dynamic";
 }
 
 function editorPenSelectKind(kind) {
@@ -4623,20 +4696,24 @@ function editorPenHoldBegin(drag, hit, event) {
   if (!target) {
     return;
   }
+  if (!editorPenDeleteKind(target.kind)) {
+    editorPenHold = {
+      drag: drag,
+      target: target,
+      phase: "mark",
+      timers: []
+    };
+    return;
+  }
   editorPenHold = {
     drag: drag,
     target: target,
-    phase: editorPenDurKind(target.kind) || editorPenDeleteKind(target.kind) ? "wait" : "mark",
+    phase: "down",
     timers: []
   };
-  if (editorPenHold.phase !== "wait") {
-    return;
-  }
-  editorPenHold.timers.push(
-    window.setTimeout(function () {
-      editorPenHoldReach("ring");
-    }, EDITOR_PEN_ARM_MS)
-  );
+  editorPenShow(target, "down");
+  editorPenHoldHintOn = true;
+  editorSyncPenHold();
   editorPenHold.timers.push(
     window.setTimeout(function () {
       editorPenHoldReach("warn");
@@ -4649,102 +4726,42 @@ function editorPenHoldBegin(drag, hit, event) {
   );
 }
 
-function editorPenDrawRing(target, warn) {
-  var preview = document.getElementById("editPreview");
-  var svg = preview && preview.querySelector("svg.music-staff");
-  var ell;
-  if (!svg || !target) {
-    return;
-  }
-  editorClearStaffCue(svg, ".staff-pen-ring");
-  ell = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-  ell.setAttribute("class", warn ? "staff-pen-ring is-warn" : "staff-pen-ring");
-  ell.setAttribute("cx", String(target.x));
-  ell.setAttribute("cy", String(target.y));
-  ell.setAttribute("rx", String((target.rx > 0 ? target.rx : 6) + 4));
-  ell.setAttribute("ry", String((target.ry > 0 ? target.ry : 6) + 4));
-  ell.setAttribute("pointer-events", "none");
-  svg.appendChild(ell);
-}
-
 function editorPenHoldReach(phase) {
   var hold = editorPenHold;
+  var target;
   if (!hold || hold.drag !== editorStaffDrag) {
     return;
   }
-  if (hold.drag.mode === "pen-dur" || hold.drag.mode === "pen-cancel" || hold.drag.mode === "pen-delete") {
-    return;
-  }
-  if (hold.drag.dragging) {
-    return;
-  }
-  if (phase === "ring") {
-    if (hold.phase !== "wait") {
-      return;
-    }
-    hold.phase = "ring";
-    editorPenDrawRing(hold.target, false);
-    if (editorPenDurKind(hold.target.kind)) {
-      editorPenHoldHintOn = true;
-      editorSyncPenHold();
-    }
+  if (hold.drag.mode === "pen-delete" || hold.drag.dragging) {
     return;
   }
   if (phase === "warn") {
-    if (!editorPenDeleteKind(hold.target.kind)) {
-      return;
-    }
-    if (hold.phase === "wait") {
-      hold.phase = "ring";
-      if (editorPenDurKind(hold.target.kind)) {
-        editorPenHoldHintOn = true;
-        editorSyncPenHold();
-      }
-    }
-    if (hold.phase !== "ring" && hold.phase !== "warn") {
+    if (hold.phase !== "down" || !editorPenDeleteKind(hold.target.kind)) {
       return;
     }
     hold.phase = "warn";
-    editorPenDrawRing(hold.target, true);
+    editorPenShow(hold.target, "warn");
     return;
   }
   if (phase === "delete") {
     if (hold.phase !== "warn" || !editorPenDeleteKind(hold.target.kind)) {
       return;
     }
+    target = hold.target;
     hold.phase = "gone";
     hold.drag.mode = "pen-delete";
     editorPenHoldClearTimers();
-    editorPenHoldClearVisual();
-    if (editorPenRemoveTarget(hold.drag, hold.target)) {
+    editorPenClearInk();
+    if (editorPenRemoveTarget(hold.drag, target)) {
       editorPenHoldSucceed();
     }
   }
 }
 
-/* Past the slop. True when this move stays on the pencil path. */
-function editorPenHoldTakeMove(drag, dx, dy) {
-  var hold = editorPenHold;
-  var horizontal;
-  if (!hold || hold.drag !== drag) {
+/* A move cancels the hold. Pitch and selection then follow the usual drag. */
+function editorPenHoldTakeMove(drag) {
+  if (!editorPenHold || editorPenHold.drag !== drag) {
     return false;
-  }
-  horizontal = dx * dx >= dy * dy;
-  if (hold.phase === "warn") {
-    editorPenHoldClearTimers();
-    hold.phase = "gone";
-    editorPenHoldClearVisual();
-    drag.mode = "pen-cancel";
-    return true;
-  }
-  if (hold.phase === "ring" && editorPenDurKind(hold.target.kind) && horizontal) {
-    editorPenHoldClearTimers();
-    hold.phase = "gone";
-    drag.mode = "pen-dur";
-    editorPenDurArm(drag, hold.target);
-    editorPenHoldClearVisual();
-    editorPenDrawRing(hold.target, false);
-    return true;
   }
   editorPenHoldClear();
   return false;
@@ -4765,157 +4782,6 @@ function editorPenColumnSpan(music, col) {
     to = from;
   }
   return { start: from, end: to, token: music.slice(from, to) };
-}
-
-function editorPenTokenDur(token, kind) {
-  var m;
-  if (kind === "note") {
-    m = /[A-G](?:##|bb|x|X|#|b|n)?\d([whqesn])?(\.{0,2})/.exec(token || "");
-  } else {
-    m = /^[r/]([whqesn])?(\.{0,2})/i.exec(token || "");
-  }
-  return {
-    base: (m && m[1]) || (kind === "note" ? "q" : "q"),
-    dots: m && m[2] ? m[2].length : 0
-  };
-}
-
-function editorPenLadderIndex(base) {
-  var key = !base || base === "n" ? "q" : base;
-  var i;
-  for (i = 0; i < EDITOR_PEN_LADDER.length; i++) {
-    if (EDITOR_PEN_LADDER[i] === key) {
-      return i;
-    }
-  }
-  return 2;
-}
-
-function editorPenDurArm(drag, target) {
-  var span = editorPenColumnSpan(drag.music, target.col);
-  var pitch;
-  var token;
-  var dur;
-  token = span ? span.token : "";
-  if (target.kind === "note" && target.head) {
-    pitch = editorStaffColumnPitch(drag.music, target.head);
-    if (pitch) {
-      token = drag.music.slice(pitch.start, pitch.end);
-      drag.penTokenStart = pitch.start;
-      drag.penTokenEnd = pitch.end;
-    }
-  }
-  if (drag.penTokenStart == null && span) {
-    drag.penTokenStart = span.start;
-    drag.penTokenEnd = span.end;
-  }
-  dur = editorPenTokenDur(token, target.kind);
-  drag.penDurBase = dur.base;
-  drag.penDurDots = dur.dots;
-  drag.penDurOrigin = editorPenLadderIndex(dur.base);
-  drag.penDurIndex = drag.penDurOrigin;
-  drag.penTarget = target;
-}
-
-function editorPenDurIndexAt(drag, event) {
-  var steps = Math.round(((event && event.clientX) - drag.startX) / EDITOR_PEN_DUR_PX);
-  var index = drag.penDurOrigin + steps;
-  if (index < 0) {
-    index = 0;
-  }
-  if (index >= EDITOR_PEN_LADDER.length) {
-    index = EDITOR_PEN_LADDER.length - 1;
-  }
-  return index;
-}
-
-function editorPenDurPreview(drag) {
-  var preview = document.getElementById("editPreview");
-  var svg = preview && preview.querySelector("svg.music-staff");
-  var target = drag.penTarget;
-  var dur;
-  var name;
-  var gap;
-  var left;
-  if (!svg || !target) {
-    return;
-  }
-  editorClearStaffCue(svg, ".staff-pen-dur");
-  editorPenDrawRing(target, false);
-  if (drag.penDurIndex === drag.penDurOrigin) {
-    return;
-  }
-  dur = EDITOR_PEN_LADDER[drag.penDurIndex];
-  gap = drag.layoutLineGap > 0 ? drag.layoutLineGap : 12;
-  if (target.kind === "rest" && typeof staffRestGlyph === "function") {
-    name = staffRestGlyph(dur);
-  } else if (target.kind === "slash" && typeof staffSlashHeadGlyph === "function") {
-    name = staffSlashHeadGlyph(dur);
-  } else if (typeof staffDurationGlyph === "function") {
-    name = staffDurationGlyph(dur);
-  }
-  if (name && typeof staffPlaceGlyph === "function") {
-    left = typeof target.gx === "number" ? target.gx : target.x - target.rx;
-    staffPlaceGlyph(svg, name, left, typeof target.gy === "number" ? target.gy : target.y, gap, "staff-pen-dur");
-  }
-  if ((dur === "e" || dur === "s") && target.kind !== "rest" && typeof staffFlagGlyph === "function" && typeof staffPlaceGlyph === "function") {
-    staffPlaceGlyph(svg, staffFlagGlyph(dur, true), target.x + (target.rx || 6), target.y - gap * 3.2, gap, "staff-pen-dur");
-  }
-}
-
-function editorPenDurMove(drag, event) {
-  var index;
-  if (!drag || drag.mode !== "pen-dur") {
-    return;
-  }
-  index = editorPenDurIndexAt(drag, event);
-  if (index === drag.penDurIndex) {
-    return;
-  }
-  drag.penDurIndex = index;
-  editorPenDurPreview(drag);
-}
-
-function editorPenInsideBeam(music, at) {
-  var beam;
-  music = String(music || "");
-  beam = editorInnermostGroupAt(music, at + 1, "beam") || editorInnermostGroupAt(music, at, "beam");
-  return !!(beam && at >= beam.innerStart && at < beam.closeStart);
-}
-
-function editorPenDurCommit(drag) {
-  var dur;
-  var dot;
-  var field;
-  var end;
-  var hit;
-  if (!drag || drag.penDurIndex == null || drag.penDurIndex === drag.penDurOrigin) {
-    return;
-  }
-  dur = EDITOR_PEN_LADDER[drag.penDurIndex];
-  if (editorPenInsideBeam(drag.music, drag.penTokenStart || 0) && !editorDurationIsShort(dur)) {
-    editorRefuse(t("edit.faultBeamPitches"));
-    editorPenHoldClearVisual();
-    return;
-  }
-  field = drag.field;
-  if (!field || drag.penTokenEnd == null) {
-    return;
-  }
-  end = drag.lineStart + drag.musicAt + drag.penTokenEnd;
-  editorPlaceCaret(field, end, end, true);
-  dot = drag.penDurDots || 0;
-  hit = editorMusicHitAtCaret();
-  if (hit && hit.kind === "pitch" && editorStackGroupAtCaret()) {
-    if (!editorApplyStackDuration(dur, dot)) {
-      return;
-    }
-  } else if (!hit || !editorApplyDurationToHit(hit, dur, dot)) {
-    return;
-  }
-  editorNote.dur = editorDurCode(dur);
-  editorPenHoldSucceed();
-  editorPaintNotePad();
 }
 
 function editorPenHangSpan(music, col, kind) {
@@ -5031,14 +4897,15 @@ function editorPenRemoveTarget(drag, target) {
     editorPaintNotePad();
     return true;
   }
-  if (!editorPenDurKind(target.kind)) {
+  if (target.kind !== "note" && target.kind !== "rest" && target.kind !== "slash") {
     return false;
   }
+  /* Caret inside the token, same as Backspace. The last pitch ends on ], so the caret sits on the pitch, not the bracket. */
   if (target.kind === "note" && target.head) {
     pitch = editorStaffColumnPitch(music, target.head);
     if (pitch) {
-      range = editorPenFieldRange(drag, pitch.start, pitch.end);
-      editorPlaceCaret(drag.field, range.a, range.b, true);
+      range = editorPenFieldRange(drag, pitch.end > pitch.start ? pitch.end - 1 : pitch.end, pitch.end > pitch.start ? pitch.end - 1 : pitch.end);
+      editorPlaceCaret(drag.field, range.a, range.a, true);
       return editorEraseStep() !== false;
     }
   }
@@ -5046,8 +4913,8 @@ function editorPenRemoveTarget(drag, target) {
   if (!span) {
     return false;
   }
-  range = editorPenFieldRange(drag, span.start, span.end);
-  editorPlaceCaret(drag.field, range.a, range.b, true);
+  range = editorPenFieldRange(drag, span.end > span.start ? span.end - 1 : span.end, span.end > span.start ? span.end - 1 : span.end);
+  editorPlaceCaret(drag.field, range.a, range.a, true);
   return editorEraseStep() !== false;
 }
 
@@ -6673,6 +6540,18 @@ function editorStaffPreviewHover(event) {
   preview = document.getElementById("editPreview");
   hit = editorStaffPreviewHitContext(event);
   head = editorStaffPreviewHead(hit);
+  if (hit && head == null) {
+    var penHover = editorPenTargetAt(hit);
+    if (penHover && editorPenDeleteKind(penHover.kind) && penHover.kind !== "note") {
+      if (editorStaffGhost) {
+        editorStaffPreviewClearGhost();
+      }
+      editorStaffHoverClearHot(preview);
+      editorPenShow(penHover, "hot");
+      return;
+    }
+  }
+  editorPenClearInk();
   /* A fine pointer over a drum gap previews that line. A pencil does the same on a pitched staff. */
   penAim = editorSymbolsIsOpen() && !head && (editorDrumOn() || event.pointerType === "pen");
   if (penAim) {
@@ -6707,7 +6586,7 @@ function editorStaffPreviewHover(event) {
 
 function editorStaffPreviewPointerLeave() {
   editorStaffPitchHotHide();
-  if (editorPenHold && editorStaffDrag && !editorStaffDrag.dragging && editorStaffDrag.mode !== "pen-dur") {
+  if (editorPenHold && editorStaffDrag && !editorStaffDrag.dragging) {
     editorPenHoldClear();
   }
 }
@@ -6973,19 +6852,7 @@ function editorStaffPreviewPointerMove(event) {
       return;
     }
     editorStaffPreviewClearClipHold();
-    if (editorPenHoldTakeMove(drag, dx, dy)) {
-      drag.dragging = true;
-      editorStaffPreviewBeginEdit();
-      preview = document.getElementById("editPreview");
-      editorStaffPreviewCapture(preview, event.pointerId);
-      if (drag.mode === "pen-dur") {
-        editorPenDurMove(drag, event);
-      }
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      return;
-    }
+    editorPenHoldTakeMove(drag);
     drag.dragging = true;
     drag.notesWereOpen = editorSymbolsIsOpen();
     editorStaffPreviewBeginEdit();
@@ -7020,19 +6887,6 @@ function editorStaffPreviewPointerMove(event) {
       editorStaffPreviewClearGhost();
       editorStaffPreviewEnsureEdgeScroll();
     }
-  }
-  if (drag.mode === "pen-dur") {
-    editorPenDurMove(drag, event);
-    if (event.cancelable) {
-      event.preventDefault();
-    }
-    return;
-  }
-  if (drag.mode === "pen-cancel") {
-    if (event.cancelable) {
-      event.preventDefault();
-    }
-    return;
   }
   if (drag.mode === "pitch") {
     editorStaffPitchDragMove(drag, event);
@@ -7092,20 +6946,7 @@ function editorStaffPreviewPointerUp(event) {
     } catch (errRel) {}
   }
   penSnap = editorPenHold;
-  if (drag.mode === "pen-dur") {
-    editorPenDurCommit(drag);
-    editorPenHoldClear();
-    editorStaffDrag = null;
-    editorStaffGestureMarkSeen();
-    editorBeginPadInput();
-    editorPaintNotePad();
-    editorSyncTokenHighlight();
-    if (event.cancelable) {
-      event.preventDefault();
-    }
-    return;
-  }
-  if (drag.mode === "pen-cancel" || drag.mode === "pen-delete") {
+  if (drag.mode === "pen-delete") {
     editorPenHoldClear();
     editorStaffDrag = null;
     editorBeginPadInput();
