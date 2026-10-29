@@ -1635,6 +1635,180 @@ function drumWriteHit(source, onset, id, dur, op) {
   return text;
 }
 
+function drumWriteSpanCovers(ranges, from, to, index) {
+  var start;
+  var end;
+  if (!ranges || !ranges[from] || typeof index !== "number") {
+    return false;
+  }
+  start = ranges[from].start;
+  end = ranges[to] ? ranges[to].end : ranges[from].end;
+  return index >= start && index < end;
+}
+
+/* Onset of the plain hit or stack that contains index, or null. */
+function drumWriteLocateSide(tokens, ranges, index) {
+  var onset = 0;
+  var i = 0;
+  var tok;
+  var from;
+  var stack;
+  var rest;
+  var hit;
+  var q;
+  tokens = tokens || [];
+  while (i < tokens.length) {
+    tok = tokens[i];
+    if (tok === "|") {
+      i++;
+      continue;
+    }
+    if (tok.charAt(0) === "[") {
+      from = i;
+      stack = drumWriteReadStack(tokens, i);
+      if (!stack) {
+        return null;
+      }
+      if (drumWriteSpanCovers(ranges, from, stack.next - 1, index)) {
+        return { onset: drumRoundOnset(onset), kind: stack.cell.kind };
+      }
+      onset += stack.cell.q;
+      i = stack.next;
+      continue;
+    }
+    if (!drumWritePlainToken(tok)) {
+      return null;
+    }
+    rest = staffParseRestToken(tok);
+    if (rest) {
+      q = staffDurationQuarters(rest.duration);
+      onset += q;
+      i++;
+      continue;
+    }
+    hit = drumParseHitToken(tok);
+    if (!hit) {
+      return null;
+    }
+    q = staffDurationQuarters(hit.duration);
+    if (drumWriteSpanCovers(ranges, i, i, index)) {
+      return { onset: drumRoundOnset(onset), kind: "hit" };
+    }
+    onset += q;
+    i++;
+  }
+  return null;
+}
+
+function drumWriteShiftAfter(cells, onset, delta) {
+  var i;
+  var cell;
+  if (!delta) {
+    return;
+  }
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (cell && cell.onset > onset + 0.02) {
+      cell.onset = drumRoundOnset(cell.onset + delta);
+    }
+  }
+}
+
+/*
+ * Change the plain hit under index to dur, then fill the other side.
+ * index is a character offset in the music. A beam, flam, accent, dynamic,
+ * or chart mark stays null. The same duration returns the source unchanged.
+ */
+function drumWriteDuration(source, index, dur) {
+  var parts;
+  var music;
+  var caption;
+  var model;
+  var made;
+  var tokens;
+  var ranges;
+  var split;
+  var located;
+  var cells;
+  var i;
+  var cell;
+  var found;
+  var oldQ;
+  var newQ;
+  var edited;
+  var text;
+  if (typeof source !== "string" || typeof index !== "number" || isNaN(index) || index < 0) {
+    return null;
+  }
+  made = drumWriteDur(dur);
+  if (!made) {
+    return null;
+  }
+  parts = typeof staffExampleParts === "function" ? staffExampleParts(source) : { music: source.trim(), caption: "" };
+  music = parts.music || "";
+  caption = parts.caption || "";
+  model = drumWriteRead(music);
+  if (!model) {
+    return null;
+  }
+  tokens = staffTokenize(music);
+  ranges = staffTokenRanges(music);
+  split = drumSplitFeet(tokens, ranges);
+  if (!split || split.error) {
+    return null;
+  }
+  located = drumWriteLocateSide(split.handsTokens, split.handsRanges, index);
+  cells = model.hands;
+  if (!located && split.feetTokens) {
+    located = drumWriteLocateSide(split.feetTokens, split.feetRanges, index);
+    cells = model.feet;
+  }
+  if (!located || (located.kind !== "hit" && located.kind !== "stack")) {
+    return null;
+  }
+  found = null;
+  for (i = 0; i < cells.length; i++) {
+    cell = cells[i];
+    if (!cell || cell.kind === "bar" || cell.kind !== located.kind) {
+      continue;
+    }
+    if (drumWriteNear(cell.onset, located.onset)) {
+      found = cell;
+      break;
+    }
+  }
+  if (!found) {
+    return null;
+  }
+  oldQ = found.q;
+  newQ = staffDurationQuarters(made);
+  if (!(newQ > 0)) {
+    return null;
+  }
+  if (drumWriteNear(oldQ, newQ) && found.dur === made) {
+    return source;
+  }
+  found.dur = made;
+  found.q = newQ;
+  drumWriteShiftAfter(cells, located.onset, drumRoundOnset(newQ - oldQ));
+  if (drumWriteHasHit(model.feet)) {
+    edited = drumWriteAlign(model.hands, model.feet, made);
+    model.hands = edited.hands;
+    model.feet = edited.feet;
+  } else {
+    model.hands = drumWriteFill(model.hands, made);
+    model.feet = [];
+  }
+  text = drumWriteSerialize(model);
+  if (text && !parseDrumNotation(text)) {
+    return null;
+  }
+  if (caption) {
+    return text ? text + " \u00B7 " + caption : caption;
+  }
+  return text;
+}
+
 function drumLooksNotationIsh(tokens) {
   var i;
   var t;

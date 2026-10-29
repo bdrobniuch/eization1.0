@@ -2241,6 +2241,10 @@ function editorStaffFaultText(raw) {
     return t("edit.staffPending");
   }
   key = EDITOR_FAULT_WHY[reason];
+  /* Drum reasons without a musician sentence stay the generic pending line. */
+  if (!key && editorDrumOn()) {
+    return t("edit.staffPending");
+  }
   why = key ? t(key) : reason;
   if (!why || why.length >= 80) {
     return t("edit.staffPending");
@@ -16482,11 +16486,13 @@ function editorPaintDurations(row) {
       { "data-dur": choices[i][0] },
       editorMusicIcon(choices[i][1]),
       t(choices[i][2]),
-      lit !== null && lit !== undefined && lit === choices[i][0]
+      lit !== null && lit !== undefined &&       lit === choices[i][0]
     );
   }
   editorPadButton(row, { "data-dot": "1" }, editorMusicIcon("dur-" + (lit || "q") + "."), t("edit.noteDotted"), litDot);
-  editorPaintArticulations(row);
+  if (!editorDrumOn()) {
+    editorPaintArticulations(row);
+  }
 }
 
 function editorArtFace() {
@@ -16553,7 +16559,11 @@ function editorToggleArtMenu() {
 }
 
 function editorPaintNoteEvents(row) {
-  var rhythm = editorShownRhythmSuffix();
+  var rhythm;
+  if (editorDrumOn()) {
+    return;
+  }
+  rhythm = editorShownRhythmSuffix();
   editorPadButton(row, { "data-event": "slash" }, editorMusicIcon("slash-" + rhythm), t("edit.noteSlash") + " /" + rhythm);
   editorPadButton(row, { "data-event": "rest" }, editorMusicIcon("rest-" + rhythm), t("edit.noteRest") + " r" + rhythm);
   editorPadButton(row, { "data-event": "bar" }, editorMusicIcon("bar"), t("edit.noteBar"), editorCaretHasBarMark());
@@ -16983,12 +16993,6 @@ function editorPaintDrumKit(row) {
     ["hf", "Pedal"],
     ["rb", "Bell"]
   ];
-  var ornaments = [
-    ["flam", "Flam"],
-    ["drag", "Drag"],
-    ["rim", "Rim"],
-    ["xstick", "Cross"]
-  ];
   var i;
   row.classList.add("is-drum-kit");
   if (editorDrumVoiceSwitchOn()) {
@@ -17023,15 +17027,6 @@ function editorPaintDrumKit(row) {
       more[i][1],
       more[i][1],
       editorDrumPiece === more[i][0]
-    );
-  }
-  for (i = 0; i < ornaments.length; i++) {
-    editorPadButton(
-      row,
-      { "data-drum-ornament": ornaments[i][0] },
-      ornaments[i][1],
-      ornaments[i][1],
-      false
     );
   }
 }
@@ -17092,26 +17087,95 @@ function editorDrumReplaceToken(hit, next) {
   return true;
 }
 
+function editorDrumDurString(dur, dot) {
+  var code = editorDurCode(dur) || "q";
+  var dots = dot === 2 || dot === ".." ? ".." : dot ? "." : "";
+  return code + dots;
+}
+
+function editorDrumLineMusic() {
+  var span = editorLineSpan();
+  var slice;
+  var parts;
+  var music;
+  var at;
+  if (!span || !span.field) {
+    return null;
+  }
+  slice = span.value.slice(span.lineStart, span.lineEnd);
+  parts = typeof staffExampleParts === "function" ? staffExampleParts(slice) : { music: slice.trim() };
+  music = parts.music || "";
+  at = slice.indexOf(music);
+  if (at < 0) {
+    at = 0;
+  }
+  return {
+    field: span.field,
+    lineStart: span.lineStart,
+    lineEnd: span.lineEnd,
+    music: music,
+    musicAt: at,
+    caret: span.caret
+  };
+}
+
 function editorDrumApplyDuration(dur, dot) {
-  var hit = editorDrumCaretToken();
+  var line;
+  var token;
+  var index;
   var next;
-  if (!hit || typeof drumWithDuration !== "function") {
+  var nextParts;
+  if (typeof drumWriteDuration !== "function") {
     return false;
   }
-  next = drumWithDuration(hit.token, dur || "q", dot);
-  if (!next) {
+  line = editorDrumLineMusic();
+  token = editorDrumCaretToken();
+  if (!line || !token) {
     return false;
   }
-  return editorDrumReplaceToken(hit, next);
+  index = token.absStart - line.lineStart - line.musicAt;
+  if (index < 0) {
+    index = 0;
+  }
+  next = drumWriteDuration(line.music, index, editorDrumDurString(dur, dot));
+  if (next == null) {
+    return false;
+  }
+  nextParts = typeof staffExampleParts === "function" ? staffExampleParts(next) : { music: next };
+  return editorDrumCommitMusic(line, nextParts.music || "", null);
 }
 
 function editorDrumInsertPiece(id) {
+  var line;
+  var code;
+  var spec;
+  var voice;
+  var onset;
+  var next;
+  var nextParts;
   editorDrumPiece = id || editorDrumPiece;
   if (!(editorDrumPiece === "hh")) {
     editorDrumOpenHat = false;
   }
-  editorPushSymbolUndo();
-  editorInsertSymbol(editorDrumToken(editorDrumPiece));
+  line = editorDrumLineMusic();
+  if (!line || typeof drumWriteHit !== "function" || typeof drumVoiceEnd !== "function" || typeof drumWriteKit !== "function") {
+    editorPaintNotePad();
+    return;
+  }
+  code = editorDrumLitId();
+  spec = drumWriteKit(code);
+  voice = spec && spec.voice === "feet" ? "feet" : "hands";
+  onset = drumVoiceEnd(line.music, voice);
+  next = drumWriteHit(line.music, onset, code, editorDrumArmedDur(), "place");
+  if (next == null) {
+    editorPaintNotePad();
+    return;
+  }
+  nextParts = typeof staffExampleParts === "function" ? staffExampleParts(next) : { music: next };
+  editorDrumStep = null;
+  if (!editorDrumCommitMusic(line, nextParts.music || "", null)) {
+    editorPaintNotePad();
+  }
 }
 
 function editorDrumInsertOrnament(word) {
@@ -17180,7 +17244,7 @@ function editorDrumFinishGesture(drag, event) {
     return;
   }
   editorStaffPreviewApplyCaret(hit.field, hit.lineStart, hit.musicAt, hit.music, hit.insertIndex, { reenter: true });
-  editorDrumInsertPiece(seat.id);
+  editorPaintNotePad();
 }
 
 function editorDrumPlaceAt(hit) {
@@ -17188,7 +17252,6 @@ function editorDrumPlaceAt(hit) {
     return;
   }
   editorStaffPreviewApplyCaret(hit.field, hit.lineStart, hit.musicAt, hit.music, hit.insertIndex, { reenter: true });
-  editorDrumInsertPiece(editorDrumPiece);
 }
 
 function editorPaintNotePad() {
@@ -17220,6 +17283,7 @@ function editorPaintNotePad() {
   }
   editorPaintDurations(durHost);
   editorPaintNoteEvents(eventsHost);
+  eventsHost.hidden = !!editorDrumOn();
   editorNotePadStamp = stamp;
   editorPaintUndoRedo();
   editorPlaceOpenMenus(true);
@@ -18058,8 +18122,9 @@ function editorSetDuration(dur) {
   var next = editorDurCode(dur);
   var hit;
   editorNote.dur = next;
-  if (editorDrumOn() && editorDrumApplyDuration(next, editorNote.dot)) {
-    editorStaffSweepAfterEdit();
+  if (editorDrumOn()) {
+    editorDrumApplyDuration(next, editorNote.dot);
+    editorPaintNotePad();
     return;
   }
   if (editorApplySelectionDuration(next)) {
@@ -18082,6 +18147,13 @@ function editorToggleDot() {
   var traits = editorStaffPadTraits();
   var next;
   var hit;
+  if (editorDrumOn()) {
+    editorNote.dot = !editorNote.dot;
+    editorNote.dots = editorNote.dot ? 1 : 0;
+    editorDrumApplyDuration(editorNote.dur, editorNote.dot);
+    editorPaintNotePad();
+    return;
+  }
   if (traits && traits.selection) {
     next = !traits.dot;
     editorNote.dot = next;

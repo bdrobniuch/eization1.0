@@ -2852,6 +2852,17 @@ function drumWriteChecks(w) {
   check("removing the snare restores the hats", w.drumWriteHit(joined, 0, "sd", "e", "remove") === back);
   check("a chart mark stays a caret edit", w.drumWriteHit("^Intro hhe", 0, "sd", "e", "place") === null);
   check("a flam stays a caret edit", w.drumWriteHit("flam hhe", 0, "sd", "e", "place") === null);
+  check(
+    "a plain drum duration fills the other side",
+    w.drumWriteDuration("hhe hhe feet bdq rq", 0, "q") === "hhq hhe re feet bdq rq"
+  );
+  check(
+    "the same drum duration stays put",
+    w.drumWriteDuration("hhe hhe feet bdq rq", 0, "e") === "hhe hhe feet bdq rq"
+  );
+  check("a beamed drum duration stays text", w.drumWriteDuration("{hhe hhe} feet bdq", 1, "q") === null);
+  check("a flam duration stays text", w.drumWriteDuration("flam hhe", 0, "q") === null);
+  check("an accented drum duration stays text", w.drumWriteDuration("hhe>", 0, "q") === null);
 }
 
 function drumPracticeChecks(w) {
@@ -5566,6 +5577,32 @@ function chatCase(w) {
         screenFire("pointermove", gapX, layout.staffTop - (layout.lineGap || 12) * 4, 1, "pen");
         screenFire("pointerup", gapX, layout.staffTop - (layout.lineGap || 12) * 4, 0, "pen");
         check("a pencil slide off the drums drops the hit", focusLine.value === "bdq" && !w.editorStaffGhost);
+        placeCaret("hhe hhe feet bdq rq");
+        park(0);
+        w.editorNote.dur = "e";
+        w.editorNote.dot = false;
+        w.editorNote.dots = 0;
+        w.editorNotePadStamp = "";
+        w.refreshEditor();
+        poke(w.document.querySelector('#editNoteDurations [data-dur=""]'));
+        check("a duration click on a plain drum fills the other side", focusLine.value === "hhq hhe re feet bdq rq");
+        placeCaret("{hhe hhe} feet bdq");
+        park(1);
+        w.editorNotePadStamp = "";
+        w.refreshEditor();
+        poke(w.document.querySelector('#editNoteDurations [data-dur=""]'));
+        check(
+          "a duration click on a beamed drum only lights the length",
+          focusLine.value === "{hhe hhe} feet bdq" && w.editorNote.dur === ""
+        );
+        check("drum write notes hide the staff event row", !w.document.querySelector("#editNoteEvents [data-event]"));
+        check("drum write notes hide ornaments", !w.document.querySelector("[data-drum-ornament]"));
+        check("drum write notes keep durations", !!w.document.querySelector("#editNoteDurations [data-dur='e']"));
+        poke(w.document.querySelector("#editNoteStep [data-drum='sd']"));
+        check(
+          "a kit button on a beamed drum only lights",
+          focusLine.value === "{hhe hhe} feet bdq" && w.editorDrumPiece === "sd"
+        );
       } finally {
         w.editorDrumPiece = pieceBefore;
         w.setEditorKind(kindBefore);
@@ -5577,6 +5614,7 @@ function chatCase(w) {
         w.refreshEditor();
       }
     })();
+    check("staff write notes keep the tie", !!w.document.querySelector("#editNoteEvents [data-event='tie']"));
     (function () {
       var beforeBars = w.editorReadBars();
       w.editorNudgeBars(1);
