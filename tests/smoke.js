@@ -410,6 +410,42 @@ function penStaffHold(w) {
   } else {
     check("a pencil press on a drum staff does not arm", false);
   }
+  w.editorOpen();
+  w.editorSetViewMode("list");
+  w.setEditorKind("staff");
+  var area = w.document.getElementById("allEdit");
+  var sheet = w.document.getElementById("textdiv");
+  function point(target, type, kind, id) {
+    target.dispatchEvent(
+      new w.PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        view: w,
+        pointerId: id,
+        pointerType: kind,
+        button: 0,
+        buttons: type === "pointerup" ? 0 : 1,
+        clientX: 30,
+        clientY: 30
+      })
+    );
+  }
+  area.value = "C4q\nD4q";
+  area.blur();
+  area.setSelectionRange(0, 0);
+  point(sheet, "pointerdown", "pen", 21);
+  point(area, "pointerdown", "touch", 22);
+  check(
+    "a palm touch leaves the example list",
+    area.selectionStart === 0 && w.document.activeElement !== area
+  );
+  point(sheet, "pointerup", "pen", 21);
+  point(area, "pointerdown", "touch", 23);
+  check(
+    "a palm touch just after the pencil lifts leaves the list",
+    w.editorPenPalmActive() && area.selectionStart === 0 && w.document.activeElement !== area
+  );
+  w.editorPenPalmUntil = 0;
   w.setEditorKind(kindBefore === "drum" ? "staff" : kindBefore);
   w.editorPenHoldClear();
   if (typeof w.editorCloseMore === "function") {

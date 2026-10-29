@@ -4474,9 +4474,70 @@ var EDITOR_PEN_HOLD_KEY = "eization-pen-hold";
 /* Red lasts as long as the wait before it, so the pencil can lift in time. */
 var EDITOR_PEN_WARN_MS = 600;
 var EDITOR_PEN_DELETE_MS = 1200;
+/* A palm lands just before the nib and stays just after it. */
+var EDITOR_PEN_PALM_MS = 400;
+var editorPenContact = false;
+var editorPenPalmUntil = 0;
+var editorPenPalmIds = {};
 var editorPenHold = null;
 var editorPenHoldHintOn = false;
 var editorPenPainted = null;
+
+function editorPenPalmActive() {
+  return editorPenContact || Date.now() < editorPenPalmUntil;
+}
+
+function editorPenPalmOnList(event) {
+  var area = document.getElementById("allEdit");
+  return !!(area && event.target && (event.target === area || area.contains(event.target)));
+}
+
+/* Touch in Edit is a palm while the pencil is down. Just after it lifts, only the example list stays quiet. */
+function editorPenPalmGuard(event) {
+  var sheet;
+  var blocked;
+  var area;
+  if (!event || !editorIsOpen()) {
+    return;
+  }
+  sheet = document.getElementById("textdiv");
+  if (!sheet || !event.target || !sheet.contains(event.target)) {
+    return;
+  }
+  if (event.pointerType === "pen") {
+    if (event.type === "pointerdown") {
+      editorPenContact = true;
+      editorPenPalmUntil = 0;
+    } else if (event.type === "pointerup" || event.type === "pointercancel") {
+      editorPenContact = false;
+      editorPenPalmUntil = Date.now() + EDITOR_PEN_PALM_MS;
+    }
+    return;
+  }
+  if (event.pointerType !== "touch") {
+    return;
+  }
+  blocked = editorPenContact || !!editorPenPalmIds[event.pointerId];
+  if (!blocked && Date.now() < editorPenPalmUntil && editorPenPalmOnList(event)) {
+    blocked = true;
+  }
+  if (!blocked) {
+    return;
+  }
+  if (event.type === "pointerup" || event.type === "pointercancel") {
+    delete editorPenPalmIds[event.pointerId];
+  } else if (event.pointerId != null) {
+    editorPenPalmIds[event.pointerId] = true;
+  }
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+  event.stopPropagation();
+  area = document.getElementById("allEdit");
+  if (area && document.activeElement === area) {
+    area.blur();
+  }
+}
 
 function editorPenHoldSeen() {
   try {
@@ -22075,6 +22136,10 @@ function initEditor() {
     if (!target) {
       return;
     }
+    if (target.id === "allEdit" && editorPenPalmActive()) {
+      target.blur();
+      return;
+    }
     if (target.id === "editFocusLine" || target.id === "allEdit") {
       editorPadCaret = null;
       editorSetPadInputMode(false);
@@ -22086,6 +22151,13 @@ function initEditor() {
     }
   }
   document.addEventListener("focusin", editorOnFieldFocusForPad);
+  var editSheet = document.getElementById("textdiv");
+  if (editSheet) {
+    editSheet.addEventListener("pointerdown", editorPenPalmGuard, true);
+    editSheet.addEventListener("pointermove", editorPenPalmGuard, true);
+    editSheet.addEventListener("pointerup", editorPenPalmGuard, true);
+    editSheet.addEventListener("pointercancel", editorPenPalmGuard, true);
+  }
   var editPreview = document.getElementById("editPreview");
   if (editPreview) {
     editPreview.addEventListener("pointerdown", editorStaffPreviewPointerDown);
