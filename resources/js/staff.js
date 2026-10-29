@@ -4377,6 +4377,40 @@ function renderMusicStaff(source, role, opts) {
    */
   var tupletSpace = lineGap * 0.9;
   var tupletDigitH = 1.5 * tupletSpace;
+  /* Pencil hit boxes. Not drawn. A notehead still wins when both contain the point. */
+  var penInks = [];
+  function staffPenBox(kind, col, x, y, rx, ry, extra) {
+    var ink = {
+      kind: kind,
+      col: col,
+      x: x,
+      y: y,
+      rx: rx > 0 ? rx : 6,
+      ry: ry > 0 ? ry : 6,
+      gx: x - (rx > 0 ? rx : 6),
+      gy: y
+    };
+    if (extra) {
+      if (typeof extra.col1 === "number") {
+        ink.col1 = extra.col1;
+      }
+      if (typeof extra.gx === "number") {
+        ink.gx = extra.gx;
+      }
+      if (typeof extra.gy === "number") {
+        ink.gy = extra.gy;
+      }
+      if (typeof extra.x0 === "number") {
+        ink.x0 = extra.x0;
+        ink.y0 = extra.y0;
+        ink.x1 = extra.x1;
+        ink.y1 = extra.y1;
+        ink.pad = extra.pad > 0 ? extra.pad : lineGap * 0.45;
+      }
+    }
+    penInks.push(ink);
+    return ink;
+  }
   var tupletClear = lineGap * 0.75;
   var tupletPad = lineGap * 0.35;
   var tupletHook = lineGap * 0.6;
@@ -4585,6 +4619,27 @@ function renderMusicStaff(source, role, opts) {
       inkBot = tInkBot;
     }
     tupletLayouts.push(tLayout);
+    if (tLayout.bracket) {
+      staffPenBox(
+        "tuplet",
+        tFirst,
+        (tLayout.x0 + tLayout.x1) / 2,
+        (Math.min(tLayout.y0, tLayout.y1) + Math.max(tLayout.y0, tLayout.y1)) / 2,
+        Math.abs(tLayout.x1 - tLayout.x0) / 2 + 4,
+        Math.max(Math.abs(tLayout.y1 - tLayout.y0) / 2, tupletDigitH / 2) + lineGap * 0.35,
+        { col1: tLast }
+      );
+    } else {
+      staffPenBox(
+        "tuplet",
+        tFirst,
+        tLayout.cx,
+        tLayout.cy,
+        Math.max(tLayout.numW / 2, lineGap * 0.4) + 6,
+        tupletDigitH / 2 + 6,
+        { col1: tLast }
+      );
+    }
   }
   if (hasChordText) {
     chordY = inkTop - 8;
@@ -4877,7 +4932,7 @@ function renderMusicStaff(source, role, opts) {
     return y;
   }
 
-  function staffDrawBelowText(x, text) {
+  function staffDrawBelowText(x, text, col) {
     var label = staffFormatDegreeLabel(text);
     var width = staffMeasureText(label, labelSize);
     var y = staffAvoidText(placedBelow, x, labelY, width, "middle", labelSize + 2);
@@ -4890,9 +4945,10 @@ function renderMusicStaff(source, role, opts) {
     });
     node.textContent = label;
     svg.appendChild(node);
+    staffPenBox("text", col, x, y - labelSize * 0.35, width / 2 + 4, labelSize * 0.65);
   }
 
-  function staffDrawAboveText(x, text) {
+  function staffDrawAboveText(x, text, col) {
     var label = staffFormatChordText(text);
     var width = staffMeasureText(label, chordSize);
     var y = staffAvoidText(placedAbove, x, chordY, width, "middle", -(chordSize + 2));
@@ -4905,6 +4961,7 @@ function renderMusicStaff(source, role, opts) {
     });
     node.textContent = label;
     svg.appendChild(node);
+    staffPenBox("text", col, x, y - chordSize * 0.35, width / 2 + 4, chordSize * 0.65);
   }
 
   for (e = 0; e < columns.length; e++) {
@@ -4947,6 +5004,10 @@ function renderMusicStaff(source, role, opts) {
         restY = staffTop + 2 * lineGap;
       }
       staffPlaceGlyph(svg, restName, cx - restAdv / 2, restY, lineGap);
+      staffPenBox("rest", e, cx, restY, Math.max(restAdv / 2, lineGap * 0.55), lineGap, {
+        gx: cx - restAdv / 2,
+        gy: restY
+      });
       var restDots = staffDurationDotCount(ev.duration || "q");
       if (restDots) {
         /* Every rest dot sits in the third space, beside the rest. */
@@ -4987,6 +5048,16 @@ function renderMusicStaff(source, role, opts) {
       staffStoreHead(e, ev.pitch.step, drawn, ev.duration || "q", isSlash || isBeat, staffTieKey(ev.pitch));
       if (!isSlash && !isBeat) {
         staffRememberPitchHead(e, drawn, ev.pitch);
+      } else {
+        staffPenBox(
+          "slash",
+          e,
+          (drawn.left + drawn.right) / 2,
+          drawn.ny,
+          drawn.headRx > 0 ? drawn.headRx : noteHeadRx,
+          noteHeadRy,
+          { gx: drawn.left, gy: drawn.ny }
+        );
       }
       var ny = drawn.ny;
       colNy[e] = ny;
@@ -5201,6 +5272,22 @@ function renderMusicStaff(source, role, opts) {
     var t0 = tips[0];
     var t1 = tips[tips.length - 1];
     drawBeamSegment(t0.x, t0.y, t1.x, t1.y);
+    staffPenBox(
+      "beam",
+      grp.indices[0],
+      (t0.x + t1.x) / 2,
+      (t0.y + t1.y) / 2,
+      Math.abs(t1.x - t0.x) / 2 + 4,
+      lineGap * 0.45,
+      {
+        col1: grp.indices[grp.indices.length - 1],
+        x0: t0.x,
+        y0: t0.y,
+        x1: t1.x,
+        y1: t1.y,
+        pad: Math.max(beamThick, lineGap * 0.4)
+      }
+    );
     /* Secondary beam for sixteenths (partial where runs of s meet). */
     var hasSixteenth = false;
     for (gi = 0; gi < grp.indices.length; gi++) {
@@ -5557,7 +5644,7 @@ function renderMusicStaff(source, role, opts) {
    */
   var dynY = hasBelowLabels ? labelY + labelSize + 4 : inkBot + chordSize * 0.85;
 
-  function staffDrawChordAt(x, raw) {
+  function staffDrawChordAt(x, raw, col) {
     var tempo = staffTempoLabel(raw);
     var label = tempo || staffFormatChordText(String(raw || "").replace(/_/g, " "));
     var width = staffMeasureText(label, chordSize);
@@ -5572,9 +5659,13 @@ function renderMusicStaff(source, role, opts) {
     });
     sym.textContent = label;
     svg.appendChild(sym);
+    staffPenBox(tempo ? "tempo" : "chord", col, x + width / 2, y - chordSize * 0.35, width / 2 + 4, chordSize * 0.65, {
+      gx: x,
+      gy: y
+    });
   }
 
-  function staffDrawDynamicAt(x, word) {
+  function staffDrawDynamicAt(x, word, col) {
     var dyn = staffSvgEl("text", {
       x: String(x),
       y: String(dynY),
@@ -5584,8 +5675,13 @@ function renderMusicStaff(source, role, opts) {
       "font-style": "italic",
       "class": "staff-dynamic"
     });
+    var width = staffMeasureText(word, chordSize);
     dyn.textContent = word;
     svg.appendChild(dyn);
+    staffPenBox("dynamic", col, x + width / 2, dynY - chordSize * 0.35, width / 2 + 4, chordSize * 0.65, {
+      gx: x,
+      gy: dynY
+    });
   }
 
   function staffDrawHairpin(x0, x1, kind) {
@@ -5800,20 +5896,20 @@ function renderMusicStaff(source, role, opts) {
       continue;
     }
     if (ev.chord) {
-      staffDrawChordAt(colX[e] - noteHeadRx, ev.chord);
+      staffDrawChordAt(colX[e] - noteHeadRx, ev.chord, e);
     }
     if (ev.above) {
-      staffDrawAboveText(colX[e], ev.above);
+      staffDrawAboveText(colX[e], ev.above, e);
     }
     if (ev.label) {
-      staffDrawBelowText(colX[e], ev.label);
+      staffDrawBelowText(colX[e], ev.label, e);
     }
     if (ev.type === "note" && ev.pitch) {
       if (ev.pitch.above) {
-        staffDrawAboveText(colX[e], ev.pitch.above);
+        staffDrawAboveText(colX[e], ev.pitch.above, e);
       }
       if (ev.pitch.label) {
-        staffDrawBelowText(colX[e], ev.pitch.label);
+        staffDrawBelowText(colX[e], ev.pitch.label, e);
       }
     }
     if (ev.type === "stack" && ev.pitches) {
@@ -5827,22 +5923,22 @@ function renderMusicStaff(source, role, opts) {
       var labP;
       for (labP = 0; labP < ev.pitches.length; labP++) {
         if (ev.pitches[labP].above) {
-          staffDrawAboveText(colX[e] + (labOff[labP] || 0), ev.pitches[labP].above);
+          staffDrawAboveText(colX[e] + (labOff[labP] || 0), ev.pitches[labP].above, e);
         }
         if (ev.pitches[labP].label) {
-          staffDrawBelowText(colX[e] + (labOff[labP] || 0), ev.pitches[labP].label);
+          staffDrawBelowText(colX[e] + (labOff[labP] || 0), ev.pitches[labP].label, e);
         }
       }
     }
     if (ev.dynamic) {
-      staffDrawDynamicAt(colX[e] - noteHeadRx, ev.dynamic);
+      staffDrawDynamicAt(colX[e] - noteHeadRx, ev.dynamic, e);
     }
     if (ev.hairpin) {
       var hx0 = colX[e] - noteHeadRx;
       if (ev.dynamic) {
         hx0 += staffMeasureText(ev.dynamic, chordSize) + lineGap * 0.35;
       }
-      openHairpin = { kind: ev.hairpin, x: hx0 };
+      openHairpin = { kind: ev.hairpin, x: hx0, col: e };
     }
     if (ev.hairpinEnd && openHairpin) {
       var hx1 = colX[e] + noteHeadRx;
@@ -5850,6 +5946,15 @@ function renderMusicStaff(source, role, opts) {
         hx1 = colX[e] - noteHeadRx - lineGap * 0.35;
       }
       staffDrawHairpin(openHairpin.x, hx1, openHairpin.kind);
+      staffPenBox(
+        "hairpin",
+        openHairpin.col,
+        (openHairpin.x + hx1) / 2,
+        dynY - chordSize * 0.28,
+        Math.abs(hx1 - openHairpin.x) / 2 + 4,
+        lineGap * 0.7,
+        { col1: e }
+      );
       openHairpin = null;
     }
     if (artMarks[e] && artMarks[e].length) {
@@ -5906,8 +6011,14 @@ function renderMusicStaff(source, role, opts) {
     lineGap: lineGap,
     heads: pitchHeads,
     cols: columns.map(function (col, ci) {
-      return { type: col.type, x: colX[ci], clef: (col && col.clef) || ast.clef };
-    })
+      return {
+        type: col.type,
+        x: colX[ci],
+        clef: (col && col.clef) || ast.clef,
+        head: (col && (col.head || col.type)) || ""
+      };
+    }),
+    penInks: penInks
   };
 
   return svg;

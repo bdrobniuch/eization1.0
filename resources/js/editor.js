@@ -1446,6 +1446,7 @@ function editorCloseQuiet() {
   editorStaffCloseClipMenu();
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
+  editorPenHoldClear();
   editorStaffDrag = null;
   editorStaffRevealKey = "";
   editorStaffRevealPending = "";
@@ -4120,6 +4121,7 @@ function editorStaffSelectNoteUnderPointer(clientX, clientY) {
 function editorStaffPreviewHoldClipAt(x, y) {
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
+  editorPenHoldClear();
   editorStaffDrag = null;
   editorStaffSelectNoteUnderPointer(x, y);
   editorStaffOpenClipMenu(x, y);
@@ -4156,6 +4158,7 @@ function editorStaffPreviewContextMenu(event) {
   event.preventDefault();
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
+  editorPenHoldClear();
   editorStaffDrag = null;
   editorStaffSelectNoteUnderPointer(event.clientX, event.clientY);
   editorStaffOpenClipMenu(event.clientX, event.clientY);
@@ -4323,7 +4326,10 @@ function editorStaffGestureSeen() {
 function forgetStaffGesture() {
   try {
     localStorage.removeItem(EDITOR_STAFF_GESTURE_KEY);
+    localStorage.removeItem(EDITOR_PEN_HOLD_KEY);
   } catch (errForgetGesture) {}
+  editorPenHoldHintOn = false;
+  editorSyncPenHold();
 }
 
 function editorStaffHasNoteColumn(preview) {
@@ -4349,10 +4355,18 @@ function editorStaffHasNoteColumn(preview) {
 function editorStaffGestureFit() {
   var hint = document.getElementById("editStaffGesture");
   var preview = document.getElementById("editPreview");
-  if (!hint || !preview || hint.parentNode !== preview) {
+  var width;
+  if (!preview) {
     return;
   }
-  hint.style.width = editorStaffPreviewViewWidth(preview) + "px";
+  width = editorStaffPreviewViewWidth(preview) + "px";
+  if (hint && hint.parentNode === preview) {
+    hint.style.width = width;
+  }
+  hint = document.getElementById("editPenHold");
+  if (hint && hint.parentNode === preview) {
+    hint.style.width = width;
+  }
 }
 
 function editorStaffGestureMarkSeen() {
@@ -4402,6 +4416,635 @@ function editorSyncStaffGesture() {
     }
   }
   editorStaffGestureFit();
+  editorSyncPenHold();
+}
+
+/*
+ * Pencil on a pitched staff, with Write notes open.
+ * A still nib draws a ring. Sideways after the ring changes length and lands
+ * on release. A longer still hold removes a note, rest, slash, chord name,
+ * or dynamic. Mouse, finger, and drums stay on their own path.
+ */
+var EDITOR_PEN_HOLD_KEY = "eization-pen-hold";
+var EDITOR_PEN_ARM_MS = 500;
+var EDITOR_PEN_WARN_MS = 900;
+var EDITOR_PEN_DELETE_MS = 1400;
+var EDITOR_PEN_DUR_PX = 24;
+var EDITOR_PEN_LADDER = ["s", "e", "q", "h", "w"];
+var editorPenHold = null;
+var editorPenHoldHintOn = false;
+
+function editorPenHoldSeen() {
+  try {
+    return localStorage.getItem(EDITOR_PEN_HOLD_KEY) === "1";
+  } catch (errPenSeen) {
+    return false;
+  }
+}
+
+function editorPenHoldSucceed() {
+  try {
+    localStorage.setItem(EDITOR_PEN_HOLD_KEY, "1");
+  } catch (errPenKeep) {}
+  editorPenHoldHintOn = false;
+  editorSyncPenHold();
+}
+
+function editorSyncPenHold() {
+  var preview = document.getElementById("editPreview");
+  var hint;
+  var show;
+  var bar;
+  if (!preview) {
+    return;
+  }
+  hint = document.getElementById("editPenHold");
+  show =
+    editorPenHoldHintOn &&
+    !editorPenHoldSeen() &&
+    editorPitchStaffOn() &&
+    preview.classList.contains("is-staff");
+  if (!show) {
+    if (hint && hint.parentNode) {
+      hint.parentNode.removeChild(hint);
+    }
+    return;
+  }
+  if (!hint) {
+    hint = document.createElement("p");
+    hint.id = "editPenHold";
+    hint.className = "edit-staff-gesture edit-pen-hold";
+    hint.setAttribute("data-i18n", "edit.penHold");
+  }
+  hint.textContent = t("edit.penHold");
+  if (hint.parentNode !== preview) {
+    bar = document.getElementById("editStaffGesture");
+    if (bar && bar.parentNode === preview) {
+      if (bar.nextSibling) {
+        preview.insertBefore(hint, bar.nextSibling);
+      } else {
+        preview.appendChild(hint);
+      }
+    } else if (editorStaffScrollBar && editorStaffScrollBar.parentNode === preview) {
+      preview.insertBefore(hint, editorStaffScrollBar);
+    } else {
+      preview.appendChild(hint);
+    }
+  }
+  hint.style.width = editorStaffPreviewViewWidth(preview) + "px";
+}
+
+function editorPenHoldClearTimers() {
+  var i;
+  if (!editorPenHold || !editorPenHold.timers) {
+    return;
+  }
+  for (i = 0; i < editorPenHold.timers.length; i++) {
+    window.clearTimeout(editorPenHold.timers[i]);
+  }
+  editorPenHold.timers = [];
+}
+
+function editorPenHoldClearVisual() {
+  var preview = document.getElementById("editPreview");
+  var svg = preview && preview.querySelector("svg.music-staff");
+  if (!svg) {
+    return;
+  }
+  editorClearStaffCue(svg, ".staff-pen-ring");
+  editorClearStaffCue(svg, ".staff-pen-dur");
+}
+
+function editorPenHoldClear() {
+  editorPenHoldClearTimers();
+  editorPenHoldClearVisual();
+  editorPenHold = null;
+}
+
+function editorPenDistToSeg(x, y, ink) {
+  var dx = ink.x1 - ink.x0;
+  var dy = ink.y1 - ink.y0;
+  var len2 = dx * dx + dy * dy;
+  var t = len2 ? ((x - ink.x0) * dx + (y - ink.y0) * dy) / len2 : 0;
+  var px;
+  var py;
+  if (t < 0) {
+    t = 0;
+  }
+  if (t > 1) {
+    t = 1;
+  }
+  px = ink.x0 + t * dx;
+  py = ink.y0 + t * dy;
+  return Math.sqrt((x - px) * (x - px) + (y - py) * (y - py));
+}
+
+function editorPenInkHit(ink, x, y) {
+  var dx;
+  var dy;
+  if (!ink) {
+    return false;
+  }
+  if (typeof ink.x0 === "number") {
+    return editorPenDistToSeg(x, y, ink) <= (ink.pad > 0 ? ink.pad : 8);
+  }
+  dx = (x - ink.x) / (ink.rx > 0 ? ink.rx : 6);
+  dy = (y - ink.y) / (ink.ry > 0 ? ink.ry : 6);
+  return dx * dx + dy * dy <= 1;
+}
+
+/* Noteheads win. Everything else comes from the pencil hit boxes. */
+function editorPenTargetAt(hit) {
+  var head;
+  var inks;
+  var i;
+  var ink;
+  if (!hit || !hit.layout) {
+    return null;
+  }
+  head = editorStaffHeadAtPoint(hit.layout, hit.localX, hit.localY);
+  if (head) {
+    return {
+      kind: "note",
+      col: head.col,
+      head: head,
+      x: head.x,
+      y: head.y,
+      rx: head.rx > 0 ? head.rx : 6,
+      ry: head.ry > 0 ? head.ry : 5,
+      gx: head.x - (head.rx > 0 ? head.rx : 6),
+      gy: head.y
+    };
+  }
+  inks = hit.layout.penInks || [];
+  for (i = inks.length - 1; i >= 0; i--) {
+    ink = inks[i];
+    if (editorPenInkHit(ink, hit.localX, hit.localY)) {
+      return ink;
+    }
+  }
+  return null;
+}
+
+function editorPenDurKind(kind) {
+  return kind === "note" || kind === "rest" || kind === "slash";
+}
+
+function editorPenDeleteKind(kind) {
+  return editorPenDurKind(kind) || kind === "chord" || kind === "dynamic";
+}
+
+function editorPenSelectKind(kind) {
+  return (
+    kind === "chord" ||
+    kind === "dynamic" ||
+    kind === "text" ||
+    kind === "tempo" ||
+    kind === "beam" ||
+    kind === "tuplet" ||
+    kind === "hairpin"
+  );
+}
+
+function editorPenHoldBegin(drag, hit, event) {
+  var target;
+  editorPenHoldClear();
+  if (!drag || !event || event.pointerType !== "pen") {
+    return;
+  }
+  if (!editorPitchStaffOn() || editorDrumOn() || !editorSymbolsIsOpen()) {
+    return;
+  }
+  target = editorPenTargetAt(hit);
+  if (!target) {
+    return;
+  }
+  editorPenHold = {
+    drag: drag,
+    target: target,
+    phase: editorPenDurKind(target.kind) || editorPenDeleteKind(target.kind) ? "wait" : "mark",
+    timers: []
+  };
+  if (editorPenHold.phase !== "wait") {
+    return;
+  }
+  editorPenHold.timers.push(
+    window.setTimeout(function () {
+      editorPenHoldReach("ring");
+    }, EDITOR_PEN_ARM_MS)
+  );
+  editorPenHold.timers.push(
+    window.setTimeout(function () {
+      editorPenHoldReach("warn");
+    }, EDITOR_PEN_WARN_MS)
+  );
+  editorPenHold.timers.push(
+    window.setTimeout(function () {
+      editorPenHoldReach("delete");
+    }, EDITOR_PEN_DELETE_MS)
+  );
+}
+
+function editorPenDrawRing(target, warn) {
+  var preview = document.getElementById("editPreview");
+  var svg = preview && preview.querySelector("svg.music-staff");
+  var ell;
+  if (!svg || !target) {
+    return;
+  }
+  editorClearStaffCue(svg, ".staff-pen-ring");
+  ell = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+  ell.setAttribute("class", warn ? "staff-pen-ring is-warn" : "staff-pen-ring");
+  ell.setAttribute("cx", String(target.x));
+  ell.setAttribute("cy", String(target.y));
+  ell.setAttribute("rx", String((target.rx > 0 ? target.rx : 6) + 4));
+  ell.setAttribute("ry", String((target.ry > 0 ? target.ry : 6) + 4));
+  ell.setAttribute("pointer-events", "none");
+  svg.appendChild(ell);
+}
+
+function editorPenHoldReach(phase) {
+  var hold = editorPenHold;
+  if (!hold || hold.drag !== editorStaffDrag) {
+    return;
+  }
+  if (hold.drag.mode === "pen-dur" || hold.drag.mode === "pen-cancel" || hold.drag.mode === "pen-delete") {
+    return;
+  }
+  if (hold.drag.dragging) {
+    return;
+  }
+  if (phase === "ring") {
+    if (hold.phase !== "wait") {
+      return;
+    }
+    hold.phase = "ring";
+    editorPenDrawRing(hold.target, false);
+    if (editorPenDurKind(hold.target.kind)) {
+      editorPenHoldHintOn = true;
+      editorSyncPenHold();
+    }
+    return;
+  }
+  if (phase === "warn") {
+    if (!editorPenDeleteKind(hold.target.kind)) {
+      return;
+    }
+    if (hold.phase === "wait") {
+      hold.phase = "ring";
+      if (editorPenDurKind(hold.target.kind)) {
+        editorPenHoldHintOn = true;
+        editorSyncPenHold();
+      }
+    }
+    if (hold.phase !== "ring" && hold.phase !== "warn") {
+      return;
+    }
+    hold.phase = "warn";
+    editorPenDrawRing(hold.target, true);
+    return;
+  }
+  if (phase === "delete") {
+    if (hold.phase !== "warn" || !editorPenDeleteKind(hold.target.kind)) {
+      return;
+    }
+    hold.phase = "gone";
+    hold.drag.mode = "pen-delete";
+    editorPenHoldClearTimers();
+    editorPenHoldClearVisual();
+    if (editorPenRemoveTarget(hold.drag, hold.target)) {
+      editorPenHoldSucceed();
+    }
+  }
+}
+
+/* Past the slop. True when this move stays on the pencil path. */
+function editorPenHoldTakeMove(drag, dx, dy) {
+  var hold = editorPenHold;
+  var horizontal;
+  if (!hold || hold.drag !== drag) {
+    return false;
+  }
+  horizontal = dx * dx >= dy * dy;
+  if (hold.phase === "warn") {
+    editorPenHoldClearTimers();
+    hold.phase = "gone";
+    editorPenHoldClearVisual();
+    drag.mode = "pen-cancel";
+    return true;
+  }
+  if (hold.phase === "ring" && editorPenDurKind(hold.target.kind) && horizontal) {
+    editorPenHoldClearTimers();
+    hold.phase = "gone";
+    drag.mode = "pen-dur";
+    editorPenDurArm(drag, hold.target);
+    editorPenHoldClearVisual();
+    editorPenDrawRing(hold.target, false);
+    return true;
+  }
+  editorPenHoldClear();
+  return false;
+}
+
+function editorPenColumnSpan(music, col) {
+  var starts;
+  var from;
+  var to;
+  music = String(music || "");
+  starts = editorStaffColumnStarts(music);
+  if (!starts || col < 0 || col >= starts.length) {
+    return null;
+  }
+  from = starts[col];
+  to = editorMusicColumnContentEnd(music, from);
+  if (to < from) {
+    to = from;
+  }
+  return { start: from, end: to, token: music.slice(from, to) };
+}
+
+function editorPenTokenDur(token, kind) {
+  var m;
+  if (kind === "note") {
+    m = /[A-G](?:##|bb|x|X|#|b|n)?\d([whqesn])?(\.{0,2})/.exec(token || "");
+  } else {
+    m = /^[r/]([whqesn])?(\.{0,2})/i.exec(token || "");
+  }
+  return {
+    base: (m && m[1]) || (kind === "note" ? "q" : "q"),
+    dots: m && m[2] ? m[2].length : 0
+  };
+}
+
+function editorPenLadderIndex(base) {
+  var key = !base || base === "n" ? "q" : base;
+  var i;
+  for (i = 0; i < EDITOR_PEN_LADDER.length; i++) {
+    if (EDITOR_PEN_LADDER[i] === key) {
+      return i;
+    }
+  }
+  return 2;
+}
+
+function editorPenDurArm(drag, target) {
+  var span = editorPenColumnSpan(drag.music, target.col);
+  var pitch;
+  var token;
+  var dur;
+  token = span ? span.token : "";
+  if (target.kind === "note" && target.head) {
+    pitch = editorStaffColumnPitch(drag.music, target.head);
+    if (pitch) {
+      token = drag.music.slice(pitch.start, pitch.end);
+      drag.penTokenStart = pitch.start;
+      drag.penTokenEnd = pitch.end;
+    }
+  }
+  if (drag.penTokenStart == null && span) {
+    drag.penTokenStart = span.start;
+    drag.penTokenEnd = span.end;
+  }
+  dur = editorPenTokenDur(token, target.kind);
+  drag.penDurBase = dur.base;
+  drag.penDurDots = dur.dots;
+  drag.penDurOrigin = editorPenLadderIndex(dur.base);
+  drag.penDurIndex = drag.penDurOrigin;
+  drag.penTarget = target;
+}
+
+function editorPenDurIndexAt(drag, event) {
+  var steps = Math.round(((event && event.clientX) - drag.startX) / EDITOR_PEN_DUR_PX);
+  var index = drag.penDurOrigin + steps;
+  if (index < 0) {
+    index = 0;
+  }
+  if (index >= EDITOR_PEN_LADDER.length) {
+    index = EDITOR_PEN_LADDER.length - 1;
+  }
+  return index;
+}
+
+function editorPenDurPreview(drag) {
+  var preview = document.getElementById("editPreview");
+  var svg = preview && preview.querySelector("svg.music-staff");
+  var target = drag.penTarget;
+  var dur;
+  var name;
+  var gap;
+  var left;
+  if (!svg || !target) {
+    return;
+  }
+  editorClearStaffCue(svg, ".staff-pen-dur");
+  editorPenDrawRing(target, false);
+  if (drag.penDurIndex === drag.penDurOrigin) {
+    return;
+  }
+  dur = EDITOR_PEN_LADDER[drag.penDurIndex];
+  gap = drag.layoutLineGap > 0 ? drag.layoutLineGap : 12;
+  if (target.kind === "rest" && typeof staffRestGlyph === "function") {
+    name = staffRestGlyph(dur);
+  } else if (target.kind === "slash" && typeof staffSlashHeadGlyph === "function") {
+    name = staffSlashHeadGlyph(dur);
+  } else if (typeof staffDurationGlyph === "function") {
+    name = staffDurationGlyph(dur);
+  }
+  if (name && typeof staffPlaceGlyph === "function") {
+    left = typeof target.gx === "number" ? target.gx : target.x - target.rx;
+    staffPlaceGlyph(svg, name, left, typeof target.gy === "number" ? target.gy : target.y, gap, "staff-pen-dur");
+  }
+  if ((dur === "e" || dur === "s") && target.kind !== "rest" && typeof staffFlagGlyph === "function" && typeof staffPlaceGlyph === "function") {
+    staffPlaceGlyph(svg, staffFlagGlyph(dur, true), target.x + (target.rx || 6), target.y - gap * 3.2, gap, "staff-pen-dur");
+  }
+}
+
+function editorPenDurMove(drag, event) {
+  var index;
+  if (!drag || drag.mode !== "pen-dur") {
+    return;
+  }
+  index = editorPenDurIndexAt(drag, event);
+  if (index === drag.penDurIndex) {
+    return;
+  }
+  drag.penDurIndex = index;
+  editorPenDurPreview(drag);
+}
+
+function editorPenInsideBeam(music, at) {
+  var beam;
+  music = String(music || "");
+  beam = editorInnermostGroupAt(music, at + 1, "beam") || editorInnermostGroupAt(music, at, "beam");
+  return !!(beam && at >= beam.innerStart && at < beam.closeStart);
+}
+
+function editorPenDurCommit(drag) {
+  var dur;
+  var dot;
+  var field;
+  var end;
+  var hit;
+  if (!drag || drag.penDurIndex == null || drag.penDurIndex === drag.penDurOrigin) {
+    return;
+  }
+  dur = EDITOR_PEN_LADDER[drag.penDurIndex];
+  if (editorPenInsideBeam(drag.music, drag.penTokenStart || 0) && !editorDurationIsShort(dur)) {
+    editorRefuse(t("edit.faultBeamPitches"));
+    editorPenHoldClearVisual();
+    return;
+  }
+  field = drag.field;
+  if (!field || drag.penTokenEnd == null) {
+    return;
+  }
+  end = drag.lineStart + drag.musicAt + drag.penTokenEnd;
+  editorPlaceCaret(field, end, end, true);
+  dot = drag.penDurDots || 0;
+  hit = editorMusicHitAtCaret();
+  if (hit && hit.kind === "pitch" && editorStackGroupAtCaret()) {
+    if (!editorApplyStackDuration(dur, dot)) {
+      return;
+    }
+  } else if (!hit || !editorApplyDurationToHit(hit, dur, dot)) {
+    return;
+  }
+  editorNote.dur = editorDurCode(dur);
+  editorPenHoldSucceed();
+  editorPaintNotePad();
+}
+
+function editorPenHangSpan(music, col, kind) {
+  var span = editorPenColumnSpan(music, col);
+  var host;
+  var words;
+  var i;
+  var word;
+  var stack;
+  var closer;
+  var after;
+  var m;
+  if (!span) {
+    return null;
+  }
+  host = editorDynamicHostAt(music, span.start);
+  words = editorHangWordsBefore(music, host);
+  for (i = words.length - 1; i >= 0; i--) {
+    word = words[i];
+    if (kind === "dynamic" && (word.kind === "dynamic" || word.kind === "hairpin")) {
+      return word;
+    }
+    if (kind === "chord" && word.kind === "chord" && word.tok.indexOf("^t=") !== 0) {
+      return word;
+    }
+    if (kind === "tempo" && word.tok.indexOf("^t=") === 0) {
+      return word;
+    }
+  }
+  if (kind !== "chord") {
+    return null;
+  }
+  stack = editorInnermostGroupAt(music, span.start + 1, "stack");
+  if (!stack) {
+    return null;
+  }
+  closer = stack.closeStart + 1 + editorStackDurationSuffixLen(music.slice(stack.closeStart + 1));
+  after = music.slice(closer);
+  m = /^\^[^\s]*/.exec(after);
+  if (!m || m[0].indexOf("^t=") === 0) {
+    return null;
+  }
+  return { start: closer, end: closer + m[0].length, tok: m[0], kind: "chord" };
+}
+
+function editorPenFieldRange(drag, start, end) {
+  return {
+    a: drag.lineStart + drag.musicAt + start,
+    b: drag.lineStart + drag.musicAt + end
+  };
+}
+
+function editorPenSelectColumns(drag, col, col1) {
+  var hi = col1 == null ? col : col1;
+  editorStaffPreviewApplyColumnRange(drag.field, drag.lineStart, drag.musicAt, drag.music, col, hi);
+}
+
+function editorPenSelectMark(drag, target) {
+  var word;
+  var range;
+  var span;
+  if (!drag || !target) {
+    return;
+  }
+  if (target.kind === "beam" || target.kind === "tuplet" || target.kind === "hairpin") {
+    editorPenSelectColumns(drag, target.col, target.col1);
+    return;
+  }
+  if (target.kind === "chord" || target.kind === "dynamic" || target.kind === "tempo") {
+    word = editorPenHangSpan(drag.music, target.col, target.kind === "tempo" ? "tempo" : target.kind);
+    if (word) {
+      range = editorPenFieldRange(drag, word.start, word.end);
+      editorPlaceCaret(drag.field, range.a, range.b, true);
+      return;
+    }
+  }
+  span = editorPenColumnSpan(drag.music, target.col);
+  if (!span) {
+    return;
+  }
+  range = editorPenFieldRange(drag, span.end, span.end);
+  editorPlaceCaret(drag.field, range.a, range.a, true);
+}
+
+function editorPenRemoveTarget(drag, target) {
+  var music;
+  var word;
+  var next;
+  var value;
+  var pitch;
+  var range;
+  var span;
+  if (!drag || !target || !drag.field) {
+    return false;
+  }
+  music = String(drag.music || "");
+  if (target.kind === "chord" || target.kind === "dynamic") {
+    word = editorPenHangSpan(music, target.col, target.kind);
+    if (!word) {
+      return false;
+    }
+    next = editorDeleteHangWord(music, word.start, word.end);
+    value = editorStaffSpliceMusic(drag.field.value, drag.lineStart, drag.lineEnd, music, next);
+    if (value == null) {
+      return false;
+    }
+    editorPushSymbolUndo();
+    drag.field.value = value;
+    range = editorPenFieldRange(drag, word.start, word.start);
+    editorPlaceCaret(drag.field, range.a, range.a, true);
+    clearEditorNotice();
+    refreshEditor();
+    editorPaintNotePad();
+    return true;
+  }
+  if (!editorPenDurKind(target.kind)) {
+    return false;
+  }
+  if (target.kind === "note" && target.head) {
+    pitch = editorStaffColumnPitch(music, target.head);
+    if (pitch) {
+      range = editorPenFieldRange(drag, pitch.start, pitch.end);
+      editorPlaceCaret(drag.field, range.a, range.b, true);
+      return editorEraseStep() !== false;
+    }
+  }
+  span = editorPenColumnSpan(music, target.col);
+  if (!span) {
+    return false;
+  }
+  range = editorPenFieldRange(drag, span.start, span.end);
+  editorPlaceCaret(drag.field, range.a, range.b, true);
+  return editorEraseStep() !== false;
 }
 
 /* A bar under the staff moves a line that is wider than the preview. Dragging the notes selects. */
@@ -4511,6 +5154,7 @@ function editorStaffPreviewScrollPointerDown(event) {
   event.stopPropagation();
   editorStaffPreviewClearClipHold();
   editorStaffPreviewStopEdgeScroll();
+  editorPenHoldClear();
   editorStaffDrag = null;
   editorStaffScrollDrag = event.pointerId;
   if (typeof bar.setPointerCapture === "function") {
@@ -6059,6 +6703,9 @@ function editorStaffPreviewHover(event) {
 
 function editorStaffPreviewPointerLeave() {
   editorStaffPitchHotHide();
+  if (editorPenHold && editorStaffDrag && !editorStaffDrag.dragging && editorStaffDrag.mode !== "pen-dur") {
+    editorPenHoldClear();
+  }
 }
 
 function editorStaffPlaceInBand(hit) {
@@ -6247,6 +6894,16 @@ function editorStaffPreviewPointerDown(event) {
   } else if (event.pointerType === "pen" && editorSymbolsIsOpen() && !head) {
     penTarget = placeSeed;
   }
+  /* A rest, slash, chord, dynamic, beam, or tuplet is the pencil target, not a gap. */
+  if (
+    event.pointerType === "pen" &&
+    editorPitchStaffOn() &&
+    !editorDrumOn() &&
+    editorPenTargetAt(hit)
+  ) {
+    penTarget = null;
+    placeSeed = null;
+  }
   editorStaffDrag = {
     pointerId: event.pointerId,
     startInsert: hit.insertIndex,
@@ -6279,6 +6936,7 @@ function editorStaffPreviewPointerDown(event) {
   preview = document.getElementById("editPreview");
   editorStaffHoverClearHot(preview);
   if (!penTarget) {
+    editorPenHoldBegin(editorStaffDrag, hit, event);
     if (editorStaffGhost) {
       editorStaffPreviewClearGhost();
     }
@@ -6311,6 +6969,19 @@ function editorStaffPreviewPointerMove(event) {
       return;
     }
     editorStaffPreviewClearClipHold();
+    if (editorPenHoldTakeMove(drag, dx, dy)) {
+      drag.dragging = true;
+      editorStaffPreviewBeginEdit();
+      preview = document.getElementById("editPreview");
+      editorStaffPreviewCapture(preview, event.pointerId);
+      if (drag.mode === "pen-dur") {
+        editorPenDurMove(drag, event);
+      }
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      return;
+    }
     drag.dragging = true;
     drag.notesWereOpen = editorSymbolsIsOpen();
     editorStaffPreviewBeginEdit();
@@ -6345,6 +7016,19 @@ function editorStaffPreviewPointerMove(event) {
       editorStaffPreviewClearGhost();
       editorStaffPreviewEnsureEdgeScroll();
     }
+  }
+  if (drag.mode === "pen-dur") {
+    editorPenDurMove(drag, event);
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    return;
+  }
+  if (drag.mode === "pen-cancel") {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    return;
   }
   if (drag.mode === "pitch") {
     editorStaffPitchDragMove(drag, event);
@@ -6383,6 +7067,7 @@ function editorStaffPreviewPointerUp(event) {
   var hit;
   var col;
   var preview;
+  var penSnap;
   editorStaffPreviewClearClipHold();
   if (!drag || (event.pointerId != null && event.pointerId !== drag.pointerId)) {
     if (event && event.pointerType === "pen") {
@@ -6402,6 +7087,32 @@ function editorStaffPreviewPointerUp(event) {
       }
     } catch (errRel) {}
   }
+  penSnap = editorPenHold;
+  if (drag.mode === "pen-dur") {
+    editorPenDurCommit(drag);
+    editorPenHoldClear();
+    editorStaffDrag = null;
+    editorStaffGestureMarkSeen();
+    editorBeginPadInput();
+    editorPaintNotePad();
+    editorSyncTokenHighlight();
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    return;
+  }
+  if (drag.mode === "pen-cancel" || drag.mode === "pen-delete") {
+    editorPenHoldClear();
+    editorStaffDrag = null;
+    editorBeginPadInput();
+    editorPaintNotePad();
+    editorSyncTokenHighlight();
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    return;
+  }
+  editorPenHoldClear();
   if (drag.mode === "drum") {
     editorStaffDrag = null;
     if (drag.dragging && drag.penWrite) {
@@ -6481,6 +7192,18 @@ function editorStaffPreviewPointerUp(event) {
     drag.field = hit.field;
   }
   if (!drag.dragging) {
+    if (penSnap && event.pointerType === "pen" && penSnap.target && editorPenSelectKind(penSnap.target.kind)) {
+      editorStaffPreviewBeginEdit();
+      editorPenSelectMark(drag, penSnap.target);
+      editorStaffGestureMarkSeen();
+      editorBeginPadInput();
+      editorPaintNotePad();
+      editorSyncTokenHighlight();
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      return;
+    }
     if (editorDrumOn() && drag.drumTouch && drag.notesWereOpen) {
       if (!editorDrumFingerWrite(hit || drag)) {
         editorDrumPlaceAt(hit || drag);
@@ -6530,6 +7253,7 @@ function editorStaffPreviewPointerUp(event) {
 function editorStaffPreviewPointerCancel(event) {
   var preview;
   var drag = editorStaffDrag;
+  editorPenHoldClear();
   if (!drag) {
     return;
   }

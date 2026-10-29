@@ -34,6 +34,11 @@ function finish() {
     } else {
       localStorage.setItem("eization-staff-gesture", savedGesture);
     }
+    if (savedPenHold === null) {
+      localStorage.removeItem("eization-pen-hold");
+    } else {
+      localStorage.setItem("eization-pen-hold", savedPenHold);
+    }
   } catch (err) {}
   lines.push(failed ? failed + " failed" : "all passed");
   document.getElementById("out").textContent = lines.join("\n");
@@ -44,14 +49,17 @@ var savedDesk = null;
 var savedInstall = null;
 var savedBackup = null;
 var savedGesture = null;
+var savedPenHold = null;
 try {
   savedDesk = localStorage.getItem("eization-desk");
   savedInstall = localStorage.getItem("eization-install");
   savedBackup = localStorage.getItem("eization-backup");
   savedGesture = localStorage.getItem("eization-staff-gesture");
+  savedPenHold = localStorage.getItem("eization-pen-hold");
   localStorage.removeItem("eization-desk");
   localStorage.setItem("eization-hello", "1");
   localStorage.setItem("eization-staff-gesture", "1");
+  localStorage.removeItem("eization-pen-hold");
 } catch (err) {}
 
 var frame = document.createElement("iframe");
@@ -90,6 +98,274 @@ function installCase(w) {
   })());
 }
 
+function penStaffHold(w) {
+  var focusLine = w.document.getElementById("editFocusLine");
+  var preview;
+  var svg;
+  var layout;
+  var ctm;
+  var pt;
+  var id = 120;
+  var kindBefore;
+  function poke(el) {
+    var opts;
+    if (!el) {
+      return;
+    }
+    opts = { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse" };
+    el.dispatchEvent(new w.PointerEvent("pointerdown", opts));
+    el.dispatchEvent(new w.PointerEvent("pointerup", opts));
+  }
+  function ready(line) {
+    w.editorOpen();
+    w.editorSetViewMode("focus");
+    w.setEditorKind("staff");
+    w.editorOpenSymbols();
+    w.editorNote.dur = "";
+    w.editorNote.dot = false;
+    w.editorNote.dots = 0;
+    w.editorPenHoldClear();
+    w.editorPenHoldHintOn = false;
+    focusLine.value = line;
+    focusLine.dispatchEvent(new w.Event("input", { bubbles: true }));
+    focusLine.setSelectionRange(line.length, line.length);
+    w.editorPadCaret = { start: line.length, end: line.length };
+    w.refreshEditor();
+    preview = w.document.getElementById("editPreview");
+    svg = preview && preview.querySelector("svg.music-staff");
+    layout = preview && preview._staffCaretLayout;
+    ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+    if (!svg || !layout || !ctm || typeof svg.createSVGPoint !== "function") {
+      return false;
+    }
+    pt = svg.createSVGPoint();
+    return true;
+  }
+  function fire(type, x, sy, buttons, kind) {
+    var screen;
+    pt.x = x;
+    pt.y = sy;
+    screen = pt.matrixTransform(ctm);
+    preview.dispatchEvent(
+      new w.PointerEvent(type, {
+        clientX: screen.x,
+        clientY: screen.y,
+        bubbles: true,
+        cancelable: true,
+        view: w,
+        pointerId: id,
+        pointerType: kind || "pen",
+        button: 0,
+        buttons: buttons
+      })
+    );
+  }
+  function svgDx(clientDx) {
+    var scale = Math.abs(ctm.a) || 1;
+    return clientDx / scale;
+  }
+  function inkKind(kind) {
+    var list = layout.penInks || [];
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].kind === kind) {
+        return list[i];
+      }
+    }
+    return null;
+  }
+  function notice() {
+    var error = w.document.getElementById("editError");
+    var text = error && w.editorNoticeText(error);
+    return text ? String(text.textContent || "") : "";
+  }
+  if (!focusLine) {
+    check("pencil ring finds the example", false);
+    return;
+  }
+  kindBefore = w.editorKindName();
+  localStorage.removeItem("eization-pen-hold");
+  if (!ready("mf ^G C4q rq /q {C4e D4e} (3 E4e F4e G4e)")) {
+    check("pencil ring finds the example", false);
+    return;
+  }
+  check(
+    "pencil can aim at a chord, a dynamic, a rest, a slash, a beam, and a tuplet",
+    !!inkKind("chord") && !!inkKind("dynamic") && !!inkKind("rest") && !!inkKind("slash") && !!inkKind("beam") && !!inkKind("tuplet")
+  );
+  var head = layout.heads && layout.heads[0];
+  if (!head) {
+    check("a mouse press does not arm the pencil", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  fire("pointerdown", head.x, head.y, 1, "mouse");
+  check("a mouse press does not arm the pencil", !w.editorPenHold);
+  fire("pointerup", head.x, head.y, 0, "mouse");
+  fire("pointerdown", head.x, head.y, 1, "touch");
+  check("a finger press does not arm the pencil", !w.editorPenHold);
+  fire("pointerup", head.x, head.y, 0, "touch");
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  check("a pencil press on a note arms the ring", !!(w.editorPenHold && w.editorPenHold.phase === "wait"));
+  fire("pointermove", head.x + svgDx(40), head.y, 1, "pen");
+  fire("pointerup", head.x + svgDx(40), head.y, 0, "pen");
+  check(
+    "a quick sideways pencil drag still selects",
+    focusLine.value === "mf ^G C4q rq /q {C4e D4e} (3 E4e F4e G4e)" &&
+      focusLine.selectionStart !== focusLine.selectionEnd &&
+      !w.editorPenHold
+  );
+  if (!ready("C4q")) {
+    check("a sideways drag after the ring lengthens the note", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("ring");
+  check(
+    "the pencil ring is dark until the warning",
+    !!preview.querySelector(".staff-pen-ring") &&
+      !preview.querySelector(".staff-pen-ring.is-warn") &&
+      w.document.getElementById("editPenHold") &&
+      w.document.getElementById("editPenHold").textContent === w.t("edit.penHold")
+  );
+  fire("pointermove", head.x, head.y - (layout.lineGap || 12) * 2, 1, "pen");
+  fire("pointerup", head.x, head.y - (layout.lineGap || 12) * 2, 0, "pen");
+  check("after the ring an upward drag still retunes", focusLine.value === "G4q");
+  poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+  if (!ready("C4q")) {
+    check("a sideways drag after the ring lengthens the note", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("ring");
+  fire("pointermove", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 1, "pen");
+  check(
+    "the length changes on the note before it is written",
+    focusLine.value === "C4q" && !!preview.querySelector(".staff-pen-dur")
+  );
+  fire("pointerup", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 0, "pen");
+  check("a sideways drag after the ring lengthens the note", focusLine.value === "C4h");
+  check("the pencil hint leaves after the length changes", !w.document.getElementById("editPenHold") && localStorage.getItem("eization-pen-hold") === "1");
+  poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+  check("undo restores the length in one step", focusLine.value === "C4q");
+  if (!ready("{C4e D4e}")) {
+    check("a long value stays in the beam", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("ring");
+  fire("pointermove", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 1, "pen");
+  fire("pointerup", head.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), head.y, 0, "pen");
+  check("a long value stays in the beam", focusLine.value === "{C4e D4e}" && notice() === w.t("edit.faultBeamPitches"));
+  if (!ready("C4q")) {
+    check("moving after the warning keeps the note", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  check("the warning ring is red", !!preview.querySelector(".staff-pen-ring.is-warn"));
+  fire("pointermove", head.x + svgDx(40), head.y, 1, "pen");
+  fire("pointerup", head.x + svgDx(40), head.y, 0, "pen");
+  check("moving after the warning keeps the note", focusLine.value === "C4q");
+  if (!ready("^G C4q")) {
+    check("a pencil tap selects the chord name", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  var chord = inkKind("chord");
+  fire("pointerdown", chord.x, chord.y, 1, "pen");
+  fire("pointerup", chord.x, chord.y, 0, "pen");
+  check(
+    "a pencil tap selects the chord name",
+    focusLine.value.slice(focusLine.selectionStart, focusLine.selectionEnd).indexOf("^G") === 0
+  );
+  if (!ready("^G C4q")) {
+    check("a long pencil hold removes the chord name", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  chord = inkKind("chord");
+  fire("pointerdown", chord.x, chord.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", chord.x, chord.y, 0, "pen");
+  check("a long pencil hold removes the chord name", focusLine.value === "C4q");
+  poke(w.document.querySelector("#editNoteHistory [data-undo]"));
+  if (!ready("mf C4q")) {
+    check("a long pencil hold removes the dynamic", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  var dyn = inkKind("dynamic");
+  fire("pointerdown", dyn.x, dyn.y, 1, "pen");
+  w.editorPenHoldReach("warn");
+  w.editorPenHoldReach("delete");
+  fire("pointerup", dyn.x, dyn.y, 0, "pen");
+  check("a long pencil hold removes the dynamic", focusLine.value === "C4q");
+  if (!ready("rq")) {
+    check("a sideways drag after the ring lengthens a rest", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  var rest = inkKind("rest");
+  fire("pointerdown", rest.x, rest.y, 1, "pen");
+  w.editorPenHoldReach("ring");
+  fire("pointermove", rest.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), rest.y, 1, "pen");
+  fire("pointerup", rest.x + svgDx(w.EDITOR_PEN_DUR_PX + 6), rest.y, 0, "pen");
+  check("a sideways drag after the ring lengthens a rest", focusLine.value === "rh");
+  w.editorCloseSymbols();
+  if (!ready("C4q")) {
+    w.editorOpenSymbols();
+    check("a pencil press with Write notes closed does not arm", false);
+    w.setEditorKind(kindBefore);
+    return;
+  }
+  w.editorCloseSymbols();
+  head = layout.heads && layout.heads[0];
+  fire("pointerdown", head.x, head.y, 1, "pen");
+  check("a pencil press with Write notes closed does not arm", !w.editorPenHold);
+  fire("pointerup", head.x, head.y, 0, "pen");
+  w.editorOpenSymbols();
+  w.setEditorKind("drum");
+  w.editorOpenSymbols();
+  w.refreshEditor();
+  preview = w.document.getElementById("editPreview");
+  svg = preview && preview.querySelector("svg.music-staff");
+  ctm = svg && typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+  if (svg && ctm && typeof svg.createSVGPoint === "function") {
+    pt = svg.createSVGPoint();
+    fire("pointerdown", 40, 40, 1, "pen");
+    check("a pencil press on a drum staff does not arm", !w.editorPenHold);
+    fire("pointerup", 40, 40, 0, "pen");
+  } else {
+    check("a pencil press on a drum staff does not arm", false);
+  }
+  w.setEditorKind(kindBefore === "drum" ? "staff" : kindBefore);
+  w.editorPenHoldClear();
+  if (typeof w.editorCloseMore === "function") {
+    w.editorCloseMore();
+  }
+  var moreMenu = w.document.getElementById("editMoreMenu");
+  var moreButton = w.document.getElementById("editMore");
+  if (moreMenu) {
+    moreMenu.hidden = true;
+  }
+  if (moreButton) {
+    moreButton.setAttribute("aria-expanded", "false");
+  }
+  if (w.editorIsOpen()) {
+    w.editorCancel();
+  }
+}
+
 function run() {
   var w;
   try {
@@ -123,6 +399,7 @@ function run() {
     foreignDesk(w);
     storageMigration(w);
     backupAskCase(w);
+    penStaffHold(w);
     check("practice screen can stay awake", typeof w.keepPracticeAwake === "function" && typeof w.practiceScreenAwake === "function");
     w.keepPracticeAwake();
     check("staying awake leaves play stopped", w.paused === true);

@@ -3238,6 +3238,23 @@ body.is-editing #counter {
   opacity: 0.55;
 }
 
+/* Pencil ring. Dark until the remove warning. The hot-note blue stays a hover. */
+#editPreview.is-staff .staff-pen-ring {
+  fill: none;
+  stroke: #222;
+  stroke-width: 1.35;
+  pointer-events: none;
+}
+
+#editPreview.is-staff .staff-pen-ring.is-warn {
+  stroke: #b42318;
+}
+
+#editPreview.is-staff .staff-pen-dur {
+  fill: #111;
+  pointer-events: none;
+}
+
 /* One line under the staff until a tap or a drag. Quiet, not the yellow fault note. */
 #editPreview.is-staff .edit-staff-gesture {
   position: sticky;
