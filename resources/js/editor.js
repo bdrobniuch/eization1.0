@@ -4471,8 +4471,9 @@ function editorSyncStaffGesture() {
  * only get the hover. Drums stay on their own path.
  */
 var EDITOR_PEN_HOLD_KEY = "eization-pen-hold";
-var EDITOR_PEN_WARN_MS = 900;
-var EDITOR_PEN_DELETE_MS = 1400;
+/* Red lasts as long as the wait before it, so the pencil can lift in time. */
+var EDITOR_PEN_WARN_MS = 600;
+var EDITOR_PEN_DELETE_MS = 1200;
 var editorPenHold = null;
 var editorPenHoldHintOn = false;
 var editorPenPainted = null;
