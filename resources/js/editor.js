@@ -9127,6 +9127,14 @@ function editorTupletCloserIndex(line, openEnd) {
     if (typeof staffTokenClosesTuplet === "function" && staffTokenClosesTuplet(tok)) {
       return i - 1;
     }
+    /* D4s)~ keeps the tie on the closer. The ) still ends the tuplet. */
+    if (
+      tok.charAt(tok.length - 1) === "~" &&
+      typeof staffTokenClosesTuplet === "function" &&
+      staffTokenClosesTuplet(tok.slice(0, -1))
+    ) {
+      return i - 2;
+    }
   }
   return -1;
 }
@@ -14756,6 +14764,7 @@ function editorEraseOrphanReason(fault) {
   return (
     reason === "tie needs a note before it" ||
     reason === "tie needs a note after it" ||
+    reason === "tie needs the same pitch" ||
     reason === "dangling dynamic" ||
     reason === "hairpin needs a note"
   );
@@ -14769,6 +14778,7 @@ function editorDropFaultWord(line, fault) {
   var end;
   var spaceBefore;
   var spaceAfter;
+  var gluedCloser;
   if (!fault || fault.start < 0 || fault.end <= fault.start) {
     return line;
   }
@@ -14780,11 +14790,13 @@ function editorDropFaultWord(line, fault) {
   }
   spaceBefore = start > 0 && /\s/.test(music.charAt(start - 1));
   spaceAfter = end < music.length && /\s/.test(music.charAt(end));
+  /* }~ D4 would become }D4 if the space after the tie were eaten. */
+  gluedCloser = start > 0 && /[}\])]/.test(music.charAt(start - 1));
   if (spaceBefore && spaceAfter) {
     end += 1;
   } else if (spaceBefore) {
     start -= 1;
-  } else if (spaceAfter) {
+  } else if (spaceAfter && !gluedCloser) {
     end += 1;
   }
   return music.slice(0, start) + music.slice(end) + (parts.caption || "");

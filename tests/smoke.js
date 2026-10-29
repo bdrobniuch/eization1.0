@@ -7042,6 +7042,32 @@ function chatCase(w) {
         "erase drops a tie that does not reach the next note",
         selectNth("C4q~ C4q D4q", "C4q", 2, "C4q D4q")
       );
+      (function () {
+        var tied = "(3 {C4e_1 D4e_2}~ D4e~ D4s)~ [D4 A4]e_5 re re C5e_1";
+        var at;
+        placeCaret(tied);
+        at = tied.indexOf("D4e_2") + 3;
+        w.editorPlaceCaret(focusLine, at, at, true);
+        poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+        check(
+          "erase drops a beam tie that would join different pitches",
+          focusLine.value.indexOf("C4e_1") >= 0 &&
+            focusLine.value.indexOf("D4e_2") < 0 &&
+            focusLine.value.indexOf("}~") < 0 &&
+            !!w.parseMusicNotation(focusLine.value)
+        );
+        placeCaret(tied);
+        at = tied.indexOf("[D4") + 2;
+        w.editorPlaceCaret(focusLine, at, at, true);
+        poke(w.document.querySelector("#editNoteHistory [data-erase]"));
+        check(
+          "erase drops a tuplet tie that would join the other chord tone",
+          focusLine.value.indexOf("A4") >= 0 &&
+            focusLine.value.indexOf("[") < 0 &&
+            focusLine.value.indexOf(")~") < 0 &&
+            !!w.parseMusicNotation(focusLine.value)
+        );
+      })();
       check(
         "erase drops a dynamic that hung only on the deleted tuplet",
         erased("mf (3 C4e D4e E4e)", "C4e", "E4e)", "")
